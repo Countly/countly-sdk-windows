@@ -1,5 +1,5 @@
-countly-sdk-windows-phone
-=========================
+Countly SDK for Windows Phone
+=============================
 
 Countly Windows Phone SDK is developed by Tom Myles (tom.m935@gmail.com). It also includes support for custom events. 
 
