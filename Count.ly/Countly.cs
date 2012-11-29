@@ -1,4 +1,11 @@
-﻿using System;
+// Uncomment this so the library can make use of Windows Phone 8 API's
+// Note: You will also have to upgrade the library to Windows Phone 8,
+// Just right click on the project in visual studio and go Upgrade To
+// Windows Phone 8.0
+
+//#define WP8
+
+using System;
 using System.Net;
 using System.Threading;
 using System.Collections.Generic;
@@ -435,20 +442,24 @@ namespace Countly
 
         public static string getResolution()
         {
-            ManualResetEvent Syncroniser = new ManualResetEvent(false);
-            double Width = 0;
-            double Height = 0;
+#if WP8
+            switch(Application.Current.Host.Content.ScaleFactor)
+            {
+                case 100:
+                    return "800x480";
 
-            Deployment.Current.Dispatcher.BeginInvoke(() =>
-                {
-                    Width = Application.Current.RootVisual.RenderSize.Width;
-                    Height = Application.Current.RootVisual.RenderSize.Height;
+                case 150:
+                    return "1280x720";
 
-                    Syncroniser.Set();
-                });
+                case 160:
+                    return "1280x768";
 
-            Syncroniser.WaitOne();
-            return Height + "x" + Width;
+                default:
+                    return "???";
+            }
+#else
+            return "800x480";
+#endif
         }
 
         public static string getCarrier()
