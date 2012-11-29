@@ -277,8 +277,17 @@ namespace Countly
             data += "&" + "device_id=" + DeviceInfo.getUDID();
             data += "&" + "events=" + "[";
 
+            bool First1 = true;
             foreach(Countly.CountlyEvent CurrentEvent in Events)
             {
+                if (First1)
+                {
+                    First1 = false;
+                }
+                else
+                {
+                    data += ",";
+                }
                 data += "{";
                 data += "\"" + "key" + "\"" + ":" + "\"" + CurrentEvent.Key + "\"" + ",";
                 data += "\"" + "count" + "\"" + ":" + CurrentEvent.Count;
@@ -292,12 +301,12 @@ namespace Countly
                     data += ",";
                     data += "\"" + "segmentation" + "\"" + ":" + "{";
 
-                    bool First = true;
+                    bool First2 = true;
                     foreach (String CurrentKey in CurrentEvent.Segmentation.Keys)
                     {
-                        if (First)
+                        if (First2)
                         {
-                            First = false;
+                            First2 = false;
                         }
                         else
                         {
