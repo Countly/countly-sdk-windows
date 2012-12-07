@@ -452,7 +452,24 @@ namespace Countly
         public static string getResolution()
         {
 #if WP8
-            switch(Application.Current.Host.Content.ScaleFactor)
+            int ScaleFactor = 0;
+
+            if (Deployment.Current.Dispatcher.CheckAccess())
+            {
+                ScaleFactor = Application.Current.Host.Content.ScaleFactor;
+            }
+            else
+            {
+                ManualResetEvent Continue = new ManualResetEvent(false);
+                Deployment.Current.Dispatcher.BeginInvoke(() =>
+                    {
+                        ScaleFactor = Application.Current.Host.Content.ScaleFactor;
+                        Continue.Set();
+                    });
+                Continue.WaitOne();
+            }
+
+            switch (ScaleFactor)
             {
                 case 100:
                     return "800x480";
