@@ -10,7 +10,7 @@ This repository includes the SDK for Windows Phone. It's developed by [Tom Myles
 and [Orkun Senturk](mailto:orkun.senturk@8bitiz.com).
 
 
-##Installing Countly SDK
+##Installing Windows Phone SDK
 
   1. Download Countly Windows Phone SDK
   2. Extract all to any folder
