@@ -62,13 +62,20 @@ the server that collects and analyzes data, and mobile SDK that sends this data
   10. You can run your application on a device or an emulator provided by Visual Studio Windows Phone 8 development kit.
 
 
-Countly Server source code:
+Check Countly Server source code here: 
 
 - [Countly Server (countly-server)](https://github.com/Countly/countly-server)
 
-Other Countly SDK repositories:
+There are also other Countly SDK repositories below:
 
 - [Countly iOS SDK (countly-sdk-ios)](https://github.com/Countly/countly-sdk-ios)
 - [Countly Android SDK (countly-sdk-android)](https://github.com/Countly/countly-sdk-android)
 - [Countly Windows Phone SDK (countly-sdk-windows-phone)](https://github.com/Countly/countly-sdk-windows-phone)
 - [Countly Blackberry Webworks SDK (countly-sdk-blackberry-webworks)](https://github.com/Countly/countly-sdk-blackberry-webworks)
+
+##How can I help you with your efforts?
+Glad you asked. We need ideas, feedbacks and constructive comments. All your suggestions will be taken care with upmost importance. 
+
+We are on [Twitter](http://twitter.com/gocountly) and [Facebook](http://www.facebook.com/Countly) if you would like to keep up with our fast progress!
+
+For community support page, see [http://support.count.ly](http://support.count.ly "Countly Support").
