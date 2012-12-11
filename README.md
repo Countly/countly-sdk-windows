@@ -12,6 +12,12 @@ mobile application usage and end-user behavior. There are two parts of Countly:
 the server that collects and analyzes data, and mobile SDK that sends this data 
 (for iOS, Android, Windows Phone and Blackberry). Both parts are open source.
 
+##Installing Countly SDK
+
+* 1
+* 2
+
+
 Countly Server source code:
 
 - [Countly Server (countly-server)](https://github.com/Countly/countly-server)
