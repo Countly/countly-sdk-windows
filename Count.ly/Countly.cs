@@ -311,7 +311,7 @@ namespace Countly
             string data = "";
             data += "app_key=" + AppKey;
             data += "&" + "device_id=" + DeviceInfo.getUDID();
-            data += "&" + "events=" + JsonConvert.SerializeObject(Events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore, ContractResolver = new CamelCasePropertyNamesContractResolver() });
+            data += "&" + "events=" + HttpUtility.UrlEncode(JsonConvert.SerializeObject(Events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore, ContractResolver = new CamelCasePropertyNamesContractResolver() }));
 
             //bool First1 = true;
             //foreach(Countly.CountlyEvent CurrentEvent in Events)
