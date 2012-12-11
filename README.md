@@ -31,7 +31,7 @@ the server that collects and analyzes data, and mobile SDK that sends this data
   8. Go to **App.xaml** file in Countly Test project and update init method in **Application_Activated** and **Application_Deactivated** event handlers with your application key. There is third optional parameter at init method which you can use to send your application version number to countly. Final look should be like this :
 
 <pre class="prettyprint">
-
+...
    // Code to execute when the application is launching (eg, from Start)
         // This code will not execute when the application is reactivated
         private void Application_Launching(object sender, LaunchingEventArgs e)
@@ -53,6 +53,7 @@ the server that collects and analyzes data, and mobile SDK that sends this data
                 Countly.Countly.SharedInstance().OnStart();
             });
         }
+...
 </pre>
 
 
