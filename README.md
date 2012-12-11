@@ -16,7 +16,7 @@ the server that collects and analyzes data, and mobile SDK that sends this data
 
   1. Download Countly Windows Phone SDK
   2. Extract all to any folder
-  3. Open Countly.sln file with Visual Studio 2012
+  3. Open **Countly.sln** file with Visual Studio 2012
   4. You now have three projects in your solution : Countly (main SDK) , OpenUDID (dependency) and Countly Test quickstarter project.
   5. Right click solution , click **"Manage NuGet Packages"**. Select Online and search for **Json.NET** and install it for Countly SDK project only. After installation completed, go to References of the Countly SDK project and check newtonsoft.json is added to references.
   6. Right click Countly SDK project, click Properties, then at Application tab select appropriate **"Target Windows Phone OS Version"**. If you select Windows 7, please uncomment line 2 in Countly.cs in Countly project :
