@@ -67,7 +67,7 @@ namespace CountlyTest
         {
             System.Threading.ThreadPool.QueueUserWorkItem((o) =>
                 {
-                    Countly.Countly.SharedInstance().init("http://demo.count.ly", "c3e3ea3fa1f3cc43a668c53e17da0ecd8072243f");
+                    Countly.Countly.SharedInstance().init("http://demo.count.ly", "c3e3ea3fa1f3cc43a668c53e17da0ecd8072243f","1.0");
                     Countly.Countly.SharedInstance().OnStart();
                 });
         }
@@ -78,7 +78,7 @@ namespace CountlyTest
         {
             System.Threading.ThreadPool.QueueUserWorkItem((o) =>
             {
-                Countly.Countly.SharedInstance().init("http://demo.count.ly", "c3e3ea3fa1f3cc43a668c53e17da0ecd8072243f");
+                Countly.Countly.SharedInstance().init("http://demo.count.ly", "c3e3ea3fa1f3cc43a668c53e17da0ecd8072243f","1.0");
                 Countly.Countly.SharedInstance().OnStart();
             });
         }
