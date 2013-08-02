@@ -1,5 +1,5 @@
 //Uncomment this so the library can make use of Windows Phone 8 API's
-#define WP8
+//#define WP8
 
 using System;
 using System.Net;
@@ -551,41 +551,59 @@ namespace Countly
 
         public static string getResolution()
         {
-#if WP8
             int ScaleFactor = 0;
+            double LogicalWidth = 0.0;
+            double LogicalHeight = 0.0;
+
+            if (Environment.OSVersion.Version.Major < 8.0)
+            {
+                return "800x480";
+            }
 
             if (Deployment.Current.Dispatcher.CheckAccess())
             {
+#if WP8
                 ScaleFactor = Application.Current.Host.Content.ScaleFactor;
+#else
+                ScaleFactor = (int)Application.Current.Host.Content.GetType().GetProperty("ScaleFactor").GetGetMethod().Invoke(Application.Current.Host.Content, null);
+#endif
             }
             else
             {
                 ManualResetEvent Continue = new ManualResetEvent(false);
                 Deployment.Current.Dispatcher.BeginInvoke(() =>
                     {
+#if WP8
                         ScaleFactor = Application.Current.Host.Content.ScaleFactor;
+#else
+                        ScaleFactor = (int)Application.Current.Host.Content.GetType().GetProperty("ScaleFactor").GetGetMethod().Invoke(Application.Current.Host.Content, null);
+#endif
+                        LogicalWidth = Application.Current.Host.Content.ActualWidth;
+                        LogicalHeight = Application.Current.Host.Content.ActualHeight;
+
                         Continue.Set();
                     });
                 Continue.WaitOne();
             }
 
-            switch (ScaleFactor)
-            {
-                case 100:
-                    return "800x480";
+            double Scale = (double)ScaleFactor / 100;
 
-                case 150:
-                    return "1280x720";
+            return (LogicalHeight * Scale).ToString("F0") + "x" + (LogicalWidth * Scale).ToString("F0");
 
-                case 160:
-                    return "1280x768";
+            //switch (ScaleFactor)
+            //{
+            //    case 100:
+            //        return "800x480";
 
-                default:
-                    return "???";
-            }
-#else
-            return "800x480";
-#endif
+            //    case 150:
+            //        return "1280x720";
+
+            //    case 160:
+            //        return "1280x768";
+
+            //    default:
+            //        return "???";
+            //}
         }
 
         public static string getCarrier()
