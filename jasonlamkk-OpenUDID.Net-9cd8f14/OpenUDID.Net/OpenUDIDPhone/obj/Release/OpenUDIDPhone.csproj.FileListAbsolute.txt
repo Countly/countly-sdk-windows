@@ -1,4 +1,0 @@
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\jasonlamkk-OpenUDID.Net-9cd8f14\OpenUDID.Net\OpenUDIDPhone\Bin\Release\OpenUDIDPhone.dll
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\jasonlamkk-OpenUDID.Net-9cd8f14\OpenUDID.Net\OpenUDIDPhone\Bin\Release\OpenUDIDPhone.pdb
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\jasonlamkk-OpenUDID.Net-9cd8f14\OpenUDID.Net\OpenUDIDPhone\obj\Release\OpenUDIDPhone.dll
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\jasonlamkk-OpenUDID.Net-9cd8f14\OpenUDID.Net\OpenUDIDPhone\obj\Release\OpenUDIDPhone.pdb

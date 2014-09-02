@@ -1,7 +1,0 @@
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\WindowsDesktopConsoleTester\bin\Debug\WindowsDesktopConsoleTester.exe
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\WindowsDesktopConsoleTester\bin\Debug\WindowsDesktopConsoleTester.pdb
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\WindowsDesktopConsoleTester\bin\Debug\OpenUDIDCSharp.dll
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\WindowsDesktopConsoleTester\bin\Debug\OpenUDIDCSharp.pdb
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\WindowsDesktopConsoleTester\obj\x86\Debug\ResolveAssemblyReference.cache
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\WindowsDesktopConsoleTester\obj\x86\Debug\WindowsDesktopConsoleTester.exe
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\WindowsDesktopConsoleTester\obj\x86\Debug\WindowsDesktopConsoleTester.pdb

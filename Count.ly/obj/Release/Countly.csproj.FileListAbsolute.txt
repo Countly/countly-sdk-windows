@@ -1,7 +1,0 @@
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\Count.ly\obj\Release\Countly.csprojResolveAssemblyReference.cache
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\Count.ly\Bin\Release\Count.ly.dll
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\Count.ly\Bin\Release\Count.ly.pdb
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\Count.ly\Bin\Release\OpenUDIDPhone.dll
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\Count.ly\Bin\Release\OpenUDIDPhone.pdb
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\Count.ly\obj\Release\Count.ly.dll
-C:\Users\tom\Documents\Visual Studio 2010\Projects\Count.ly\Count.ly\obj\Release\Count.ly.pdb

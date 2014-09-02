@@ -1,5 +1,0 @@
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\OpenUDIDCSharp\obj\Debug\ResolveAssemblyReference.cache
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\OpenUDIDCSharp\bin\Debug\OpenUDIDCSharp.dll
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\OpenUDIDCSharp\bin\Debug\OpenUDIDCSharp.pdb
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\OpenUDIDCSharp\obj\Debug\OpenUDIDCSharp.dll
-c:\users\jason\documents\visual studio 2010\Projects\OpenUDID.Net\OpenUDIDCSharp\obj\Debug\OpenUDIDCSharp.pdb
