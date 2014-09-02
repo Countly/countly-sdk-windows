@@ -10,7 +10,9 @@ This repository includes the SDK for Windows Phone
   2. Extract all files to any folder
 
   3. In Solution Explorer open context menu on References folder
+
   4. Click the Add Reference button to open the Add Reference dialog box
+
   5. In the Add Reference dialog box, click on Browse and select **Countly.dll**, **Newtonsoft.Json.dll** and **OpenUDIDPhone.dll**
 
 ##Set up SDK
@@ -21,6 +23,7 @@ Countly SDK requires **ID_CAP_IDENTITY_DEVICE** and **ID_CAP_NETWORKING** to be 
 Add **using CountlySDK;** in the **App.xaml.cs** usings section
 
 Call **Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY")** in App.xaml.cs **Application_Launching** and **Application_Activated** events, which requires your App key and the URL of your Countly server (use https://cloud.count.ly for Countly Cloud)
+
 Call **Countly.EndSession()** in App.xaml.cs **Application_Deactivated** and **Application_Closing** events
 
 <pre class="prettyprint">
@@ -43,7 +46,7 @@ Call **Countly.EndSession()** in App.xaml.cs **Application_Deactivated** and **A
 
 Note: Make sure you use App Key (found under Management -> Applications) and not API Key. Entering API Key will not work.
 
-3. Record events
+##Record events
 
 Add **using CountlySDK;** in the usings section
 
@@ -76,7 +79,7 @@ For record events from Background Agent, call **Countly.StartBackgroundSession("
 
 Note: use **async/await** in background agent. This allows to call NotifyComplete() only when record is processed 
 
-4. Use some extra features
+##Use some extra features
 
 How can I make sure that requests to Countly are sent correctly?
 Enable logging: **Countly.IsLoggingEnabled = true;**. You can turn it on and off in any place
