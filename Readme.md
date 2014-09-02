@@ -17,7 +17,6 @@ This repository includes the SDK for Windows Phone
 
 ##Set up SDK
 
-Add Capabilities:
 Countly SDK requires **ID_CAP_IDENTITY_DEVICE** and **ID_CAP_NETWORKING** to be enabled. Open WMAppManifest.xml, click on Capabilities section and make them enabled
 
 Add **using CountlySDK;** in the App.xaml.cs usings section
