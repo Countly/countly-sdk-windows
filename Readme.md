@@ -82,5 +82,12 @@ For record events from Background Agent, call **Countly.StartBackgroundSession("
 ##Use some extra features
 
 How can I make sure that requests to Countly are sent correctly?
-Enable logging: **Countly.IsLoggingEnabled = true;**. You can turn it on and off in any place
+
+Enable logging:
+
+<pre class="prettyprint">
+    Countly.IsLoggingEnabled = true;
+</pre>
+
+You can turn it on and off in any place
 
