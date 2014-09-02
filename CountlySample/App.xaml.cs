@@ -64,7 +64,17 @@ namespace CountlySample
         {
             Countly.IsLoggingEnabled = true;
 
-            Countly.StartSession("http://162.243.236.88", "14d9cc3faa4ce2a96672845b0281214b3dc9ee92");
+            string ServerUrl = null;
+            string AppKey = null;
+
+            if (ServerUrl == null)
+                throw new ArgumentNullException("Type your ServerUrl");
+            if (AppKey == null)
+                throw new ArgumentNullException("Type your AppKey");
+
+            Countly.StartSession(ServerUrl, AppKey);
+
+            // Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY");            
         }
 
         // Code to execute when the application is activated (brought to foreground)
@@ -73,7 +83,17 @@ namespace CountlySample
         {
             Countly.IsLoggingEnabled = true;
 
-            Countly.StartSession("http://162.243.236.88", "14d9cc3faa4ce2a96672845b0281214b3dc9ee92");
+            string ServerUrl = null;
+            string AppKey = null;
+
+            if (ServerUrl == null)
+                throw new ArgumentNullException("Type your ServerUrl");
+            if (AppKey == null)
+                throw new ArgumentNullException("Type your AppKey");
+
+            Countly.StartSession(ServerUrl, AppKey);
+
+            // Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY");            
         }
 
         // Code to execute when the application is deactivated (sent to background)

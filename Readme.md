@@ -7,13 +7,14 @@ This repository includes the SDK for Windows Phone
 ##Installing Windows Phone SDK
 
   1. Download Countly Windows Phone SDK
+
   2. Extract all files to any folder
 
   3. In Solution Explorer open context menu on References folder
 
   4. Click the Add Reference button to open the Add Reference dialog box
 
-  5. In the Add Reference dialog box, click on Browse and select **Countly.dll**, **Newtonsoft.Json.dll** and **OpenUDIDPhone.dll**
+  5. In the Add Reference dialog box, click on Browse and select **Countly.dll**, **Newtonsoft.Json.dll** and **OpenUDIDPhone.dll** from /SDK folder
 
 ##Set up SDK
 
@@ -77,6 +78,22 @@ For record events from Background Agent, call **Countly.StartBackgroundSession("
 </pre>
 
 **Note:** use **async/await** in background agent. This allows to call NotifyComplete() only when record is processed 
+
+##Exploring Windows Phone SDK Sample
+
+  1. Download Countly Windows Phone SDK
+
+  2. Extract all files to any folder
+
+  3. Open **Countly.sln** file with Visual Studio 2012 or higher version
+
+  4. Now you have two projects in your solution : Countly (SDK library) and CountlySample quickstarter project.
+
+  5. Open App.xaml.cs and MainPage.xaml.cs and type ServerUrl and AppKey to prepared fields
+
+  6. Right click to CountlySample project and click **"Set as StartUp Project"**
+
+  7. You can run your application on a device or an emulator provided by Visual Studio Windows Phone 8 development kit.
 
 ##Use some extra features
 
