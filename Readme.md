@@ -87,9 +87,9 @@ For record events from Background Agent, call **Countly.StartBackgroundSession("
 
   3. Open **Countly.sln** file with Visual Studio 2012 or higher version
 
-  4. Now you have two projects in your solution : Countly (SDK library) and CountlySample quickstarter project.
+  4. Now you have two projects in your solution : Countly (SDK library) and CountlySample (quickstarter project).
 
-  5. Open App.xaml.cs and MainPage.xaml.cs and type ServerUrl and AppKey to prepared fields
+  5. Open App.xaml.cs and MainPage.xaml.cs and type **ServerUrl** and **AppKey** to prepared fields
 
   6. Right click to CountlySample project and click **"Set as StartUp Project"**
 
