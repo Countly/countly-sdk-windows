@@ -20,7 +20,7 @@ This repository includes the SDK for Windows Phone
 Add Capabilities:
 Countly SDK requires **ID_CAP_IDENTITY_DEVICE** and **ID_CAP_NETWORKING** to be enabled. Open WMAppManifest.xml, click on Capabilities section and make them enabled
 
-Add **using CountlySDK;** in the **App.xaml.cs** usings section
+Add **using CountlySDK;** in the App.xaml.cs usings section
 
 Call **Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY")** in App.xaml.cs **Application_Launching** and **Application_Activated** events, which requires your App key and the URL of your Countly server (use https://cloud.count.ly for Countly Cloud)
 
@@ -44,7 +44,7 @@ Call **Countly.EndSession()** in App.xaml.cs **Application_Deactivated** and **A
 ...
 </pre>
 
-Note: Make sure you use App Key (found under Management -> Applications) and not API Key. Entering API Key will not work.
+**Note:** Make sure you use App Key (found under Management -> Applications) and not API Key. Entering API Key will not work.
 
 ##Record events
 
@@ -65,7 +65,7 @@ There are several Countly.RecordEvent methods with different parameters. You can
    Countly.RecordEvent("purchase", 1, segmentation);
 </pre>
 
-Note:
+**Note:**
 For record events from Background Agent, call **Countly.StartBackgroundSession("http://YOUR_SERVER", "YOUR_APP_KEY")** in OnInvoke method
 
 <pre class="prettyprint">
@@ -77,7 +77,7 @@ For record events from Background Agent, call **Countly.StartBackgroundSession("
    }
 </pre>
 
-Note: use **async/await** in background agent. This allows to call NotifyComplete() only when record is processed 
+**Note:** use **async/await** in background agent. This allows to call NotifyComplete() only when record is processed 
 
 ##Use some extra features
 
