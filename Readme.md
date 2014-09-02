@@ -1,0 +1,83 @@
+##What's Countly?
+
+[Countly](http://count.ly) is an innovative, real-time, open source mobile analytics application. It collects data from mobile devices, and visualizes this information to analyze mobile application usage and end-user behavior. There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. Both parts are open source with different licensing terms.
+
+This repository includes the SDK for Windows Phone
+
+##Installing Windows Phone SDK
+
+  1. Download Countly Windows Phone SDK
+  2. Extract all files to any folder
+
+  3. In Solution Explorer open context menu on References folder
+  4. Click the Add Reference button to open the Add Reference dialog box
+  5. In the Add Reference dialog box, click on Browse and select **Countly.dll**, **Newtonsoft.Json.dll** and **OpenUDIDPhone.dll**
+
+##Set up SDK
+
+Add Capabilities:
+Countly SDK requires **ID_CAP_IDENTITY_DEVICE** and **ID_CAP_NETWORKING** to be enabled. Open WMAppManifest.xml, click on Capabilities section and make them enabled
+
+Add **using CountlySDK;** in the **App.xaml.cs** usings section
+
+Call **Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY")** in App.xaml.cs **Application_Launching** and **Application_Activated** events, which requires your App key and the URL of your Countly server (use https://cloud.count.ly for Countly Cloud)
+Call **Countly.EndSession()** in App.xaml.cs **Application_Deactivated** and **Application_Closing** events
+
+<pre class="prettyprint">
+...
+   // Code to execute when the application is launching (eg, from Start)
+   // This code will not execute when the application is reactivated
+   private void Application_Launching(object sender, LaunchingEventArgs e)
+   {
+      Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY");
+   }
+
+   // Code to execute when the application is activated (brought to foreground)
+   // This code will not execute when the application is first launched
+   private void Application_Activated(object sender, ActivatedEventArgs e)
+   {
+      Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY");
+   }
+...
+</pre>
+
+Note: Make sure you use App Key (found under Management -> Applications) and not API Key. Entering API Key will not work.
+
+3. Record events
+
+Add **using CountlySDK;** in the usings section
+
+There are several Countly.RecordEvent methods with different parameters. You can choose one that most fits your event:
+
+<pre class="prettyprint">
+   Countly.RecordEvent("purchase");
+
+   Countly.RecordEvent("purchase", 1);
+
+   Countly.RecordEvent("purchase", 1, 0.99);
+
+   Segmentation segmentation = new Segmentation();
+   segmentation.Add("country", "Turkey");
+   segmentation.Add("app_version", "1.0");
+   Countly.RecordEvent("purchase", 1, segmentation);
+</pre>
+
+Note:
+For record events from Background Agent, call **Countly.StartBackgroundSession("http://YOUR_SERVER", "YOUR_APP_KEY")** in OnInvoke method
+
+<pre class="prettyprint">
+   protected override async void OnInvoke(ScheduledTask task)
+   {
+      Countly.StartBackgroundSession("http://YOUR_SERVER", "YOUR_APP_KEY");
+      await Countly.RecordEvent("purchase");
+      NotifyComplete();
+   }
+</pre>
+
+Note: use **async/await** in background agent. This allows to call NotifyComplete() only when record is processed 
+
+4. Use some extra features
+
+How can I make sure that requests to Countly are sent correctly?
+Enable logging: **Countly.IsLoggingEnabled = true;**. You can turn it on and off in any place
+
