@@ -1,10 +1,10 @@
 ##What's Countly?
 
-[Countly](http://count.ly) is an innovative, real-time, open source mobile analytics application. It collects data from mobile devices, and visualizes this information to analyze mobile application usage and end-user behavior. There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. Both parts are open source with different licensing terms.
+[Countly](http://count.ly) is an innovative, real-time, open source mobile analytics and push notifications application. It collects data from mobile devices, and visualizes this information to analyze mobile application usage and end-user behavior. There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. Both parts are open source with different licensing terms.
 
 ##About
 
-This repository includes the Countly mobile analytics SDK for Windows Phone. This SDK is used to understand Windows Phone analytics with Countly server.
+This repository includes the Countly mobile analytics SDK for Windows Phone. This SDK is used to understand Windows Phone analytics with Countly server. Note that it currently doesn't support push notifications for Windows Phone devices, however we expect this feature to be available very soon.
 
 Need help? See [Countly SDK for Windows Phone](http://resources.count.ly/v1.0/docs/countly-sdk-for-windows-phone) documentation at [Countly Resources](http://resources.count.ly).
 
@@ -14,17 +14,7 @@ Check Countly Server source code here:
 
 - [Countly Server (countly-server)](https://github.com/Countly/countly-server)
 
-There are also other Countly SDK repositories below:
-
-- [Countly iOS SDK](https://github.com/Countly/countly-sdk-ios)
-- [Countly Android SDK](https://github.com/Countly/countly-sdk-android)
-- [Countly Windows Phone SDK](https://github.com/Countly/countly-sdk-windows-phone)
-- [Countly Blackberry Webworks SDK](https://github.com/Countly/countly-sdk-blackberry-webworks)
-- [Countly Blackberry Cascades SDK](https://github.com/craigmj/countly-sdk-blackberry10-cascades) (Community supported)
-- [Countly Mac OS X SDK](https://github.com/mrballoon/countly-sdk-osx) (Community supported)
-- [Countly Appcelerator Titanium SDK](https://github.com/euforic/Titanium-Count.ly) (Community supported)
-- [Countly Unity3D SDK](https://github.com/Countly/countly-sdk-unity) (Community supported)
-
+There are also other Countly mobile analytics SDK repositories on [Countly web page](http://resources.count.ly/v1.0/docs/downloading-sdks).
 
 ##How can I help you with your efforts?
 Glad you asked. We need ideas, feedbacks and constructive comments. All your suggestions will be taken care with upmost importance. 
