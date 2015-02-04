@@ -4,7 +4,7 @@
 
 ##About
 
-This repository includes the Countly SDK for Windows Phone.
+This repository includes the Countly mobile analytics SDK for Windows Phone. This SDK is used to understand Windows Phone analytics with Countly server.
 
 Need help? See [Countly SDK for Windows Phone](http://resources.count.ly/v1.0/docs/countly-sdk-for-windows-phone) documentation at [Countly Resources](http://resources.count.ly).
 
