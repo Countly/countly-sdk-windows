@@ -89,7 +89,7 @@ namespace CountlySample
             if (initialized)
             {
                 string ServerUrl = "http://cloud.count.ly";
-                string AppKey = "14d9cc3faa4ce2a96672845b0281214b3dc9ee92";
+                string AppKey = null;
 
                 if (ServerUrl == null)
                     throw new ArgumentNullException("Type your ServerUrl");
