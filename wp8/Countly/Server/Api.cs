@@ -36,7 +36,7 @@ namespace CountlySDK
 
             if (userDetails != null)
             {
-                userDetailsJson = "&user_details=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                userDetailsJson = "&user_details=" + HttpUtility.UrlEncode(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
             return await Call<ResultResponse>(serverUrl + sesisonEvent.Content + userDetailsJson);
@@ -50,10 +50,10 @@ namespace CountlySDK
 
             if (userDetails != null)
             {
-                userDetailsJson = "&user_details=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                userDetailsJson = "&user_details=" + HttpUtility.UrlEncode(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, HttpUtility.UrlEncode(eventsJson), HttpUtility.UrlEncode(userDetailsJson)));
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, HttpUtility.UrlEncode(eventsJson), userDetailsJson));
         }
 
         public static async Task<ResultResponse> SendException(string serverUrl, string appKey, string deviceId, ExceptionEvent exception)

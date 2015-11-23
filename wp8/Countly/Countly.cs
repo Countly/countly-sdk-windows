@@ -168,8 +168,14 @@ namespace CountlySDK
         // Update session timer
         private static DispatcherTimer Timer;
 
+        /// <summary>
+        /// Determines if Countly debug messages are displayed to Output window
+        /// </summary>
         public static bool IsLoggingEnabled { get; set; }
 
+        /// <summary>
+        /// Determines if exception autotracking is enabled
+        /// </summary>
         public static bool IsExceptionsLoggingEnabled { get; set; }
 
         /// <summary>
@@ -350,6 +356,8 @@ namespace CountlySDK
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {
                     UserDetails.isChanged = false;
+
+                    SaveUserDetails();
 
                     lock (sync)
                     {

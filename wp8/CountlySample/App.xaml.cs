@@ -66,7 +66,7 @@ namespace CountlySample
             Countly.IsExceptionsLoggingEnabled = true;
 
             string ServerUrl = "https://cloud.count.ly";
-            string AppKey = "";
+            string AppKey = null;
 
             if (ServerUrl == null)
                 throw new ArgumentNullException("Type your ServerUrl");
@@ -84,7 +84,7 @@ namespace CountlySample
             Countly.IsExceptionsLoggingEnabled = true;
 
             string ServerUrl = "https://cloud.count.ly";
-            string AppKey = "";
+            string AppKey = null;
 
             if (ServerUrl == null)
                 throw new ArgumentNullException("Type your ServerUrl");

@@ -83,7 +83,7 @@ namespace CountlySample
             if (initialized)
             {
                 string ServerUrl = "https://cloud.count.ly";
-                string AppKey = "";
+                string AppKey = null;
 
                 if (ServerUrl == null)
                     throw new ArgumentNullException("Type your ServerUrl");
@@ -116,9 +116,12 @@ namespace CountlySample
 
         private void UserNameText_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            Countly.UserDetails.Name = UserNameText.Text;
+            if (Countly.UserDetails.Name != UserNameText.Text)
+            {
+                Countly.UserDetails.Name = UserNameText.Text;
 
-            Countly.AddBreadCrumb("username updated: " + UserNameText.Text);
+                Countly.AddBreadCrumb("username updated: " + UserNameText.Text);
+            }
         }
 
         private void UploadUserPictureButton_Click(object sender, System.Windows.RoutedEventArgs e)
