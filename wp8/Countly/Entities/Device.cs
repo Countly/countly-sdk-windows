@@ -25,6 +25,7 @@ using Microsoft.Phone.Info;
 using Microsoft.Phone.Net.NetworkInformation;
 using OpenUDIDPhone;
 using System;
+using System.IO.IsolatedStorage;
 using System.Windows;
 
 namespace CountlySDK.Entitites
@@ -73,6 +74,18 @@ namespace CountlySDK.Entitites
                 return Environment.OSVersion.Version.ToString();
             }
         }
+
+        /// <summary>
+        /// Returns the current device manufacturer
+        /// </summary>
+        public static string Manufacturer
+        {
+            get
+            {
+                return DeviceStatus.DeviceManufacturer;
+            }
+        }
+        
 
         /// <summary>
         /// Returns the current device model
@@ -160,6 +173,63 @@ namespace CountlySDK.Entitites
             get
             {
                 return DeviceNetworkInformation.CellularMobileOperator;
+            }
+        }
+
+        /// <summary>
+        /// Returns available RAM space
+        /// </summary>
+        public static long RamCurrent
+        {
+            get
+            {
+                return DeviceStatus.ApplicationCurrentMemoryUsage;
+            }
+        }
+
+        /// <summary>
+        /// Returns total RAM size
+        /// </summary>
+        public static long RamTotal
+        {
+            get
+            {
+                return DeviceStatus.DeviceTotalMemory;
+            }
+        }
+
+        /// <summary>
+        /// Returns current battery level from 0 to 100
+        /// </summary>
+        public static int Bat
+        {
+            get
+            {
+                return Windows.Phone.Devices.Power.Battery.GetDefault().RemainingChargePercent;
+            }
+        }
+
+        /// <summary>
+        /// Returns current device orientation
+        /// </summary>
+        public static string Orientation
+        {
+            get
+            {
+                return (Application.Current.Host.Content.ActualWidth > Application.Current.Host.Content.ActualHeight) ? "landscape" : "portrait";
+            }
+        }
+
+        /// <summary>
+        /// Returns current device connection to the internet
+        /// </summary>
+        public static bool Online
+        {
+            get
+            {
+                NetworkInterfaceType networkInterfaceType = NetworkInterface.NetworkInterfaceType;
+
+                return (networkInterfaceType == NetworkInterfaceType.Wireless80211 || networkInterfaceType == NetworkInterfaceType.MobileBroadbandGsm || networkInterfaceType == NetworkInterfaceType.MobileBroadbandCdma);
             }
         }
     }

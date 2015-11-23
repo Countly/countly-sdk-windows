@@ -13,7 +13,7 @@
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="{StaticResource PhoneForegroundBrush}"
     SupportedOrientations="Portrait" Orientation="Portrait"
-    shell:SystemTray.IsVisible="True">
+    shell:SystemTray.IsVisible="False">
 	<phone:PhoneApplicationPage.Resources>
 		<DataTemplate x:Key="MethodDataTemplate">
 			<Grid Margin="0,0,0,12">
@@ -26,9 +26,9 @@
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions><StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
+		</Grid.RowDefinitions><StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,20">
 			<TextBlock Text="COUNTLY" Style="{StaticResource PhoneTextNormalStyle}" Margin="12,0" FontSize="22.667" FontFamily="Segoe WP Semibold"/>
-			<TextBlock Text="sample" Margin="9,-7,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
+			<TextBlock Text="sample" Margin="9,-12,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
 		</StackPanel>
         <ScrollViewer Grid.Row="1" Margin="12,0,12,0">
 	        <StackPanel x:Name="ContentPanel" Margin="0,0,0,12">
@@ -36,6 +36,11 @@
 		        <Button x:Name="RecordBasicEvent" Content="Record basic event" HorizontalAlignment="Left" Height="78" Click="RecordBasicEvent_Click"/>
 		        <Button x:Name="RecordEventSum" Content="Record event with Sum" HorizontalAlignment="Left" Height="78" Click="RecordEventSum_Click"/>
 		        <Button x:Name="RecordEventSegmentation" Content="Record event with Segmentation" HorizontalAlignment="Left" Height="78" Click="RecordEventSegmentation_Click"/>
+		        <TextBlock TextWrapping="Wrap" Text="User Details" Style="{StaticResource PhoneTextGroupHeaderStyle}"/>
+		        <TextBox x:Name="UserNameText" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="UserNameText_TextChanged"/>
+		        <Button x:Name="UploadUserPictureButton" Content="Upload User Picture" HorizontalAlignment="Left" Click="UploadUserPictureButton_Click"/>
+		        <TextBlock TextWrapping="Wrap" Text="Crashes" Style="{StaticResource PhoneTextGroupHeaderStyle}"/>
+		        <Button x:Name="CrashButton" Content="Generate Exception" HorizontalAlignment="Left" Click="CrashButton_Click"/>
 		        <CheckBox x:Name="TrackingCheck" Content="Enable tracking" Checked="TrackingCheck_Checked" Unchecked="TrackingCheck_Unchecked" IsChecked="True"/>
 	        </StackPanel>
         </ScrollViewer>

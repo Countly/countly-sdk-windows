@@ -85,13 +85,17 @@
   <ItemGroup>
     <Compile Include="Countly.cs" />
     <Compile Include="Entities\BeginSession.cs" />
+    <Compile Include="Entities\CustomInfo.cs" />
+    <Compile Include="Entities\CustomInfoItem.cs" />
     <Compile Include="Entities\EndSession.cs" />
+    <Compile Include="Entities\ExceptionEvent.cs" />
     <Compile Include="Entities\Segmentation.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Entities\CountlyEvent.cs" />
     <Compile Include="Entities\Metrics.cs" />
     <Compile Include="Entities\SessionEvent.cs" />
     <Compile Include="Entities\UpdateSession.cs" />
+    <Compile Include="Entities\CountlyUserDetails.cs" />
     <Compile Include="Helpers\PhoneNameHelper.cs" />
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Helpers\TimeHelper.cs" />
@@ -101,7 +105,6 @@
     <Compile Include="Server\Responses\ResultResponse.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Libs\Newtonsoft.Json.dll" />
     <Content Include="Libs\OpenUDIDPhone.dll" />
   </ItemGroup>
   <ItemGroup>
@@ -110,6 +113,15 @@
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\portable-net40+sl5+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="OpenUDIDPhone, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
+    <Reference Include="System.Net.Http">
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\sl4-windowsphone71\System.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Extensions">
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\sl4-windowsphone71\System.Net.Http.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Net.Http.Primitives">
+      <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\sl4-windowsphone71\System.Net.Http.Primitives.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -117,6 +129,11 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\$(TargetFrameworkIdentifier)\$(TargetFrameworkVersion)\Microsoft.$(TargetFrameworkIdentifier).$(TargetFrameworkVersion).Overrides.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\$(TargetFrameworkIdentifier)\$(TargetFrameworkVersion)\Microsoft.$(TargetFrameworkIdentifier).CSharp.targets" />
   <ProjectExtensions />
+  <Import Project="..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\packages\Microsoft.Bcl.Build.1.0.14\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

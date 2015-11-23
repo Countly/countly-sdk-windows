@@ -31,12 +31,15 @@ using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using CountlySample.Resources;
 using CountlySDK;
+using Microsoft.Phone.Tasks;
 
 namespace CountlySample
 {
     public partial class MainPage : PhoneApplicationPage
     {
         bool initialized = false;
+
+        PhotoChooserTask photoChooserTask;
 
         public MainPage()
         {
@@ -45,17 +48,23 @@ namespace CountlySample
             Loaded += (s, e) =>
             {
                 initialized = true;
+
+                UserNameText.Text = Countly.UserDetails.Name ?? String.Empty;
             };
         }
 
         private void RecordBasicEvent_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             Countly.RecordEvent("seconds", DateTime.Now.Second);
+
+            Countly.AddBreadCrumb("basic event");
         }
 
         private void RecordEventSum_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             Countly.RecordEvent("seconds", DateTime.Now.Second, 0.99);
+
+            Countly.AddBreadCrumb("sum event");
         }
 
         private void RecordEventSegmentation_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -65,14 +74,16 @@ namespace CountlySample
             segmentation.Add("app_version", "1.2");
 
             Countly.RecordEvent("seconds", DateTime.Now.Second, segmentation);
+
+            Countly.AddBreadCrumb("segmentation event");
         }
 
         private void TrackingCheck_Checked(object sender, System.Windows.RoutedEventArgs e)
         {
             if (initialized)
             {
-                string ServerUrl = null;
-                string AppKey = null;
+                string ServerUrl = "https://cloud.count.ly";
+                string AppKey = "";
 
                 if (ServerUrl == null)
                     throw new ArgumentNullException("Type your ServerUrl");
@@ -81,11 +92,12 @@ namespace CountlySample
 
                 Countly.StartSession(ServerUrl, AppKey);
 
-                // Countly.StartSession("http://YOUR_SERVER", "YOUR_APP_KEY");                
-
                 RecordBasicEvent.IsEnabled = true;
                 RecordEventSum.IsEnabled = true;
                 RecordEventSegmentation.IsEnabled = true;
+                UserNameText.IsEnabled = true;
+                UploadUserPictureButton.IsEnabled = true;
+                CrashButton.IsEnabled = true;
             }
         }
 
@@ -96,6 +108,43 @@ namespace CountlySample
             RecordBasicEvent.IsEnabled = false;
             RecordEventSum.IsEnabled = false;
             RecordEventSegmentation.IsEnabled = false;
+            UserNameText.IsEnabled = false;
+            UserNameText.Text = String.Empty;
+            UploadUserPictureButton.IsEnabled = false;
+            CrashButton.IsEnabled = false;
+        }
+
+        private void UserNameText_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            Countly.UserDetails.Name = UserNameText.Text;
+
+            Countly.AddBreadCrumb("username updated: " + UserNameText.Text);
+        }
+
+        private void UploadUserPictureButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            photoChooserTask = new PhotoChooserTask();
+            photoChooserTask.ShowCamera = true;
+            photoChooserTask.Completed += OnPhotoChooserTask_Completed;
+            photoChooserTask.Show();
+        }
+
+        private async void OnPhotoChooserTask_Completed(object sender, PhotoResult e)
+        {
+            if (e.TaskResult == TaskResult.OK)
+            {
+                if (await Countly.UserDetails.UploadUserPicture(e.ChosenPhoto))
+                {
+                    Countly.AddBreadCrumb("user picture updated");
+
+                    MessageBox.Show("Picture uploaded successfully");
+                }
+            }
+        }
+
+        private void CrashButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            throw new Exception("Unhandled Exception");
         }
     }
 }
