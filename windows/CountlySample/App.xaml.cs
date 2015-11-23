@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -46,7 +47,7 @@ namespace CountlySample
         /// search results, and so forth.
         /// </summary>
         /// <param name="e">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
 #if DEBUG
             if (System.Diagnostics.Debugger.IsAttached)
@@ -76,6 +77,8 @@ namespace CountlySample
                 Window.Current.Content = rootFrame;
             }
 
+            await Activated();
+
             if (rootFrame.Content == null)
             {
                 // Removes the turnstile navigation for startup.
@@ -100,32 +103,64 @@ namespace CountlySample
                 }
             }
 
-            CoreWindow.GetForCurrentThread().Activated -= App_Activated;
-            CoreWindow.GetForCurrentThread().Activated += App_Activated;
-
             // Ensure the current window is active
             Window.Current.Activate();
         }
 
-        private void App_Activated(CoreWindow sender, WindowActivatedEventArgs args)
+        protected override async void OnActivated(IActivatedEventArgs args)
         {
-            if (args.WindowActivationState == CoreWindowActivationState.CodeActivated)
+            await Activated();
+
+            var continuationEventArgs = args as IContinuationActivatedEventArgs;
+
+            if (continuationEventArgs != null)
             {
-                Countly.IsLoggingEnabled = true;
+                switch (continuationEventArgs.Kind)
+                {
+                    case ActivationKind.PickFileContinuation:
+                        FileOpenPickerContinuationEventArgs arguments = continuationEventArgs as FileOpenPickerContinuationEventArgs;
 
-                string ServerUrl = "https://cloud.count.ly";
-                string AppKey = null;
+                        Frame frame = (Frame)Window.Current.Content;
 
-                if (ServerUrl == null)
-                    throw new ArgumentNullException("Type your ServerUrl");
-                if (AppKey == null)
-                    throw new ArgumentNullException("Type your AppKey");
+                        MainPage nainPage = frame.Content as MainPage;
 
-                Countly.StartSession(ServerUrl, AppKey);
+                        if (nainPage != null)
+                        {
+                            nainPage.FilePicked(arguments.Files.ToList());
+                        }
+
+                        break;
+                }
             }
-            else if (args.WindowActivationState == CoreWindowActivationState.Deactivated)
+
+            base.OnActivated(args);
+        }
+
+        private async Task Activated()
+        {
+            Countly.IsLoggingEnabled = true;
+            Countly.IsExceptionsLoggingEnabled = true;
+
+            string ServerUrl = "http://cloud.count.ly";
+            string AppKey = null;
+
+            if (ServerUrl == null)
+                throw new ArgumentNullException("Type your ServerUrl");
+            if (AppKey == null)
+                throw new ArgumentNullException("Type your AppKey");
+
+            await Countly.StartSession(ServerUrl, AppKey, this);
+
+            CoreWindow.GetForCurrentThread().Activated += Deactivated;
+        }
+
+        private async void Deactivated(CoreWindow sender, WindowActivatedEventArgs args)
+        {
+            if (args.WindowActivationState == CoreWindowActivationState.Deactivated)
             {
-                Countly.EndSession();
+                CoreWindow.GetForCurrentThread().Activated -= Deactivated;
+
+                await Countly.EndSession();
             }
         }
 
@@ -151,6 +186,8 @@ namespace CountlySample
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
+
+            Countly.EndSession();
 
             deferral.Complete();
         }

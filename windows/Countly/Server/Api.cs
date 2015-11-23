@@ -8,7 +8,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Windows.Web.Http;
 
 namespace CountlySDK
 {
@@ -29,19 +31,64 @@ namespace CountlySDK
             return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&end_session=1", serverUrl, appKey, deviceId));
         }
 
-        public static async Task<ResultResponse> SendSession(string serverUrl, SessionEvent sesisonEvent)
+        public static async Task<ResultResponse> SendSession(string serverUrl, SessionEvent sesisonEvent, CountlyUserDetails userDetails = null)
         {
-            return await Call<ResultResponse>(serverUrl + sesisonEvent.Content);
+            string userDetailsJson = String.Empty;
+
+            if (userDetails != null)
+            {
+                userDetailsJson = "&user_details=" + WebUtility.UrlEncode(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+            }
+
+            return await Call<ResultResponse>(serverUrl + sesisonEvent.Content + userDetailsJson);
         }
 
-        public static async Task<ResultResponse> SendEvents(string serverUrl, string appKey, string deviceId, List<CountlyEvent> events)
+        public static async Task<ResultResponse> SendEvents(string serverUrl, string appKey, string deviceId, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
         {
-            string json = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}", serverUrl, appKey, deviceId, WebUtility.UrlEncode(json)));
+            string userDetailsJson = String.Empty;
+
+            if (userDetails != null)
+            {
+                userDetailsJson = "&user_details=" + WebUtility.UrlEncode(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+            }
+
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, WebUtility.UrlEncode(eventsJson), userDetailsJson));
         }
 
-        private static Task<T> Call<T>(string address)
+        public static async Task<ResultResponse> SendException(string serverUrl, string appKey, string deviceId, ExceptionEvent exception)
+        {
+            string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}", serverUrl, appKey, deviceId, WebUtility.UrlEncode(exceptionJson)));
+        }
+
+        public static async Task<ResultResponse> UploadUserDetails(string serverUrl, string appKey, string deviceId, CountlyUserDetails userDetails = null)
+        {
+            string userDetailsJson = String.Empty;
+
+            if (userDetails != null)
+            {
+                userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            }
+
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}", serverUrl, appKey, deviceId, userDetailsJson));
+        }
+
+        public static async Task<ResultResponse> UploadUserPicture(string serverUrl, string appKey, string deviceId, Stream imageStream, CountlyUserDetails userDetails = null)
+        {
+            string userDetailsJson = String.Empty;
+
+            if (userDetails != null)
+            {
+                userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            }
+
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}", serverUrl, appKey, deviceId, userDetailsJson), imageStream);
+        }
+
+        private static Task<T> Call<T>(string address, Stream data = null)
         {
             return Task.Run<T>(async () =>
             {
@@ -49,7 +96,7 @@ namespace CountlySDK
 
                 try
                 {
-                    string responseJson = await RequestAsync(address);
+                    string responseJson = await RequestAsync(address, data);
 
                     if (Countly.IsLoggingEnabled)
                     {
@@ -69,31 +116,25 @@ namespace CountlySDK
             });
         }
 
-        private static async Task<string> RequestAsync(string address)
+        private static async Task<string> RequestAsync(string address, Stream data = null)
         {
             if (Countly.IsLoggingEnabled)
             {
-                Debug.WriteLine(address);
+                Debug.WriteLine("POST " + address);
             }
 
-            TaskCompletionSource<string> taskCompletionSource = new TaskCompletionSource<string>();
+            System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
 
-            HttpWebRequest request = HttpWebRequest.CreateHttp(address);
+            System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, (data != null) ? new StreamContent(data) : null);
 
-            var taskGetResponse = Task<WebResponse>.Factory.FromAsync(request.BeginGetResponse, request.EndGetResponse, null);
-
-            taskGetResponse.Wait();
-
-            using (var response = taskGetResponse.Result)
+            if (httpResponseMessage.IsSuccessStatusCode)
             {
-                using (var stream = response.GetResponseStream())
-                {
-                    var reader = new StreamReader(stream);
-                    taskCompletionSource.SetResult(reader.ReadToEnd());
-                }
+                return await httpResponseMessage.Content.ReadAsStringAsync();
             }
-
-            return await taskCompletionSource.Task;
+            else
+            {
+                return null;
+            }
         }
     }
 }

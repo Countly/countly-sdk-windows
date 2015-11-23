@@ -28,6 +28,10 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.UI.Core;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -47,20 +51,26 @@ namespace CountlySample
 
             this.NavigationCacheMode = NavigationCacheMode.Required;
 
-            Loaded += (s, e) =>
+            Loaded += async (s, e) =>
             {
                 initialized = true;
+
+                UserNameText.Text = Countly.UserDetails.Name ?? String.Empty;
             };
         }
 
         private void RecordBasicEvent_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Countly.RecordEvent("seconds", DateTime.Now.Second);
+
+            Countly.AddBreadCrumb("basic event");
         }
 
         private void RecordEventSum_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Countly.RecordEvent("seconds", DateTime.Now.Second, 0.99);
+
+            Countly.AddBreadCrumb("sum event");
         }
 
         private void RecordEventSegmentation_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
@@ -70,25 +80,30 @@ namespace CountlySample
             segmentation.Add("app_version", "1.2");
 
             Countly.RecordEvent("seconds", DateTime.Now.Second + 1, segmentation);
+
+            Countly.AddBreadCrumb("segmentation event");
         }
 
-        private void TrackingCheck_Checked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private async void TrackingCheck_Checked(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             if (initialized)
             {
-                string ServerUrl = "https://cloud.count.ly";
-                string AppKey = null;
+                string ServerUrl = "http://cloud.count.ly";
+                string AppKey = "14d9cc3faa4ce2a96672845b0281214b3dc9ee92";
 
                 if (ServerUrl == null)
                     throw new ArgumentNullException("Type your ServerUrl");
                 if (AppKey == null)
                     throw new ArgumentNullException("Type your AppKey");
 
-                Countly.StartSession(ServerUrl, AppKey);            
+                await Countly.StartSession(ServerUrl, AppKey);            
 
                 RecordBasicEvent.IsEnabled = true;
                 RecordEventSum.IsEnabled = true;
                 RecordEventSegmentation.IsEnabled = true;
+                UserNameText.IsEnabled = true;
+                UploadUserPictureButton.IsEnabled = true;
+                CrashButton.IsEnabled = true;
             }
         }
 
@@ -99,6 +114,59 @@ namespace CountlySample
             RecordBasicEvent.IsEnabled = false;
             RecordEventSum.IsEnabled = false;
             RecordEventSegmentation.IsEnabled = false;
+            UserNameText.IsEnabled = false;
+            UserNameText.Text = String.Empty;
+            UploadUserPictureButton.IsEnabled = false;
+            CrashButton.IsEnabled = false;
+        }
+
+        private void UserNameText_TextChanged(object sender, Windows.UI.Xaml.Controls.TextChangedEventArgs e)
+        {
+            if (Countly.UserDetails.Name != UserNameText.Text)
+            {
+                Countly.UserDetails.Name = UserNameText.Text;
+
+                Countly.AddBreadCrumb("username updated: " + UserNameText.Text);
+            }
+        }
+
+        private void UploadUserPictureButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            FileOpenPicker openPicker = new FileOpenPicker();
+
+            openPicker.ViewMode = PickerViewMode.Thumbnail;
+
+            openPicker.SuggestedStartLocation = PickerLocationId.PicturesLibrary;
+
+            openPicker.FileTypeFilter.Add(".jpg");
+            openPicker.FileTypeFilter.Add(".jpeg");
+            openPicker.FileTypeFilter.Add(".png");
+
+            openPicker.PickSingleFileAndContinue();
+        }
+
+        public async void FilePicked(IReadOnlyList<StorageFile> files)
+        {
+            if (files.Count > 0)
+            {
+                StorageFile file = files[0];
+
+                Stream stream = await file.OpenStreamForReadAsync();
+
+                if (await Countly.UserDetails.UploadUserPicture(stream))
+                {
+                    Countly.AddBreadCrumb("user picture updated");
+
+                    MessageDialog messageDialog = new MessageDialog("Picture uploaded successfully");
+
+                    await messageDialog.ShowAsync();
+                }
+            }
+        }
+
+        private void CrashButton_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            throw new Exception("Unhandled Exception");
         }
     }
 }

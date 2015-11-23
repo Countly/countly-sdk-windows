@@ -99,6 +99,19 @@ namespace CountlySDK.Entitites
         }
 
         /// <summary>
+        /// Returns the current device manufacturer
+        /// </summary>
+        public static string Manufacturer
+        {
+            get
+            {
+                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
+
+                return easClientDeviceInformation.SystemManufacturer;
+            }
+        }
+
+        /// <summary>
         /// Returns the current device model
         /// </summary>
         public static string DeviceName
@@ -161,6 +174,30 @@ namespace CountlySDK.Entitites
                 }
 
                 return String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Returns current device orientation
+        /// </summary>
+        public static string Orientation
+        {
+            get
+            {
+                return (Window.Current.Bounds.Width > Window.Current.Bounds.Height) ? "landscape" : "portrait";
+            }
+        }
+
+        /// <summary>
+        /// Returns current device connection to the internet
+        /// </summary>
+        public static bool Online
+        {
+            get
+            {
+                ConnectionProfile connections = NetworkInformation.GetInternetConnectionProfile();
+
+                return connections != null && connections.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess;
             }
         }
     }

@@ -36,6 +36,61 @@ namespace CountlySDK.Helpers
         /// </summary>
         private const string folder = "countly";
 
+        public static ApplicationDataContainer Settings
+        {
+            get
+            {
+                return Windows.Storage.ApplicationData.Current.LocalSettings;
+            }
+        }
+
+        public static TValue GetValue<TValue>(string key, TValue defaultvalue)
+        {
+            TValue value;
+
+            // If the key exists, retrieve the value.
+            if (Settings.Values.ContainsKey(key))
+            {
+                value = (TValue)Settings.Values[key];
+            }
+            // Otherwise, use the default value.
+            else
+            {
+                value = defaultvalue;
+            }
+
+            return value;
+        }
+
+        public static bool SetValue(string key, object value)
+        {
+            bool valueChanged = false;
+
+            if (Settings.Values.ContainsKey(key))
+            {
+                if (Settings.Values[key] != value)
+                {
+                    Settings.Values[key] = value;
+                    valueChanged = true;
+                }
+            }
+            else
+            {
+                Settings.Values.Add(key, value);
+                valueChanged = true;
+            }
+
+            return valueChanged;
+        }
+
+        public static void RemoveValue(string key)
+        {
+            if (Settings.Values.ContainsKey(key))
+            {
+                Settings.Values.Remove(key);
+            }
+        }
+
         /// <summary>
         /// Saves object into file
         /// </summary>
