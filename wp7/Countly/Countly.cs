@@ -234,6 +234,8 @@ namespace CountlySDK
 
             if (application != null)
             {
+                IsExceptionsLoggingEnabled = true;
+
                 application.UnhandledException -= OnApplicationUnhandledException;
                 application.UnhandledException += OnApplicationUnhandledException;
             }

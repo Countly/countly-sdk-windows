@@ -128,6 +128,7 @@ namespace CountlySDK
             HttpWebRequest httpWebRequest = HttpWebRequest.CreateHttp(address);
 
             httpWebRequest.Method = "POST";
+            httpWebRequest.ContentType = "application/json";
 
             httpWebRequest.BeginGetRequestStream((a) =>
             {
@@ -141,6 +142,7 @@ namespace CountlySDK
                     }
 
                     stream.Flush();
+                    stream.Close();
 
                     httpWebRequest.BeginGetResponse((r) =>
                     {

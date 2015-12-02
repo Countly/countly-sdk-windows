@@ -132,7 +132,23 @@ namespace CountlySDK.Entitites
         {
             get
             {
-                return "480x800";
+                if (Environment.OSVersion.Version.Major < 8.0)
+                {
+                    return "480x800";
+                }
+
+                object resolution;
+
+                if (DeviceExtendedProperties.TryGetValue("PhysicalScreenResolution", out resolution))
+                {
+                    Size screenResolution = (Size)resolution;
+
+                    return (screenResolution.Width).ToString("F0") + "x" + (screenResolution.Height).ToString("F0");
+                }
+                else
+                {
+                    return "480x800";
+                }
             }
         }
 
