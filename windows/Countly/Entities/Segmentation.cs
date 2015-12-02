@@ -35,7 +35,7 @@ namespace CountlySDK
         /// Segmenation array
         /// </summary>
         [DataMemberAttribute]
-        public List<SegmentationItem> segmentation { get; internal set; }
+        internal List<SegmentationItem> segmentation { get; set; }
 
         public Segmentation()
         {
