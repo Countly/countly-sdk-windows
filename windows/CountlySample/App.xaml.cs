@@ -38,6 +38,7 @@ namespace CountlySample
         public App()
         {
             this.InitializeComponent();
+            this.Resuming += this.OnResuming;
             this.Suspending += this.OnSuspending;
         }
 
@@ -150,18 +151,6 @@ namespace CountlySample
                 throw new ArgumentNullException("Type your AppKey");
 
             await Countly.StartSession(ServerUrl, AppKey, this);
-
-            CoreWindow.GetForCurrentThread().Activated += Deactivated;
-        }
-
-        private async void Deactivated(CoreWindow sender, WindowActivatedEventArgs args)
-        {
-            if (args.WindowActivationState == CoreWindowActivationState.Deactivated)
-            {
-                CoreWindow.GetForCurrentThread().Activated -= Deactivated;
-
-                await Countly.EndSession();
-            }
         }
 
         /// <summary>
@@ -176,6 +165,11 @@ namespace CountlySample
             rootFrame.Navigated -= this.RootFrame_FirstNavigated;
         }
 
+        private async void OnResuming(object sender, object e)
+        {
+            await Activated();
+        }
+
         /// <summary>
         /// Invoked when application execution is being suspended.  Application state is saved
         /// without knowing whether the application will be terminated or resumed with the contents
@@ -183,11 +177,11 @@ namespace CountlySample
         /// </summary>
         /// <param name="sender">The source of the suspend request.</param>
         /// <param name="e">Details about the suspend request.</param>
-        private void OnSuspending(object sender, SuspendingEventArgs e)
+        private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
 
-            Countly.EndSession();
+            await Countly.EndSession();
 
             deferral.Complete();
         }
