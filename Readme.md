@@ -4,9 +4,9 @@
 
 ##About
 
-This repository includes the Countly mobile analytics SDK for Windows Phone. This SDK is used to understand Windows Phone analytics with Countly server. Note that it currently doesn't support push notifications for Windows Phone devices, however we expect this feature to be available very soon.
+This repository includes the Countly mobile analytics SDK for Windows Phone and Windows apps. Countly SDK is used to collect data from Windows devices and send it to Countly server. Countly server is required to collect, store and visualize retrieved data. Note that it currently doesn't support push notifications for Windows Phone devices, however we expect this feature to be available very soon.
 
-Need help? See [Countly SDK for Windows Phone](http://resources.count.ly/v1.0/docs/countly-sdk-for-windows-phone) documentation at [Countly Resources](http://resources.count.ly).
+For a list of supported devices and installation instructions, see [Countly SDK for Windows Phone and Windows desktop apps](http://resources.count.ly/v1.0/docs/countly-sdk-for-windows-phone) documentation at [Countly Resources](http://resources.count.ly).
 
 ###Other Github resources
 
