@@ -23,7 +23,6 @@ THE SOFTWARE.
 using CountlySDK.Helpers;
 using Microsoft.Phone.Info;
 using Microsoft.Phone.Net.NetworkInformation;
-using OpenUDIDPhone;
 using System;
 using System.IO.IsolatedStorage;
 using System.Windows;

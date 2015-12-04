@@ -96,6 +96,9 @@
     <Compile Include="Entities\SessionEvent.cs" />
     <Compile Include="Entities\UpdateSession.cs" />
     <Compile Include="Entities\CountlyUserDetails.cs" />
+    <Compile Include="Helpers\MD5.cs" />
+    <Compile Include="Helpers\MD5Managed.cs" />
+    <Compile Include="Helpers\OpenUDID.cs" />
     <Compile Include="Helpers\PhoneNameHelper.cs" />
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Helpers\TimeHelper.cs" />
@@ -112,7 +115,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\portable-net40+sl5+wp80+win8+wpa81\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OpenUDIDPhone, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="System.Net.Http">
       <HintPath>..\packages\Microsoft.Net.Http.2.2.29\lib\sl4-windowsphone71\System.Net.Http.dll</HintPath>
     </Reference>

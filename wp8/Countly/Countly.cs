@@ -218,7 +218,7 @@ namespace CountlySDK
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="application">Application object that allows SDK track unhandled exceptions</param>
-        public static void StartSession(string serverUrl, string appKey, Application application = null)
+        public static async Task StartSession(string serverUrl, string appKey, Application application = null)
         {
             if (String.IsNullOrWhiteSpace(serverUrl))
             {
@@ -248,7 +248,7 @@ namespace CountlySDK
             Timer.Tick += UpdateSession;
             Timer.Start();
 
-            AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
+            await AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
         }
 
         /// <summary>
@@ -288,7 +288,7 @@ namespace CountlySDK
         /// End Countly tracking session.
         /// Call from your App.xaml.cs Application_Deactivated and Application_Closing events.
         /// </summary>
-        public static void EndSession()
+        public static async Task EndSession()
         {
             if (Timer != null)
             {
@@ -297,7 +297,7 @@ namespace CountlySDK
                 Timer = null;
             }
 
-            AddSessionEvent(new EndSession(AppKey, Device.DeviceId), false);
+            await AddSessionEvent(new EndSession(AppKey, Device.DeviceId), true);
         }
 
         /// <summary>
@@ -305,27 +305,24 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sessionEvent">session event object</param>
         /// <param name="uploadImmediately">indicates when start to upload, by default - immediately after event was added</param>
-        private static void AddSessionEvent(SessionEvent sessionEvent, bool uploadImmediately = true)
+        private static async Task AddSessionEvent(SessionEvent sessionEvent, bool uploadImmediately = true)
         {
             if (String.IsNullOrWhiteSpace(ServerUrl))
             {
                 throw new InvalidOperationException("session is not active");
             }
-
-            ThreadPool.QueueUserWorkItem(async (work) =>
+            
+            lock (sync)
             {
-                lock (sync)
-                {
-                    Sessions.Add(sessionEvent);
+                Sessions.Add(sessionEvent);
 
-                    SaveSessions();
-                }
+                SaveSessions();
+            }
 
-                if (uploadImmediately)
-                {
-                    await Upload();
-                }
-            });
+            if (uploadImmediately)
+            {
+                await Upload();
+            }
         }
 
         /// <summary>
