@@ -42,11 +42,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Phone" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.3\lib\portable-net40+sl4+wp7+win8\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenUDIDPhone">
-      <HintPath>Libs\OpenUDIDPhone.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.5.0.8\lib\portable-net40+sl4+wp7+win8\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows" />
@@ -71,6 +69,9 @@
     <Compile Include="Entities\SegmentationItem.cs" />
     <Compile Include="Entities\SessionEvent.cs" />
     <Compile Include="Entities\UpdateSession.cs" />
+    <Compile Include="Helpers\MD5.cs" />
+    <Compile Include="Helpers\MD5Managed.cs" />
+    <Compile Include="Helpers\OpenUDID.cs" />
     <Compile Include="Helpers\PhoneNameHelper.cs" />
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Helpers\TimeHelper.cs" />

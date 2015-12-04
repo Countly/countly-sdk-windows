@@ -296,7 +296,7 @@ namespace CountlySDK
                 Timer = null;
             }
 
-            AddSessionEvent(new EndSession(AppKey, Device.DeviceId), false);
+            AddSessionEvent(new EndSession(AppKey, Device.DeviceId), true);
         }
 
         /// <summary>

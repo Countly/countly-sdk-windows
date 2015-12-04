@@ -48,7 +48,7 @@ namespace CountlySample
         /// search results, and so forth.
         /// </summary>
         /// <param name="e">Details about the launch request and process.</param>
-        protected override async void OnLaunched(LaunchActivatedEventArgs e)
+        protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
 #if DEBUG
             if (System.Diagnostics.Debugger.IsAttached)
@@ -78,7 +78,7 @@ namespace CountlySample
                 Window.Current.Content = rootFrame;
             }
 
-            await Activated();
+            Activated();
 
             if (rootFrame.Content == null)
             {
@@ -108,9 +108,9 @@ namespace CountlySample
             Window.Current.Activate();
         }
 
-        protected override async void OnActivated(IActivatedEventArgs args)
+        protected override void OnActivated(IActivatedEventArgs args)
         {
-            await Activated();
+            Activated();
 
             var continuationEventArgs = args as IContinuationActivatedEventArgs;
 
@@ -137,7 +137,7 @@ namespace CountlySample
             base.OnActivated(args);
         }
 
-        private async Task Activated()
+        private void Activated()
         {
             Countly.IsLoggingEnabled = true;
             Countly.IsExceptionsLoggingEnabled = true;
@@ -150,7 +150,7 @@ namespace CountlySample
             if (AppKey == null)
                 throw new ArgumentNullException("Type your AppKey");
 
-            await Countly.StartSession(ServerUrl, AppKey, this);
+            Countly.StartSession(ServerUrl, AppKey, this);
         }
 
         /// <summary>
@@ -165,9 +165,9 @@ namespace CountlySample
             rootFrame.Navigated -= this.RootFrame_FirstNavigated;
         }
 
-        private async void OnResuming(object sender, object e)
+        private void OnResuming(object sender, object e)
         {
-            await Activated();
+            Activated();
         }
 
         /// <summary>
