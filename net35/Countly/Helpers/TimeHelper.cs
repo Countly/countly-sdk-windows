@@ -22,7 +22,7 @@ THE SOFTWARE.
 
 using System;
 
-namespace Countly.Helpers
+namespace CountlySDK.Helpers
 {
     internal class TimeHelper
     {
