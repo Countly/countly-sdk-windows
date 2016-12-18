@@ -55,7 +55,8 @@ namespace CountlySample
             {
                 initialized = true;
 
-                UserNameText.Text = Countly.UserDetails.Name ?? String.Empty;
+                Countly.SessionStarted += async (sender, args) =>
+                    UserNameText.Text = Countly.UserDetails.Name ?? String.Empty;
             };
         }
 
@@ -88,7 +89,7 @@ namespace CountlySample
         {
             if (initialized)
             {
-                string ServerUrl = "http://cloud.count.ly";
+                string ServerUrl = "http://try.count.ly";
                 string AppKey = null;
 
                 if (ServerUrl == null)

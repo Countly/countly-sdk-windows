@@ -142,7 +142,7 @@ namespace CountlySample
             Countly.IsLoggingEnabled = true;
             Countly.IsExceptionsLoggingEnabled = true;
 
-            string ServerUrl = "http://cloud.count.ly";
+            string ServerUrl = "http://try.count.ly";
             string AppKey = null;
 
             if (ServerUrl == null)

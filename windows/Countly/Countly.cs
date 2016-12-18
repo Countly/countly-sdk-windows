@@ -75,6 +75,9 @@ namespace CountlySDK
         // Exceptions queue
         private static List<ExceptionEvent> Exceptions { get; set; }
 
+        // Raised when the async session is established
+        public static event EventHandler SessionStarted;
+
         // User details info
         public static CountlyUserDetails UserDetails { get; set; }
 
@@ -176,7 +179,12 @@ namespace CountlySDK
             Timer.Tick += UpdateSession;
             Timer.Start();
 
-            AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
+            await AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
+
+            if (null != SessionStarted)
+            {
+                SessionStarted(null, EventArgs.Empty);
+            }
         }
 
         /// <summary>
