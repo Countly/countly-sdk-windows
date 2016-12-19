@@ -353,7 +353,9 @@ namespace CountlySDK
         {
             if (IsExceptionsLoggingEnabled)
             {
-                await RecordUnhandledException(e.Exception.Message, e.Exception.StackTrace);
+                // If we access the StackTrace here, it will not be null when it gets recorded.
+                string stackTrace = e.Exception.StackTrace ?? string.Empty;
+                await RecordUnhandledException(e.Exception.Message, stackTrace);
             }
         }
 
