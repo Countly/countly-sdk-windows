@@ -30,18 +30,31 @@ namespace CountlySDK.Entitites
     /// <summary>
     /// This class provides several static methods to retrieve information about the current device and operating environment.
     /// </summary>
-    internal static class Device
+    public static class Device
     {
+
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
+
+        public static string NewDeviceId { get; set; }
+        public static string NewDeviceName { get; set; }
+
         public static string DeviceId
         {
             get
             {
                 try
                 {
-                    return OpenUDID.value;
+                    if (string.IsNullOrEmpty(NewDeviceId))
+                    {
+                        return OpenUDID.value;
+                    }
+                    else
+                    {
+                        return NewDeviceId;
+                    }
+                    
                 }
                 catch
                 {
@@ -79,7 +92,14 @@ namespace CountlySDK.Entitites
         {
             get
             {
-                return System.Environment.MachineName;
+                if (string.IsNullOrEmpty(NewDeviceName))
+                {
+                    return System.Environment.MachineName;
+                }
+                else
+                {
+                    return NewDeviceName;
+                }
             }
         }
 
