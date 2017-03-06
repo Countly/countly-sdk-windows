@@ -51,6 +51,9 @@ namespace CountlySDK
         // Application key provided by a user
         private static string AppKey;
 
+        // Application key provided by a user
+        private static string AppVersion;
+
         // Indicates sync process with a server
         private static bool uploadInProgress;
 
@@ -65,6 +68,18 @@ namespace CountlySDK
 
         // Used for thread-safe operations
         private static object sync = new object();
+
+        public static bool UseIsolatedStorage 
+        {
+            get
+            {
+                return Storage.UseIsolatedStorage;
+            }
+            set
+            {
+                Storage.UseIsolatedStorage = value;
+            } 
+        }
 
         private static List<CountlyEvent> events;
         // Events queue
@@ -143,7 +158,7 @@ namespace CountlySDK
             {
                 lock (sync)
                 {
-                    if (ServerUrl == null) return null;
+                    //if (ServerUrl == null) return null;
 
                     if (userDetails == null)
                     {
@@ -160,6 +175,7 @@ namespace CountlySDK
 
                 return userDetails;
             }
+
         }
 
         private static string breadcrumb = String.Empty;
@@ -228,6 +244,7 @@ namespace CountlySDK
 
             ServerUrl = serverUrl;
             AppKey = appKey;
+            AppVersion = appVersion;
 
             startTime = DateTime.Now;
 
@@ -404,8 +421,12 @@ namespace CountlySDK
                 Sessions.Clear();
                 Exceptions.Clear();
                 breadcrumb = String.Empty;
-                userDetails.UserDetailsChanged -= OnUserDetailsChanged;
-                userDetails = null;
+
+                if (userDetails != null)
+                {
+                    userDetails.UserDetailsChanged -= OnUserDetailsChanged;
+                    userDetails = null;
+                }
 
                 Storage.DeleteFile(eventsFilename);
                 Storage.DeleteFile(sessionsFilename);
@@ -607,7 +628,8 @@ namespace CountlySDK
         {
             if (String.IsNullOrEmpty(Countly.ServerUrl))
             {
-                throw new InvalidOperationException("session is not active");
+                return false;
+                //throw new InvalidOperationException("session is not active");
             }
 
             ResultResponse resultResponse = await Api.UploadUserDetails(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, UserDetails);
@@ -635,7 +657,8 @@ namespace CountlySDK
         {
             if (String.IsNullOrEmpty(Countly.ServerUrl))
             {
-                throw new InvalidOperationException("session is not active");
+                return false;
+                //throw new InvalidOperationException("session is not active");
             }
 
             ResultResponse resultResponse = await Api.UploadUserPicture(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, imageStream, (UserDetails.isChanged) ? UserDetails : null);
@@ -684,7 +707,7 @@ namespace CountlySDK
         /// <param name="customInfo">exception custom info</param>
         /// <param name="unhandled">bool indicates is exception is fatal or not</param>
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
-        private static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
+        public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
             if (String.IsNullOrEmpty(ServerUrl))
             {
@@ -695,7 +718,7 @@ namespace CountlySDK
 
             lock (sync)
             {
-                Exceptions.Add(new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, customInfo));
+                Exceptions.Add(new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, AppVersion, customInfo));
 
                 SaveExceptions();
             }
@@ -706,6 +729,7 @@ namespace CountlySDK
             }
             else
             {
+                Upload();
                 return true;
             }
         }
