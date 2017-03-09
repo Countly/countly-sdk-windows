@@ -37,8 +37,6 @@ namespace CountlySDK.Helpers
         private const string folder = "countly";
         private static object locker = new Object();
 
-        internal static bool UseIsolatedStorage { get; set; }
-
         private static string Path
         {
             get
@@ -54,36 +52,28 @@ namespace CountlySDK.Helpers
         /// <param name="objForSave">Object to save</param>
         public static void SaveToFile(string filename, object objForSave)
         {
-            if (UseIsolatedStorage)
+            lock (locker)
             {
-                IsoStorage.SaveToFile(filename, objForSave);
-            }
-            else
-            {
-                lock (locker)
+                try
                 {
-                    try
-                    {
-                        bool exists = System.IO.Directory.Exists(Path);
+                    bool exists = System.IO.Directory.Exists(Path);
 
-                        if (!exists)
-                            System.IO.Directory.CreateDirectory(Path);
-
-                        using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Create, FileAccess.Write, FileShare.Read))
-                        {
-                            Serialize(file, objForSave);
-                            file.Close();
-                        }
-                    }
-                    catch
-                    {
-                        if (Countly.IsLoggingEnabled)
-                        {
-                            Debug.WriteLine("save countly data failed");
-                        }
+                    if (!exists)
+                        System.IO.Directory.CreateDirectory(Path);
+                
+                    using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Create, FileAccess.Write, FileShare.Read))
+                    { 
+                        Serialize(file, objForSave);
+                        file.Close();
                     }
                 }
-
+                catch
+                {
+                    if (Countly.IsLoggingEnabled)
+                    {
+                        Debug.WriteLine("save countly data failed");
+                    }
+                }
             }
 
         }
@@ -96,45 +86,38 @@ namespace CountlySDK.Helpers
         /// <returns>Object from file</returns>
         public static T LoadFromFile<T>(string filename)
         {
-            if (UseIsolatedStorage)
-            {
-                return IsoStorage.LoadFromFile<T>(filename);
-            }
-            else
-            {
-                T obj = default(T);
+            T obj = default(T);
 
-                lock (locker)
+            lock (locker)
+            {
+                try
                 {
-                    try
+                    if (!System.IO.Directory.Exists(Path))
                     {
-                        if (!System.IO.Directory.Exists(Path))
-                        {
-                            System.IO.Directory.CreateDirectory(Path);
-                        }
-
-                        if (!File.Exists(Path + @"\" + filename)) return obj;
-
-                        using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Open, FileAccess.Read, FileShare.None))
-                        {
-                            obj = (T)Deserialize(file, typeof(T));
-
-                            file.Close();
-                        }
+                        System.IO.Directory.CreateDirectory(Path);
                     }
-                    catch
-                    {
-                        if (Countly.IsLoggingEnabled)
-                        {
-                            Debug.WriteLine("countly queue lost");
-                        }
 
-                        DeleteFile(Path + @"\" + filename);
+                    if (!File.Exists(Path + @"\" + filename)) return obj;
+            
+                    using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                    {
+                        obj = (T)Deserialize(file, typeof(T));
+
+                        file.Close();
                     }
                 }
+                catch
+                {
+                    if (Countly.IsLoggingEnabled)
+                    {
+                        Debug.WriteLine("countly queue lost");
+                    }
 
-                return obj;
+                    DeleteFile(Path + @"\" + filename);
+                }
             }
+
+            return obj;
         }
 
         /// <summary>
@@ -143,22 +126,15 @@ namespace CountlySDK.Helpers
         /// <param name="filename">Filename to delete</param>
         public static void DeleteFile(string filename)
         {
-            if (UseIsolatedStorage)
+            try
             {
-                IsoStorage.DeleteFile(filename);
-            }
-            else
-            {
-                try
+                if (File.Exists(Path + @"\" + filename))
                 {
-                    if (File.Exists(Path + @"\" + filename))
-                    {
-                        File.Delete(Path + @"\" + filename);
-                    }
+                    File.Delete(Path + @"\" + filename);
                 }
-                catch
-                { }
             }
+            catch
+            { }
         }
 
         private static void Serialize(Stream streamObject, object objForSerialization)
