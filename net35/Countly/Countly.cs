@@ -69,18 +69,6 @@ namespace CountlySDK
         // Used for thread-safe operations
         private static object sync = new object();
 
-        public static bool UseIsolatedStorage 
-        {
-            get
-            {
-                return Storage.UseIsolatedStorage;
-            }
-            set
-            {
-                Storage.UseIsolatedStorage = value;
-            } 
-        }
-
         private static List<CountlyEvent> events;
         // Events queue
         private static List<CountlyEvent> Events

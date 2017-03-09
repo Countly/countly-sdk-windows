@@ -29,7 +29,7 @@ using System.Text;
 
 namespace CountlySDK.Helpers
 {
-    internal class IsoStorage
+    internal class Storage
     {
         /// <summary>
         /// Countly folder

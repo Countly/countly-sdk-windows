@@ -129,9 +129,6 @@
     <Compile Include="..\..\net35\Countly\Helpers\OSInfo.cs">
       <Link>Helpers\OSInfo.cs</Link>
     </Compile>
-    <Compile Include="..\..\net35\Countly\Helpers\Storage.cs">
-      <Link>Helpers\Storage.cs</Link>
-    </Compile>
     <Compile Include="..\..\net35\Countly\Helpers\TimeHelper.cs">
       <Link>Helpers\TimeHelper.cs</Link>
     </Compile>
