@@ -308,7 +308,7 @@ namespace CountlySDK
         {
             if (String.IsNullOrWhiteSpace(ServerUrl))
             {
-                throw new InvalidOperationException("session is not active");
+                return;
             }
 
             ThreadPool.QueueUserWorkItem((work) =>
@@ -418,9 +418,7 @@ namespace CountlySDK
         /// <summary>
         /// Immediately disables session, event, exceptions & user details tracking and clears any stored sessions, events, exceptions & user details data.
         /// This API is useful if your app has a tracking opt-out switch, and you want to immediately
-        /// disable tracking when a user opts out. The EndSession/RecordEvent methods will throw
-        /// InvalidOperationException after calling this until Countly is reinitialized by calling StartSession
-        /// again.
+        /// disable tracking when a user opts out. Call StartSession to enable logging again
         /// </summary>
         public static void Halt()
         {
@@ -526,7 +524,7 @@ namespace CountlySDK
         {
             if (String.IsNullOrWhiteSpace(ServerUrl))
             {
-                throw new InvalidOperationException("session is not active");
+                return;
             }
 
             ThreadPool.QueueUserWorkItem((work) =>
@@ -643,7 +641,7 @@ namespace CountlySDK
         {
             if (String.IsNullOrWhiteSpace(Countly.ServerUrl))
             {
-                throw new InvalidOperationException("session is not active");
+                return;
             }
 
             Api.UploadUserDetails(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, UserDetails, (resultResponse) =>
@@ -666,7 +664,7 @@ namespace CountlySDK
         {
             if (String.IsNullOrWhiteSpace(Countly.ServerUrl))
             {
-                throw new InvalidOperationException("session is not active");
+                return;
             }
 
             Api.UploadUserPicture(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, imageStream, (UserDetails.isChanged) ? UserDetails : null, (resultResponse) =>
@@ -726,7 +724,7 @@ namespace CountlySDK
         {
             if (String.IsNullOrWhiteSpace(ServerUrl))
             {
-                throw new InvalidOperationException("session is not active");
+                return;
             }
             
             TimeSpan run = DateTime.Now.Subtract(startTime);
