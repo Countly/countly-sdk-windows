@@ -146,8 +146,6 @@ namespace CountlySDK
             {
                 lock (sync)
                 {
-                    //if (ServerUrl == null) return null;
-
                     if (userDetails == null)
                     {
                         userDetails = Storage.LoadFromFile<CountlyUserDetails>(userDetailsFilename);
@@ -409,17 +407,16 @@ namespace CountlySDK
                 Sessions.Clear();
                 Exceptions.Clear();
                 breadcrumb = String.Empty;
-
                 if (userDetails != null)
                 {
                     userDetails.UserDetailsChanged -= OnUserDetailsChanged;
-                    userDetails = null;
                 }
+                userDetails = new CountlyUserDetails();
 
                 Storage.DeleteFile(eventsFilename);
                 Storage.DeleteFile(sessionsFilename);
                 Storage.DeleteFile(exceptionsFilename);
-                Storage.DeleteFile(userDetailsFilename);
+                Storage.DeleteFile(userDetailsFilename);                
             }
         }
 
@@ -616,8 +613,7 @@ namespace CountlySDK
         {
             if (String.IsNullOrEmpty(Countly.ServerUrl))
             {
-                return false;
-                //throw new InvalidOperationException("session is not active");
+                throw new InvalidOperationException("session is not active");
             }
 
             ResultResponse resultResponse = await Api.UploadUserDetails(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, UserDetails);
@@ -645,8 +641,7 @@ namespace CountlySDK
         {
             if (String.IsNullOrEmpty(Countly.ServerUrl))
             {
-                return false;
-                //throw new InvalidOperationException("session is not active");
+                throw new InvalidOperationException("session is not active");
             }
 
             ResultResponse resultResponse = await Api.UploadUserPicture(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, imageStream, (UserDetails.isChanged) ? UserDetails : null);
@@ -717,8 +712,7 @@ namespace CountlySDK
             }
             else
             {
-                Upload();
-                return true;
+                return false;
             }
         }
 

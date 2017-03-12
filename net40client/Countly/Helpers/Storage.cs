@@ -53,14 +53,6 @@ namespace CountlySDK.Helpers
             return IsFileExists(store, fileName);
         }
 
-        //private static string Path
-        //{
-        //    get
-        //    {
-        //        return System.IO.Directory.GetCurrentDirectory() + @"\" + folder;
-        //    }
-        //}
-
         /// <summary>
         /// Saves object into file
         /// </summary>

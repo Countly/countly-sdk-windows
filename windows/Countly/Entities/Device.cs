@@ -72,6 +72,10 @@ namespace CountlySDK.Entitites
                     return String.Empty;
                 }
             }
+            set
+            {
+                deviceId = value;
+            }
         }
 
         /// <summary>

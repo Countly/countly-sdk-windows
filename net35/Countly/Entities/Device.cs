@@ -32,27 +32,23 @@ namespace CountlySDK.Entitites
     /// </summary>
     public static class Device
     {
-
+        private static string deviceId;
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
-
-        public static string NewDeviceId { get; set; }
-        public static string NewDeviceName { get; set; }
-
         public static string DeviceId
         {
             get
             {
                 try
                 {
-                    if (string.IsNullOrEmpty(NewDeviceId))
+                    if (string.IsNullOrEmpty(deviceId))
                     {
                         return OpenUDID.value;
                     }
                     else
                     {
-                        return NewDeviceId;
+                        return deviceId;
                     }
                     
                 }
@@ -60,6 +56,10 @@ namespace CountlySDK.Entitites
                 {
                     return "";
                 }
+            }
+            set
+            {
+                deviceId = value;
             }
         }
 
@@ -85,6 +85,7 @@ namespace CountlySDK.Entitites
             }
         }
 
+        private static string deviceName;
         /// <summary>
         /// Returns the local machine name
         /// </summary>
@@ -92,14 +93,18 @@ namespace CountlySDK.Entitites
         {
             get
             {
-                if (string.IsNullOrEmpty(NewDeviceName))
+                if (string.IsNullOrEmpty(deviceName))
                 {
                     return System.Environment.MachineName;
                 }
                 else
                 {
-                    return NewDeviceName;
+                    return deviceName;
                 }
+            }
+            set
+            {
+                deviceName = value;
             }
         }
 

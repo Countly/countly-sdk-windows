@@ -380,6 +380,11 @@ namespace CountlySDK
                     Timer = null;
                 }
 
+                if (UserDetails != null)
+                {
+                    UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
+                }
+
                 Events.Clear();
                 Sessions.Clear();
                 Exceptions.Clear();
@@ -678,7 +683,7 @@ namespace CountlySDK
         /// <param name="customInfo">exception custom info</param>
         /// <param name="unhandled">bool indicates is exception is fatal or not</param>
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
-        private static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
+        public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
             if (String.IsNullOrWhiteSpace(ServerUrl))
             {
@@ -700,7 +705,7 @@ namespace CountlySDK
             }
             else
             {
-                return true;
+                return false;
             }
         }
 

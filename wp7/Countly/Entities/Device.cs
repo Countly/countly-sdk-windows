@@ -36,18 +36,34 @@ namespace CountlySDK.Entitites
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
+        private static string deviceId;
+        /// <summary>
+        /// Returns the unique device identificator
+        /// </summary>
         public static string DeviceId
         {
             get
             {
                 try
                 {
-                    return OpenUDID.value;
+                    if (string.IsNullOrEmpty(deviceId))
+                    {
+                        return OpenUDID.value;
+                    }
+                    else
+                    {
+                        return deviceId;
+                    }
+
                 }
                 catch
                 {
                     return "";
                 }
+            }
+            set
+            {
+                deviceId = value;
             }
         }
 
