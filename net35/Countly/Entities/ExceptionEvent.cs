@@ -135,13 +135,14 @@ namespace CountlySDK.Entities
             }
         }
 
-        public ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, Dictionary<string, string> customInfo)
+        public ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, string appVersion, Dictionary<string, string> customInfo)
         {
             //device metrics
             OS = CountlySDK.Entitites.Device.OS;
             OSVersion = CountlySDK.Entitites.Device.OSVersion;
             Device = CountlySDK.Entitites.Device.DeviceName;
             Resolution = CountlySDK.Entitites.Device.Resolution;
+            AppVersion = appVersion;
 
             //state of device
             RamCurrent = CountlySDK.Entitites.Device.RamCurrent;

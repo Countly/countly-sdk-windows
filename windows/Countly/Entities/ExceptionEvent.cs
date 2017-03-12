@@ -101,46 +101,6 @@ namespace CountlySDK.Entities
         [JsonProperty("_custom")]
         public Dictionary<string, string> Custom { get; set; }
 
-        /// <summary>
-        /// Custom data ready for datacontract serializer
-        /// </summary>
-        //[JsonIgnore]
-        //[DataMemberAttribute]
-        //internal List<KeyValuePair<string, string>> _custom
-        //{
-        //    get
-        //    {
-        //        if (Custom == null) return null;
-
-        //        List<KeyValuePair<string, string>> list = new List<KeyValuePair<string, string>>();
-
-        //        foreach (var pair in Custom)
-        //        {
-        //            list.Add(new KeyValuePair<string, string>(pair.Key, pair.Value));
-        //        }
-
-        //        return list;
-        //    }
-        //    set
-        //    {
-        //        if (value == null)
-        //        {
-        //            Custom = new Dictionary<string, string>();
-        //        }
-        //        else
-        //        {
-        //            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-
-        //            foreach (var pair in value)
-        //            {
-        //                dictionary.Add(pair.Key, pair.Value);
-        //            }
-
-        //            Custom = dictionary;
-        //        }
-        //    }
-        //}
-
         public ExceptionEvent()
         { }
 

@@ -440,6 +440,10 @@ namespace CountlySDK
                 Sessions.Clear();
                 Exceptions.Clear();
                 breadcrumb = String.Empty;
+                if (userDetails != null)
+                {
+                    userDetails.UserDetailsChanged -= OnUserDetailsChanged;
+                }
                 userDetails = new CountlyUserDetails();
 
                 Storage.DeleteFile(eventsFilename);
@@ -718,7 +722,7 @@ namespace CountlySDK
         /// <param name="stackTrace">exception stacktrace</param>
         /// <param name="customInfo">exception custom info</param>
         /// <param name="unhandled">bool indicates is exception is fatal or not</param>
-        private static void RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
+        public static void RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
             if (String.IsNullOrWhiteSpace(ServerUrl))
             {

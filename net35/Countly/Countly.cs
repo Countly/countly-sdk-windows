@@ -51,6 +51,9 @@ namespace CountlySDK
         // Application key provided by a user
         private static string AppKey;
 
+        // Application key provided by a user
+        private static string AppVersion;
+
         // Indicates sync process with a server
         private static bool uploadInProgress;
 
@@ -143,8 +146,6 @@ namespace CountlySDK
             {
                 lock (sync)
                 {
-                    if (ServerUrl == null) return null;
-
                     if (userDetails == null)
                     {
                         userDetails = Storage.LoadFromFile<CountlyUserDetails>(userDetailsFilename);
@@ -160,6 +161,7 @@ namespace CountlySDK
 
                 return userDetails;
             }
+
         }
 
         private static string breadcrumb = String.Empty;
@@ -228,6 +230,7 @@ namespace CountlySDK
 
             ServerUrl = serverUrl;
             AppKey = appKey;
+            AppVersion = appVersion;
 
             startTime = DateTime.Now;
 
@@ -404,13 +407,16 @@ namespace CountlySDK
                 Sessions.Clear();
                 Exceptions.Clear();
                 breadcrumb = String.Empty;
-                userDetails.UserDetailsChanged -= OnUserDetailsChanged;
-                userDetails = null;
+                if (userDetails != null)
+                {
+                    userDetails.UserDetailsChanged -= OnUserDetailsChanged;
+                }
+                userDetails = new CountlyUserDetails();
 
                 Storage.DeleteFile(eventsFilename);
                 Storage.DeleteFile(sessionsFilename);
                 Storage.DeleteFile(exceptionsFilename);
-                Storage.DeleteFile(userDetailsFilename);
+                Storage.DeleteFile(userDetailsFilename);                
             }
         }
 
@@ -684,7 +690,7 @@ namespace CountlySDK
         /// <param name="customInfo">exception custom info</param>
         /// <param name="unhandled">bool indicates is exception is fatal or not</param>
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
-        private static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
+        public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
             if (String.IsNullOrEmpty(ServerUrl))
             {
@@ -695,7 +701,7 @@ namespace CountlySDK
 
             lock (sync)
             {
-                Exceptions.Add(new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, customInfo));
+                Exceptions.Add(new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, AppVersion, customInfo));
 
                 SaveExceptions();
             }
@@ -706,7 +712,7 @@ namespace CountlySDK
             }
             else
             {
-                return true;
+                return false;
             }
         }
 
