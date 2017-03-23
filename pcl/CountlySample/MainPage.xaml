@@ -1,0 +1,48 @@
+﻿<Page
+    x:Class="CountlySample.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:CountlySample"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid x:Name="LayoutRoot">
+
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <EntranceThemeTransition/>
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Title Panel -->
+        <StackPanel Grid.Row="0" Margin="19,0,0,0">
+            <TextBlock Text="COUNTLY" Style="{ThemeResource TitleTextBlockStyle}" Margin="0,12,0,0"/>
+            <TextBlock Text="sample" Margin="0,-6.5,0,26.5" Style="{ThemeResource HeaderTextBlockStyle}" CharacterSpacing="{ThemeResource PivotHeaderItemCharacterSpacing}"/>
+        </StackPanel>
+        <ScrollViewer Grid.Row="1" Margin="19,9.5,19,0">
+        	<StackPanel x:Name="ContentRoot">
+        		<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="Events" VerticalAlignment="Top" Style="{StaticResource GroupHeaderTextBlockStyle}"/>
+        		<Button x:Name="RecordBasicEvent" Content="Record basic event" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="RecordBasicEvent_Click"/>
+        		<Button x:Name="RecordEventSum" Content="Record event with Sum" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="RecordEventSum_Click"/>
+        		<Button x:Name="RecordEventSegmentation" Content="Record event with Segmentation" HorizontalAlignment="Left" VerticalAlignment="Stretch" Click="RecordEventSegmentation_Click"/>
+        		<TextBlock TextWrapping="Wrap" Text="User Details" Style="{StaticResource GroupHeaderTextBlockStyle}" Margin="0,10,0,0"/>
+        		<TextBox x:Name="UserNameText" TextWrapping="Wrap" VerticalAlignment="Stretch" TextChanged="UserNameText_TextChanged"/>
+        		<Button x:Name="UploadUserPictureButton" Content="Upload User Picture" HorizontalAlignment="Left" Click="UploadUserPictureButton_Click" VerticalAlignment="Stretch" Margin="0,4,0,0"/>
+        		<TextBlock TextWrapping="Wrap" Text="Crashes" Style="{StaticResource GroupHeaderTextBlockStyle}" Margin="0,10,0,0"/>
+        		<Button x:Name="CrashButton" Content="Generate Exception" HorizontalAlignment="Left" Click="CrashButton_Click" VerticalAlignment="Stretch"/>
+        		<CheckBox x:Name="TrackingCheck" IsChecked="True" Content="Enable tracking" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Checked="TrackingCheck_Checked" Unchecked="TrackingCheck_Unchecked"/>
+
+        	</StackPanel>
+
+        </ScrollViewer>
+
+        <!--TODO: Content should be placed within the following grid-->
+    </Grid>
+</Page>
