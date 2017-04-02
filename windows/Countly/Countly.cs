@@ -99,19 +99,54 @@ namespace CountlySDK
         public static bool IsExceptionsLoggingEnabled { get; set; }
 
         /// <summary>
+        /// Saves collection to the storage
+        /// </summary>
+        /// <returns>True if success, otherwise - False</returns>
+        private static async Task<bool> SaveCollection<T>(List<T> collection, string path)
+        {
+            List<T> collection_;
+
+            lock (sync)
+            {
+                collection_ = collection.ToList();
+            }
+
+            bool success = await Storage.SaveToFile<List<T>>(path, collection_);
+
+            if (success)
+            {
+                if (collection_.Count != collection.Count)
+                {
+                    // collection was changed during saving, save it again
+                    return await SaveCollection<T>(collection, path);
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Saves events to the storage
         /// </summary>
-        private static async Task SaveEvents()
+        /// <returns>True if success, otherwise - False</returns>
+        private static Task<bool> SaveEvents()
         {
-            await Storage.SaveToFile<List<CountlyEvent>>(eventsFilename, Events);
+            return SaveCollection<CountlyEvent>(Events, eventsFilename);            
         }
 
         /// <summary>
         /// Saves sessions to the storage
         /// </summary>
-        private static async Task SaveSessions()
+        /// <returns>True if success, otherwise - False</returns>
+        private static Task<bool> SaveSessions()
         {
-            await Storage.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions);
+            return SaveCollection<SessionEvent>(Sessions, sessionsFilename);
         }
 
         /// <summary>
@@ -479,23 +514,19 @@ namespace CountlySDK
                 return false;
             }
 
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-
-            Task.Run(async () =>
+            lock (sync)
             {
-                lock (sync)
-                {
-                    Events.Add(countlyEvent);
-                }
+                Events.Add(countlyEvent);
+            }
 
-                await SaveEvents();                
+            bool success = await SaveEvents();
 
-                bool success = await Upload();
+            if (success)
+            {
+                success = await Upload();
+            }
 
-                tcs.SetResult(success);
-            });
-
-            return await tcs.Task;
+            return success;
         }
 
         /// <summary>
@@ -516,7 +547,7 @@ namespace CountlySDK
 
             lock (sync)
             {
-                eventsCount = Events.Count;
+                eventsCount = Math.Min(25, Events.Count);
             }
 
             if (eventsCount > 0)
@@ -547,11 +578,15 @@ namespace CountlySDK
                         eventsCountToUploadAgain = Events.Count;
                     }
 
-                    await Storage.SaveToFile<List<CountlyEvent>>(eventsFilename, Events);
+                    bool success = await SaveEvents();
+
+                    if (!success)
+                    {
+                        return false;
+                    }
 
                     if (eventsCountToUploadAgain > 0)
                     {
-                        // Upload events added during sync
                         return await UploadEvents();
                     }
                     else
@@ -785,12 +820,21 @@ namespace CountlySDK
             breadcrumb += log + "\r\n";
         }
 
+        private static bool isUploading;
+
         /// <summary>
         /// Upload sessions, events & exception queues
         /// </summary>
         /// <returns>True if success</returns>
         private static async Task<bool> Upload()
         {
+            if (isUploading)
+            {
+                return false;
+            }
+
+            isUploading = true;
+
             bool success = await UploadSessions();
 
             if (success)
@@ -802,6 +846,8 @@ namespace CountlySDK
             {
                 success = await UploadExceptions();
             }
+
+            isUploading = false;
 
             return success;
         }

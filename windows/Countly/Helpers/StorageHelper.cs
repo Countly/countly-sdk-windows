@@ -36,6 +36,8 @@ namespace CountlySDK.Helpers
         /// </summary>
         private const string folder = "countly";
 
+        private static Dictionary<string, bool> filesInUse = new Dictionary<string, bool>();
+
         public static ApplicationDataContainer Settings
         {
             get
@@ -96,8 +98,18 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="filename">File to save to</param>
         /// <param name="objForSave">Object to save</param>
-        public static async Task SaveToFile<T>(string path, object objForSave)
+        /// <returns>True if success, otherwise - False</returns>
+        public static async Task<bool> SaveToFile<T>(string path, object objForSave)
         {
+            if (filesInUse.ContainsKey(path))
+            {
+                return false;
+            }
+
+            filesInUse[path] = true;
+
+            bool success = true;
+
             try
             {
                 var sessionSerializer = new DataContractSerializer(typeof(T));
@@ -108,7 +120,15 @@ namespace CountlySDK.Helpers
                 await SaveStream(sessionData, path);
             }
             catch
-            { }
+            {
+                success = false;
+            }
+            finally
+            {
+                filesInUse.Remove(path);
+            }
+
+            return success;
         }
 
         /// <summary>
