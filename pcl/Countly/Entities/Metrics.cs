@@ -81,6 +81,7 @@ namespace CountlySDK.Entities
         public Metrics(string AppVersion)
         {
             this.AppVersion = AppVersion;
+            this.OS = "Windows (PCL)";
         }
 
         /// <summary>
