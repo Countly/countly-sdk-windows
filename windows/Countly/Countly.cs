@@ -260,9 +260,9 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void UpdateSession(object sender, object e)
+        private static async void UpdateSession(object sender, object e)
         {
-            AddSessionEvent(new UpdateSession(AppKey, Device.DeviceId, (int)DateTime.Now.Subtract(startTime).TotalSeconds));
+            await AddSessionEvent(new UpdateSession(AppKey, Device.DeviceId, (int)DateTime.Now.Subtract(startTime).TotalSeconds));
         }
 
         /// <summary>
@@ -820,21 +820,12 @@ namespace CountlySDK
             breadcrumb += log + "\r\n";
         }
 
-        private static bool isUploading;
-
         /// <summary>
         /// Upload sessions, events & exception queues
         /// </summary>
         /// <returns>True if success</returns>
         private static async Task<bool> Upload()
         {
-            if (isUploading)
-            {
-                return false;
-            }
-
-            isUploading = true;
-
             bool success = await UploadSessions();
 
             if (success)
@@ -846,8 +837,6 @@ namespace CountlySDK
             {
                 success = await UploadExceptions();
             }
-
-            isUploading = false;
 
             return success;
         }
