@@ -249,7 +249,7 @@ namespace CountlySDK
         /// </summary>
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
-        public static async Task StartSession(string serverUrl, string appKey)
+        public static async void StartSession(string serverUrl, string appKey)
         {
             await StartSession(serverUrl, appKey, String.Empty);
         }
@@ -259,9 +259,9 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static void UpdateSession(object sender, EventArgs e)
+        private static async void UpdateSession(object sender, EventArgs e)
         {
-            AddSessionEvent(new UpdateSession(AppKey, Device.DeviceId, (int)DateTime.Now.Subtract(startTime).TotalSeconds));
+            await AddSessionEvent(new UpdateSession(AppKey, Device.DeviceId, (int)DateTime.Now.Subtract(startTime).TotalSeconds));
         }
 
         /// <summary>
@@ -478,10 +478,9 @@ namespace CountlySDK
         /// <param name="Count">Count to associate with the event, should be more than zero</param>
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
-        /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        private static Task<bool> RecordCountlyEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
+        private static async void RecordCountlyEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
-            return AddEvent(new CountlyEvent(Key, Count, Sum, Segmentation));
+            await AddEvent(new CountlyEvent(Key, Count, Sum, Segmentation));
         }
 
         /// <summary>
@@ -651,10 +650,9 @@ namespace CountlySDK
         /// Records exception
         /// </summary>
         /// <param name="error">exception title</param>
-        /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
-        public static async Task<bool> RecordException(string error)
+        public static void RecordException(string error)
         {
-            return await RecordException(error, null, null);
+            RecordException(error, null, null);
         }
 
         /// <summary>
@@ -662,10 +660,9 @@ namespace CountlySDK
         /// </summary>
         /// <param name="error">exception title</param>
         /// <param name="stackTrace">exception stacktrace</param>
-        /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
-        public static async Task<bool> RecordException(string error, string stackTrace)
+        public static void RecordException(string error, string stackTrace)
         {
-            return await RecordException(error, stackTrace, null);
+            RecordException(error, stackTrace, null);
         }
 
         /// <summary>
@@ -674,10 +671,9 @@ namespace CountlySDK
         /// <param name="error">exception title</param>
         /// <param name="stackTrace">exception stacktrace</param>
         /// <param name="customInfo">exception custom info</param>
-        /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
-        public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo)
+        public static void RecordException(string error, string stackTrace, Dictionary<string, string> customInfo)
         {
-            return await RecordException(error, stackTrace, customInfo, false);
+            RecordException(error, stackTrace, customInfo, false);
         }
 
         /// <summary>
@@ -688,11 +684,11 @@ namespace CountlySDK
         /// <param name="customInfo">exception custom info</param>
         /// <param name="unhandled">bool indicates is exception is fatal or not</param>
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
-        public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
+        public static async void RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
             if (String.IsNullOrEmpty(ServerUrl))
             {
-                return false;
+                return;
             }
 
             TimeSpan run = DateTime.Now.Subtract(startTime);
@@ -706,11 +702,11 @@ namespace CountlySDK
 
             if (!unhandled)
             {
-                return await Upload();
+                await Upload();
             }
             else
             {
-                return false;
+                return;
             }
         }
 
