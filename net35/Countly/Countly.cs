@@ -243,18 +243,6 @@ namespace CountlySDK
         }
 
         /// <summary>
-        /// Starts Countly tracking session.
-        /// Call from your entry point.
-        /// Must be called before other SDK methods can be used.
-        /// </summary>
-        /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
-        /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
-        public static async void StartSession(string serverUrl, string appKey)
-        {
-            await StartSession(serverUrl, appKey, String.Empty);
-        }
-
-        /// <summary>
         /// Sends session duration. Called automatically each <updateInterval> seconds
         /// </summary>
         /// <param name="sender"></param>
