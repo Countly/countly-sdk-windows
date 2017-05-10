@@ -49,7 +49,7 @@ namespace CountlySDK.Helpers
 
         public static bool IsFileExists(string fileName)
         {
-            var store = IsolatedStorageFile.GetUserStoreForApplication();
+            var store = IsolatedStorageFile.GetUserStoreForAssembly();
             return IsFileExists(store, fileName);
         }
 
@@ -64,7 +64,7 @@ namespace CountlySDK.Helpers
             {
                 try
                 {
-                    var store = IsolatedStorageFile.GetUserStoreForApplication();
+                    var store = IsolatedStorageFile.GetUserStoreForAssembly();
 
                     if (!store.DirectoryExists(folder))
                     {
@@ -102,7 +102,7 @@ namespace CountlySDK.Helpers
             {
                 try
                 {
-                    var store = IsolatedStorageFile.GetUserStoreForApplication();
+                    var store = IsolatedStorageFile.GetUserStoreForAssembly();
                     
                     if (! IsFileExists(store, filename))
                     {
@@ -138,7 +138,7 @@ namespace CountlySDK.Helpers
         {
             try
             {
-                var store = IsolatedStorageFile.GetUserStoreForApplication();
+                var store = IsolatedStorageFile.GetUserStoreForAssembly();
                 if (IsFileExists(store, filename))
                 {
                     store.DeleteFile(filename);
