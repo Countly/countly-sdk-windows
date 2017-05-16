@@ -722,8 +722,7 @@ namespace CountlySDK
             {
                 return false;
             }
-
-            TimeSpan run = DateTime.Now.Subtract(startTime);
+            TimeSpan run = (startTime != DateTime.MinValue) ? DateTime.Now.Subtract(startTime) : TimeSpan.FromSeconds(0);
 
             lock (sync)
             {

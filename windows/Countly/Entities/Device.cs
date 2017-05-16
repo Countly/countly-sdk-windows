@@ -150,10 +150,17 @@ namespace CountlySDK.Entitites
         {
             get
             {
-                int width = (int)(Window.Current.Bounds.Width * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
-                int height = (int)(Window.Current.Bounds.Height * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
+                if (Window.Current != null && DisplayInformation.GetForCurrentView() != null)
+                {
+                    int width = (int)(Window.Current.Bounds.Width * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
+                    int height = (int)(Window.Current.Bounds.Height * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
 
-                return width + "x" + height;
+                    return width + "x" + height;
+                }
+                else
+                {
+                    return String.Empty;
+                }
             }
         }
 
