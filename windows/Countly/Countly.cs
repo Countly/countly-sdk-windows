@@ -154,7 +154,9 @@ namespace CountlySDK
         /// </summary>
         private static void SaveExceptions()
         {
-            string json = JsonConvert.SerializeObject(Exceptions, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore});
+            List<ExceptionEvent> exception = Exceptions.ToList();
+
+            string json = JsonConvert.SerializeObject(exception, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore});
 
             Storage.SetValue(exceptionsFilename, json);
         }

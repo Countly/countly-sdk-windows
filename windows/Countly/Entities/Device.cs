@@ -143,6 +143,7 @@ namespace CountlySDK.Entitites
             }
         }
 
+        private static string resolution;
         /// <summary>
         /// Returns device resolution in <width_px>x<height_px> format
         /// </summary>
@@ -155,11 +156,13 @@ namespace CountlySDK.Entitites
                     int width = (int)(Window.Current.Bounds.Width * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
                     int height = (int)(Window.Current.Bounds.Height * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
 
-                    return width + "x" + height;
+                    resolution = width + "x" + height;
+
+                    return resolution;
                 }
                 else
                 {
-                    return String.Empty;
+                    return resolution ?? String.Empty;
                 }
             }
         }
@@ -188,6 +191,7 @@ namespace CountlySDK.Entitites
             }
         }
 
+        private static string orientation;
         /// <summary>
         /// Returns current device orientation
         /// </summary>
@@ -195,7 +199,16 @@ namespace CountlySDK.Entitites
         {
             get
             {
-                return (Window.Current.Bounds.Width > Window.Current.Bounds.Height) ? "landscape" : "portrait";
+                if (Window.Current != null)
+                {
+                    orientation = (Window.Current.Bounds.Width > Window.Current.Bounds.Height) ? "landscape" : "portrait";
+
+                    return orientation;
+                }
+                else
+                {
+                    return orientation ?? String.Empty;
+                }
             }
         }
 
