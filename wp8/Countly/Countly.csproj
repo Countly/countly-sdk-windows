@@ -85,32 +85,44 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs">
+      <Link>Entities\CustomInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs">
+      <Link>Entities\CustomInfoItem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Segmentation.cs">
+      <Link>Entities\Segmentation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs">
+      <Link>Entities\SegmentationItem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\MD5.cs">
+      <Link>Helpers\MD5.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs">
+      <Link>Helpers\PhoneNameHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs">
+      <Link>Helpers\TimeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
+      <Link>Server\Responses\ResultResponse.cs</Link>
+    </Compile>
     <Compile Include="Countly.cs" />
     <Compile Include="Entities\BeginSession.cs" />
-    <Compile Include="Entities\CustomInfo.cs" />
-    <Compile Include="Entities\CustomInfoItem.cs" />
     <Compile Include="Entities\EndSession.cs" />
     <Compile Include="Entities\ExceptionEvent.cs" />
-    <Compile Include="Entities\Segmentation.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Entities\CountlyEvent.cs" />
     <Compile Include="Entities\Metrics.cs" />
     <Compile Include="Entities\SessionEvent.cs" />
     <Compile Include="Entities\UpdateSession.cs" />
     <Compile Include="Entities\CountlyUserDetails.cs" />
-    <Compile Include="Helpers\MD5.cs" />
-    <Compile Include="Helpers\MD5Managed.cs" />
     <Compile Include="Helpers\OpenUDID.cs" />
-    <Compile Include="Helpers\PhoneNameHelper.cs" />
     <Compile Include="Helpers\Storage.cs" />
-    <Compile Include="Helpers\TimeHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Entities\SegmentationItem.cs" />
     <Compile Include="Server\Api.cs" />
-    <Compile Include="Server\Responses\ResultResponse.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Libs\OpenUDIDPhone.dll" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">

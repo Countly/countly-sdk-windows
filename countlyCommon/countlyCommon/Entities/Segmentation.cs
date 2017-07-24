@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012, 2013, 2014 Countly
+Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 Countly
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,34 +20,36 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace CountlySDK
 {
+    /// <summary>
+    /// Holds an array of segmentation values
+    /// </summary>
     [DataContractAttribute]
-    public class SegmentationItem
+    public class Segmentation
     {
         /// <summary>
-        /// Segmentation key
+        /// Segmenation array
         /// </summary>
         [DataMemberAttribute]
-        public string Key { get; set; }
+        internal List<SegmentationItem> segmentation { get; set; }
 
-        /// <summary>
-        /// Segmentation value
-        /// </summary>
-        [DataMemberAttribute]
-        public string Value { get; set; }
-
-        /// <summary>
-        /// Creates object with provided values
-        /// </summary>
-        /// <param name="Key">Segmentation key</param>
-        /// <param name="Value">Segmentation value</param>
-        public SegmentationItem(string Key, string Value)
+        public Segmentation()
         {
-            this.Key = Key;
-            this.Value = Value;
+            segmentation = new List<SegmentationItem>();
+        }
+
+        /// <summary>
+        /// Add new segmentation value
+        /// </summary>
+        /// <param name="Key">Segmenation key</param>
+        /// <param name="Value">Segmenation value</param>
+        public void Add(string Key, string Value)
+        {
+            segmentation.Add(new SegmentationItem(Key, Value));
         }
     }
 }

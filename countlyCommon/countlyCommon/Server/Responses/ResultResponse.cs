@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012, 2013, 2014 Countly
+Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 Countly
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,38 +21,29 @@ THE SOFTWARE.
 */
 
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
 
-namespace CountlySDK.Entities
+namespace CountlySDK.Server.Responses
 {
     /// <summary>
-    /// Holds data about segmentation value
+    /// Represents API response
     /// </summary>
-    [DataContractAttribute]
-    public class CustomInfoItem
+    internal class ResultResponse
     {
         /// <summary>
-        /// Property name
+        /// Result value
         /// </summary>
-        [DataMemberAttribute]
-        public string Name { get; set; }
+        [JsonProperty("result")]
+        public string Result { get; set; }
 
         /// <summary>
-        /// Preperty value
+        /// Checks if response is success
         /// </summary>
-        [DataMemberAttribute]
-        public string Value { get; set; }
-
-        /// <summary>
-        /// Creates object with provided values
-        /// </summary>
-        /// <param name="Name">Property name</param>
-        /// <param name="Value">Preperty value</param>
-        public CustomInfoItem(string Name, string Value)
+        public bool IsSuccess
         {
-            this.Name = Name;
-            this.Value = Value;
+            get
+            {
+                return Result != null && Result == "Success";
+            }
         }
     }
 }

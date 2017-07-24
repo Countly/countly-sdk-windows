@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012, 2013, 2014 Countly
+Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 Countly
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,39 +20,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
+using System;
 
-namespace CountlySDK.Entities
+namespace CountlySDK.Helpers
 {
-    /// <summary>
-    /// Holds data about segmentation value
-    /// </summary>
-    [DataContractAttribute]
-    public class CustomInfoItem
+    internal class TimeHelper
     {
         /// <summary>
-        /// Property name
+        /// Converts DateTime to Unix time format
         /// </summary>
-        [DataMemberAttribute]
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Preperty value
-        /// </summary>
-        [DataMemberAttribute]
-        public string Value { get; set; }
-
-        /// <summary>
-        /// Creates object with provided values
-        /// </summary>
-        /// <param name="Name">Property name</param>
-        /// <param name="Value">Preperty value</param>
-        public CustomInfoItem(string Name, string Value)
+        /// <param name="date">DateTime object</param>
+        /// <returns>Unix timestamp</returns>
+        public static Int32 ToUnixTime(DateTime date)
         {
-            this.Name = Name;
-            this.Value = Value;
+            return (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
         }
     }
 }

@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.Entitites;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -31,6 +30,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Windows.UI.Core;
+using CountlySDK.Entities;
 
 namespace CountlySDK.Entities
 {

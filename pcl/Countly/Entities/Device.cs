@@ -24,7 +24,7 @@ using CountlySDK.Helpers;
 using System;
 using System.Threading.Tasks;
 
-namespace CountlySDK.Entitites
+namespace CountlySDK.Entities
 {
     /// <summary>
     /// This class provides static methods to retrieve information about the current device.

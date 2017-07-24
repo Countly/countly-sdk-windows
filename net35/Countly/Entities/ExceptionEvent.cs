@@ -138,18 +138,18 @@ namespace CountlySDK.Entities
         public ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, string appVersion, Dictionary<string, string> customInfo)
         {
             //device metrics
-            OS = CountlySDK.Entitites.Device.OS;
-            OSVersion = CountlySDK.Entitites.Device.OSVersion;
-            Device = CountlySDK.Entitites.Device.DeviceName;
-            Resolution = CountlySDK.Entitites.Device.Resolution;
+            OS = CountlySDK.Entities.Device.OS;
+            OSVersion = CountlySDK.Entities.Device.OSVersion;
+            Device = CountlySDK.Entities.Device.DeviceName;
+            Resolution = CountlySDK.Entities.Device.Resolution;
             AppVersion = appVersion;
 
             //state of device
-            RamCurrent = CountlySDK.Entitites.Device.RamCurrent;
-            RamTotal = CountlySDK.Entitites.Device.RamTotal;
+            RamCurrent = CountlySDK.Entities.Device.RamCurrent;
+            RamTotal = CountlySDK.Entities.Device.RamTotal;
 
             //bools
-            Online = CountlySDK.Entitites.Device.Online;
+            Online = CountlySDK.Entities.Device.Online;
 
             //error info
             this.Name = Error;

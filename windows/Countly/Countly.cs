@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
-using CountlySDK.Entitites;
 using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using Windows.UI.Xaml;

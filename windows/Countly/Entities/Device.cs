@@ -38,7 +38,7 @@ using Windows.Storage.Streams;
 using Windows.System.Profile;
 using Windows.UI.Xaml;
 
-namespace CountlySDK.Entitites
+namespace CountlySDK.Entities
 {
     /// <summary>
     /// This class provides several static methods to retrieve information about the current device and operating environment.

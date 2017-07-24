@@ -25,7 +25,7 @@ using Microsoft.Win32;
 using System;
 using System.Windows.Forms;
 
-namespace CountlySDK.Entitites
+namespace CountlySDK.Entities
 {
     /// <summary>
     /// This class provides several static methods to retrieve information about the current device and operating environment.

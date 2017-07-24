@@ -78,6 +78,24 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs">
+      <Link>Entities\CustomInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs">
+      <Link>Entities\CustomInfoItem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Segmentation.cs">
+      <Link>Entities\Segmentation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs">
+      <Link>Entities\SegmentationItem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs">
+      <Link>Helpers\TimeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
+      <Link>Server\Responses\ResultResponse.cs</Link>
+    </Compile>
     <Compile Include="..\..\net35\Countly\Countly.cs">
       <Link>Countly.cs</Link>
     </Compile>
@@ -89,12 +107,6 @@
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs">
       <Link>Entities\CountlyUserDetails.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\CustomInfo.cs">
-      <Link>Entities\CustomInfo.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\CustomInfoItem.cs">
-      <Link>Entities\CustomInfoItem.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
@@ -108,20 +120,11 @@
     <Compile Include="..\..\net35\Countly\Entities\Metrics.cs">
       <Link>Entities\Metrics.cs</Link>
     </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\Segmentation.cs">
-      <Link>Entities\Segmentation.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\SegmentationItem.cs">
-      <Link>Entities\SegmentationItem.cs</Link>
-    </Compile>
     <Compile Include="..\..\net35\Countly\Entities\SessionEvent.cs">
       <Link>Entities\SessionEvent.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\UpdateSession.cs">
       <Link>Entities\UpdateSession.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Helpers\MD5.cs">
-      <Link>Helpers\MD5.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Helpers\OpenUDID.cs">
       <Link>Helpers\OpenUDID.cs</Link>
@@ -129,19 +132,12 @@
     <Compile Include="..\..\net35\Countly\Helpers\OSInfo.cs">
       <Link>Helpers\OSInfo.cs</Link>
     </Compile>
-    <Compile Include="..\..\net35\Countly\Helpers\TimeHelper.cs">
-      <Link>Helpers\TimeHelper.cs</Link>
-    </Compile>
     <Compile Include="..\..\net35\Countly\Server\Api.cs">
       <Link>Server\Api.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Server\Responses\ResultResponse.cs">
-      <Link>Server\Responses\ResultResponse.cs</Link>
     </Compile>
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />

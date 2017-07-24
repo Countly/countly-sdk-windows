@@ -26,7 +26,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
-using CountlySDK.Entitites;
 using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using System.IO;
@@ -205,7 +204,7 @@ namespace CountlySDK
             UserDetails.UserDetailsChanged += OnUserDetailsChanged;
 
             startTime = DateTime.Now;
-            
+
             Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
             
             await AddSessionEvent(new BeginSession(AppKey, await Device.GetDeviceId(), sdkVersion, new Metrics(appVersion)));

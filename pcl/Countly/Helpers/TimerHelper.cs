@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace CountlySDK.Helpers
 {
-    internal delegate void TimerCallback(object state, EventArgs args);
+    public delegate void TimerCallback(object state, EventArgs args);
 
-    internal sealed class TimerHelper : CancellationTokenSource, IDisposable
+    /// <summary>
+    /// Used in place of DispatchTimer
+    /// </summary>
+    public sealed class TimerHelper : CancellationTokenSource, IDisposable
     {
         public TimerHelper(TimerCallback callback, object state, int dueTime, int period)
         {
