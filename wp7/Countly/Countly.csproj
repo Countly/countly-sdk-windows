@@ -70,8 +70,17 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\MD5.cs">
       <Link>Helpers\MD5.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs">
+      <Link>Helpers\PhoneNameHelper.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
       <Link>Server\Responses\ResultResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\wp8\Countly\Helpers\OpenUDID.cs">
+      <Link>Helpers\OpenUDID.cs</Link>
+    </Compile>
+    <Compile Include="..\..\wp8\Countly\Helpers\Storage.cs">
+      <Link>Helpers\Storage.cs</Link>
     </Compile>
     <Compile Include="Countly.cs" />
     <Compile Include="Entities\BeginSession.cs" />
@@ -83,9 +92,6 @@
     <Compile Include="Entities\Metrics.cs" />
     <Compile Include="Entities\SessionEvent.cs" />
     <Compile Include="Entities\UpdateSession.cs" />
-    <Compile Include="Helpers\OpenUDID.cs" />
-    <Compile Include="Helpers\PhoneNameHelper.cs" />
-    <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Helpers\TimeHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\Api.cs" />
