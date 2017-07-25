@@ -31,6 +31,7 @@ using CountlySDK.Server.Responses;
 using Windows.UI.Xaml;
 using System.IO;
 using Newtonsoft.Json;
+using Windows.System.Threading;
 
 namespace CountlySDK
 {
@@ -84,8 +85,9 @@ namespace CountlySDK
 
         // Start session timestamp
         private static DateTime startTime;
+
         // Update session timer
-        private static DispatcherTimer Timer;
+        private static ThreadPoolTimer Timer;
 
         /// <summary>
         /// Determines if Countly debug messages are displayed to Output window
@@ -136,7 +138,7 @@ namespace CountlySDK
         /// <returns>True if success, otherwise - False</returns>
         private static Task<bool> SaveEvents()
         {
-            return SaveCollection<CountlyEvent>(Events, eventsFilename);            
+            return SaveCollection<CountlyEvent>(Events, eventsFilename);
         }
 
         /// <summary>
@@ -210,10 +212,7 @@ namespace CountlySDK
 
             startTime = DateTime.Now;
 
-            Timer = new DispatcherTimer();
-            Timer.Interval = TimeSpan.FromSeconds(updateInterval);
-            Timer.Tick += UpdateSession;
-            Timer.Start();
+            Timer = ThreadPoolTimer.CreatePeriodicTimer(UpdateSession, TimeSpan.FromSeconds(updateInterval));
 
             await AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
 
@@ -259,9 +258,8 @@ namespace CountlySDK
         /// <summary>
         /// Sends session duration. Called automatically each <updateInterval> seconds
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private static async void UpdateSession(object sender, object e)
+        /// <param name="timer"></param>
+        private static async void UpdateSession(ThreadPoolTimer timer)
         {
             await AddSessionEvent(new UpdateSession(AppKey, Device.DeviceId, (int)DateTime.Now.Subtract(startTime).TotalSeconds));
         }
@@ -274,8 +272,7 @@ namespace CountlySDK
         {
             if (Timer != null)
             {
-                Timer.Stop();
-                Timer.Tick -= UpdateSession;
+                Timer.Cancel();
                 Timer = null;
             }
 
@@ -409,8 +406,7 @@ namespace CountlySDK
 
                 if (Timer != null)
                 {
-                    Timer.Stop();
-                    Timer.Tick -= UpdateSession;
+                    Timer.Cancel();
                     Timer = null;
                 }
 
