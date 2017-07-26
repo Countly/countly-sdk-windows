@@ -557,10 +557,10 @@ namespace CountlySDK
             }
 
             int eventsCount;
-            
+
             lock (sync)
             {
-                eventsCount = Events.Count;
+                eventsCount = Math.Min(15, Events.Count);
             }
 
             if (eventsCount > 0)

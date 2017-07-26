@@ -1,8 +1,6 @@
 ﻿using CountlySDK.Entities;
 using CountlySDK.Server.Responses;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,6 +13,9 @@ namespace CountlySDK
 {
     internal class Api
     {
+        private static HttpClient _httpClient;
+        internal static HttpClient Client => _httpClient ?? (_httpClient = new HttpClient());
+
         public static async Task<ResultResponse> BeginSession(string serverUrl, string appKey, string deviceId, string sdkVersion, string metricsJson)
         {
             return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&sdk_version={3}&begin_session=1&metrics={4}", serverUrl, appKey, deviceId, sdkVersion, HttpUtility.UrlEncode(metricsJson)));
@@ -97,17 +98,32 @@ namespace CountlySDK
                 {
                     string responseJson = await RequestAsync(address, data);
 
-                    if (Countly.IsLoggingEnabled)
+                    if (responseJson != null)
                     {
-                        Debug.WriteLine(responseJson);
+                        if (Countly.IsLoggingEnabled)
+                        {
+                            Debug.WriteLine(responseJson);
+                        }
+
+                        T response = JsonConvert.DeserializeObject<T>(responseJson);
+
+                        tcs.SetResult(response);
                     }
-
-                    T response = JsonConvert.DeserializeObject<T>(responseJson);
-
-                    tcs.SetResult(response);
+                    else
+                    {
+                        if (Countly.IsLoggingEnabled)
+                        {
+                            Debug.WriteLine("Received null response");
+                        }
+                        tcs.SetResult(default(T));
+                    }
                 }
                 catch (Exception ex)
                 {
+                    if (Countly.IsLoggingEnabled)
+                    {
+                        Debug.WriteLine("Encountered an exeption while making a request, " + ex);
+                    }
                     tcs.SetResult(default(T));
                 }
 
@@ -117,21 +133,31 @@ namespace CountlySDK
 
         private static async Task<string> RequestAsync(string address, Stream data = null)
         {
-            if (Countly.IsLoggingEnabled)
+            try
             {
-                Debug.WriteLine("POST " + address);
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("POST " + address);
+                }
+
+                HttpResponseMessage httpResponseMessage = await Client.PostAsync(address, (data != null) ? new StreamContent(data) : null);
+
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    return await httpResponseMessage.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    return null;
+                }
             }
-
-            HttpClient httpClient = new HttpClient();
-
-            HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, (data != null) ? new StreamContent(data) : null);
-
-            if (httpResponseMessage.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                return await httpResponseMessage.Content.ReadAsStringAsync();
-            }
-            else 
-            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    //Debug.WriteLine("Encountered a exception while making a POST request");
+                    //Debug.WriteLine(ex);
+                }
                 return null;
             }
         }

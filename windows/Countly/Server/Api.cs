@@ -101,7 +101,7 @@ namespace CountlySDK
                     string responseJson = await RequestAsync(address, data);
 
                     if (responseJson != null)
-                    {                   
+                    {
                         if (Countly.IsLoggingEnabled)
                         {
                             Debug.WriteLine(responseJson);
@@ -131,8 +131,8 @@ namespace CountlySDK
 
                 return await tcs.Task;
             });
-        }      
-        
+        }
+
         private static async Task<string> RequestAsync(string address, Stream data = null)
         {
             try
