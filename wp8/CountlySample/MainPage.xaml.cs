@@ -55,14 +55,14 @@ namespace CountlySample
 
         private void RecordBasicEvent_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            Countly.RecordEvent("seconds", DateTime.Now.Second);
+            Countly.RecordEvent("seconds", DateTime.Now.Second + 1);
 
             Countly.AddBreadCrumb("basic event");
         }
 
         private void RecordEventSum_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            Countly.RecordEvent("seconds", DateTime.Now.Second, 0.99);
+            Countly.RecordEvent("seconds", DateTime.Now.Second + 1, 0.99);
 
             Countly.AddBreadCrumb("sum event");
         }
@@ -73,7 +73,7 @@ namespace CountlySample
             segmentation.Add("country", "Ukraine");
             segmentation.Add("app_version", "1.2");
 
-            Countly.RecordEvent("seconds", DateTime.Now.Second, segmentation);
+            Countly.RecordEvent("seconds", DateTime.Now.Second + 1, segmentation);
 
             Countly.AddBreadCrumb("segmentation event");
         }
@@ -148,6 +148,26 @@ namespace CountlySample
         private void CrashButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             throw new Exception("Unhandled Exception");
+        }
+
+        private async void CrashButton_1000_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("Recording 1000 exceptions");
+            for (int a = 0; a < 1000; a++)
+            {
+                Countly.AddBreadCrumb("Recording exception x1000");
+                bool x = await Countly.RecordException("Some exception text");
+            }            
+        }
+
+        private void RecordBasicEvent_1000_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("Creating 1000 basic events");
+            for (int a = 0; a < 1000; a++)
+            {
+                Countly.AddBreadCrumb("Basic event x1000");
+                Countly.RecordEvent("seconds", DateTime.Now.Second + 1);
+            }
         }
     }
 }

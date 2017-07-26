@@ -54,14 +54,14 @@ namespace CountlySample
 
         private void RecordBasicEvent_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            Countly.RecordEvent("seconds", DateTime.Now.Second);
+            Countly.RecordEvent("seconds", DateTime.Now.Second + 1);
 
             Countly.AddBreadCrumb("basic event");
         }
 
         private void RecordEventSum_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
-            Countly.RecordEvent("seconds", DateTime.Now.Second, 0.99);
+            Countly.RecordEvent("seconds", DateTime.Now.Second + 1, 0.99);
 
             Countly.AddBreadCrumb("sum event");
         }

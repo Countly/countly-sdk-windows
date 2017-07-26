@@ -20,17 +20,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using CountlySDK.Server.Responses;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using CountlySDK.Entities;
+using CountlySDK.Helpers;
+using CountlySDK.Server.Responses;
+using System.IO;
+using System.Diagnostics;
 
 namespace CountlySDK
 {
@@ -50,7 +50,7 @@ namespace CountlySDK
         // Application key provided by a user
         private static string AppKey;
 
-        // Application key provided by a user
+        // Application version
         private static string AppVersion;
 
         // Indicates sync process with a server
@@ -401,7 +401,7 @@ namespace CountlySDK
                 Storage.DeleteFile(eventsFilename);
                 Storage.DeleteFile(sessionsFilename);
                 Storage.DeleteFile(exceptionsFilename);
-                Storage.DeleteFile(userDetailsFilename);                
+                Storage.DeleteFile(userDetailsFilename);
             }
         }
 
