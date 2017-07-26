@@ -32,6 +32,7 @@ using Windows.UI.Xaml;
 using System.IO;
 using Newtonsoft.Json;
 using Windows.System.Threading;
+using System.Diagnostics;
 
 namespace CountlySDK
 {
@@ -60,6 +61,8 @@ namespace CountlySDK
         private const string sessionsFilename = "sessions.xml";
         // File that stores exceptions objects
         private const string exceptionsFilename = "exceptions.xml";
+        // File that stores temporary stored unhandled exception objects
+        private const string unhandledExceptionFilename = "unhandled_exceptions.xml";
         // File that stores user details object
         private const string userDetailsFilename = "userdetails.xml";
 
@@ -153,13 +156,18 @@ namespace CountlySDK
         /// <summary>
         /// Saves exceptions to the storage
         /// </summary>
-        private static void SaveExceptions()
+        private static Task<bool> SaveExceptions()
         {
-            List<ExceptionEvent> exception = Exceptions.ToList();
+            return SaveCollection<ExceptionEvent>(Exceptions, exceptionsFilename);            
+        }
 
-            string json = JsonConvert.SerializeObject(exception, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore});
-
-            Storage.SetValue(exceptionsFilename, json);
+        /// <summary>
+        /// Saves the given unhandled exception to storage
+        /// </summary>
+        private static void SaveUnhandledException(ExceptionEvent exceptionEvent)
+        {
+            string json = JsonConvert.SerializeObject(exceptionEvent, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            Storage.SetValue(unhandledExceptionFilename, json);
         }
 
         /// <summary>
@@ -171,13 +179,12 @@ namespace CountlySDK
         }
 
         /// <summary>
-        /// Starts Countly tracking session.
-        /// Call from your App.xaml.cs Application_Launching and Application_Activated events.
-        /// Must be called before other SDK methods can be used.
+        /// Common function to initiate countly sdk.
+        /// Called either from the foreground or the background.
         /// </summary>
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
-        public static async Task StartSession(string serverUrl, string appKey, Application application = null)
+        private static async Task StartSessionCommon(string serverUrl, string appKey, Application application = null, bool calledFromBackground = true)
         {
             if (String.IsNullOrWhiteSpace(serverUrl))
             {
@@ -204,22 +211,50 @@ namespace CountlySDK
 
             Sessions = await Storage.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
 
-            Exceptions = JsonConvert.DeserializeObject<List<ExceptionEvent>>(Storage.GetValue<string>(exceptionsFilename, "")) ?? new List<ExceptionEvent>();
+            Exceptions = await Storage.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
+
+            ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(Storage.GetValue<string>(unhandledExceptionFilename, ""));
+            if(unhandledException != null)
+            {
+                //add the saved unhandled exception to the other ones
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("Found a stored unhandled exception, adding it the the other stored exceptions");
+                }
+                Exceptions.Add(unhandledException);
+                await SaveExceptions();
+                SaveUnhandledException(null);
+            }
 
             UserDetails = await Storage.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
 
             UserDetails.UserDetailsChanged += OnUserDetailsChanged;
 
-            startTime = DateTime.Now;
-
-            Timer = ThreadPoolTimer.CreatePeriodicTimer(UpdateSession, TimeSpan.FromSeconds(updateInterval));
-
-            await AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
-
-            if (null != SessionStarted)
+            if (!calledFromBackground)
             {
-                SessionStarted(null, EventArgs.Empty);
+                startTime = DateTime.Now;
+
+                Timer = ThreadPoolTimer.CreatePeriodicTimer(UpdateSession, TimeSpan.FromSeconds(updateInterval));
+
+                await AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
+
+                if (null != SessionStarted)
+                {
+                    SessionStarted(null, EventArgs.Empty);
+                }
             }
+        }
+
+        /// <summary>
+        /// Starts Countly tracking session.
+        /// Call from your App.xaml.cs Application_Launching and Application_Activated events.
+        /// Must be called before other SDK methods can be used.
+        /// </summary>
+        /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
+        /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
+        public static async Task StartSession(string serverUrl, string appKey, Application application = null)
+        {
+            await StartSessionCommon(serverUrl, appKey, application, false);           
         }
 
         /// <summary>
@@ -231,28 +266,7 @@ namespace CountlySDK
         /// <param name="appKey"></param>
         public static async void StartBackgroundSession(string serverUrl, string appKey)
         {
-            if (String.IsNullOrWhiteSpace(serverUrl))
-            {
-                throw new ArgumentException("invalid server url");
-            }
-
-            if (String.IsNullOrWhiteSpace(appKey))
-            {
-                throw new ArgumentException("invalid application key");
-            }
-
-            ServerUrl = serverUrl;
-            AppKey = appKey;
-
-            Events = await Storage.LoadFromFile<List<CountlyEvent>>(eventsFilename) ?? new List<CountlyEvent>();
-
-            Sessions = await Storage.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
-
-            Exceptions = JsonConvert.DeserializeObject<List<ExceptionEvent>>(Storage.GetValue<string>(exceptionsFilename, "")) ?? new List<ExceptionEvent>();
-
-            UserDetails = await Storage.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
-
-            UserDetails.UserDetailsChanged += OnUserDetailsChanged;
+            await StartSessionCommon(serverUrl, appKey, null, true);            
         }
 
         /// <summary>
@@ -721,19 +735,22 @@ namespace CountlySDK
             }
             TimeSpan run = (startTime != DateTime.MinValue) ? DateTime.Now.Subtract(startTime) : TimeSpan.FromSeconds(0);
 
-            lock (sync)
-            {
-                Exceptions.Add(new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, customInfo));
-            }
-
-            SaveExceptions();
+            ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, customInfo);          
 
             if (!unhandled)
             {
+                lock (sync)
+                {
+                    Exceptions.Add(eEvent);
+                }
+
+                SaveExceptions();
+
                 return await Upload();
             }
             else
             {
+                SaveUnhandledException(eEvent);            
                 return false;
             }
         }
