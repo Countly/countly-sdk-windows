@@ -680,7 +680,7 @@ namespace CountlySDK
 
             lock (sync)
             {
-                Exceptions.Add(new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, AppVersion, customInfo));
+                Exceptions.Add(new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, AppVersion, customInfo));
             }
 
             bool success = await SaveExceptions();

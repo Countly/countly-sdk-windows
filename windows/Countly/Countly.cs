@@ -735,7 +735,7 @@ namespace CountlySDK
             }
             TimeSpan run = (startTime != DateTime.MinValue) ? DateTime.Now.Subtract(startTime) : TimeSpan.FromSeconds(0);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace, unhandled, breadcrumb, run, customInfo);          
+            ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, customInfo);          
 
             if (!unhandled)
             {
