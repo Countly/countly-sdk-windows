@@ -1,21 +1,23 @@
 ﻿using CountlySDK.Entities;
 using CountlySDK.Server.Responses;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Windows.Web.Http;
+
+using HttpClient = Windows.Web.Http.HttpClient;
+using HttpStreamContent = Windows.Web.Http.HttpStreamContent;
 
 namespace CountlySDK
 {
     internal class Api
     {
+        private static HttpClient _httpClient;
+        internal static HttpClient Client => _httpClient ?? (_httpClient = new HttpClient());
+
         public static async Task<ResultResponse> BeginSession(string serverUrl, string appKey, string deviceId, string sdkVersion, string metricsJson)
         {
             return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&sdk_version={3}&begin_session=1&metrics={4}", serverUrl, appKey, deviceId, sdkVersion, WebUtility.UrlEncode(metricsJson)));
@@ -98,41 +100,66 @@ namespace CountlySDK
                 {
                     string responseJson = await RequestAsync(address, data);
 
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine(responseJson);
+                    if (responseJson != null)
+                    {                   
+                        if (Countly.IsLoggingEnabled)
+                        {
+                            Debug.WriteLine(responseJson);
+                        }
+
+                        T response = JsonConvert.DeserializeObject<T>(responseJson);
+
+                        tcs.SetResult(response);
                     }
-
-                    T response = JsonConvert.DeserializeObject<T>(responseJson);
-
-                    tcs.SetResult(response);
+                    else
+                    {
+                        if (Countly.IsLoggingEnabled)
+                        {
+                            Debug.WriteLine("Received null response");
+                        }
+                        tcs.SetResult(default(T));
+                    }
                 }
                 catch (Exception ex)
                 {
+                    if (Countly.IsLoggingEnabled)
+                    {
+                        Debug.WriteLine("Encountered an exeption while making a request, " + ex);
+                    }
                     tcs.SetResult(default(T));
                 }
 
                 return await tcs.Task;
             });
-        }
-
+        }      
+        
         private static async Task<string> RequestAsync(string address, Stream data = null)
         {
-            if (Countly.IsLoggingEnabled)
+            try
             {
-                Debug.WriteLine("POST " + address);
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("POST " + address);
+                }
+
+                var httpResponseMessage = await Client.PostAsync(new Uri(address), (data != null) ? new HttpStreamContent(data.AsInputStream()) : null);
+
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    return await httpResponseMessage.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    return null;
+                }
             }
-
-            System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
-
-            System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, (data != null) ? new StreamContent(data) : null);
-
-            if (httpResponseMessage.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                return await httpResponseMessage.Content.ReadAsStringAsync();
-            }
-            else
-            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    //Debug.WriteLine("Encountered a exception while making a POST request");
+                    //Debug.WriteLine(ex);
+                }
                 return null;
             }
         }
