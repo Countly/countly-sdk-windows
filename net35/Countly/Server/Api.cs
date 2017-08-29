@@ -108,11 +108,19 @@ namespace CountlySDK
                     }
                     else
                     {
+                        if (Countly.IsLoggingEnabled)
+                        {
+                            Debug.WriteLine("Received null response");
+                        }
                         tcs.SetResult(default(T));
                     }
                 }
                 catch (Exception ex)
                 {
+                    if (Countly.IsLoggingEnabled)
+                    {
+                        Debug.WriteLine("Encountered an exeption while making a request, " + ex);
+                    }
                     tcs.SetResult(default(T));
                 }
 
@@ -151,8 +159,13 @@ namespace CountlySDK
 
                     tcs.SetResult(new StreamReader(response.GetResponseStream()).ReadToEnd());
                 }
-                catch
+                catch (Exception ex)
                 {
+                    if (Countly.IsLoggingEnabled)
+                    {
+                        //Debug.WriteLine("Encountered a exception while making a POST request");
+                        //Debug.WriteLine(ex);
+                    }
                     tcs.SetResult(null);
                 }
             });

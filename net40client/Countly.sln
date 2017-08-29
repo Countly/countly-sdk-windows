@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Countly", "Countly\Countly.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "countlyCommon", "..\countlyCommon\countlyCommon\countlyCommon.csproj", "{38909D16-C155-442C-AF26-E6C7CBB7B9F6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySample", "..\net35\CountlySample\CountlySample.csproj", "{29B4747F-AE48-41DD-AD3E-23D12B4440C2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{38909D16-C155-442C-AF26-E6C7CBB7B9F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38909D16-C155-442C-AF26-E6C7CBB7B9F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38909D16-C155-442C-AF26-E6C7CBB7B9F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29B4747F-AE48-41DD-AD3E-23D12B4440C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29B4747F-AE48-41DD-AD3E-23D12B4440C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29B4747F-AE48-41DD-AD3E-23D12B4440C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29B4747F-AE48-41DD-AD3E-23D12B4440C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
