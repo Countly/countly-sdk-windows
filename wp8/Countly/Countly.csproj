@@ -100,6 +100,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs">
       <Link>Entities\SegmentationItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SessionEvent.cs">
+      <Link>Entities\SessionEvent.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs">
       <Link>Entities\UpdateSession.cs</Link>
     </Compile>
@@ -124,7 +127,6 @@
     <Compile Include="Entities\ExceptionEvent.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Entities\Metrics.cs" />
-    <Compile Include="Entities\SessionEvent.cs" />
     <Compile Include="Entities\CountlyUserDetails.cs" />
     <Compile Include="Helpers\OpenUDID.cs" />
     <Compile Include="Helpers\Storage.cs" />

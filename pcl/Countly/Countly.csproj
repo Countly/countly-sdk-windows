@@ -49,6 +49,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs">
       <Link>Entities\SegmentationItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SessionEvent.cs">
+      <Link>Entities\SessionEvent.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs">
       <Link>Entities\UpdateSession.cs</Link>
     </Compile>
@@ -71,7 +74,6 @@
     <Compile Include="Entities\EndSession.cs" />
     <Compile Include="Entities\ExceptionEvent.cs" />
     <Compile Include="Entities\Metrics.cs" />
-    <Compile Include="Entities\SessionEvent.cs" />
     <Compile Include="Helpers\StorageHelper.cs" />
     <Compile Include="Helpers\TimerHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
