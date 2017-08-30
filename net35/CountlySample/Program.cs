@@ -8,7 +8,7 @@ namespace CountlySample
 {
     class Program
     {
-        const String serverURL = "https://try.count.ly";//put your server URL here
+        const String serverURL = "http://try.count.ly";//put your server URL here
         const String appKey = null;//put your server APP key here       
 
         static void Main(string[] args)
@@ -50,9 +50,6 @@ namespace CountlySample
                 else if (cki.Key == ConsoleKey.D2)
                 {
                     System.Console.WriteLine("2");
-                    //Exception ex = new Exception("This is some bad exception 2");
-                    //ex.StackTrace = "FDFd";
-                    //Countly.RecordException(ex.Message, "a\nb");
 
                     try
                     {

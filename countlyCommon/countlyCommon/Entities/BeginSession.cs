@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012, 2013, 2014 Countly
+Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 Countly
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,9 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using System;
-using System.Net;
 using CountlySDK.Helpers;
+using System;
 using System.Runtime.Serialization;
 
 namespace CountlySDK.Entities
@@ -39,7 +38,14 @@ namespace CountlySDK.Entities
         /// <param name="metrics">Metrics parameters</param>
         public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics)
         {
-            Content = String.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}", appKey, deviceId, sdkVersion, WebUtility.UrlEncode(metrics.ToString()), TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()));
+            int timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            string metricsString = UtilityHelper.EncodeDataForURL(metrics.ToString());
+            Content = String.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}", appKey, deviceId, sdkVersion, metricsString, timestamp);
+        }
+
+        public BeginSession()
+        {
+
         }
     }
 }

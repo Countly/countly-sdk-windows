@@ -1,4 +1,5 @@
 ﻿using CountlySDK.Entities;
+using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using Newtonsoft.Json;
 using System;
@@ -7,7 +8,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace CountlySDK
 {
@@ -15,7 +15,7 @@ namespace CountlySDK
     {
         public static async Task<ResultResponse> BeginSession(string serverUrl, string appKey, string deviceId, string sdkVersion, string metricsJson)
         {
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&sdk_version={3}&begin_session=1&metrics={4}", serverUrl, appKey, deviceId, sdkVersion, System.Uri.EscapeUriString(metricsJson)));
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&sdk_version={3}&begin_session=1&metrics={4}", serverUrl, appKey, deviceId, sdkVersion, UtilityHelper.EncodeDataForURL(metricsJson)));
         }
 
         public static async Task<ResultResponse> UpdateSession(string serverUrl, string appKey, string deviceId, int duration)
@@ -34,7 +34,7 @@ namespace CountlySDK
 
             if (userDetails != null)
             {
-                userDetailsJson = "&user_details=" + System.Uri.EscapeUriString(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+                userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
             return await Call<ResultResponse>(serverUrl + sesisonEvent.Content + userDetailsJson);
@@ -48,17 +48,17 @@ namespace CountlySDK
 
             if (userDetails != null)
             {
-                userDetailsJson = "&user_details=" + System.Uri.EscapeUriString(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+                userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, System.Uri.EscapeUriString(eventsJson), userDetailsJson));
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson));
         }
 
         public static async Task<ResultResponse> SendException(string serverUrl, string appKey, string deviceId, ExceptionEvent exception)
         {
             string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}", serverUrl, appKey, deviceId, System.Uri.EscapeUriString(exceptionJson)));
+            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson)));
         }
 
         public static async Task<ResultResponse> UploadUserDetails(string serverUrl, string appKey, string deviceId, CountlyUserDetails userDetails = null)

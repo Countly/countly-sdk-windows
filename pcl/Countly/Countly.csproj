@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs">
+      <Link>Entities\BeginSession.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs">
       <Link>Entities\CountlyEvent.cs</Link>
     </Compile>
@@ -71,7 +74,6 @@
       <Link>Server\Responses\ResultResponse.cs</Link>
     </Compile>
     <Compile Include="Countly.cs" />
-    <Compile Include="Entities\BeginSession.cs" />
     <Compile Include="Entities\CountlyUserDetails.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Entities\ExceptionEvent.cs" />

@@ -38,15 +38,23 @@ namespace CountlySDK.Helpers
                 return true;
             }
 
+            bool containsOnlyWhitespace = true;
+
             foreach(char c in value)
             {
-                if (char.IsWhiteSpace(c))
+                if (!char.IsWhiteSpace(c))
                 {
-                    return true;
+                    containsOnlyWhitespace = false;
                 }
             }
 
-            return false;
+            return containsOnlyWhitespace;
+        }
+
+        public static String EncodeDataForURL(String data)
+        {
+            String escapedString = System.Uri.EscapeDataString(data);
+            return escapedString;
         }
     }
 }
