@@ -87,6 +87,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs">
       <Link>Entities\CustomInfoItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
+      <Link>Entities\EndSession.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Segmentation.cs">
       <Link>Entities\Segmentation.cs</Link>
     </Compile>
@@ -119,9 +122,6 @@
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\EndSession.cs">
-      <Link>Entities\EndSession.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\ExceptionEvent.cs">
       <Link>Entities\ExceptionEvent.cs</Link>
