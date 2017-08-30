@@ -53,6 +53,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs">
       <Link>Entities\SegmentationItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs">
+      <Link>Entities\UpdateSession.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs">
       <Link>Helpers\PhoneNameHelper.cs</Link>
     </Compile>
@@ -73,7 +76,6 @@
     <Compile Include="Entities\ExceptionEvent.cs" />
     <Compile Include="Entities\Metrics.cs" />
     <Compile Include="Entities\SessionEvent.cs" />
-    <Compile Include="Entities\UpdateSession.cs" />
     <Compile Include="Helpers\StorageHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\Api.cs" />

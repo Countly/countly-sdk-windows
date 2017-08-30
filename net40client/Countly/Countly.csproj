@@ -93,6 +93,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs">
       <Link>Entities\SegmentationItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs">
+      <Link>Entities\UpdateSession.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs">
       <Link>Helpers\TimeHelper.cs</Link>
     </Compile>
@@ -125,9 +128,6 @@
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\SessionEvent.cs">
       <Link>Entities\SessionEvent.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\UpdateSession.cs">
-      <Link>Entities\UpdateSession.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Helpers\OpenUDID.cs">
       <Link>Helpers\OpenUDID.cs</Link>
