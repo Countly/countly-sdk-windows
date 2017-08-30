@@ -1,5 +1,5 @@
 ﻿/*
-Copyright (c) 2012, 2013, 2014 Countly
+Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 Countly
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,9 @@ using System.Runtime.Serialization;
 
 namespace CountlySDK.Entities
 {
+    /// <summary>
+    /// This class holds the data for a single Count.ly custom event instance.
+    /// </summary>
     [DataContractAttribute]
     internal class CountlyEvent
     {
@@ -85,7 +89,7 @@ namespace CountlySDK.Entities
         /// <param name="Segmentation">Segmentation parameter</param>
         public CountlyEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
-            if (String.IsNullOrEmpty(Key))
+            if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(Key))
             {
                 throw new ArgumentException("Event Key must be non-empty string");
             }

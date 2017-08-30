@@ -22,7 +22,6 @@ namespace CountlySDK.Helpers
             {
                 MD5 _md5 = MD5.Create();
                 ManagementObjectSearcher _searcher = new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
-                int i = 0;
                 foreach (ManagementObject mo in _searcher.Get())
                 {
                     byte[] bs = System.Text.Encoding.UTF8.GetBytes(mo["ProcessorId"].ToString());

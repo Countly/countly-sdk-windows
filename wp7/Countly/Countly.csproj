@@ -55,6 +55,9 @@
     <Reference Include="mscorlib.extensions" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs">
+      <Link>Entities\CountlyEvent.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs">
       <Link>Entities\CustomInfo.cs</Link>
     </Compile>
@@ -73,6 +76,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs">
       <Link>Helpers\PhoneNameHelper.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs">
+      <Link>Helpers\UtilityHelper.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
       <Link>Server\Responses\ResultResponse.cs</Link>
     </Compile>
@@ -84,7 +90,6 @@
     </Compile>
     <Compile Include="Countly.cs" />
     <Compile Include="Entities\BeginSession.cs" />
-    <Compile Include="Entities\CountlyEvent.cs" />
     <Compile Include="Entities\CountlyUserDetails.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Entities\EndSession.cs" />

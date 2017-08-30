@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\CountlyEvent.cs" />
     <Compile Include="Entities\CustomInfo.cs" />
     <Compile Include="Entities\CustomInfoItem.cs" />
     <Compile Include="Entities\Segmentation.cs" />
@@ -52,6 +53,7 @@
     <Compile Include="Helpers\MD5Managed.cs" />
     <Compile Include="Helpers\PhoneNameHelper.cs" />
     <Compile Include="Helpers\TimeHelper.cs" />
+    <Compile Include="Helpers\UtilityHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\Responses\ResultResponse.cs" />
   </ItemGroup>
