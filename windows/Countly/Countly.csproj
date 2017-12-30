@@ -53,6 +53,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
       <Link>Entities\EndSession.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs">
+      <Link>Entities\Metrics.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Segmentation.cs">
       <Link>Entities\Segmentation.cs</Link>
     </Compile>
@@ -81,7 +84,6 @@
     <Compile Include="Entities\CountlyUserDetails.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Entities\ExceptionEvent.cs" />
-    <Compile Include="Entities\Metrics.cs" />
     <Compile Include="Helpers\StorageHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\Api.cs" />

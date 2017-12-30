@@ -41,13 +41,12 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Current operating system version
         /// </summary>
-        //[JsonProperty("_os_version")]
-        [JsonIgnore]
+        [JsonProperty("_os_version")]
         [DataMemberAttribute]
         public string OSVersion { get; set; }
 
         /// <summary>
-        /// Current device model
+        /// Local machine name (windows) or current device model (mobile)
         /// </summary>
         [JsonProperty("_device")]
         [DataMemberAttribute]
@@ -61,7 +60,7 @@ namespace CountlySDK.Entities
         public string Resolution { get; set; }
 
         /// <summary>
-        /// Cellular mobile operator
+        /// Cellular mobile operator (where applicable)
         /// </summary>
         [JsonProperty("_carrier")]
         [DataMemberAttribute]
@@ -77,11 +76,20 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Creates Metrics object with provided values
         /// </summary>
+        /// <param name="OS">Name of the current operating system</param>
+        /// <param name="OSVersion">Current operating system version</param>
+        /// <param name="Device">Current device model</param>
+        /// <param name="Resolution">Device resolution</param>
+        /// <param name="Carrier">Cellular mobile operator</param>
         /// <param name="AppVersion">Application version</param>
-        public Metrics(string AppVersion)
+        public Metrics(string OS, string OSVersion, string Device, string Resolution, string Carrier, string AppVersion)
         {
+            this.OS = OS;
+            this.OSVersion = OSVersion;
+            this.Device = Device;
+            this.Resolution = Resolution;
+            this.Carrier = Carrier;
             this.AppVersion = AppVersion;
-            this.OS = "Windows (PCL)";
         }
 
         /// <summary>

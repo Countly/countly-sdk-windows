@@ -206,8 +206,8 @@ namespace CountlySDK
             startTime = DateTime.Now;
 
             Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
-            
-            await AddSessionEvent(new BeginSession(AppKey, await Device.GetDeviceId(), sdkVersion, new Metrics(appVersion)));
+
+            await AddSessionEvent(new BeginSession(AppKey, await Device.GetDeviceId(), sdkVersion, new Metrics("Windows (PCL)", null, null, null, null, appVersion)));
 
             if (null != SessionStarted)
             {

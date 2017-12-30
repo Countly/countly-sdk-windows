@@ -1,4 +1,5 @@
 ﻿using CountlySDK;
+using CountlySDK.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +20,9 @@ namespace CountlySample
         public void Run()
         {
             System.Console.WriteLine("Hello to the Countly sample console program");
+            System.Console.WriteLine("DeviceID: " + Device.DeviceId);
 
-            if(serverURL == null || appKey == null)
+            if (serverURL == null || appKey == null)
             {
                 System.Console.WriteLine("");
                 System.Console.WriteLine("Problem encountered, you have not set up either the serverURL or the appKey");
@@ -31,13 +33,17 @@ namespace CountlySample
             Countly.IsLoggingEnabled = true;
             Countly.StartSession(serverURL, appKey, "1.234");
 
+            System.Console.WriteLine("DeviceID: " + Device.DeviceId);
+
             while (true)
             {
                 System.Console.WriteLine("");
                 System.Console.WriteLine("Choose your option:");
                 System.Console.WriteLine("1) Sample event");
                 System.Console.WriteLine("2) Sample caught exception");
-                System.Console.WriteLine("3) Exit");
+                System.Console.WriteLine("3) Change deviceID to a random value (create new user)");
+                System.Console.WriteLine("4) Change the name of the current user");
+                System.Console.WriteLine("5) Exit");
 
                 ConsoleKeyInfo cki = System.Console.ReadKey();
                 System.Console.WriteLine("");
@@ -61,6 +67,16 @@ namespace CountlySample
                     }
                 }
                 else if (cki.Key == ConsoleKey.D3)
+                {
+                    System.Console.WriteLine("3");
+                    Device.DeviceId = "ID-" + (new Random()).Next();
+                }
+                else if (cki.Key == ConsoleKey.D4)
+                {
+                    System.Console.WriteLine("4");
+                    Countly.UserDetails.Name = "Some Username " + (new Random()).Next();
+                }
+                else if (cki.Key == ConsoleKey.D5)
                 {
                     break;
                 }

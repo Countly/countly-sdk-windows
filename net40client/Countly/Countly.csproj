@@ -93,6 +93,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
       <Link>Entities\EndSession.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs">
+      <Link>Entities\Metrics.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Segmentation.cs">
       <Link>Entities\Segmentation.cs</Link>
     </Compile>
@@ -125,9 +128,6 @@
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\ExceptionEvent.cs">
       <Link>Entities\ExceptionEvent.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\Metrics.cs">
-      <Link>Entities\Metrics.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Helpers\OpenUDID.cs">
       <Link>Helpers\OpenUDID.cs</Link>
