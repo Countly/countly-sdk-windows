@@ -16,7 +16,17 @@ namespace CountlySDK
     internal class Api
     {
         private static HttpClient _httpClient;
-        internal static HttpClient Client => _httpClient ?? (_httpClient = new HttpClient());
+
+        internal static HttpClient Client
+        {
+            get {
+                if (_httpClient == null)
+                {
+                    _httpClient = new HttpClient();
+                }
+                return _httpClient;
+            }
+        }
 
         public static async Task<ResultResponse> BeginSession(string serverUrl, string appKey, string deviceId, string sdkVersion, string metricsJson)
         {
