@@ -519,12 +519,17 @@ namespace CountlySDK
 
             lock (sync)
             {
-                eventsCount = Events.Count;
+                eventsCount = Math.Min(15, Events.Count);
             }
 
             if (eventsCount > 0)
             {
-                ResultResponse resultResponse = await Api.SendEvents(ServerUrl, AppKey, Device.DeviceId, Events.Take(eventsCount).ToList(), (UserDetails.isChanged) ? UserDetails : null);
+                List<CountlyEvent> eventsToSend = null;
+                lock (sync)
+                {
+                    eventsToSend = Events.Take(eventsCount).ToList();
+                }
+                ResultResponse resultResponse = await Api.SendEvents(ServerUrl, AppKey, Device.DeviceId, eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {
