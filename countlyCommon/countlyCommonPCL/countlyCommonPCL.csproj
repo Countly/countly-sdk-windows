@@ -5,7 +5,7 @@
     <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{33025E84-04F2-4FB9-A5EB-9104F89BF6C4}</ProjectGuid>
+    <ProjectGuid>{AFEEA266-B15B-49AA-A704-FE9AE84CF10D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CountlySDK.CountlyCommon</RootNamespace>

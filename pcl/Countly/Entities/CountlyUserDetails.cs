@@ -20,14 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.Entities;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using CountlySDK.Entities;
 
 namespace CountlySDK.Entities
 {
@@ -232,8 +229,8 @@ namespace CountlySDK.Entities
         /// <summary>
         /// User custom data
         /// </summary>
-        [JsonIgnore]        
-        [DataMemberAttribute]        
+        [JsonIgnore]
+        [DataMemberAttribute]
         public CustomInfo Custom
         {
             get
@@ -246,7 +243,7 @@ namespace CountlySDK.Entities
                 {
                     if (custom != null)
                     {
-                        custom.CollectionChanged -= NotifyDetailsChanged;   
+                        custom.CollectionChanged -= NotifyDetailsChanged;
                     }
 
                     if (value != null)

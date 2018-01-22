@@ -35,7 +35,7 @@ using System.Diagnostics;
 namespace CountlySDK
 {
     /// <summary>
-    /// This class is the public API for the Countly .NET 3.5 SDK.
+    /// This class is the public API for the Countly .NET 3.5/4.0 SDK.
     /// </summary>
     public static class Countly
     {
@@ -50,7 +50,7 @@ namespace CountlySDK
         // Application key provided by a user
         private static string AppKey;
 
-        // Application version
+        // Application version provided by a user
         private static string AppVersion;
 
         // Indicates sync process with a server

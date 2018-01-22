@@ -49,6 +49,7 @@ namespace CountlySDK
 
         // Server url provided by a user
         private static string ServerUrl;
+
         // Application key provided by a user
         private static string AppKey;
 

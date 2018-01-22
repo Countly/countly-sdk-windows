@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{38909D16-C155-442C-AF26-E6C7CBB7B9F6}</ProjectGuid>
+    <ProjectGuid>{9A91CCD6-E795-49B0-9A08-4B32281CF1BE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CountlySDK.CountlyCommon</RootNamespace>
