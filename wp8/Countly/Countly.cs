@@ -185,7 +185,10 @@ namespace CountlySDK
         /// </summary>
         private static void SaveEvents()
         {
-            Storage.SaveToFile(eventsFilename, Events);
+            lock (sync)
+            {
+                Storage.SaveToFile(eventsFilename, Events);
+            }
         }
 
         /// <summary>
@@ -193,7 +196,10 @@ namespace CountlySDK
         /// </summary>
         private static void SaveSessions()
         {
-            Storage.SaveToFile(sessionsFilename, Sessions);
+            lock (sync)
+            {
+                Storage.SaveToFile(sessionsFilename, Sessions);
+            }
         }
 
         /// <summary>
@@ -201,7 +207,10 @@ namespace CountlySDK
         /// </summary>
         private static void SaveExceptions()
         {
-            Storage.SaveToFile(exceptionsFilename, Exceptions);
+            lock (sync)
+            {
+                Storage.SaveToFile(exceptionsFilename, Exceptions);
+            }
         }
 
         /// <summary>
@@ -209,7 +218,10 @@ namespace CountlySDK
         /// </summary>
         private static void SaveUserDetails()
         {
-            Storage.SaveToFile(userDetailsFilename, UserDetails);
+            lock (sync)
+            {
+                Storage.SaveToFile(userDetailsFilename, UserDetails);
+            }
         }
 
         /// <summary>
@@ -354,6 +366,7 @@ namespace CountlySDK
                     UserDetails.isChanged = false;
 
                     SaveUserDetails();
+                    int sessionCount = 0;
 
                     lock (sync)
                     {
@@ -366,9 +379,10 @@ namespace CountlySDK
                         catch { }
 
                         Storage.SaveToFile(sessionsFilename, Sessions);
-                    }
+                        sessionCount = Sessions.Count;
+                    }                   
 
-                    if (Sessions.Count > 0)
+                    if (sessionCount > 0)
                     {
                         return await UploadSessions();
                     }
@@ -779,7 +793,12 @@ namespace CountlySDK
 
             if (exceptionsCount > 0)
             {
-                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, Device.DeviceId, Exceptions[0]);
+                ExceptionEvent exEvent;
+                lock (sync)
+                {
+                    exEvent = Exceptions[0];
+                }
+                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, Device.DeviceId, exEvent);
 
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {

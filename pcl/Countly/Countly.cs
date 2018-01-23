@@ -326,7 +326,13 @@ namespace CountlySDK
                         return false;
                     }
 
-                    if (Sessions.Count > 0)
+                    int sessionCount = 0;
+                    lock (sync)
+                    {
+                        sessionCount = Sessions.Count;
+                    }
+
+                    if (sessionCount > 0)
                     {
                         return await UploadSessions();
                     }
@@ -720,12 +726,17 @@ namespace CountlySDK
 
             lock (sync)
             {
-                exceptionsCount = Math.Min(25, Exceptions.Count);
+                exceptionsCount = Exceptions.Count;
             }
 
             if (exceptionsCount > 0)
             {
-                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, Device.deviceId_, Exceptions[0]);
+                ExceptionEvent exEvent;
+                lock (sync)
+                {
+                    exEvent = Exceptions[0];
+                }
+                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, Device.deviceId_, exEvent);
 
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {

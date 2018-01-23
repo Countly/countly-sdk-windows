@@ -17,7 +17,7 @@ namespace CountlySample
         public int threadIterations = 100;
         int threadWaitStart = 100;
         int threadWaitEnd = 1000;
-        int threadCount = 30;
+        int threadCount = 20;
 
         static void Main(string[] args)
         {           
