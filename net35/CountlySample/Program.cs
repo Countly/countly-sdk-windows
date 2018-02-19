@@ -12,7 +12,6 @@ namespace CountlySample
     {
         const String serverURL = "http://try.count.ly";//put your server URL here
         const String appKey = null;//put your server APP key here       
-        const bool enableDebugOpptions = true;
         const bool enableDebugOpptions = false;
         public int threadIterations = 100;
         int threadWaitStart = 100;
@@ -26,14 +25,14 @@ namespace CountlySample
 
         public void Run()
         {
-            System.Console.WriteLine("Hello to the Countly sample console program");
-            System.Console.WriteLine("DeviceID: " + Device.DeviceId);
+            Console.WriteLine("Hello to the Countly sample console program");
+            Console.WriteLine("DeviceID: " + Device.DeviceId);
 
             if (serverURL == null || appKey == null)
             {
-                System.Console.WriteLine("");
-                System.Console.WriteLine("Problem encountered, you have not set up either the serverURL or the appKey");
-                System.Console.ReadKey();
+                Console.WriteLine("");
+                Console.WriteLine("Problem encountered, you have not set up either the serverURL or the appKey");
+                Console.ReadKey();
                 return;
             }
 
@@ -44,22 +43,22 @@ namespace CountlySample
 
             while (true)
             {
-                System.Console.WriteLine("");
-                System.Console.WriteLine("Choose your option:");
-                System.Console.WriteLine("1) Sample event");
-                System.Console.WriteLine("2) Sample caught exception");
-                System.Console.WriteLine("3) Change deviceID to a random value (create new user)");
-                System.Console.WriteLine("4) Change the name of the current user");
-                System.Console.WriteLine("5) Exit");
+                Console.WriteLine("");
+                Console.WriteLine("Choose your option:");
+                Console.WriteLine("1) Sample event");
+                Console.WriteLine("2) Sample caught exception");
+                Console.WriteLine("3) Change deviceID to a random value (create new user)");
+                Console.WriteLine("4) Change the name of the current user");
+                Console.WriteLine("5) Exit");
 
                 if (enableDebugOpptions)
                 {
-                    System.Console.WriteLine("8) (debug) Threading test");
+                    Console.WriteLine("8) (debug) Threading test");
                 }
                 
 
                 ConsoleKeyInfo cki = System.Console.ReadKey();
-                System.Console.WriteLine("");
+                Console.WriteLine("");
 
                 if (cki.Key == ConsoleKey.D1)
                 {
@@ -68,7 +67,7 @@ namespace CountlySample
                 }
                 else if (cki.Key == ConsoleKey.D2)
                 {
-                    System.Console.WriteLine("2");
+                    Console.WriteLine("2");
 
                     try
                     {
@@ -81,27 +80,27 @@ namespace CountlySample
                 }
                 else if (cki.Key == ConsoleKey.D3)
                 {
-                    System.Console.WriteLine("3");
+                    Console.WriteLine("3");
                     Device.DeviceId = "ID-" + (new Random()).Next();
                 }
                 else if (cki.Key == ConsoleKey.D4)
                 {
-                    System.Console.WriteLine("4");
+                    Console.WriteLine("4");
                     Countly.UserDetails.Name = "Some Username " + (new Random()).Next();
                 }
                 else if (cki.Key == ConsoleKey.D5)
                 {
-                    System.Console.WriteLine("5");
+                    Console.WriteLine("5");
                     break;
                 } else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
                 {
-                    System.Console.WriteLine("8");
-                    System.Console.WriteLine("Running threaded debug test");
+                    Console.WriteLine("8");
+                    Console.WriteLine("Running threaded debug test");
                     ThreadTest();
                 }
                 else
                 {
-                    System.Console.WriteLine("Wrong input, please try again.");
+                    Console.WriteLine("Wrong input, please try again.");
                 }
             };
 
@@ -117,7 +116,7 @@ namespace CountlySample
             for(int a = 0; a< threadCount; a++)
             {
                 threads.Add(new Thread(new ThreadStart(ThreadWorkEvents)));
-                //threads.Add(new Thread(new ThreadStart(ThreadWorkExceptions)));
+                threads.Add(new Thread(new ThreadStart(ThreadWorkExceptions)));
             }
 
            
