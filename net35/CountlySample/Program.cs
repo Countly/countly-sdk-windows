@@ -37,6 +37,8 @@ namespace CountlySample
             }
 
             Countly.IsLoggingEnabled = true;
+            //Countly.SetCustomDataPath(@"D:\123z\");//usable only when targeting .net3.5
+            //Countly.SetCustomDataPath(null);
             Countly.StartSession(serverURL, appKey, "1.234");
 
             System.Console.WriteLine("DeviceID: " + Device.DeviceId);

@@ -36,13 +36,30 @@ namespace CountlySDK.Helpers
         /// </summary>
         private const string folder = "countly";
         private static object locker = new Object();
+        private static string customDataPath = null;
 
         private static string Path
         {
             get
             {
-                return System.IO.Directory.GetCurrentDirectory() + @"\" + folder;
+                if (customDataPath == null)
+                {
+                    return System.IO.Directory.GetCurrentDirectory() + @"\" + folder;
+                } else
+                {
+                    return customDataPath + @"\" + folder;
+                }
             }
+        }
+
+        /// <summary>
+        /// Set custom data path for countly data cache
+        /// If path is set to null, it will clear the custom path
+        /// </summary>
+        /// <param name="customPath">Given custom path</param>
+        public static void SetCustomDataPath(string customPath)
+        {
+            customDataPath = customPath;
         }
 
         /// <summary>

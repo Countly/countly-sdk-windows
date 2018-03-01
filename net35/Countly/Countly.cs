@@ -520,6 +520,16 @@ namespace CountlySDK
         }
 
         /// <summary>
+        /// Set the custom data path for temporary caching files
+        /// Set it to null if you want to use the default location
+        /// </summary>
+        /// <param name="customPath">Custom location for countly data files</param>
+        public static void SetCustomDataPath(string customPath)
+        {
+            //Storage.SetCustomDataPath(customPath);
+        }
+
+        /// <summary>
         /// Uploads event queue to Countly server
         /// </summary>
         /// <returns>True if success</returns>
