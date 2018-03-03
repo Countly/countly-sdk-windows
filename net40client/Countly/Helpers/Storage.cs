@@ -54,6 +54,16 @@ namespace CountlySDK.Helpers
         }
 
         /// <summary>
+        /// This empty stub is needed because of sharing the "countly"
+        /// class between .net3.5 and .net4.0
+        /// </summary>
+        /// <param name="path"></param>
+        public static void SetCustomDataPath(String path)
+        {
+            //do nothing
+        }
+
+        /// <summary>
         /// Saves object into file
         /// </summary>
         /// <param name="filename">File to save to</param>

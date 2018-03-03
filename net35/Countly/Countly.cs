@@ -522,11 +522,14 @@ namespace CountlySDK
         /// <summary>
         /// Set the custom data path for temporary caching files
         /// Set it to null if you want to use the default location
+        /// THIS WILL ONLY WORK WHEN TARGETING .NET3.5
+        /// If you downloaded this package from nuget and are targeting .net4.0,
+        /// this will do nothing.
         /// </summary>
         /// <param name="customPath">Custom location for countly data files</param>
         public static void SetCustomDataPath(string customPath)
         {
-            //Storage.SetCustomDataPath(customPath);
+            Storage.SetCustomDataPath(customPath);
         }
 
         /// <summary>
