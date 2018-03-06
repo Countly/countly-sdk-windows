@@ -94,7 +94,8 @@ namespace CountlySample
                 {
                     Console.WriteLine("5");
                     break;
-                } else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
+                }
+                else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
                 {
                     Console.WriteLine("8");
                     Console.WriteLine("Running threaded debug test");
