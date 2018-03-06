@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Countly", "Countly\Countly.csproj", "{91F002B9-2593-4D36-B49E-BB5DB8826729}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySample", "CountlySample\CountlySample.csproj", "{3CC3D436-957D-4127-A7C0-D9AECBAB06BE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "countlyCommonPCL", "..\countlyCommon\countlyCommonPCL\countlyCommonPCL.csproj", "{33025E84-04F2-4FB9-A5EB-9104F89BF6C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleConsole", "CountlySampleConsole\CountlySampleConsole.csproj", "{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,18 @@ Global
 		{33025E84-04F2-4FB9-A5EB-9104F89BF6C4}.Release|ARM.Build.0 = Release|Any CPU
 		{33025E84-04F2-4FB9-A5EB-9104F89BF6C4}.Release|x86.ActiveCfg = Release|Any CPU
 		{33025E84-04F2-4FB9-A5EB-9104F89BF6C4}.Release|x86.Build.0 = Release|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Debug|ARM.Build.0 = Debug|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Debug|x86.Build.0 = Debug|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Release|ARM.ActiveCfg = Release|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Release|ARM.Build.0 = Release|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Release|x86.ActiveCfg = Release|Any CPU
+		{CCD6DE49-CCEC-4ADF-8B6A-86813EFFF0DD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
