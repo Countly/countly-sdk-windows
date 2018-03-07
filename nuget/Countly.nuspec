@@ -45,21 +45,6 @@
           </group>
           <group targetFramework="win8">
             <dependency id="Newtonsoft.Json" version="10.0.2" />
-          </group>          
-          <group targetFramework="wp8">
-            <dependency id="Newtonsoft.Json" version="10.0.2" />
-            <dependency id="Microsoft.Bcl" version="1.1.10" />
-            <dependency id="Microsoft.Bcl.Build" version="1.0.14" />
-            <dependency id="Microsoft.Net.Http" version="2.2.29" />
-          </group>
-          <group targetFramework="wp81">
-            <dependency id="Newtonsoft.Json" version="10.0.2" />
-            <dependency id="Microsoft.Bcl" version="1.1.10" />
-            <dependency id="Microsoft.Bcl.Build" version="1.0.14" />
-            <dependency id="Microsoft.Net.Http" version="2.2.29" />
-          </group>
-          <group targetFramework="wp71">
-            <dependency id="Newtonsoft.Json" version="[5.0.8]" />
           </group>
           <group targetFramework="uap">
             <dependency id="Newtonsoft.Json" version="10.0.2" />
@@ -72,8 +57,6 @@
 	      <file src="lib\net40-client\Countly.dll" target="lib\net40-client\Countly.dll" />
         <file src="lib\portable-win81+wpa81\Countly.dll" target="lib\portable-win81+wpa81\Countly.dll" />
 	      <file src="lib\.NETPortable4.5-Profile259\Countly.dll" target="lib\.NETPortable4.5-Profile259\Countly.dll" />
-        <file src="lib\wp8\Countly.dll" target="lib\wp8\Countly.dll" />
-        <file src="lib\wp71\Countly.dll" target="lib\wp71\Countly.dll" />
         <file src="lib\uap\Countly.dll" target="lib\uap\Countly.dll" />
     </files>
 </package>
