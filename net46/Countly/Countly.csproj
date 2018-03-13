@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B22D74FA-2AF5-4942-948B-DAC461ADDB13}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CountlySDK</RootNamespace>
+    <AssemblyName>Countly</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\FxVolquant\src\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET_4_6_ABOVE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NET_4_6_ABOVE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs">
+      <Link>Entities\BeginSession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs">
+      <Link>Entities\CountlyEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs">
+      <Link>Entities\CustomInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs">
+      <Link>Entities\CustomInfoItem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
+      <Link>Entities\EndSession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs">
+      <Link>Entities\Metrics.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Segmentation.cs">
+      <Link>Entities\Segmentation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs">
+      <Link>Entities\SegmentationItem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SessionEvent.cs">
+      <Link>Entities\SessionEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs">
+      <Link>Entities\UpdateSession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs">
+      <Link>Helpers\TimeHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs">
+      <Link>Helpers\UtilityHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
+      <Link>Server\Responses\ResultResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net35\Countly\Countly.cs">
+      <Link>Countly.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs">
+      <Link>Entities\CountlyUserDetails.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net35\Countly\Entities\Device.cs">
+      <Link>Entities\Device.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net35\Countly\Entities\ExceptionEvent.cs">
+      <Link>Entities\ExceptionEvent.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net35\Countly\Helpers\OpenUDID.cs">
+      <Link>Helpers\OpenUDID.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net35\Countly\Helpers\OSInfo.cs">
+      <Link>Helpers\OSInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\net35\Countly\Server\Api.cs">
+      <Link>Server\Api.cs</Link>
+    </Compile>
+    <Compile Include="Helpers\Storage.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="CountlyWinSDKStrongNameKey.pfx" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

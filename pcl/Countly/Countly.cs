@@ -39,7 +39,7 @@ namespace CountlySDK
     public static class Countly
     {
         // Current version of the Count.ly SDK as a displayable string.
-        private const string sdkVersion = "18.01";
+        private const string sdkVersion = "18.02";
 
         // How often update session is sent
         private const int updateInterval = 60;

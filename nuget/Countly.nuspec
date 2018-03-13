@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Countly</id>
-        <version>18.01.0</version>
+        <version>18.02.0</version>
         <title>Countly Analytics</title>
         <authors>Countly</authors>
         <iconUrl>https://raw.githubusercontent.com/Countly/countly-sdk-windows/master/icon.png</iconUrl>
@@ -18,11 +18,14 @@
             <dependency id="AsyncBridge.Net35" version="0.2.0" />
             <dependency id="TaskParallelLibrary" version="1.0.2856.0" />
           </group>
-	        <group targetFramework="net40-client">
+	      <group targetFramework="net40-client">
             <dependency id="Newtonsoft.Json" version="10.0.2" />
             <dependency id="Microsoft.Bcl" version="1.1.10" />
             <dependency id="Microsoft.Bcl.Build" version="1.0.14" />
             <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
+          </group>
+		  <group targetFramework="net46">
+            <dependency id="Newtonsoft.Json" version="10.0.2" />
           </group>
           <group targetFramework="netcore">
             <dependency id="Newtonsoft.Json" version="10.0.2" />
@@ -69,9 +72,10 @@
     </metadata>
     <files>
         <file src="lib\net35-full\Countly.dll" target="lib\net35-full\Countly.dll" />
-	      <file src="lib\net40-client\Countly.dll" target="lib\net40-client\Countly.dll" />
+	    <file src="lib\net40-client\Countly.dll" target="lib\net40-client\Countly.dll" />
+		<file src="lib\net46\Countly.dll" target="lib\net46\Countly.dll" />
         <file src="lib\portable-win81+wpa81\Countly.dll" target="lib\portable-win81+wpa81\Countly.dll" />
-	      <file src="lib\.NETPortable4.5-Profile259\Countly.dll" target="lib\.NETPortable4.5-Profile259\Countly.dll" />
+	    <file src="lib\.NETPortable4.5-Profile259\Countly.dll" target="lib\.NETPortable4.5-Profile259\Countly.dll" />
         <file src="lib\wp8\Countly.dll" target="lib\wp8\Countly.dll" />
         <file src="lib\wp71\Countly.dll" target="lib\wp71\Countly.dll" />
         <file src="lib\uap\Countly.dll" target="lib\uap\Countly.dll" />

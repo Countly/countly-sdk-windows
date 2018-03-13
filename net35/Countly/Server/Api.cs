@@ -9,6 +9,10 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
+#if NET_4_6_ABOVE
+using TaskEx = System.Threading.Tasks.Task;
+#endif
+
 namespace CountlySDK
 {
     internal class Api
