@@ -237,7 +237,7 @@ namespace CountlySDK
 
                 Timer = ThreadPoolTimer.CreatePeriodicTimer(UpdateSession, TimeSpan.FromSeconds(updateInterval));
 
-                await AddSessionEvent(new BeginSession(AppKey, Device.DeviceId, sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
+                await AddSessionEvent(new BeginSession(AppKey, await Device.GetDeviceId(), sdkVersion, new Metrics(Device.OS, Device.OSVersion, Device.DeviceName, Device.Resolution, Device.Carrier, Device.AppVersion)));
 
                 if (null != SessionStarted)
                 {
@@ -276,7 +276,7 @@ namespace CountlySDK
         /// <param name="timer"></param>
         private static async void UpdateSession(ThreadPoolTimer timer)
         {
-            await AddSessionEvent(new UpdateSession(AppKey, Device.DeviceId, (int)DateTime.Now.Subtract(startTime).TotalSeconds));
+            await AddSessionEvent(new UpdateSession(AppKey, await Device.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
         }
 
         /// <summary>
@@ -291,7 +291,7 @@ namespace CountlySDK
                 Timer = null;
             }
 
-            await AddSessionEvent(new EndSession(AppKey, Device.DeviceId), true);
+            await AddSessionEvent(new EndSession(AppKey, await Device.GetDeviceId()), true);
         }
 
         /// <summary>
@@ -575,7 +575,7 @@ namespace CountlySDK
                 {
                     eventsToSend = Events.Take(eventsCount).ToList();
                 }
-                ResultResponse resultResponse = await Api.SendEvents(ServerUrl, AppKey, Device.DeviceId, eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+                ResultResponse resultResponse = await Api.SendEvents(ServerUrl, AppKey, await Device.GetDeviceId(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {
@@ -655,7 +655,7 @@ namespace CountlySDK
                 return false;
             }
 
-            ResultResponse resultResponse = await Api.UploadUserDetails(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, UserDetails);
+            ResultResponse resultResponse = await Api.UploadUserDetails(Countly.ServerUrl, Countly.AppKey, await Device.GetDeviceId(), UserDetails);
 
             if (resultResponse != null && resultResponse.IsSuccess)
             {
@@ -683,7 +683,7 @@ namespace CountlySDK
                 return false;
             }
 
-            ResultResponse resultResponse = await Api.UploadUserPicture(Countly.ServerUrl, Countly.AppKey, Device.DeviceId, imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            ResultResponse resultResponse = await Api.UploadUserPicture(Countly.ServerUrl, Countly.AppKey, await Device.GetDeviceId(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
             return (resultResponse != null && resultResponse.IsSuccess);
         }
@@ -795,7 +795,7 @@ namespace CountlySDK
                 {
                     exEvent = Exceptions[0];
                 }
-                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, Device.DeviceId, exEvent);
+                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, await Device.GetDeviceId(), exEvent);
 
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {

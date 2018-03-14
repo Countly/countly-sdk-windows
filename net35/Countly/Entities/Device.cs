@@ -23,6 +23,7 @@ THE SOFTWARE.
 using CountlySDK.Helpers;
 using Microsoft.Win32;
 using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CountlySDK.Entities
@@ -33,34 +34,36 @@ namespace CountlySDK.Entities
     public static class Device
     {
         private static string deviceId;
+
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
-        public static string DeviceId
+        public static async Task<string> GetDeviceId()
         {
-            get
+            try
             {
-                try
+                if (string.IsNullOrEmpty(deviceId))
                 {
-                    if (string.IsNullOrEmpty(deviceId))
-                    {
-                        return OpenUDID.value;
-                    }
-                    else
-                    {
-                        return deviceId;
-                    }
-                    
+                    return OpenUDID.value;
                 }
-                catch
+                else
                 {
-                    return "";
+                    return deviceId;
                 }
+
             }
-            set
+            catch
             {
-                deviceId = value;
+                return "";
             }
+        }
+
+        /// <summary>
+        /// Sets the unique device identificator
+        /// </summary>
+        public static async Task SetDeviceId(string providedDeviceId)
+        {
+            deviceId = providedDeviceId;
         }
 
         /// <summary>

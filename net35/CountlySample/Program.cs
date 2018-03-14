@@ -2,9 +2,8 @@
 using CountlySDK.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CountlySample
 {
@@ -23,10 +22,10 @@ namespace CountlySample
             new Program().Run();
         }
 
-        public void Run()
+        public async void Run()
         {
             Console.WriteLine("Hello to the Countly sample console program");
-            Console.WriteLine("DeviceID: " + Device.DeviceId);
+            Console.WriteLine("DeviceID: " + Device.GetDeviceId());
 
             if (serverURL == null || appKey == null)
             {
@@ -39,9 +38,9 @@ namespace CountlySample
             Countly.IsLoggingEnabled = true;
             //Countly.SetCustomDataPath(@"D:\123z\");//usable only when targeting .net3.5
             //Countly.SetCustomDataPath(null);
-            Countly.StartSession(serverURL, appKey, "1.234");
+            await Countly.StartSession(serverURL, appKey, "1.234");
 
-            System.Console.WriteLine("DeviceID: " + Device.DeviceId);
+            System.Console.WriteLine("DeviceID: " + await Device.GetDeviceId());
 
             while (true)
             {
@@ -83,7 +82,7 @@ namespace CountlySample
                 else if (cki.Key == ConsoleKey.D3)
                 {
                     Console.WriteLine("3");
-                    Device.DeviceId = "ID-" + (new Random()).Next();
+                    await Device.SetDeviceId("ID-" + (new Random()).Next());
                 }
                 else if (cki.Key == ConsoleKey.D4)
                 {
@@ -107,7 +106,7 @@ namespace CountlySample
                 }
             };
 
-            Countly.EndSession();
+            await Countly.EndSession();
         }
 
         

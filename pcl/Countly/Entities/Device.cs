@@ -33,7 +33,7 @@ namespace CountlySDK.Entities
     {
         private static string deviceFilename = "device.xml";
 
-        public static string deviceId_;
+        private static string deviceId;
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
@@ -41,20 +41,20 @@ namespace CountlySDK.Entities
         {            
             try
             {
-                if (deviceId_ != null) return deviceId_;
+                if (deviceId != null) return deviceId;
 
-                deviceId_ = await Storage.LoadFromFile<string>(deviceFilename);
+                deviceId = await Storage.LoadFromFile<string>(deviceFilename);
 
-                if (deviceId_ == null)
+                if (deviceId == null)
                 {
                     Guid guid = Guid.NewGuid();
 
-                    deviceId_ = guid.ToString().Replace("-", "").ToUpper();
+                    deviceId = guid.ToString().Replace("-", "").ToUpper();
 
-                    await Storage.SaveToFile<string>(deviceFilename, deviceId_);
+                    await Storage.SaveToFile<string>(deviceFilename, deviceId);
                 }
 
-                return deviceId_;
+                return deviceId;
             }
             catch
             {
@@ -65,13 +65,13 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Sets the unique device identificator
         /// </summary>
-        public static async Task SetDeviceId(string deviceId)
+        public static async Task SetDeviceId(string providedDeviceId)
         {
             try
             {
-                deviceId_ = deviceId;
+                deviceId = providedDeviceId;
 
-                await Storage.SaveToFile<string>(deviceFilename, deviceId_);
+                await Storage.SaveToFile<string>(deviceFilename, deviceId);
             }
             catch
             {

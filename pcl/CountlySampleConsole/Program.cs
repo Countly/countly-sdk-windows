@@ -24,10 +24,10 @@ namespace CountlySample
             new Program().Run();
         }
 
-        public void Run()
+        public async void Run()
         {
             Console.WriteLine("Hello to the Countly sample console program");
-            Console.WriteLine("DeviceID: " + Device.deviceId_);
+            Console.WriteLine("DeviceID: " + await Device.GetDeviceId());
 
             if (serverURL == null || appKey == null)
             {
@@ -39,9 +39,9 @@ namespace CountlySample
 
             Countly.IsLoggingEnabled = true;
 
-            Countly.StartSession(serverURL, appKey, "1.234", FileSystem.Current);
+            await Countly.StartSession(serverURL, appKey, "1.234", FileSystem.Current);
 
-            System.Console.WriteLine("DeviceID: " + Device.deviceId_);
+            System.Console.WriteLine("DeviceID: " + await Device.GetDeviceId());
 
             while (true)
             {
@@ -65,7 +65,7 @@ namespace CountlySample
                 if (cki.Key == ConsoleKey.D1)
                 {
                     System.Console.WriteLine("1");
-                    Countly.RecordEvent("Some event");
+                    await Countly.RecordEvent("Some event");
                 }
                 else if (cki.Key == ConsoleKey.D2)
                 {
@@ -77,13 +77,13 @@ namespace CountlySample
                     }
                     catch (Exception ex)
                     {
-                        Countly.RecordException(ex.Message, ex.StackTrace);
+                        await Countly.RecordException(ex.Message, ex.StackTrace);
                     }
                 }
                 else if (cki.Key == ConsoleKey.D3)
                 {
                     Console.WriteLine("3");
-                    Device.deviceId_ = "ID-" + (new Random()).Next();
+                    await Device.SetDeviceId("ID-" + (new Random()).Next());
                 }
                 else if (cki.Key == ConsoleKey.D4)
                 {
@@ -107,7 +107,7 @@ namespace CountlySample
                 }
             };
 
-            Countly.EndSession();
+            await Countly.EndSession();
         }
 
 

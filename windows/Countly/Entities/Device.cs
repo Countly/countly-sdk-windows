@@ -24,6 +24,7 @@ using CountlySDK.Helpers;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
 using Windows.ApplicationModel;
@@ -49,33 +50,34 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
-        public static string DeviceId
+        public static async Task<string> GetDeviceId()
         {
-            get
+            try
             {
-                try
-                {
-                    if (deviceId != null) return deviceId;
+                if (deviceId != null) return deviceId;
 
-                    HardwareToken token = HardwareIdentification.GetPackageSpecificToken(null);
-                    IBuffer hardwareId = token.Id;
+                HardwareToken token = HardwareIdentification.GetPackageSpecificToken(null);
+                IBuffer hardwareId = token.Id;
 
-                    HashAlgorithmProvider hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
-                    IBuffer hashed = hasher.HashData(hardwareId);
+                HashAlgorithmProvider hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
+                IBuffer hashed = hasher.HashData(hardwareId);
 
-                    deviceId = CryptographicBuffer.EncodeToHexString(hashed);
+                deviceId = CryptographicBuffer.EncodeToHexString(hashed);
 
-                    return deviceId;
-                }
-                catch
-                {
-                    return String.Empty;
-                }
+                return deviceId;
             }
-            set
+            catch
             {
-                deviceId = value;
+                return String.Empty;
             }
+        }
+
+        /// <summary>
+        /// Sets the unique device identificator
+        /// </summary>
+        public static async Task SetDeviceId(string providedDeviceId)
+        {
+            deviceId = providedDeviceId;
         }
 
         /// <summary>
