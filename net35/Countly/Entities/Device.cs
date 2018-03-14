@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using Microsoft.Win32;
 using System;
@@ -31,14 +32,12 @@ namespace CountlySDK.Entities
     /// <summary>
     /// This class provides several static methods to retrieve information about the current device and operating environment.
     /// </summary>
-    public static class Device
+    internal class Device : DeviceBase
     {
-        private static string deviceId;
-
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
-        public static async Task<string> GetDeviceId()
+        internal override async Task<string> GetDeviceId()
         {
             try
             {
@@ -61,7 +60,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Sets the unique device identificator
         /// </summary>
-        public static async Task SetDeviceId(string providedDeviceId)
+        internal override async Task SetDeviceId(string providedDeviceId)
         {
             deviceId = providedDeviceId;
         }
@@ -69,7 +68,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns the display name of the current operating system
         /// </summary>
-        public static string OS
+        public string OS
         {
             get
             {
@@ -80,7 +79,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns the current operating system version as a displayable string
         /// </summary>
-        public static string OSVersion
+        public string OSVersion
         {
             get
             {
@@ -88,11 +87,11 @@ namespace CountlySDK.Entities
             }
         }
 
-        private static string deviceName;
+        private string deviceName;
         /// <summary>
         /// Returns the local machine name
         /// </summary>
-        public static string DeviceName
+        public string DeviceName
         {
             get
             {
@@ -114,7 +113,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns device resolution in <width_px>x<height_px> format
         /// </summary>
-        public static string Resolution
+        public string Resolution
         {
             get
             {
@@ -125,7 +124,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns available RAM space
         /// </summary>
-        public static long RamCurrent
+        public long RamCurrent
         {
             get
             {
@@ -136,7 +135,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns total RAM size
         /// </summary>
-        public static long RamTotal
+        public long RamTotal
         {
             get
             {
@@ -147,7 +146,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns current device connection to the internet
         /// </summary>
-        public static bool Online
+        public bool Online
         {
             get
             {

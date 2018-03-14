@@ -80,6 +80,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
       <Link>Entities\EndSession.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\DeviceBase.cs">
+      <Link>Entities\EntityBase\DeviceBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs">
       <Link>Entities\Metrics.cs</Link>
     </Compile>

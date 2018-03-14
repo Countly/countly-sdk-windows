@@ -4,6 +4,6 @@
     <DeviceId>D363CCA4-0764-4F2C-9EE1-12E55E13C0FC</DeviceId>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <DeviceId>D363CCA4-0764-4F2C-9EE1-12E55E13C0FC</DeviceId>
+    <DeviceId>30F105C9-681E-420b-A277-7C086EAD8A4E</DeviceId>
   </PropertyGroup>
 </Project>

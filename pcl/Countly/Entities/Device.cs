@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
 using System.Threading.Tasks;
@@ -29,15 +30,12 @@ namespace CountlySDK.Entities
     /// <summary>
     /// This class provides static methods to retrieve information about the current device.
     /// </summary>
-    public static class Device
+    internal class Device : DeviceBase
     {
-        private static string deviceFilename = "device.xml";
-
-        private static string deviceId;
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
-        public static async Task<string> GetDeviceId()
+        internal override async Task<string> GetDeviceId()
         {            
             try
             {
@@ -65,7 +63,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Sets the unique device identificator
         /// </summary>
-        public static async Task SetDeviceId(string providedDeviceId)
+        internal override async Task SetDeviceId(string providedDeviceId)
         {
             try
             {

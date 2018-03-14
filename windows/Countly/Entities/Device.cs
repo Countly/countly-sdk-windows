@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
 using System.Diagnostics;
@@ -44,13 +45,12 @@ namespace CountlySDK.Entities
     /// <summary>
     /// This class provides several static methods to retrieve information about the current device and operating environment.
     /// </summary>
-    internal static class Device
+    internal class Device : DeviceBase
     {
-        private static string deviceId;
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
-        public static async Task<string> GetDeviceId()
+        internal override async Task<string> GetDeviceId()
         {
             try
             {
@@ -75,7 +75,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Sets the unique device identificator
         /// </summary>
-        public static async Task SetDeviceId(string providedDeviceId)
+        internal override async Task SetDeviceId(string providedDeviceId)
         {
             deviceId = providedDeviceId;
         }
@@ -83,7 +83,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns the display name of the current operating system
         /// </summary>
-        public static string OS
+        public string OS
         {
             get
             {
@@ -96,7 +96,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns the current operating system version as a displayable string
         /// </summary>
-        public static string OSVersion
+        public string OSVersion
         {
             get
             {
@@ -107,7 +107,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns the current device manufacturer
         /// </summary>
-        public static string Manufacturer
+        public string Manufacturer
         {
             get
             {
@@ -120,7 +120,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns the current device model
         /// </summary>
-        public static string DeviceName
+        public string DeviceName
         {
             get
             {
@@ -133,7 +133,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns application version from Package.appxmanifest
         /// </summary>
-        public static string AppVersion
+        public string AppVersion
         {
             get
             {
@@ -145,11 +145,11 @@ namespace CountlySDK.Entities
             }
         }
 
-        private static string resolution;
+        private string resolution;
         /// <summary>
         /// Returns device resolution in <width_px>x<height_px> format
         /// </summary>
-        public static string Resolution
+        public string Resolution
         {
             get
             {
@@ -172,7 +172,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns cellular mobile operator
         /// </summary>
-        public static string Carrier
+        public string Carrier
         {
             get
             {
@@ -193,11 +193,11 @@ namespace CountlySDK.Entities
             }
         }
 
-        private static string orientation;
+        private string orientation;
         /// <summary>
         /// Returns current device orientation
         /// </summary>
-        public static string Orientation
+        public string Orientation
         {
             get
             {
@@ -217,7 +217,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Returns current device connection to the internet
         /// </summary>
-        public static bool Online
+        public bool Online
         {
             get
             {

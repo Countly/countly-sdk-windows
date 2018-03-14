@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CountlySample
 {
@@ -20,14 +21,15 @@ namespace CountlySample
         int threadCount = 20;
 
         static void Main(string[] args)
-        {           
-            new Program().Run();
+        {
+            (new Program().Run()).GetAwaiter().GetResult();
+            //new Program().Run();
         }
 
-        public async void Run()
+        public async Task Run()
         {
             Console.WriteLine("Hello to the Countly sample console program");
-            Console.WriteLine("DeviceID: " + await Device.GetDeviceId());
+            Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
 
             if (serverURL == null || appKey == null)
             {
@@ -41,7 +43,7 @@ namespace CountlySample
 
             await Countly.StartSession(serverURL, appKey, "1.234", FileSystem.Current);
 
-            System.Console.WriteLine("DeviceID: " + await Device.GetDeviceId());
+            System.Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
 
             while (true)
             {
@@ -83,7 +85,7 @@ namespace CountlySample
                 else if (cki.Key == ConsoleKey.D3)
                 {
                     Console.WriteLine("3");
-                    await Device.SetDeviceId("ID-" + (new Random()).Next());
+                    //await Device.SetDeviceId("ID-" + (new Random()).Next());
                 }
                 else if (cki.Key == ConsoleKey.D4)
                 {

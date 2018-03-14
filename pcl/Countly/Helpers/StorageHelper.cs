@@ -90,7 +90,7 @@ namespace CountlySDK.Helpers
 
                 IFile storageFile = await fileSystem.LocalStorage.CreateFileAsync(file, CreationCollisionOption.ReplaceExisting);
 
-                using (Stream fileStream = await storageFile.OpenAsync(FileAccess.ReadAndWrite))
+                using (Stream fileStream = await storageFile.OpenAsync(PCLStorage.FileAccess.ReadAndWrite))
                 {
                     await stream.CopyToAsync(fileStream);
                     await fileStream.FlushAsync();
@@ -163,7 +163,7 @@ namespace CountlySDK.Helpers
 
                 IFile file = await fileSystem.GetFileFromPathAsync(path);
 
-                using (StreamReader reader = new StreamReader(await file.OpenAsync(FileAccess.Read)))
+                using (StreamReader reader = new StreamReader(await file.OpenAsync(PCLStorage.FileAccess.Read)))
                 {
                     MemoryStream memoryStream = new MemoryStream();
 

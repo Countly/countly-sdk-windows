@@ -89,6 +89,8 @@ namespace CountlySDK
         private static DateTime startTime;
         // Update session timer
         private static TimerHelper Timer;
+        //holds device info
+        private static Device DeviceData = new Device();
 
         /// <summary>
         /// Determines if Countly debug messages are displayed to Output window
@@ -209,7 +211,7 @@ namespace CountlySDK
 
             Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
 
-            await AddSessionEvent(new BeginSession(AppKey, await Device.GetDeviceId(), sdkVersion, new Metrics("Windows (PCL)", null, null, null, null, appVersion)));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics("Windows (PCL)", null, null, null, null, appVersion)));
 
             if (null != SessionStarted)
             {
@@ -224,7 +226,7 @@ namespace CountlySDK
         /// <param name="e"></param>
         private static async void UpdateSession(object sender, object e)
         {
-            await AddSessionEvent(new UpdateSession(AppKey, await Device.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
+            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
         }
 
         /// <summary>
@@ -239,7 +241,7 @@ namespace CountlySDK
                 Timer = null;
             }
 
-            await AddSessionEvent(new EndSession(AppKey, await Device.GetDeviceId()), true);
+            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId()), true);
 
             ServerUrl = null;
             AppKey = null;
@@ -518,7 +520,7 @@ namespace CountlySDK
                 {
                     eventsToSend = Events.Take(eventsCount).ToList();
                 }
-                ResultResponse resultResponse = await Api.SendEvents(ServerUrl, AppKey, await Device.GetDeviceId(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+                ResultResponse resultResponse = await Api.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {
@@ -598,7 +600,7 @@ namespace CountlySDK
                 return false;
             }
 
-            ResultResponse resultResponse = await Api.UploadUserDetails(Countly.ServerUrl, Countly.AppKey, await Device.GetDeviceId(), UserDetails);
+            ResultResponse resultResponse = await Api.UploadUserDetails(Countly.ServerUrl, Countly.AppKey, await DeviceData.GetDeviceId(), UserDetails);
 
             if (resultResponse != null && resultResponse.IsSuccess)
             {
@@ -626,7 +628,7 @@ namespace CountlySDK
                 return false;
             }
 
-            ResultResponse resultResponse = await Api.UploadUserPicture(Countly.ServerUrl, Countly.AppKey, await Device.GetDeviceId(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            ResultResponse resultResponse = await Api.UploadUserPicture(Countly.ServerUrl, Countly.AppKey, await DeviceData.GetDeviceId(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
             return (resultResponse != null && resultResponse.IsSuccess);
         }
@@ -736,7 +738,7 @@ namespace CountlySDK
                 {
                     exEvent = Exceptions[0];
                 }
-                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, await Device.GetDeviceId(), exEvent);
+                ResultResponse resultResponse = await Api.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), exEvent);
 
                 if (resultResponse != null && resultResponse.IsSuccess)
                 {
@@ -815,6 +817,10 @@ namespace CountlySDK
             }
 
             return success;
+        }
+        public static async Task<String> GetDeviceId()
+        {
+            return await DeviceData.GetDeviceId();
         }
     }
 }

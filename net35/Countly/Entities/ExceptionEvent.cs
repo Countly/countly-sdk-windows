@@ -135,21 +135,21 @@ namespace CountlySDK.Entities
             }
         }
 
-        public ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, string appVersion, Dictionary<string, string> customInfo)
+        internal ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, string appVersion, Dictionary<string, string> customInfo, Device DeviceData)
         {
             //device metrics
-            OS = CountlySDK.Entities.Device.OS;
-            OSVersion = CountlySDK.Entities.Device.OSVersion;
-            Device = CountlySDK.Entities.Device.DeviceName;
-            Resolution = CountlySDK.Entities.Device.Resolution;
+            OS = DeviceData.OS;
+            OSVersion = DeviceData.OSVersion;
+            Device = DeviceData.DeviceName;
+            Resolution = DeviceData.Resolution;
             AppVersion = appVersion;
 
             //state of device
-            RamCurrent = CountlySDK.Entities.Device.RamCurrent;
-            RamTotal = CountlySDK.Entities.Device.RamTotal;
+            RamCurrent = DeviceData.RamCurrent;
+            RamTotal = DeviceData.RamTotal;
 
             //bools
-            Online = CountlySDK.Entities.Device.Online;
+            Online = DeviceData.Online;
 
             //error info
             this.Name = Error;

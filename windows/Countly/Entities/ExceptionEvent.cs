@@ -104,21 +104,21 @@ namespace CountlySDK.Entities
         public ExceptionEvent()
         { }
 
-        public ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, Dictionary<string, string> customInfo)
+        public ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, Dictionary<string, string> customInfo, Device DeviceData)
         {
             //device metrics
-            OS = CountlySDK.Entities.Device.OS;
-            OSVersion = CountlySDK.Entities.Device.OSVersion;
-            Manufacture = CountlySDK.Entities.Device.Manufacturer;
-            Device = CountlySDK.Entities.Device.DeviceName;
-            Resolution = CountlySDK.Entities.Device.Resolution;
-            AppVersion = CountlySDK.Entities.Device.AppVersion;
+            OS = DeviceData.OS;
+            OSVersion = DeviceData.OSVersion;
+            Manufacture = DeviceData.Manufacturer;
+            Device = DeviceData.DeviceName;
+            Resolution = DeviceData.Resolution;
+            AppVersion = DeviceData.AppVersion;
 
             //state of device
-            Orientation = CountlySDK.Entities.Device.Orientation;
+            Orientation = DeviceData.Orientation;
 
             //bools
-            Online = CountlySDK.Entities.Device.Online;
+            Online = DeviceData.Online;
 
             //error info
             this.Name = Error;
