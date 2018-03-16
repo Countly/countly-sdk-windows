@@ -24,6 +24,9 @@ using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
+using Windows.Networking.Connectivity;
+using Windows.Security.ExchangeActiveSyncProvisioning;
 
 namespace CountlySDK.Entities
 {
@@ -31,50 +34,92 @@ namespace CountlySDK.Entities
     /// This class provides static methods to retrieve information about the current device.
     /// </summary>
     internal class Device : DeviceBase
-    {
-        /// <summary>
-        /// Returns the unique device identificator
-        /// </summary>
-        internal override async Task<string> GetDeviceId()
-        {            
-            try
-            {
-                if (deviceId != null) return deviceId;
-
-                deviceId = await Storage.LoadFromFile<string>(deviceFilename);
-
-                if (deviceId == null)
-                {
-                    Guid guid = Guid.NewGuid();
-
-                    deviceId = guid.ToString().Replace("-", "").ToUpper();
-
-                    await Storage.SaveToFile<string>(deviceFilename, deviceId);
-                }
-
-                return deviceId;
-            }
-            catch
-            {
-                return String.Empty;
-            }
+    {   
+        protected override async Task LoadDeviceIDFromStorage()
+        {
+            deviceId = await Storage.LoadFromFile<string>(deviceFilename);
+        }
+        protected override async Task SaveDeviceIDToStorage()
+        {
+            await Storage.SaveToFile<string>(deviceFilename, deviceId);
+        }
+        protected override String ComputeDeviceID()
+        {
+            Guid guid = Guid.NewGuid();        
+            return guid.ToString().Replace("-", "").ToUpper();
         }
 
-        /// <summary>
-        /// Sets the unique device identificator
-        /// </summary>
-        internal override async Task SetDeviceId(string providedDeviceId)
+        protected override string GetOS()
         {
-            try
-            {
-                deviceId = providedDeviceId;
+            return "Windows (PCL)";
+        }
 
-                await Storage.SaveToFile<string>(deviceFilename, deviceId);
-            }
-            catch
-            {
+        protected override string GetOSVersion()
+        {
+            return null;
+        }
 
+        protected override string GetManufacturer()
+        {
+            EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
+            return easClientDeviceInformation.SystemManufacturer;
+        }
+
+        protected override string GetDeviceName()
+        {
+            EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();        
+            return PhoneNameHelper.Resolve(easClientDeviceInformation.SystemManufacturer, easClientDeviceInformation.SystemProductName).FullCanonicalName;
+        }
+
+        protected override string GetAppVersion()
+        {
+            PackageVersion packageVersion = Package.Current.Id.Version;
+            Version version = new Version(packageVersion.Major, packageVersion.Minor, packageVersion.Build, packageVersion.Revision);        
+            return version.ToString();
+        }
+
+        protected override string GetResolution()
+        {
+            return null;
+        }
+
+        protected override string GetCarrier()
+        {
+            var result = NetworkInformation.GetConnectionProfiles();
+
+            foreach (var connectionProfile in result)
+            {
+                if (connectionProfile.IsWwanConnectionProfile)
+                {
+                    foreach (var networkName in connectionProfile.GetNetworkNames())
+                    {
+                        return networkName;
+                    }
+                }
             }
+
+            return String.Empty;
+        }
+
+        protected override string GetOrientation()
+        {
+            return null;
+        }
+
+        protected override long? GetRamCurrent()
+        {
+            return null;
+        }
+        protected override long? GetRamTotal()
+        {
+            return null;
+        }
+
+        protected override bool GetOnline()
+        {
+            ConnectionProfile connections = NetworkInformation.GetInternetConnectionProfile();
+
+            return connections != null && connections.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess;
         }
     }
 }

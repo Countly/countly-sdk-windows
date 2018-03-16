@@ -22,7 +22,6 @@ THE SOFTWARE.
 
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
-using Microsoft.Win32;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -34,124 +33,71 @@ namespace CountlySDK.Entities
     /// </summary>
     internal class Device : DeviceBase
     {
-        /// <summary>
-        /// Returns the unique device identificator
-        /// </summary>
-        internal override async Task<string> GetDeviceId()
+        protected override async Task LoadDeviceIDFromStorage()
         {
-            try
-            {
-                if (string.IsNullOrEmpty(deviceId))
-                {
-                    return OpenUDID.value;
-                }
-                else
-                {
-                    return deviceId;
-                }
-
-            }
-            catch
-            {
-                return "";
-            }
+            
+        }
+        protected override async Task SaveDeviceIDToStorage()
+        {
+            
+        }
+        protected override String ComputeDeviceID()
+        {
+            return OpenUDID.value;
         }
 
-        /// <summary>
-        /// Sets the unique device identificator
-        /// </summary>
-        internal override async Task SetDeviceId(string providedDeviceId)
+        protected override string GetOS()
         {
-            deviceId = providedDeviceId;
+            return OSInfo.OsName;
         }
 
-        /// <summary>
-        /// Returns the display name of the current operating system
-        /// </summary>
-        public string OS
+        protected override string GetOSVersion()
         {
-            get
-            {
-                return OSInfo.OsName;
-            }
+            return OSInfo.OSVersion;
+        }       
+
+        protected override string GetManufacturer()
+        {
+            return null;
         }
 
-        /// <summary>
-        /// Returns the current operating system version as a displayable string
-        /// </summary>
-        public string OSVersion
+        protected override string GetDeviceName()
         {
-            get
-            {
-                return OSInfo.OSVersion;
-            }
+            return System.Environment.MachineName;
         }
 
-        private string deviceName;
-        /// <summary>
-        /// Returns the local machine name
-        /// </summary>
-        public string DeviceName
+        protected override string GetAppVersion()
         {
-            get
-            {
-                if (string.IsNullOrEmpty(deviceName))
-                {
-                    return System.Environment.MachineName;
-                }
-                else
-                {
-                    return deviceName;
-                }
-            }
-            set
-            {
-                deviceName = value;
-            }
+            return null;
         }
 
-        /// <summary>
-        /// Returns device resolution in <width_px>x<height_px> format
-        /// </summary>
-        public string Resolution
+        protected override string GetResolution()
         {
-            get
-            {
-                return String.Format("{0}x{1}", SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
-            }
+            return String.Format("{0}x{1}", SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
         }
 
-        /// <summary>
-        /// Returns available RAM space
-        /// </summary>
-        public long RamCurrent
+        protected override string GetCarrier()
         {
-            get
-            {
-                return (long)(new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory - new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory);
-            }
+            return null;
+        }        
+
+        protected override long? GetRamCurrent()
+        {
+            return (long)(new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory - new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory);
+        }
+        protected override long? GetRamTotal()
+        {
+            return (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
         }
 
-        /// <summary>
-        /// Returns total RAM size
-        /// </summary>
-        public long RamTotal
+        protected override string GetOrientation()
         {
-            get
-            {
-                return (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
-            }
+            return null;
         }
 
-        /// <summary>
-        /// Returns current device connection to the internet
-        /// </summary>
-        public bool Online
+        protected override bool GetOnline()
         {
-            get
-            {
-                return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
-            }
+            return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
         }
     }
 }

@@ -23,19 +23,13 @@ THE SOFTWARE.
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Xml.Linq;
 using Windows.ApplicationModel;
-using Windows.Foundation;
 using Windows.Graphics.Display;
 using Windows.Networking.Connectivity;
 using Windows.Security.Cryptography;
 using Windows.Security.Cryptography.Core;
 using Windows.Security.ExchangeActiveSyncProvisioning;
-using Windows.Storage;
 using Windows.Storage.Streams;
 using Windows.System.Profile;
 using Windows.UI.Xaml;
@@ -47,184 +41,120 @@ namespace CountlySDK.Entities
     /// </summary>
     internal class Device : DeviceBase
     {
-        /// <summary>
-        /// Returns the unique device identificator
-        /// </summary>
-        internal override async Task<string> GetDeviceId()
+        protected override async Task LoadDeviceIDFromStorage()
         {
-            try
-            {
-                if (deviceId != null) return deviceId;
+            
+        }
+        protected override async Task SaveDeviceIDToStorage()
+        {
+            
+        }
+        protected override String ComputeDeviceID()
+        {
+            HardwareToken token = HardwareIdentification.GetPackageSpecificToken(null);
+            IBuffer hardwareId = token.Id;
 
-                HardwareToken token = HardwareIdentification.GetPackageSpecificToken(null);
-                IBuffer hardwareId = token.Id;
+            HashAlgorithmProvider hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
+            IBuffer hashed = hasher.HashData(hardwareId);
 
-                HashAlgorithmProvider hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
-                IBuffer hashed = hasher.HashData(hardwareId);
-
-                deviceId = CryptographicBuffer.EncodeToHexString(hashed);
-
-                return deviceId;
-            }
-            catch
-            {
-                return String.Empty;
-            }
+            return CryptographicBuffer.EncodeToHexString(hashed);
         }
 
-        /// <summary>
-        /// Sets the unique device identificator
-        /// </summary>
-        internal override async Task SetDeviceId(string providedDeviceId)
+        protected override string GetOS()
         {
-            deviceId = providedDeviceId;
+            EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();        
+            return easClientDeviceInformation.OperatingSystem;
         }
 
-        /// <summary>
-        /// Returns the display name of the current operating system
-        /// </summary>
-        public string OS
+        protected override string GetOSVersion()
         {
-            get
-            {
-                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
-
-                return easClientDeviceInformation.OperatingSystem;
-            }
+            return null;
         }
 
-        /// <summary>
-        /// Returns the current operating system version as a displayable string
-        /// </summary>
-        public string OSVersion
+        protected override string GetManufacturer()
         {
-            get
-            {
-                return null;
-            }
+            EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();       
+            return easClientDeviceInformation.SystemManufacturer;
         }
 
-        /// <summary>
-        /// Returns the current device manufacturer
-        /// </summary>
-        public string Manufacturer
+        protected override string GetDeviceName()
         {
-            get
-            {
-                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
-
-                return easClientDeviceInformation.SystemManufacturer;
-            }
+            EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();        
+            return PhoneNameHelper.Resolve(easClientDeviceInformation.SystemManufacturer, easClientDeviceInformation.SystemProductName).FullCanonicalName;
         }
 
-        /// <summary>
-        /// Returns the current device model
-        /// </summary>
-        public string DeviceName
+        protected override string GetAppVersion()
         {
-            get
-            {
-                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
-
-                return PhoneNameHelper.Resolve(easClientDeviceInformation.SystemManufacturer, easClientDeviceInformation.SystemProductName).FullCanonicalName;
-            }
-        }
-
-        /// <summary>
-        /// Returns application version from Package.appxmanifest
-        /// </summary>
-        public string AppVersion
-        {
-            get
-            {
-                PackageVersion packageVersion = Package.Current.Id.Version;
-
-                Version version = new Version(packageVersion.Major, packageVersion.Minor, packageVersion.Build, packageVersion.Revision);
-
-                return version.ToString();
-            }
+            PackageVersion packageVersion = Package.Current.Id.Version;
+            Version version = new Version(packageVersion.Major, packageVersion.Minor, packageVersion.Build, packageVersion.Revision);
+            return version.ToString();
         }
 
         private string resolution;
-        /// <summary>
-        /// Returns device resolution in <width_px>x<height_px> format
-        /// </summary>
-        public string Resolution
+        protected override string GetResolution()
         {
-            get
+            if (Window.Current != null && DisplayInformation.GetForCurrentView() != null)
             {
-                if (Window.Current != null && DisplayInformation.GetForCurrentView() != null)
-                {
-                    int width = (int)(Window.Current.Bounds.Width * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
-                    int height = (int)(Window.Current.Bounds.Height * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
+                int width = (int)(Window.Current.Bounds.Width * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
+                int height = (int)(Window.Current.Bounds.Height * (int)DisplayInformation.GetForCurrentView().ResolutionScale / 100);
 
-                    resolution = width + "x" + height;
+                resolution = width + "x" + height;
 
-                    return resolution;
-                }
-                else
-                {
-                    return resolution ?? String.Empty;
-                }
+                return resolution;
             }
-        }
-
-        /// <summary>
-        /// Returns cellular mobile operator
-        /// </summary>
-        public string Carrier
-        {
-            get
+            else
             {
-                var result = NetworkInformation.GetConnectionProfiles();
+                return resolution ?? String.Empty;
+            }
+        }       
 
-                foreach (var connectionProfile in result)
+        protected override string GetCarrier()
+        {
+            var result = NetworkInformation.GetConnectionProfiles();
+
+            foreach (var connectionProfile in result)
+            {
+                if (connectionProfile.IsWwanConnectionProfile)
                 {
-                    if (connectionProfile.IsWwanConnectionProfile)
+                    foreach (var networkName in connectionProfile.GetNetworkNames())
                     {
-                        foreach (var networkName in connectionProfile.GetNetworkNames())
-                        {
-                            return networkName;
-                        }
+                        return networkName;
                     }
                 }
-
-                return String.Empty;
             }
-        }
 
+            return String.Empty;
+        }
+    
         private string orientation;
-        /// <summary>
-        /// Returns current device orientation
-        /// </summary>
-        public string Orientation
+        protected override string GetOrientation()
         {
-            get
+            if (Window.Current != null)
             {
-                if (Window.Current != null)
-                {
-                    orientation = (Window.Current.Bounds.Width > Window.Current.Bounds.Height) ? "landscape" : "portrait";
+                orientation = (Window.Current.Bounds.Width > Window.Current.Bounds.Height) ? "landscape" : "portrait";
 
-                    return orientation;
-                }
-                else
-                {
-                    return orientation ?? String.Empty;
-                }
+                return orientation;
+            }
+            else
+            {
+                return orientation ?? String.Empty;
             }
         }
 
-        /// <summary>
-        /// Returns current device connection to the internet
-        /// </summary>
-        public bool Online
+        protected override long? GetRamCurrent()
         {
-            get
-            {
-                ConnectionProfile connections = NetworkInformation.GetInternetConnectionProfile();
+            return null;
+        }
+        protected override long? GetRamTotal()
+        {
+            return null;
+        }
 
-                return connections != null && connections.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess;
-            }
+        protected override bool GetOnline()
+        {
+            ConnectionProfile connections = NetworkInformation.GetInternetConnectionProfile();
+
+            return connections != null && connections.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess;
         }
     }
 }

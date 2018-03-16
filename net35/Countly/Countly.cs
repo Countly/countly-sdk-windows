@@ -732,7 +732,7 @@ namespace CountlySDK
             else
             {
                 return;
-            }
+            }            
         }
 
         /// <summary>
