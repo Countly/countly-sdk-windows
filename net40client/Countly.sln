@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Countly", "Countly\Countly.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "countlySampleConsole", "countlySampleConsole\countlySampleConsole.csproj", "{E57D2C75-9ED9-4F85-8AE9-5B30AFB147BC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleWIndowsForm", "CountlySampleWIndowsForm\CountlySampleWIndowsForm.csproj", "{875BD49E-6A36-4460-9110-27AE3B38B498}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{E57D2C75-9ED9-4F85-8AE9-5B30AFB147BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E57D2C75-9ED9-4F85-8AE9-5B30AFB147BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E57D2C75-9ED9-4F85-8AE9-5B30AFB147BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{875BD49E-6A36-4460-9110-27AE3B38B498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{875BD49E-6A36-4460-9110-27AE3B38B498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{875BD49E-6A36-4460-9110-27AE3B38B498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{875BD49E-6A36-4460-9110-27AE3B38B498}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
