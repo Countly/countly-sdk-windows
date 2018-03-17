@@ -750,7 +750,7 @@ namespace CountlySDK
             }
             TimeSpan run = (startTime != DateTime.MinValue) ? DateTime.Now.Subtract(startTime) : TimeSpan.FromSeconds(0);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, customInfo, DeviceData);          
+            ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, DeviceData.AppVersion, customInfo, DeviceData);          
 
             if (!unhandled)
             {
@@ -759,7 +759,7 @@ namespace CountlySDK
                     Exceptions.Add(eEvent);
                 }
 
-                SaveExceptions();
+                await SaveExceptions();
 
                 return await Upload();
             }
@@ -817,7 +817,7 @@ namespace CountlySDK
                         exceptionsCountToUploadAgain = Exceptions.Count;
                     }
 
-                    SaveExceptions();
+                    await SaveExceptions();
 
                     if (exceptionsCountToUploadAgain > 0)
                     {

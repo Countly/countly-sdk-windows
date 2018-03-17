@@ -20,13 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.Entities.EntityBase;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CountlySDK.Entities
 {
@@ -68,6 +66,14 @@ namespace CountlySDK.Entities
         [JsonProperty("_orientation")]
         public string Orientation { get; set; }
 
+        [DataMemberAttribute]
+        [JsonProperty("_ram_current")]
+        public long? RamCurrent { get; set; }
+
+        [DataMemberAttribute]
+        [JsonProperty("_ram_total")]
+        public long? RamTotal { get; set; }
+
         //bools
 
         [DataMemberAttribute]
@@ -97,17 +103,27 @@ namespace CountlySDK.Entities
         public long Run { get; set; }
 
         //custom key/values provided by developers
-
+        [DataMemberAttribute]
         [JsonProperty("_custom")]
         public Dictionary<string, string> Custom { get; set; }
 
-        public ExceptionEvent()
-        { }
-
-        public ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, string appVersion, Dictionary<string, string> customInfo)
+        internal ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, string appVersion, Dictionary<string, string> customInfo, DeviceBase DeviceData)
         {
             //device metrics
+            OS = DeviceData.OS;
+            OSVersion = DeviceData.OSVersion;
+            Manufacture = DeviceData.Manufacturer;
+            Device = DeviceData.DeviceName;
+            Resolution = DeviceData.Resolution;
             AppVersion = appVersion;
+
+            //state of device
+            Orientation = DeviceData.Orientation;
+            RamCurrent = DeviceData.RamCurrent;
+            RamTotal = DeviceData.RamTotal;
+
+            //bools
+            Online = DeviceData.Online;
 
             //error info
             this.Name = Error;

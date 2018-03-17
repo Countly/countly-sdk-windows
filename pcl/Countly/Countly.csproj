@@ -58,6 +58,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\DeviceBase.cs">
       <Link>Entities\EntityBase\DeviceBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\ExceptionEvent.cs">
+      <Link>Entities\ExceptionEvent.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs">
       <Link>Entities\Metrics.cs</Link>
     </Compile>
@@ -88,7 +91,6 @@
     <Compile Include="Countly.cs" />
     <Compile Include="Entities\CountlyUserDetails.cs" />
     <Compile Include="Entities\Device.cs" />
-    <Compile Include="Entities\ExceptionEvent.cs" />
     <Compile Include="Helpers\StorageHelper.cs" />
     <Compile Include="Helpers\TimerHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -23,7 +23,6 @@ namespace CountlySample
         static void Main(string[] args)
         {
             (new Program().Run()).GetAwaiter().GetResult();
-            //new Program().Run();
         }
 
         public async Task Run()
@@ -79,8 +78,11 @@ namespace CountlySample
                     }
                     catch (Exception ex)
                     {
-                        await Countly.RecordException(ex.Message, ex.StackTrace);
+                        Dictionary<string, string> customInfo = new Dictionary<string, string>();
+                        customInfo.Add("customData", "importantStuff");
+                        await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
                     }
+
                 }
                 else if (cki.Key == ConsoleKey.D3)
                 {

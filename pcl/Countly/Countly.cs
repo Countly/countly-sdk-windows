@@ -211,7 +211,7 @@ namespace CountlySDK
 
             Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
 
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics("Windows (PCL)", null, null, null, null, appVersion)));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, null, null, null, null, appVersion)));
 
             if (null != SessionStarted)
             {
@@ -695,7 +695,7 @@ namespace CountlySDK
 
             lock (sync)
             {
-                Exceptions.Add(new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, AppVersion, customInfo));
+                Exceptions.Add(new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, AppVersion, customInfo, DeviceData));
             }
 
             bool success = await SaveExceptions();

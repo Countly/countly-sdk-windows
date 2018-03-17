@@ -124,6 +124,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\DeviceBase.cs">
       <Link>Entities\EntityBase\DeviceBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\ExceptionEvent.cs">
+      <Link>Entities\ExceptionEvent.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs">
       <Link>Entities\Metrics.cs</Link>
     </Compile>
@@ -159,9 +162,6 @@
     </Compile>
     <Compile Include="..\..\pcl\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
-    </Compile>
-    <Compile Include="..\..\pcl\Countly\Entities\ExceptionEvent.cs">
-      <Link>Entities\ExceptionEvent.cs</Link>
     </Compile>
     <Compile Include="..\..\pcl\Countly\Helpers\StorageHelper.cs">
       <Link>Helpers\StorageHelper.cs</Link>
