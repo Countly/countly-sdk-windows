@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.CountlyCommon.Entities;
 using System;
 using System.Threading.Tasks;
 
@@ -27,9 +28,18 @@ namespace CountlySDK.Entities.EntityBase
 {
     abstract internal class DeviceBase
     {
+        internal enum DeviceIdMethodInternal { none = 0, cpuId = 1, multipleWindowsFields = 2, windowsGUID = 3, winHardwareToken = 4, developerSupplied = 100 };
+
         protected const string deviceFilename = "device.xml";
 
+        //currently used device ID
         protected string deviceId;
+
+        //preferred method for generating new device ID
+        protected DeviceIdMethodInternal preferredIdMethod = DeviceIdMethodInternal.none;
+
+        //method used for generating currently used device ID
+        protected DeviceIdMethodInternal usedIdMethod = DeviceIdMethodInternal.none;        
 
         // Used for thread-safe operations
         protected object sync = new object();        
@@ -47,7 +57,10 @@ namespace CountlySDK.Entities.EntityBase
 
                 if (deviceId == null)
                 {
-                    deviceId = ComputeDeviceID();
+                    DeviceId dId = ComputeDeviceID();
+                    deviceId = dId.deviceId;
+                    usedIdMethod = dId.deviceIdMethod;
+
                     await SaveDeviceIDToStorage();
                 }
 
@@ -77,9 +90,14 @@ namespace CountlySDK.Entities.EntityBase
             }
         }
 
+        internal void SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod)
+        {
+            preferredIdMethod = deviceIdMethod;
+        }
+
         protected abstract Task LoadDeviceIDFromStorage();
         protected abstract Task SaveDeviceIDToStorage();   
-        protected abstract String ComputeDeviceID();
+        protected abstract DeviceId ComputeDeviceID();
 
         /// <summary>
         /// Returns the display name of the current operating system

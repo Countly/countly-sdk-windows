@@ -53,6 +53,7 @@ namespace CountlySample
                 Console.WriteLine("3) Change deviceID to a random value (create new user)");
                 Console.WriteLine("4) Change the name of the current user");
                 Console.WriteLine("5) Exit");
+                Console.WriteLine("6) Another caught Exception");
 
                 if (enableDebugOpptions)
                 {
@@ -98,6 +99,11 @@ namespace CountlySample
                 {
                     Console.WriteLine("5");
                     break;
+                }
+                else if (cki.Key == ConsoleKey.D6)
+                {
+                    Console.WriteLine("6");
+                    await Countly.RecordException("What is here", "");
                 }
                 else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
                 {

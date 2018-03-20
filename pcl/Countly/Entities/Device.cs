@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
@@ -43,10 +44,16 @@ namespace CountlySDK.Entities
         {
             await Storage.SaveToFile<string>(deviceFilename, deviceId);
         }
-        protected override String ComputeDeviceID()
+        protected override DeviceId ComputeDeviceID()
         {
+            DeviceId dId;
+
             Guid guid = Guid.NewGuid();        
-            return guid.ToString().Replace("-", "").ToUpper();
+            string newId = guid.ToString().Replace("-", "").ToUpper();
+
+            dId = new DeviceId(newId, DeviceIdMethodInternal.windowsGUID);
+
+            return dId;
         }
 
         protected override string GetOS()

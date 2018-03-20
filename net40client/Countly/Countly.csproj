@@ -96,6 +96,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs">
       <Link>Entities\CustomInfoItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\DeviceId.cs">
+      <Link>Entities\DeviceId.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
       <Link>Entities\EndSession.cs</Link>
     </Compile>

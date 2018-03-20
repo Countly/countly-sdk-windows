@@ -18,14 +18,13 @@ namespace CountlySample
         int threadCount = 20;
 
         static void Main(string[] args)
-        {           
-            new Program().Run();
+        {        
+            (new Program().Run()).GetAwaiter().GetResult();
         }
 
-        public async void Run()
+        public async Task Run()
         {
-            Console.WriteLine("Hello to the Countly sample console program");
-            Console.WriteLine("DeviceID: " + Device.GetDeviceId());
+            Console.WriteLine("Hello to the Countly sample console program");            
 
             if (serverURL == null || appKey == null)
             {
@@ -38,9 +37,11 @@ namespace CountlySample
             Countly.IsLoggingEnabled = true;
             //Countly.SetCustomDataPath(@"D:\123z\");//usable only when targeting .net3.5
             //Countly.SetCustomDataPath(null);
-            await Countly.StartSession(serverURL, appKey, "1.234");
+            await Countly.StartSession(serverURL, appKey, "1.234", Countly.DeviceIdMethod.multipleFields);
 
-            System.Console.WriteLine("DeviceID: " + await Device.GetDeviceId());
+            Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
+
+            System.Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
 
             while (true)
             {
@@ -51,6 +52,8 @@ namespace CountlySample
                 Console.WriteLine("3) Change deviceID to a random value (create new user)");
                 Console.WriteLine("4) Change the name of the current user");
                 Console.WriteLine("5) Exit");
+                Console.WriteLine("6) Another caught Exception");
+                Console.WriteLine("7) Test");
 
                 if (enableDebugOpptions)
                 {
@@ -76,13 +79,15 @@ namespace CountlySample
                     }
                     catch (Exception ex)
                     {
-                        Countly.RecordException(ex.Message, ex.StackTrace);
+                        Dictionary<string, string> customInfo = new Dictionary<string, string>();
+                        customInfo.Add("customData", "importantStuff");
+                        Countly.RecordException(ex.Message, ex.StackTrace, customInfo);                  
                     }
                 }
                 else if (cki.Key == ConsoleKey.D3)
                 {
                     Console.WriteLine("3");
-                    await Device.SetDeviceId("ID-" + (new Random()).Next());
+                    //await Device.SetDeviceId("ID-" + (new Random()).Next());
                 }
                 else if (cki.Key == ConsoleKey.D4)
                 {
@@ -93,6 +98,16 @@ namespace CountlySample
                 {
                     Console.WriteLine("5");
                     break;
+                }
+                else if (cki.Key == ConsoleKey.D6)
+                {
+                    Console.WriteLine("6");
+                    Countly.RecordException("What is here", "");                    
+                }
+                else if (cki.Key == ConsoleKey.D7)
+                {
+                    Console.WriteLine("7");
+                      
                 }
                 else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
                 {

@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
@@ -35,15 +36,40 @@ namespace CountlySDK.Entities
     {
         protected override async Task LoadDeviceIDFromStorage()
         {
-            
+            DeviceId dId = Storage.LoadFromFile<DeviceId>(deviceFilename);
+
+            if(dId != null && dId.deviceId != null)
+            {
+                deviceId = dId.deviceId;
+                usedIdMethod = dId.deviceIdMethod;
+            }
         }
         protected override async Task SaveDeviceIDToStorage()
         {
-            
+            //only try saving if the id is not null
+            if(deviceId != null)
+            {
+                DeviceId dId = new DeviceId(deviceId, usedIdMethod);
+
+                Storage.SaveToFile(deviceFilename, dId);
+            }            
         }
-        protected override String ComputeDeviceID()
+        protected override DeviceId ComputeDeviceID()
         {
-            return OpenUDID.value;
+            DeviceId dId;
+
+            if(preferredIdMethod == DeviceIdMethodInternal.cpuId)
+            {
+                dId = new DeviceId(OpenUDID.value, DeviceIdMethodInternal.cpuId);
+            } else if(preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields)
+            {
+                dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
+            } else
+            {
+                dId = new DeviceId(OpenUDID.value, DeviceIdMethodInternal.cpuId);
+            }
+
+            return dId;
         }
 
         protected override string GetOS()

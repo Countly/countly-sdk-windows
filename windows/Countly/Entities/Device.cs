@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
@@ -49,15 +50,20 @@ namespace CountlySDK.Entities
         {
             
         }
-        protected override String ComputeDeviceID()
+        protected override DeviceId ComputeDeviceID()
         {
+            DeviceId dId;
             HardwareToken token = HardwareIdentification.GetPackageSpecificToken(null);
             IBuffer hardwareId = token.Id;
 
             HashAlgorithmProvider hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
             IBuffer hashed = hasher.HashData(hardwareId);
 
-            return CryptographicBuffer.EncodeToHexString(hashed);
+            string newId = CryptographicBuffer.EncodeToHexString(hashed);
+
+            dId = new DeviceId(newId, DeviceIdMethodInternal.winHardwareToken);
+
+            return dId;
         }
 
         protected override string GetOS()

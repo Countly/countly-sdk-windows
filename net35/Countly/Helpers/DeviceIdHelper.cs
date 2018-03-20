@@ -22,9 +22,7 @@ namespace CountlySDK.Helpers
 
             string combinedId = cpuId + "+" + diskSerialNumber + "+" + windowsInfo + "+" + windowsUsername + "+" + macAddress;
 
-            Console.WriteLine("Combined ID: " + combinedId);
-
-            var sha = new SHA256Managed();
+            var sha = new SHA1Managed();
             byte[] bs = sha.ComputeHash(Encoding.ASCII.GetBytes(combinedId));
 
             StringBuilder s = new StringBuilder();

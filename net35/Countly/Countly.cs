@@ -31,6 +31,8 @@ using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using System.IO;
 using System.Diagnostics;
+using static CountlySDK.Entities.EntityBase.DeviceBase;
+using CountlySDK.Entities.EntityBase;
 
 namespace CountlySDK
 {
@@ -67,7 +69,10 @@ namespace CountlySDK
         private const string userDetailsFilename = "userdetails.xml";
 
         // Used for thread-safe operations
-        private static object sync = new object();       
+        private static object sync = new object();
+
+        //methods for generating device ID
+        public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields };
 
         private static List<CountlyEvent> events;
         // Events queue
@@ -220,7 +225,7 @@ namespace CountlySDK
             {
                 Storage.SaveToFile(userDetailsFilename, UserDetails);
             }
-        }
+        }       
 
         /// <summary>
         /// Starts Countly tracking session.
@@ -230,7 +235,7 @@ namespace CountlySDK
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="appVersion">Application version</param>
-        public static async Task StartSession(string serverUrl, string appKey, string appVersion)
+        public static async Task StartSession(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
         {
             if (String.IsNullOrEmpty(serverUrl))
             {
@@ -245,6 +250,8 @@ namespace CountlySDK
             ServerUrl = serverUrl;
             AppKey = appKey;
             AppVersion = appVersion;
+
+            DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal) idMethod);
 
             startTime = DateTime.Now;
 
@@ -841,7 +848,16 @@ namespace CountlySDK
 
         public static async Task<String> GetDeviceId()
         {
+            if (String.IsNullOrEmpty(ServerUrl))
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("GetDeviceId cannot be called before StartingSession");
+                }
+                return "";
+            }
+
             return await DeviceData.GetDeviceId();
-        }
+        }        
     }  
 }
