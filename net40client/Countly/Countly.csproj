@@ -102,6 +102,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\DeviceBase.cs">
       <Link>Entities\EntityBase\DeviceBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\ExceptionEvent.cs">
+      <Link>Entities\ExceptionEvent.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs">
       <Link>Entities\Metrics.cs</Link>
     </Compile>
@@ -135,8 +138,8 @@
     <Compile Include="..\..\net35\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
     </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\ExceptionEvent.cs">
-      <Link>Entities\ExceptionEvent.cs</Link>
+    <Compile Include="..\..\net35\Countly\Helpers\DeviceIdHelper.cs">
+      <Link>Helpers\DeviceIdHelper.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Helpers\OpenUDID.cs">
       <Link>Helpers\OpenUDID.cs</Link>

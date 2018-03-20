@@ -58,6 +58,7 @@
     <Compile Include="Entities\CustomInfoItem.cs" />
     <Compile Include="Entities\EndSession.cs" />
     <Compile Include="Entities\EntityBase\DeviceBase.cs" />
+    <Compile Include="Entities\ExceptionEvent.cs" />
     <Compile Include="Entities\Metrics.cs" />
     <Compile Include="Entities\Segmentation.cs" />
     <Compile Include="Entities\SegmentationItem.cs" />
