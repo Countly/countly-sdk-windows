@@ -11,7 +11,7 @@
     <AssemblyName>Countly</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.16299.0</TargetPlatformVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.17134.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <FileAlignment>512</FileAlignment>
@@ -118,8 +118,14 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs">
       <Link>Entities\CustomInfoItem.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\DeviceId.cs">
+      <Link>Entities\DeviceId.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
       <Link>Entities\EndSession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\CountlyUserDetailsBase.cs">
+      <Link>Entities\EntityBase\CountlyUserDetailsBase.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\DeviceBase.cs">
       <Link>Entities\EntityBase\DeviceBase.cs</Link>
@@ -154,11 +160,11 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
       <Link>Server\Responses\ResultResponse.cs</Link>
     </Compile>
+    <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs">
+      <Link>Entities\CountlyUserDetails.cs</Link>
+    </Compile>
     <Compile Include="..\..\pcl\Countly\Countly.cs">
       <Link>Countly.cs</Link>
-    </Compile>
-    <Compile Include="..\..\pcl\Countly\Entities\CountlyUserDetails.cs">
-      <Link>Entities\CountlyUserDetails.cs</Link>
     </Compile>
     <Compile Include="..\..\pcl\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
@@ -177,7 +183,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.0.6</Version>
+      <Version>6.1.7</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>10.0.3</Version>

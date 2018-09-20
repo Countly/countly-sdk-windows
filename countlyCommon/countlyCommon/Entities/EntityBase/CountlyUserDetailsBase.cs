@@ -20,19 +20,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.Entities;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
-namespace CountlySDK.Entities
+namespace CountlySDK.CountlyCommon.Entities.EntityBase
 {
     /// <summary>
     /// Holds user-specific info in json-ready format
     /// </summary>
     [DataContractAttribute]
-    public class CountlyUserDetails
+    abstract public class CountlyUserDetailsBase
     {
         internal delegate void UserDetailsChangedEventHandler();
 
@@ -40,6 +41,19 @@ namespace CountlySDK.Entities
         /// raised when any of properties are changed
         /// </summary>
         internal event UserDetailsChangedEventHandler UserDetailsChanged;
+
+        protected bool IsSetUserDetailsChanged()
+        {
+            return UserDetailsChanged != null;
+        }
+
+        protected void CallUserDetailsChanged()
+        {
+            if (UserDetailsChanged != null)
+            {
+                UserDetailsChanged();
+            }
+        }
 
         private string name;
         /// <summary>
@@ -274,19 +288,16 @@ namespace CountlySDK.Entities
             }
         }
 
-        private void NotifyDetailsChanged()
-        {
-            if (UserDetailsChanged != null)
-            {
-                UserDetailsChanged();
-            }
-        }
+        protected abstract void NotifyDetailsChanged();
 
         [JsonIgnore]
         [DataMemberAttribute]
         internal bool isChanged { get; set; }
 
-        public CountlyUserDetails()
+        [JsonIgnore]
+        internal bool isNotified { get; set; }
+
+        public CountlyUserDetailsBase()
         {
             Custom = new CustomInfo();
         }

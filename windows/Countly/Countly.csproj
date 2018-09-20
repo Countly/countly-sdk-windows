@@ -62,6 +62,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs">
       <Link>Entities\EndSession.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\CountlyUserDetailsBase.cs">
+      <Link>Entities\EntityBase\CountlyUserDetailsBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\DeviceBase.cs">
       <Link>Entities\EntityBase\DeviceBase.cs</Link>
     </Compile>
