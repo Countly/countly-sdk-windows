@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "countlySampleConsole", "cou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleWIndowsForm", "CountlySampleWIndowsForm\CountlySampleWIndowsForm.csproj", "{875BD49E-6A36-4460-9110-27AE3B38B498}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleAspNet", "CountlySampleAspNet\CountlySampleAspNet.csproj", "{2496E70F-921F-4BDC-B77D-FAB1BB6EEB78}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{875BD49E-6A36-4460-9110-27AE3B38B498}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{875BD49E-6A36-4460-9110-27AE3B38B498}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{875BD49E-6A36-4460-9110-27AE3B38B498}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2496E70F-921F-4BDC-B77D-FAB1BB6EEB78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2496E70F-921F-4BDC-B77D-FAB1BB6EEB78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2496E70F-921F-4BDC-B77D-FAB1BB6EEB78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2496E70F-921F-4BDC-B77D-FAB1BB6EEB78}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
