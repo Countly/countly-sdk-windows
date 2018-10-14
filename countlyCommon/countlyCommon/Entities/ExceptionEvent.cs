@@ -128,6 +128,12 @@ namespace CountlySDK.Entities
             //error info
             this.Name = Error;
             this.Error = StackTrace;
+            if (this.Error == null || this.Error.Length == 0)
+            {
+                //in case stacktrace is empty, replace it with the error name
+                this.Error = this.Name;
+            }
+
             NonFatal = !fatal;
             Logs = breadcrumb;
             Run = (long)run.TotalSeconds;
