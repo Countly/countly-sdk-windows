@@ -36,11 +36,7 @@ namespace CountlySDK.Entities
     {
         protected override async Task LoadDeviceIDFromStorage()
         {
-#if RUNNING_ON_35
             DeviceId dId = Storage.Instance.LoadFromFile<DeviceId>(deviceFilename).Result;
-#else
-            DeviceId dId = Storage.Instance.LoadFromFile<DeviceId>(deviceFilename);
-#endif
 
             if (dId != null && dId.deviceId != null)
             {

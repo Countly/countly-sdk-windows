@@ -84,11 +84,7 @@ namespace CountlySDK
                 {
                     if (events == null)
                     {
-#if RUNNING_ON_35
                         events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result;
-#else
-                        events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename);
-#endif
 
                         if (events == null)
                         {
@@ -111,11 +107,7 @@ namespace CountlySDK
                 {
                     if (sessions == null)
                     {
-#if RUNNING_ON_35
                         sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result;
-#else
-                        sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename);
-#endif
 
                         if (sessions == null)
                         {
@@ -138,11 +130,7 @@ namespace CountlySDK
                 {
                     if (exceptions == null)
                     {
-#if RUNNING_ON_35
                         exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result;
-#else
-                        exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename);
-#endif
 
                         if (exceptions == null)
                         {
@@ -165,12 +153,7 @@ namespace CountlySDK
                 {
                     if (userDetails == null)
                     {
-#if RUNNING_ON_35
                         userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename).Result;
-#else
-                        userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename);
-#endif
-
 
                         if (userDetails == null)
                         {
