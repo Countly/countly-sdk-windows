@@ -38,11 +38,11 @@ namespace CountlySDK.Entities
     {   
         protected override async Task LoadDeviceIDFromStorage()
         {
-            deviceId = await Storage.LoadFromFile<string>(deviceFilename);
+            deviceId = await Storage.Instance.LoadFromFile<string>(deviceFilename);
         }
         protected override async Task SaveDeviceIDToStorage()
         {
-            await Storage.SaveToFile<string>(deviceFilename, deviceId);
+            await Storage.Instance.SaveToFile<string>(deviceFilename, deviceId);
         }
         protected override DeviceId ComputeDeviceID()
         {

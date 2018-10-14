@@ -151,6 +151,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs">
       <Link>Helpers\PhoneNameHelper.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs">
+      <Link>Helpers\StorageBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs">
       <Link>Helpers\TimeHelper.cs</Link>
     </Compile>
@@ -169,8 +172,8 @@
     <Compile Include="..\..\pcl\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
     </Compile>
-    <Compile Include="..\..\pcl\Countly\Helpers\StorageHelper.cs">
-      <Link>Helpers\StorageHelper.cs</Link>
+    <Compile Include="..\..\pcl\Countly\Helpers\Storage.cs">
+      <Link>Helpers\Storage.cs</Link>
     </Compile>
     <Compile Include="..\..\pcl\Countly\Helpers\TimerHelper.cs">
       <Link>Helpers\TimerHelper.cs</Link>

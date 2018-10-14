@@ -119,7 +119,7 @@ namespace CountlySDK
                 collection_ = collection.ToList();
             }
 
-            bool success = await Storage.SaveToFile<List<T>>(path, collection_);
+            bool success = await Storage.Instance.SaveToFile<List<T>>(path, collection_);
 
             if (success)
             {
@@ -171,7 +171,7 @@ namespace CountlySDK
         private static void SaveUnhandledException(ExceptionEvent exceptionEvent)
         {
             string json = JsonConvert.SerializeObject(exceptionEvent, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-            Storage.SetValue(unhandledExceptionFilename, json);
+            Storage.Instance.SetValue(unhandledExceptionFilename, json);
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace CountlySDK
         /// </summary>
         private static async Task SaveUserDetails()
         {
-            await Storage.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
+            await Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
         }
 
         /// <summary>
@@ -211,13 +211,13 @@ namespace CountlySDK
                 application.UnhandledException += OnApplicationUnhandledException;
             }
 
-            Events = await Storage.LoadFromFile<List<CountlyEvent>>(eventsFilename) ?? new List<CountlyEvent>();
+            Events = await Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename) ?? new List<CountlyEvent>();
 
-            Sessions = await Storage.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
+            Sessions = await Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
 
-            Exceptions = await Storage.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
+            Exceptions = await Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
 
-            ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(Storage.GetValue<string>(unhandledExceptionFilename, ""));
+            ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(Storage.Instance.GetValue<string>(unhandledExceptionFilename, ""));
             if(unhandledException != null)
             {
                 //add the saved unhandled exception to the other ones
@@ -230,7 +230,7 @@ namespace CountlySDK
                 SaveUnhandledException(null);
             }
 
-            UserDetails = await Storage.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
+            UserDetails = await Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
 
             UserDetails.UserDetailsChanged += OnUserDetailsChanged;
 
@@ -369,7 +369,7 @@ namespace CountlySDK
                         catch { }
                     }
 
-                    await Storage.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions);
+                    await Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions);
 
                     int sessionCount = 0;
                     lock (sync)
@@ -446,10 +446,10 @@ namespace CountlySDK
                 UserDetails = new CountlyUserDetails();
             }
 
-            await Storage.DeleteFile(eventsFilename);
-            await Storage.DeleteFile(sessionsFilename);
-            await Storage.DeleteFile(exceptionsFilename);
-            await Storage.DeleteFile(userDetailsFilename);
+            await Storage.Instance.DeleteFile(eventsFilename);
+            await Storage.Instance.DeleteFile(sessionsFilename);
+            await Storage.Instance.DeleteFile(exceptionsFilename);
+            await Storage.Instance.DeleteFile(userDetailsFilename);
         }
 
         /// <summary>

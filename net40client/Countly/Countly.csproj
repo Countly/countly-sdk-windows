@@ -21,6 +21,7 @@
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v3.5' ">RUNNING_ON_35</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -29,6 +30,7 @@
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v3.5' ">RUNNING_ON_35</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -125,6 +127,9 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs">
       <Link>Entities\UpdateSession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs">
+      <Link>Helpers\StorageBase.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs">
       <Link>Helpers\TimeHelper.cs</Link>

@@ -20,25 +20,51 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.CountlyCommon.Helpers;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.IsolatedStorage;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CountlySDK.Helpers
 {
-    internal class Storage
+    internal class Storage : StorageBase
     {
+        //==============SINGLETON============
+        //fourth version from:
+        //http://csharpindepth.com/Articles/General/Singleton.aspx
+        private static readonly Storage instance = new Storage();
+
+        // Explicit static constructor to tell C# compiler
+        // not to mark type as beforefieldinit    
+        static Storage()
+        {
+        }
+
+        internal Storage()
+        {
+        }
+
+        public static Storage Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
+        //-------------SINGLETON-----------------
+
         /// <summary>
         /// Countly folder
         /// </summary>
-        private const string folder = "countly";
-        private static object locker = new Object();
-        private static string customDataPath = null;
+        private const string folder = "countly";        
+        private string customDataPath = null;
 
-        private static string Path
+        private string Path
         {
             get
             {
@@ -57,20 +83,19 @@ namespace CountlySDK.Helpers
         /// If path is set to null, it will clear the custom path
         /// </summary>
         /// <param name="customPath">Given custom path</param>
-        public static void SetCustomDataPath(string customPath)
+        public void SetCustomDataPath(string customPath)
         {
             customDataPath = customPath;
         }
-
-        /// <summary>
-        /// Saves object into file
-        /// </summary>
-        /// <param name="filename">File to save to</param>
-        /// <param name="objForSave">Object to save</param>
-        public static void SaveToFile(string filename, object objForSave)
+       
+        public override async Task<bool> SaveToFile<T>(string filename, object objForSave)
         {
+            Debug.Assert(filename != null, "Provided filename can't be null");
+            Debug.Assert(objForSave != null, "Provided object can't be null");
+
             lock (locker)
             {
+                bool success = true;
                 try
                 {
                     bool exists = System.IO.Directory.Exists(Path);
@@ -79,30 +104,32 @@ namespace CountlySDK.Helpers
                         System.IO.Directory.CreateDirectory(Path);
                 
                     using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Create, FileAccess.Write, FileShare.Read))
-                    { 
-                        Serialize(file, objForSave);
+                    {
+                        if (file != null && objForSave != null)
+                        {
+                            DataContractSerializer ser = new DataContractSerializer(objForSave.GetType());
+                            ser.WriteObject(file, objForSave);
+                        }
+
                         file.Close();
                     }
                 }
                 catch
                 {
+                    success = false;
                     if (Countly.IsLoggingEnabled)
                     {
                         Debug.WriteLine("save countly data failed");
                     }
                 }
+                return success;
             }
-
         }
-
-        /// <summary>
-        /// Load object from file
-        /// </summary>
-        /// <typeparam name="T">Object type</typeparam>
-        /// <param name="filename">Filename to load from</param>
-        /// <returns>Object from file</returns>
-        public static T LoadFromFile<T>(string filename)
+       
+        public override async Task<T> LoadFromFile<T>(string filename)
         {
+            Debug.Assert(filename != null, "Provided filename can't be null");            
+
             T obj = default(T);
 
             lock (locker)
@@ -118,7 +145,15 @@ namespace CountlySDK.Helpers
             
                     using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
-                        obj = (T)Deserialize(file, typeof(T));
+                        if (typeof(T) == null || file == null)
+                        {
+                            DataContractSerializer ser = new DataContractSerializer(typeof(T));
+                            obj = (T)ser.ReadObject(file);
+                        }
+                        else
+                        {
+                            obj = null;
+                        }
 
                         file.Close();
                     }
@@ -141,7 +176,7 @@ namespace CountlySDK.Helpers
         /// Delete file
         /// </summary>
         /// <param name="filename">Filename to delete</param>
-        public static void DeleteFile(string filename)
+        public void DeleteFile(string filename)
         {
             try
             {
@@ -152,24 +187,6 @@ namespace CountlySDK.Helpers
             }
             catch
             { }
-        }
-
-        private static void Serialize(Stream streamObject, object objForSerialization)
-        {
-            if (objForSerialization == null || streamObject == null)
-                return;
-
-            DataContractSerializer ser = new DataContractSerializer(objForSerialization.GetType());
-            ser.WriteObject(streamObject, objForSerialization);
-        }
-
-        private static object Deserialize(Stream streamObject, Type serializedObjectType)
-        {
-            if (serializedObjectType == null || streamObject == null)
-                return null;
-
-            DataContractSerializer ser = new DataContractSerializer(serializedObjectType);
-            return ser.ReadObject(streamObject);
         }
     }
 }

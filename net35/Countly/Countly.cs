@@ -84,7 +84,11 @@ namespace CountlySDK
                 {
                     if (events == null)
                     {
-                        events = Storage.LoadFromFile<List<CountlyEvent>>(eventsFilename);
+#if RUNNING_ON_35
+                        events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result;
+#else
+                        events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename);
+#endif
 
                         if (events == null)
                         {
@@ -107,7 +111,11 @@ namespace CountlySDK
                 {
                     if (sessions == null)
                     {
-                        sessions = Storage.LoadFromFile<List<SessionEvent>>(sessionsFilename);
+#if RUNNING_ON_35
+                        sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result;
+#else
+                        sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename);
+#endif
 
                         if (sessions == null)
                         {
@@ -130,7 +138,11 @@ namespace CountlySDK
                 {
                     if (exceptions == null)
                     {
-                        exceptions = Storage.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename);
+#if RUNNING_ON_35
+                        exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result;
+#else
+                        exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename);
+#endif
 
                         if (exceptions == null)
                         {
@@ -153,7 +165,12 @@ namespace CountlySDK
                 {
                     if (userDetails == null)
                     {
-                        userDetails = Storage.LoadFromFile<CountlyUserDetails>(userDetailsFilename);
+#if RUNNING_ON_35
+                        userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename).Result;
+#else
+                        userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename);
+#endif
+
 
                         if (userDetails == null)
                         {
@@ -190,7 +207,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.SaveToFile(eventsFilename, Events);
+                Storage.Instance.SaveToFile<List<SessionEvent>>(eventsFilename, Events);
             }
         }
 
@@ -201,7 +218,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.SaveToFile(sessionsFilename, Sessions);
+                Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions);
             }
         }
 
@@ -212,7 +229,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.SaveToFile(exceptionsFilename, Exceptions);
+                Storage.Instance.SaveToFile<List<ExceptionEvent>>(exceptionsFilename, Exceptions);
             }
         }
 
@@ -223,7 +240,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.SaveToFile(userDetailsFilename, UserDetails);
+                Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
             }
         }       
 
@@ -368,7 +385,7 @@ namespace CountlySDK
                         }
                         catch { }
 
-                        Storage.SaveToFile(sessionsFilename, Sessions);
+                        Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions);
                         sessionCount = Sessions.Count;
                     }                   
 
@@ -425,10 +442,10 @@ namespace CountlySDK
                 }
                 userDetails = new CountlyUserDetails();
 
-                Storage.DeleteFile(eventsFilename);
-                Storage.DeleteFile(sessionsFilename);
-                Storage.DeleteFile(exceptionsFilename);
-                Storage.DeleteFile(userDetailsFilename);
+                Storage.Instance.DeleteFile(eventsFilename);
+                Storage.Instance.DeleteFile(sessionsFilename);
+                Storage.Instance.DeleteFile(exceptionsFilename);
+                Storage.Instance.DeleteFile(userDetailsFilename);
             }
         }
 
@@ -538,7 +555,7 @@ namespace CountlySDK
         /// <param name="customPath">Custom location for countly data files</param>
         public static void SetCustomDataPath(string customPath)
         {
-            Storage.SetCustomDataPath(customPath);
+            Storage.Instance.SetCustomDataPath(customPath);
         }
 
         /// <summary>

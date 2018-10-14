@@ -69,6 +69,7 @@
     <Compile Include="Helpers\MD5.cs" />
     <Compile Include="Helpers\MD5Managed.cs" />
     <Compile Include="Helpers\PhoneNameHelper.cs" />
+    <Compile Include="Helpers\StorageBase.cs" />
     <Compile Include="Helpers\TimeHelper.cs" />
     <Compile Include="Helpers\UtilityHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

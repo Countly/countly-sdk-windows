@@ -30,6 +30,7 @@ using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using System.IO;
 using PCLStorage;
+using CountlySDK.CountlyCommon.Helpers;
 
 namespace CountlySDK
 {
@@ -110,7 +111,7 @@ namespace CountlySDK
                 collection_ = collection.ToList();
             }
 
-            bool success = await Storage.SaveToFile<List<T>>(path, collection_);
+            bool success = await Storage.Instance.SaveToFile<List<T>>(path, collection_);
 
             if (success)
             {
@@ -162,7 +163,7 @@ namespace CountlySDK
         /// </summary>
         private static async Task SaveUserDetails()
         {
-            await Storage.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
+            await Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
         }
 
         /// <summary>
@@ -195,15 +196,15 @@ namespace CountlySDK
             AppKey = appKey;
             AppVersion = appVersion;
 
-            Storage.fileSystem = fileSystem;
+            Storage.Instance.fileSystem = fileSystem;
 
-            Events = await Storage.LoadFromFile<List<CountlyEvent>>(eventsFilename) ?? new List<CountlyEvent>();
+            Events = await Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename) ?? new List<CountlyEvent>();
 
-            Sessions = await Storage.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
+            Sessions = await Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
 
-            Exceptions = await Storage.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
+            Exceptions = await Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
 
-            UserDetails = await Storage.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
+            UserDetails = await Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
 
             UserDetails.UserDetailsChanged += OnUserDetailsChanged;
 
@@ -388,10 +389,10 @@ namespace CountlySDK
                 UserDetails = new CountlyUserDetails();
             }
 
-            await Storage.DeleteFile(eventsFilename);
-            await Storage.DeleteFile(sessionsFilename);
-            await Storage.DeleteFile(exceptionsFilename);
-            await Storage.DeleteFile(userDetailsFilename);
+            await Storage.Instance.DeleteFile(eventsFilename);
+            await Storage.Instance.DeleteFile(sessionsFilename);
+            await Storage.Instance.DeleteFile(exceptionsFilename);
+            await Storage.Instance.DeleteFile(userDetailsFilename);
         }
 
         /// <summary>

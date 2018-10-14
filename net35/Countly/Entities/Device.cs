@@ -36,9 +36,13 @@ namespace CountlySDK.Entities
     {
         protected override async Task LoadDeviceIDFromStorage()
         {
-            DeviceId dId = Storage.LoadFromFile<DeviceId>(deviceFilename);
+#if RUNNING_ON_35
+            DeviceId dId = Storage.Instance.LoadFromFile<DeviceId>(deviceFilename).Result;
+#else
+            DeviceId dId = Storage.Instance.LoadFromFile<DeviceId>(deviceFilename);
+#endif
 
-            if(dId != null && dId.deviceId != null)
+            if (dId != null && dId.deviceId != null)
             {
                 deviceId = dId.deviceId;
                 usedIdMethod = dId.deviceIdMethod;
@@ -51,7 +55,7 @@ namespace CountlySDK.Entities
             {
                 DeviceId dId = new DeviceId(deviceId, usedIdMethod);
 
-                Storage.SaveToFile(deviceFilename, dId);
+                Storage.Instance.SaveToFile<DeviceId>(deviceFilename, dId);
             }            
         }
         protected override DeviceId ComputeDeviceID()
@@ -105,8 +109,11 @@ namespace CountlySDK.Entities
         protected override string GetCarrier()
         {
             return null;
-        }        
-
+        }
+        protected override string GetOrientation()
+        {
+            return null;
+        }
         protected override long? GetRamCurrent()
         {
             return (long)(new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory - new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory);
@@ -114,12 +121,7 @@ namespace CountlySDK.Entities
         protected override long? GetRamTotal()
         {
             return (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
-        }
-
-        protected override string GetOrientation()
-        {
-            return null;
-        }
+        }       
 
         protected override bool GetOnline()
         {

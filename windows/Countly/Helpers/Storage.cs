@@ -20,39 +20,117 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using PCLStorage;
+using CountlySDK.CountlyCommon.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Windows.Storage;
 
 namespace CountlySDK.Helpers
 {
-    internal class Storage
+    internal class Storage : StorageBase
     {
-        public static IFileSystem fileSystem;
+        //==============SINGLETON============
+        //fourth version from:
+        //http://csharpindepth.com/Articles/General/Singleton.aspx
+        private static readonly Storage instance = new Storage();
+
+        // Explicit static constructor to tell C# compiler
+        // not to mark type as beforefieldinit    
+        static Storage()
+        {
+        }
+
+        internal Storage()
+        {
+        }
+
+        public static Storage Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
+        //-------------SINGLETON-----------------
+
         /// <summary>
         /// Countly folder
         /// </summary>
         private const string folder = "countly";
 
-        private static Dictionary<string, bool> filesInUse = new Dictionary<string, bool>();
+        private Dictionary<string, bool> filesInUse = new Dictionary<string, bool>();
 
-        /// <summary>
-        /// Saves object into file
-        /// </summary>
-        /// <param name="filename">File to save to</param>
-        /// <param name="objForSave">Object to save</param>
-        /// <returns>True if success, otherwise - False</returns>
-        public static async Task<bool> SaveToFile<T>(string path, object objForSave)
+        public ApplicationDataContainer Settings
         {
-            if (filesInUse.ContainsKey(path))
+            get
+            {
+                return Windows.Storage.ApplicationData.Current.LocalSettings;
+            }
+        }
+
+        public TValue GetValue<TValue>(string key, TValue defaultvalue)
+        {
+            TValue value;
+
+            // If the key exists, retrieve the value.
+            if (Settings.Values.ContainsKey(key))
+            {
+                value = (TValue)Settings.Values[key];
+            }
+            // Otherwise, use the default value.
+            else
+            {
+                value = defaultvalue;
+            }
+
+            return value;
+        }
+
+        public bool SetValue(string key, object value)
+        {
+            bool valueChanged = false;
+
+            if (Settings.Values.ContainsKey(key))
+            {
+                if (Settings.Values[key] != value)
+                {
+                    Settings.Values[key] = value;
+                    valueChanged = true;
+                }
+            }
+            else
+            {
+                Settings.Values.Add(key, value);
+                valueChanged = true;
+            }
+
+            return valueChanged;
+        }
+
+        public void RemoveValue(string key)
+        {
+            if (Settings.Values.ContainsKey(key))
+            {
+                Settings.Values.Remove(key);
+            }
+        }
+
+        public override async Task<bool> SaveToFile<T>(string filename, object objForSave)
+        {
+            Debug.Assert(filename != null, "Provided filename can't be null");
+            Debug.Assert(objForSave != null, "Provided object can't be null");
+
+            if (filesInUse.ContainsKey(filename))
             {
                 return false;
             }
 
-            filesInUse[path] = true;
+            filesInUse[filename] = true;
 
             bool success = true;
 
@@ -63,7 +141,7 @@ namespace CountlySDK.Helpers
                 sessionSerializer.WriteObject(sessionData, objForSave);
                 sessionData.Seek(0, SeekOrigin.Begin);
 
-                await SaveStream(sessionData, path);
+                await SaveStream(sessionData, filename);
             }
             catch
             {
@@ -71,7 +149,7 @@ namespace CountlySDK.Helpers
             }
             finally
             {
-                filesInUse.Remove(path);
+                filesInUse.Remove(filename);
             }
 
             return success;
@@ -82,38 +160,48 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="stream">stream to save</param>
         /// <param name="file">filename</param>
-        private static async Task SaveStream(Stream stream, string file)
+        private async Task SaveStream(Stream stream, string file)
         {
             try
             {
-                IFolder storageFolder = await GetFolder(folder);
+                string temp = Guid.NewGuid().ToString();
 
-                IFile storageFile = await fileSystem.LocalStorage.CreateFileAsync(file, CreationCollisionOption.ReplaceExisting);
+                StorageFolder storageFolder = await GetFolder(folder);
 
-                using (Stream fileStream = await storageFile.OpenAsync(PCLStorage.FileAccess.ReadAndWrite))
+                StorageFile tempFile = await ApplicationData.Current.LocalFolder.CreateFileAsync(temp, CreationCollisionOption.ReplaceExisting);
+
+                using (Stream fileStream = await tempFile.OpenStreamForWriteAsync())
                 {
                     await stream.CopyToAsync(fileStream);
                     await fileStream.FlushAsync();
                     fileStream.Dispose();
                 }
+
+                string backup = file + ".backup";
+
+                StorageFile backupFile = await GetFile(backup);
+
+                await tempFile.CopyAndReplaceAsync(backupFile);
+
+                StorageFile storageFile = await GetFile(file);
+
+                await tempFile.CopyAndReplaceAsync(storageFile);
+
+                await DeleteFile(temp);                
             }
             catch
             { }
         }
-
-        /// <summary>
-        /// Load object from file
-        /// </summary>
-        /// <typeparam name="T">Object type</typeparam>
-        /// <param name="filename">Filename to load from</param>
-        /// <returns>Object from file</returns>
-        public static async Task<T> LoadFromFile<T>(string path) where T : class
+        
+        public override async Task<T> LoadFromFile<T>(string filename)
         {
+            Debug.Assert(filename != null, "Provided filename can't be null");
+
             T t = null;
 
             try
             {
-                Stream stream = await LoadStream(path);
+                Stream stream = await LoadStream(filename);
 
                 if (stream != null)
                 {
@@ -133,6 +221,10 @@ namespace CountlySDK.Helpers
             {
                 return t;
             }
+            else if (!filename.EndsWith(".backup"))
+            {
+                return await LoadFromFile<T>(filename + ".backup");
+            }
             else
             {
                 return null;
@@ -144,7 +236,7 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="path">filename</param>
         /// <returns>stream</returns>
-        private static async Task<Stream> LoadStream(string path)
+        private async Task<Stream> LoadStream(string path)
         {
             try
             {
@@ -152,18 +244,16 @@ namespace CountlySDK.Helpers
 
                 if (!isFileExists) return null;
 
-                IFolder storageFolder = await GetFolder(folder);
+                StorageFolder storageFolder = await GetFolder(folder);
 
-                IFile storageFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
+                StorageFile storageFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
 
                 if (storageFile == null)
                 {
                     throw new Exception();
                 }
 
-                IFile file = await fileSystem.GetFileFromPathAsync(path);
-
-                using (StreamReader reader = new StreamReader(await file.OpenAsync(PCLStorage.FileAccess.Read)))
+                using (StreamReader reader = new StreamReader(await storageFolder.OpenStreamForReadAsync(path)))
                 {
                     MemoryStream memoryStream = new MemoryStream();
 
@@ -185,13 +275,13 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="path">filename</param>
         /// <returns>true if file exists, false otherwise</returns>
-        private static async Task<bool> FileExists(string path)
+        private async Task<bool> FileExists(string path)
         {
-            IFolder storageFolder = await GetFolder(folder);
+            StorageFolder storageFolder = await GetFolder(folder);
             
-            IList<IFile> files = await storageFolder.GetFilesAsync();
+            IReadOnlyList<StorageFile> files = await storageFolder.GetFilesAsync();
 
-            foreach (IFile file in files)
+            foreach (StorageFile file in files)
             {
                 if (file.Name == path)
                 {
@@ -207,11 +297,11 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="path">file path</param>
         /// <returns>StorageFile object</returns>
-        private static async Task<IFile> GetFile(string path)
+        private async Task<StorageFile> GetFile(string path)
         {
-            IFolder storageFolder = await GetFolder(folder);
+            StorageFolder storageFolder = await GetFolder(folder);
 
-            IFile storageFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
+            StorageFile storageFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
 
             return storageFile;
         }
@@ -220,11 +310,11 @@ namespace CountlySDK.Helpers
         /// Delete file
         /// </summary>
         /// <param name="path">Filename to delete</param>
-        public static async Task DeleteFile(string path)
+        public async Task DeleteFile(string path)
         {
-            IFolder storageFolder = await GetFolder(folder);
+            StorageFolder storageFolder = await GetFolder(folder);
 
-            IFile sessionFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
+            StorageFile sessionFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
 
             if (sessionFile != null)
             {
@@ -237,11 +327,11 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="folder">folder name</param>
         /// <returns>true if folder exists, false otherwise</returns>
-        private static async Task<bool> FolderExists(string folder)
+        private async Task<bool> FolderExists(string folder)
         {
-            IList<IFolder> folders = await fileSystem.LocalStorage.GetFoldersAsync();
+            IReadOnlyList<StorageFolder> folders = await ApplicationData.Current.LocalFolder.GetFoldersAsync();
 
-            foreach (IFolder folder_ in folders)
+            foreach (StorageFolder folder_ in folders)
             {
                 if (folder_.Name == folder)
                 {
@@ -257,16 +347,16 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="folder">folder path</param>
         /// <returns>StorageFolder object</returns>
-        private static async Task<IFolder> GetFolder(string folder)
-        {            
-            IFolder storageFolder;
+        private async Task<StorageFolder> GetFolder(string folder)
+        {
+            StorageFolder storageFolder;
                 
             if (!await FolderExists(folder))
             {
                 await CreateFolder(folder);
             }
 
-            storageFolder = await fileSystem.LocalStorage.GetFolderAsync(folder);
+            storageFolder = await ApplicationData.Current.LocalFolder.GetFolderAsync(folder);
 
             return storageFolder;
         }
@@ -275,7 +365,7 @@ namespace CountlySDK.Helpers
         /// Creates folder with specified name
         /// </summary>
         /// <param name="folder">folder name</param>
-        private static async Task CreateFolder(string folder)
+        private async Task CreateFolder(string folder)
         {
             try
             {
@@ -283,7 +373,7 @@ namespace CountlySDK.Helpers
 
                 if (!isFolderExists)
                 {
-                    await fileSystem.LocalStorage.CreateFolderAsync(folder, CreationCollisionOption.OpenIfExists);
+                    await ApplicationData.Current.LocalFolder.CreateFolderAsync(folder);
                 }
             }
             catch
