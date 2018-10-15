@@ -31,3 +31,4 @@ using System.Runtime.InteropServices;
 
 //for making internal calls visible to tests
 [assembly: InternalsVisibleTo("CountlyTest_452")]
+[assembly: InternalsVisibleTo("CountlySampleConsole")]

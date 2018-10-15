@@ -37,6 +37,8 @@ namespace CountlySample
             Countly.IsLoggingEnabled = true;
             //Countly.SetCustomDataPath(@"D:\123z\");//usable only when targeting .net3.5
             //Countly.SetCustomDataPath(null);
+
+            //Countly.deferUpload = true;//this call is only available by allowing access to internal members to this project, should not be used
             await Countly.StartSession(serverURL, appKey, "1.234", Countly.DeviceIdMethod.multipleFields);
 
             Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());

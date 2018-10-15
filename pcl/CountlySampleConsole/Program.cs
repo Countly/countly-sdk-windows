@@ -40,6 +40,7 @@ namespace CountlySample
 
             Countly.IsLoggingEnabled = true;
 
+            //Countly.deferUpload = true;
             await Countly.StartSession(serverURL, appKey, "1.234", FileSystem.Current);
 
             System.Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
@@ -83,7 +84,24 @@ namespace CountlySample
                         customInfo.Add("customData", "importantStuff");
                         await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
                     }
+               
+                    Exception exToUse;
+                    try
+                    {
+                        throw new Exception("This is some bad exception 35454");
+                    }
+                    catch (Exception ex)
+                    {
+                        exToUse = ex;
+                    }
 
+                    Dictionary<String, String> dict = new Dictionary<string, string>();
+                    dict.Add("booh", "waah");
+
+                    await Countly.RecordException("Big error 1");
+                    await Countly.RecordException(exToUse.Message, exToUse.StackTrace);
+                    await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict);
+                    await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict, false);                
                 }
                 else if (cki.Key == ConsoleKey.D3)
                 {

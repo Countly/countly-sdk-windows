@@ -30,7 +30,6 @@ using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using System.IO;
 using PCLStorage;
-using CountlySDK.CountlyCommon.Helpers;
 
 namespace CountlySDK
 {

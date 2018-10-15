@@ -150,6 +150,7 @@ namespace CountlySample
             if (AppKey == null)
                 throw new ArgumentNullException("Type your AppKey");
 
+            //Countly.deferUpload = true;
             Countly.StartSession(ServerUrl, AppKey, this);
         }
 
