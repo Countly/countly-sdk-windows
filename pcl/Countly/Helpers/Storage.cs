@@ -112,7 +112,7 @@ namespace CountlySDK.Helpers
             {
                 IFolder storageFolder = await GetFolder(folder);
 
-                IFile storageFile = await fileSystem.LocalStorage.CreateFileAsync(file, CreationCollisionOption.ReplaceExisting);
+                IFile storageFile = await storageFolder.CreateFileAsync(file, CreationCollisionOption.ReplaceExisting);
 
                 using (Stream fileStream = await storageFile.OpenAsync(PCLStorage.FileAccess.ReadAndWrite))
                 {
@@ -146,8 +146,13 @@ namespace CountlySDK.Helpers
                     }
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("Problem while deserializing [" + filename + "] ex:[" + ex.ToString() + "]");
+                }
+            }
 
             if (t != null)
             {
@@ -173,7 +178,7 @@ namespace CountlySDK.Helpers
                 if (!isFileExists) return null;
 
                 IFolder storageFolder = await GetFolder(folder);
-
+                
                 IFile storageFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
 
                 if (storageFile == null)
@@ -181,9 +186,7 @@ namespace CountlySDK.Helpers
                     throw new Exception();
                 }
 
-                IFile file = await fileSystem.GetFileFromPathAsync(path);
-
-                using (StreamReader reader = new StreamReader(await file.OpenAsync(PCLStorage.FileAccess.Read)))
+                using (StreamReader reader = new StreamReader(await storageFile.OpenAsync(PCLStorage.FileAccess.Read)))
                 {
                     MemoryStream memoryStream = new MemoryStream();
 
