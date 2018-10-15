@@ -56,6 +56,11 @@ namespace CountlySDK
         // Indicates sync process with a server
         private static bool uploadInProgress;
 
+        //if stored event/sesstion/exception upload should be defered to a later time
+        //if set to true, upload will not happen, but will just return "true"
+        //data will still be saved in their respective files
+        internal static bool deferUpload = false;
+
         // File that stores events objects
         private const string eventsFilename = "events.xml";
         // File that stores sessions objects
@@ -859,6 +864,8 @@ namespace CountlySDK
         /// <returns>True if success</returns>
         private static async Task<bool> Upload()
         {
+            if (deferUpload) return true;
+
             bool success = await UploadSessions();
 
             if (success)
