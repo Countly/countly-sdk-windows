@@ -38,6 +38,9 @@ namespace CountlySDK
         [DataMemberAttribute]
         internal List<SegmentationItem> segmentation { get; set; }
 
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
         public Segmentation()
         {
             segmentation = new List<SegmentationItem>();

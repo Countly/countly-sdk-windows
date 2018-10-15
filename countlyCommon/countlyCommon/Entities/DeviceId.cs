@@ -1,4 +1,5 @@
 ﻿using CountlySDK.Entities.EntityBase;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,13 @@ namespace CountlySDK.CountlyCommon.Entities
             this.deviceId = deviceId;
             this.deviceIdMethod = deviceIdMethod;
         }
+
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
+        [JsonConstructor]
+        internal DeviceId() { }
+
         public int CompareTo(DeviceId other)
         {
             if(!(deviceId == null && other.deviceId == null))

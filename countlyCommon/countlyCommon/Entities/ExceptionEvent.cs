@@ -107,6 +107,12 @@ namespace CountlySDK.Entities
         [JsonProperty("_custom")]
         public Dictionary<string, string> Custom { get; set; }
 
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
+        internal ExceptionEvent()
+        { }
+
         internal ExceptionEvent(string Error, string StackTrace, bool fatal, string breadcrumb, TimeSpan run, string appVersion, Dictionary<string, string> customInfo, DeviceBase DeviceData)
         {
             //device metrics

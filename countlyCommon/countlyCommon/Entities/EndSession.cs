@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 using CountlySDK.Helpers;
+using Newtonsoft.Json;
 using System;
 using System.Runtime.Serialization;
 
@@ -39,9 +40,7 @@ namespace CountlySDK.Entities
             Content = String.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}", appKey, deviceId, TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()));
         }
 
-        public EndSession()
-        {
-
-        }
+        [JsonConstructor]
+        public EndSession() { }
     }
 }

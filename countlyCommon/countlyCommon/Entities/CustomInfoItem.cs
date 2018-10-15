@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using Newtonsoft.Json;
 using System;
 using System.Runtime.Serialization;
 
@@ -53,6 +54,13 @@ namespace CountlySDK.Entities
             this.Name = Name;
             this.Value = Value;
         }
+
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
+        [JsonConstructor]
+        public CustomInfoItem() { }
+
         public int CompareTo(CustomInfoItem other)
         {
             if ((Name == null && other.Name == null) || Name.Equals(other.Name))

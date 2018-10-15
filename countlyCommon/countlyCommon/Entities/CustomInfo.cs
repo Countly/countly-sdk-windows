@@ -118,6 +118,9 @@ namespace CountlySDK.Entities
             }
         }
 
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
         public CustomInfo()
         {
             items = new List<CustomInfoItem>();

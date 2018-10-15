@@ -287,6 +287,14 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             {
                 return Custom.ToDictionary();
             }
+            set
+            {
+                Custom = new CustomInfo();
+                foreach(var a in value)
+                {
+                    Custom.Add(a.Key, a.Value);
+                }
+            }
         }
 
         protected abstract void NotifyDetailsChanged();
@@ -298,6 +306,9 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         [JsonIgnore]
         internal bool isNotified { get; set; }
 
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
         public CountlyUserDetailsBase()
         {
             Custom = new CustomInfo();

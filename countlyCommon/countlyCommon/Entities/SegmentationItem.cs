@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using Newtonsoft.Json;
 using System;
 using System.Runtime.Serialization;
 
@@ -53,6 +54,14 @@ namespace CountlySDK
             this.Key = Key;
             this.Value = Value;
         }
+
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
+        [JsonConstructor]
+        private SegmentationItem()
+        { }
+
         public int CompareTo(SegmentationItem other)
         {
             if (!(Key == null && other.Key == null))

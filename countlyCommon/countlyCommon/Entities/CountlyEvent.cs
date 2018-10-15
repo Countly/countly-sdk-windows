@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,16 +59,16 @@ namespace CountlySDK.Entities
 
         /// <summary>
         /// Segmentation parameter
-        /// </summary>
+        /// </summary>        
         [DataMemberAttribute]
         [JsonIgnore]
         public Segmentation Segmentation { get; internal set; }
 
         /// <summary>
         /// Segmentation json-ready object
-        /// </summary>
+        /// </summary>        
         [JsonProperty("segmentation")]
-        private Dictionary<String, String> segmentation
+        public Dictionary<String, String> segmentation
         {
             get
             {
@@ -75,9 +76,24 @@ namespace CountlySDK.Entities
 
                 return Segmentation.segmentation.ToDictionary(s => s.Key, s => s.Value);
             }
+
+            //needed for deserialization
+            private set
+            {
+                Segmentation = new Segmentation();
+                foreach(var a in value)
+                {
+                    Segmentation.Add(a.Key, a.Value);
+                }
+                
+            }
         }
 
-        internal CountlyEvent()
+        /// <summary>
+        /// Needed for JSON deserialization
+        /// </summary>
+        [JsonConstructor]
+        private CountlyEvent()
         { }
 
         /// <summary>
@@ -102,7 +118,7 @@ namespace CountlySDK.Entities
             this.Key = Key;
             this.Count = Count;
             this.Sum = Sum;
-            this.Segmentation = Segmentation;
+            this.Segmentation = Segmentation;           
         }
 
         public int CompareTo(CountlyEvent other)
