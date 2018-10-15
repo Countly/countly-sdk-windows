@@ -222,7 +222,9 @@ namespace CountlySDK
 
             Exceptions = await Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
 
-            ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(Storage.Instance.GetValue<string>(unhandledExceptionFilename, ""));
+            String unhandledExceptionValue = Storage.Instance.GetValue<string>(unhandledExceptionFilename, "");
+
+            ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(unhandledExceptionValue);
             if(unhandledException != null)
             {
                 //add the saved unhandled exception to the other ones
