@@ -8,7 +8,7 @@ using System.Text;
 namespace CountlySDK.CountlyCommon.Entities
 {
     [DataContractAttribute]
-    internal class DeviceId
+    internal class DeviceId : IComparable<DeviceId>
     {
         [DataMemberAttribute]
         public string deviceId { get; set; }
@@ -20,6 +20,20 @@ namespace CountlySDK.CountlyCommon.Entities
         {
             this.deviceId = deviceId;
             this.deviceIdMethod = deviceIdMethod;
+        }
+        public int CompareTo(DeviceId other)
+        {
+            if(!(deviceId == null && other.deviceId == null))
+            {
+                if(deviceId == null) { return -1; }
+                if (other.deviceId == null) { return 1; }
+                if (!deviceId.Equals(other.deviceId))
+                {
+                    return deviceId.CompareTo(other.deviceId);
+                }
+            }            
+
+            return deviceIdMethod.CompareTo(other.deviceIdMethod);
         }
     }
 }

@@ -33,7 +33,7 @@ namespace CountlySDK.Entities
     /// This class holds the data for a single Count.ly custom event instance.
     /// </summary>
     [DataContractAttribute]
-    internal class CountlyEvent
+    internal class CountlyEvent : IComparable<CountlyEvent>
     {
         /// <summary>
         /// Key attribute, must be non-empty
@@ -104,5 +104,39 @@ namespace CountlySDK.Entities
             this.Sum = Sum;
             this.Segmentation = Segmentation;
         }
+
+        public int CompareTo(CountlyEvent other)
+        {
+            if (!(Key == null && other.Key == null))
+            {
+                if (Key == null) { return -1; }
+                if (other.Key == null) { return 1; }
+                if (!Key.Equals(other.Key)) { return Key.CompareTo(other.Key); }
+            }
+
+            if (!Count.Equals(other.Count)) { return Count.CompareTo(other.Count); }            
+
+            if (!(Sum == null && other.Sum == null))
+            {
+                if (Sum == null) { return -1; }
+                if (other.Sum == null) { return 1; }
+                if (!Sum.Equals(other.Sum)) { return Sum.Value.CompareTo(other.Sum.Value); }
+            }
+
+            if (!(segmentation == null && other.segmentation == null))
+            {
+                if (segmentation == null) { return -1; }
+                if (other.segmentation == null) { return 1; }
+                if (!segmentation.Count.Equals(other.segmentation.Count)) { return segmentation.Count.CompareTo(other.segmentation.Count); }
+
+                foreach (var a in segmentation.Keys)
+                {
+                    if (!other.segmentation.ContainsKey(a)) { return -1; }
+                    if (!segmentation[a].Equals(other.segmentation[a])) { return segmentation[a].CompareTo(other.segmentation[a]); }
+                }
+            }
+
+            return 0;
+        }       
     }
 }

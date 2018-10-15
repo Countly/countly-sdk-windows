@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using System;
 using System.Runtime.Serialization;
 
 namespace CountlySDK.Entities
@@ -28,7 +29,7 @@ namespace CountlySDK.Entities
     /// Holds data about segmentation value
     /// </summary>
     [DataContractAttribute]
-    public class CustomInfoItem
+    public class CustomInfoItem : IComparable<CustomInfoItem>
     {
         /// <summary>
         /// Property name
@@ -51,6 +52,16 @@ namespace CountlySDK.Entities
         {
             this.Name = Name;
             this.Value = Value;
+        }
+        public int CompareTo(CustomInfoItem other)
+        {
+            if ((Name == null && other.Name == null) || Name.Equals(other.Name))
+            {
+                if (Value == null && other.Value == null) return 0;
+                return Value.CompareTo(other.Value);
+            }
+
+            return Name.CompareTo(other.Name);
         }
     }
 }

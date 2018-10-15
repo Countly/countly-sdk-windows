@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 using Newtonsoft.Json;
+using System;
 using System.Runtime.Serialization;
 
 namespace CountlySDK.Entities
@@ -29,7 +30,7 @@ namespace CountlySDK.Entities
     /// Holds device-specific info in json-ready format
     /// </summary>
     [DataContractAttribute]
-    internal class Metrics
+    internal class Metrics : IComparable<Metrics>
     {
         /// <summary>
         /// Name of the current operating system
@@ -99,6 +100,53 @@ namespace CountlySDK.Entities
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+        }
+
+        public int CompareTo(Metrics other)
+        {
+            if (!(OS == null && other.OS == null))
+            {
+                if (OS == null) { return -1; }
+                if (other.OS == null) { return 1; }
+                if (!OS.Equals(other.OS)) { return OS.CompareTo(other.OS); }
+            }
+
+            if (!(OSVersion == null && other.OSVersion == null))
+            {
+                if (OSVersion == null) { return -1; }
+                if (other.OSVersion == null) { return 1; }
+                if (!OSVersion.Equals(other.OSVersion)) { return OSVersion.CompareTo(other.OSVersion); }
+            }
+
+            if (!(Device == null && other.Device == null))
+            {
+                if (Device == null) { return -1; }
+                if (other.Device == null) { return 1; }
+                if (!Device.Equals(other.Device)) { return Device.CompareTo(other.Device); }
+            }
+
+            if (!(Resolution == null && other.Resolution == null))
+            {
+                if (Resolution == null) { return -1; }
+                if (other.Resolution == null) { return 1; }
+                if (!Resolution.Equals(other.Resolution)) { return Resolution.CompareTo(other.Resolution); }
+            }
+
+            if (!(Carrier == null && other.Carrier == null))
+            {
+                if (Carrier == null) { return -1; }
+                if (other.Carrier == null) { return 1; }
+                if (!Carrier.Equals(other.Carrier)) { return Carrier.CompareTo(other.Carrier); }
+            }
+
+            if (!(AppVersion == null && other.AppVersion == null))
+            {
+                if (AppVersion == null) { return -1; }
+                if (other.AppVersion == null) { return 1; }
+                if (!AppVersion.Equals(other.AppVersion)) { return AppVersion.CompareTo(other.AppVersion); }
+            }
+
+            return 0;
         }
     }
 }

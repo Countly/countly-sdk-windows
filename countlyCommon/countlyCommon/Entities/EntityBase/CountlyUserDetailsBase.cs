@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 using CountlySDK.Entities;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
@@ -33,7 +34,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
     /// Holds user-specific info in json-ready format
     /// </summary>
     [DataContractAttribute]
-    abstract public class CountlyUserDetailsBase
+    abstract public class CountlyUserDetailsBase : IComparable<CountlyUserDetailsBase>
     {
         internal delegate void UserDetailsChangedEventHandler();
 
@@ -319,6 +320,88 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+        }
+
+        public int CompareTo(CountlyUserDetailsBase other)
+        {
+            //the one with null values is lesser
+            if (!(name == null && other.name == null))
+            {
+                if (name == null) { return -1; }
+                if (other.name == null) { return 1; }
+                if (!name.Equals(other.name)) { return name.CompareTo(other.name); }
+            }
+
+            if (!(username == null && other.username == null))
+            {
+                if (username == null) { return -1; }
+                if (other.username == null) { return 1; }
+                if (!username.Equals(other.username)) { return username.CompareTo(other.username); }
+            }
+
+            if (!(email == null && other.email == null))
+            {
+                if (email == null) { return -1; }
+                if (other.email == null) { return 1; }
+                if (!email.Equals(other.email)) { return email.CompareTo(other.email); }
+            }
+
+            if (!(organization == null && other.organization == null))
+            {
+                if (organization == null) { return -1; }
+                if (other.organization == null) { return 1; }
+                if (!organization.Equals(other.organization)) { return organization.CompareTo(other.organization); }
+            }
+
+            if (!(phone == null && other.phone == null))
+            {
+                if (phone == null) { return -1; }
+                if (other.phone == null) { return 1; }
+                if (!phone.Equals(other.phone)) { return phone.CompareTo(other.phone); }
+            }
+
+            if (!(picture == null && other.picture == null))
+            {
+                if (picture == null) { return -1; }
+                if (other.picture == null) { return 1; }
+                if (!picture.Equals(other.picture)) { return picture.CompareTo(other.picture); }
+            }
+
+            if (!(gender == null && other.gender == null))
+            {
+                if (gender == null) { return -1; }
+                if (other.gender == null) { return 1; }
+                if (!gender.Equals(other.gender)) { return gender.CompareTo(other.gender); }
+            }                       
+
+            if(!(birthYear == null && other.birthYear == null))
+            {
+                if (birthYear == null) { return -1; }
+                if (other.birthYear == null) { return 1; }
+                if (!birthYear.Equals(other.birthYear)) { return birthYear.Value.CompareTo(other.birthYear.Value); }
+            }
+            
+            if(!(_custom == null && other._custom == null))
+            {
+                if (_custom == null) { return -1; }
+                if (other._custom == null) { return 1; }
+                if (!_custom.Equals(other._custom))
+                {
+                    //the one with more fields is greater
+                    if (!_custom.Count.Equals(other._custom.Count)) { _custom.Count.CompareTo(other._custom.Count); }
+
+                    //if some differences are found, assume that this is greater
+                    foreach (KeyValuePair<String, String> pair in _custom)
+                    {
+                        if (!other._custom.ContainsKey(pair.Key)) return 1;
+                        String otherPairValue = other._custom[pair.Key];
+
+                        if (!pair.Value.Equals(otherPairValue)) return 1;
+                    }
+                }
+            }
+                             
+            return 0;
         }
     }
 }

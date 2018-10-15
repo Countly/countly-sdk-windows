@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -30,7 +31,7 @@ namespace CountlySDK.Entities
     /// Holds a dictionary of custom info values
     /// </summary>
     [DataContractAttribute]
-    public class CustomInfo
+    public class CustomInfo : IComparable<CustomInfo>
     {
         internal delegate void CollectionChangedEventHandler();
 
@@ -138,6 +139,32 @@ namespace CountlySDK.Entities
             }
 
             return dictionary;
+        }
+
+        public int CompareTo(CustomInfo other)
+        {       
+            if(items == null && other.items == null)
+            {
+                return 0;
+            }
+
+            if (!items.Count.Equals(other.items.Count))
+            {
+                return items.Count.CompareTo(other.items.Count);
+            }
+            
+            for(int a = 0; a < items.Count; a++)
+            {
+                CustomInfoItem cii1 = items[a];
+                CustomInfoItem cii2 = other.items[a];
+
+                if (!cii1.Equals(cii2))
+                {
+                    return cii1.CompareTo(cii2);
+                }
+            }
+
+            return 0;
         }
     }
 }
