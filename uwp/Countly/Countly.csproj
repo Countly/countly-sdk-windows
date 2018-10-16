@@ -106,6 +106,9 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\countlyCommon\countlyCommon\CountlyBase.cs">
+      <Link>CountlyBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs">
       <Link>Entities\BeginSession.cs</Link>
     </Compile>

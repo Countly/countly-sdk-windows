@@ -33,14 +33,26 @@ using System.IO;
 using Newtonsoft.Json;
 using Windows.System.Threading;
 using System.Diagnostics;
+using CountlySDK.CountlyCommon;
 
 namespace CountlySDK
 {
     /// <summary>
     /// This class is the public API for the Countly Windows Phone SDK.
     /// </summary>
-    public static class Countly
+    public class Countly : CountlyBase
     {
+        //==============SINGLETON============
+        //fourth version from:
+        //http://csharpindepth.com/Articles/General/Singleton.aspx
+        private static readonly Countly instance = new Countly();
+        // Explicit static constructor to tell C# compiler
+        // not to mark type as beforefieldinit    
+        static Countly() { }
+        internal Countly() { }
+        public static Countly Instance { get { return instance; } }
+        //-------------SINGLETON-----------------
+
         // Current version of the Count.ly SDK as a displayable string.
         private const string sdkVersion = "18.01";
 
