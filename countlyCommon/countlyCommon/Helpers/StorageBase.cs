@@ -27,5 +27,11 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// <returns>Object from file</returns>
         public abstract Task<T> LoadFromFile<T>(string filename) where T : class;
 
+        /// <summary>
+        /// Delete file
+        /// </summary>
+        /// <param name="filename">Filename to delete</param>
+        public abstract Task DeleteFile(string filename);
+
     }
 }

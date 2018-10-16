@@ -195,7 +195,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.Instance.SaveToFile<List<SessionEvent>>(eventsFilename, Events);
+                var res = Storage.Instance.SaveToFile<List<SessionEvent>>(eventsFilename, Events).Result;
             }
         }
 
@@ -206,7 +206,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions);
+                var res = Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions).Result;
             }
         }
 
@@ -217,7 +217,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.Instance.SaveToFile<List<ExceptionEvent>>(exceptionsFilename, Exceptions);
+                var res = Storage.Instance.SaveToFile<List<ExceptionEvent>>(exceptionsFilename, Exceptions).Result;
             }
         }
 
@@ -228,7 +228,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
+                var res = Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails).Result;
             }
         }       
 
@@ -373,7 +373,7 @@ namespace CountlySDK
                         }
                         catch { }
 
-                        Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions);
+                        var res = Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions).Result;
                         sessionCount = Sessions.Count;
                     }                   
 
@@ -430,10 +430,10 @@ namespace CountlySDK
                 }
                 userDetails = new CountlyUserDetails();
 
-                Storage.Instance.DeleteFile(eventsFilename);
-                Storage.Instance.DeleteFile(sessionsFilename);
-                Storage.Instance.DeleteFile(exceptionsFilename);
-                Storage.Instance.DeleteFile(userDetailsFilename);
+                Storage.Instance.DeleteFile(eventsFilename).RunSynchronously();
+                Storage.Instance.DeleteFile(sessionsFilename).RunSynchronously();
+                Storage.Instance.DeleteFile(exceptionsFilename).RunSynchronously();
+                Storage.Instance.DeleteFile(userDetailsFilename).RunSynchronously();
             }
         }
 

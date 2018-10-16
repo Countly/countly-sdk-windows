@@ -37,25 +37,11 @@ namespace CountlySDK.Helpers
         //fourth version from:
         //http://csharpindepth.com/Articles/General/Singleton.aspx
         private static readonly Storage instance = new Storage();
-
         // Explicit static constructor to tell C# compiler
         // not to mark type as beforefieldinit    
-        static Storage()
-        {
-        }
-
-        internal Storage()
-        {
-        }
-
-        public static Storage Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-
+        static Storage() { }
+        internal Storage() { }
+        public static Storage Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
         /// <summary>
@@ -310,7 +296,7 @@ namespace CountlySDK.Helpers
         /// Delete file
         /// </summary>
         /// <param name="path">Filename to delete</param>
-        public async Task DeleteFile(string path)
+        public override async Task DeleteFile(string path)
         {
             StorageFolder storageFolder = await GetFolder(folder);
 

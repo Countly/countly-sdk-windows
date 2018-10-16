@@ -36,7 +36,7 @@ namespace CountlySDK.Entities
     {
         protected override async Task LoadDeviceIDFromStorage()
         {
-            DeviceId dId = Storage.Instance.LoadFromFile<DeviceId>(deviceFilename).Result;
+            DeviceId dId = await Storage.Instance.LoadFromFile<DeviceId>(deviceFilename);
 
             if (dId != null && dId.deviceId != null)
             {
@@ -51,7 +51,7 @@ namespace CountlySDK.Entities
             {
                 DeviceId dId = new DeviceId(deviceId, usedIdMethod);
 
-                Storage.Instance.SaveToFile<DeviceId>(deviceFilename, dId);
+                await Storage.Instance.SaveToFile<DeviceId>(deviceFilename, dId);
             }            
         }
         protected override DeviceId ComputeDeviceID()
