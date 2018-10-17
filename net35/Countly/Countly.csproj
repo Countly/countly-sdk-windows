@@ -123,6 +123,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs">
       <Link>Helpers\UtilityHelper.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Server\ApiBase.cs">
+      <Link>Server\ApiBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
       <Link>Server\Responses\ResultResponse.cs</Link>
     </Compile>
