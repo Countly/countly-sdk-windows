@@ -81,6 +81,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\TestingEntities.cs">
       <Link>TestingEntities.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ThreadingTestCases.cs">
+      <Link>ThreadingTestCases.cs</Link>
+    </Compile>
     <Compile Include="CountlyImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
