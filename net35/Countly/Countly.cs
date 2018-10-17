@@ -57,7 +57,7 @@ namespace CountlySDK
         public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields };
 
         // Update session timer
-        private static DispatcherTimer Timer;
+        private DispatcherTimer Timer;
 
 
         /// <summary>
@@ -132,10 +132,7 @@ namespace CountlySDK
 
             startTime = DateTime.Now;
 
-            Timer = new DispatcherTimer();
-            Timer.Interval = TimeSpan.FromSeconds(updateInterval);
-            Timer.Tick += UpdateSession;
-            Timer.Start();
+            SessionTimerStart();
 
             await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, appVersion)));
         }
@@ -214,5 +211,23 @@ namespace CountlySDK
         {
             Storage.Instance.SetCustomDataPath(customPath);
         }
-    }  
+
+        protected override void SessionTimerStart()
+        {
+            Timer = new DispatcherTimer();
+            Timer.Interval = TimeSpan.FromSeconds(updateInterval);
+            Timer.Tick += UpdateSession;
+            Timer.Start();
+        }
+
+        protected override void SessionTimerStop()
+        {
+            if (Timer != null)
+            {
+                Timer.Stop();
+                Timer.Tick -= UpdateSession;
+                Timer = null;
+            }
+        }
+    }
 }

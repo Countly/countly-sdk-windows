@@ -649,5 +649,8 @@ namespace CountlySDK.CountlyCommon
             return await Countly.Instance.DeviceData.GetDeviceId();
         }
 
+
+        protected abstract void SessionTimerStart();
+        protected abstract void SessionTimerStop();
     }
 }

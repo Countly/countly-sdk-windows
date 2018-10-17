@@ -168,7 +168,7 @@ namespace CountlySDK
 
             startTime = DateTime.Now;
 
-            Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
+            SessionTimerStart();
 
             await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, null, null, null, null, appVersion)));
 
@@ -245,7 +245,18 @@ namespace CountlySDK
             await Storage.Instance.DeleteFile(sessionsFilename);
             await Storage.Instance.DeleteFile(exceptionsFilename);
             await Storage.Instance.DeleteFile(userDetailsFilename);
+        protected override void SessionTimerStart()
+        {
+            Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
         }
 
+        protected override void SessionTimerStop()
+        {
+            if (Timer != null)
+            {
+                Timer.Dispose();
+                Timer = null;
+            }
+        }
     }
 }

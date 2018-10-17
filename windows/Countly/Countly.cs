@@ -56,10 +56,8 @@ namespace CountlySDK
         // Raised when the async session is established
         public static event EventHandler SessionStarted;
 
-
         // Update session timer
-        private static ThreadPoolTimer Timer;
-
+        private ThreadPoolTimer Timer;
 
         /// <summary>
         /// Determines if exception autotracking is enabled
@@ -200,7 +198,7 @@ namespace CountlySDK
             {
                 startTime = DateTime.Now;
 
-                Timer = ThreadPoolTimer.CreatePeriodicTimer(UpdateSession, TimeSpan.FromSeconds(updateInterval));
+                SessionTimerStart();
 
                 await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, DeviceData.AppVersion)));
 
@@ -308,7 +306,18 @@ namespace CountlySDK
             await Storage.Instance.DeleteFile(sessionsFilename);
             await Storage.Instance.DeleteFile(exceptionsFilename);
             await Storage.Instance.DeleteFile(userDetailsFilename);
+        protected override void SessionTimerStart()
+        {
+            Timer = ThreadPoolTimer.CreatePeriodicTimer(UpdateSession, TimeSpan.FromSeconds(updateInterval));
         }
 
+        protected override void SessionTimerStop()
+        {
+            if (Timer != null)
+            {
+                Timer.Cancel();
+                Timer = null;
+            }
+        }
     }
 }
