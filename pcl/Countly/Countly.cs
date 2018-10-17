@@ -54,13 +54,13 @@ namespace CountlySDK
         public static event EventHandler SessionStarted;
 
         // Update session timer
-        private static TimerHelper Timer;
+        private TimerHelper Timer;
 
         /// <summary>
         /// Saves collection to the storage
         /// </summary>
         /// <returns>True if success, otherwise - False</returns>
-        private static async Task<bool> SaveCollection<T>(List<T> collection, string path)
+        private async Task<bool> SaveCollection<T>(List<T> collection, string path)
         {
             List<T> collection_;
 
@@ -183,75 +183,18 @@ namespace CountlySDK
             {
                 SessionStarted(null, EventArgs.Empty);
             }
-        }        
+        }
 
         /// <summary>
         /// Sends session duration. Called automatically each <updateInterval> seconds
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static async void UpdateSession(object sender, object e)
+        private async void UpdateSession(object sender, object e)
         {
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
-        }
+            UpdateSessionInternal();
+        }        
 
-        /// <summary>
-        /// End Countly tracking session.
-        /// Call from your App.xaml.cs Application_Deactivated and Application_Closing events.
-        /// </summary>
-        public static async Task EndSession()
-        {
-            if (Timer != null)
-            {
-                Timer.Dispose();
-                Timer = null;
-            }
-
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId()), true);
-
-            ServerUrl = null;
-            AppKey = null;
-
-            if (UserDetails != null)
-            {
-                UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
-            }
-        }
-
-        /// <summary>
-        /// Immediately disables session, event, exceptions & user details tracking and clears any stored sessions, events, exceptions & user details data.
-        /// This API is useful if your app has a tracking opt-out switch, and you want to immediately
-        /// disable tracking when a user opts out. Call StartSession to enable logging again
-        /// </summary>
-        public static async void Halt()
-        {
-            lock (sync)
-            {
-                ServerUrl = null;
-                AppKey = null;
-
-                if (Timer != null)
-                {
-                    Timer.Dispose();
-                    Timer = null;
-                }
-
-                if (UserDetails != null)
-                {
-                    UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
-                }
-
-                Events.Clear();
-                Sessions.Clear();
-                Exceptions.Clear();
-                breadcrumb = String.Empty;
-                UserDetails = new CountlyUserDetails();
-            }
-
-            await Storage.Instance.DeleteFile(eventsFilename);
-            await Storage.Instance.DeleteFile(sessionsFilename);
-            await Storage.Instance.DeleteFile(exceptionsFilename);
-            await Storage.Instance.DeleteFile(userDetailsFilename);
         protected override void SessionTimerStart()
         {
             Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);

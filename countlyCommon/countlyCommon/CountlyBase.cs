@@ -117,6 +117,37 @@ namespace CountlySDK.CountlyCommon
         /// Saves user details info to the storage
         /// </summary>
         protected abstract bool SaveUserDetails();
+
+        protected async void UpdateSessionInternal()
+        {
+            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
+        }
+
+        /// <summary>
+        /// End Countly tracking session.
+        /// Call from one of these places:
+        /// * your closing event
+        /// * your App.xaml.cs Application_Deactivated and Application_Closing events.
+        /// </summary>
+        public static async Task EndSession()
+        {
+            Countly.Instance.EndSessionInternal();
+        }
+
+        protected async Task EndSessionInternal()
+        {
+            SessionTimerStop();
+            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId()), true);
+
+            ServerUrl = null;
+            AppKey = null;
+
+            if (UserDetails != null)
+            {
+                UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
+            }
+        }
+
         /// <summary>
         ///  Adds session event to queue and uploads
         /// </summary>
@@ -652,6 +683,44 @@ namespace CountlySDK.CountlyCommon
 
             return (resultResponse != null && resultResponse.IsSuccess);
         }
+
+        /// <summary>
+        /// Immediately disables session, event, exceptions & user details tracking and clears any stored sessions, events, exceptions & user details data.
+        /// This API is useful if your app has a tracking opt-out switch, and you want to immediately
+        /// disable tracking when a user opts out. Call StartSession to enable logging again
+        /// </summary>
+        public static async void Halt()
+        {
+            Countly.Instance.HaltInternal();
+        }
+
+        protected async void HaltInternal()
+        {
+            lock (sync)
+            {
+                ServerUrl = null;
+                AppKey = null;
+
+                SessionTimerStop();
+
+                Events.Clear();
+                Sessions.Clear();
+                Exceptions.Clear();
+                breadcrumb = String.Empty;
+
+                if (UserDetails != null)
+                {
+                    UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
+                }
+                userDetails = new CountlyUserDetails();
+
+                Storage.Instance.DeleteFile(eventsFilename).RunSynchronously();
+                Storage.Instance.DeleteFile(sessionsFilename).RunSynchronously();
+                Storage.Instance.DeleteFile(exceptionsFilename).RunSynchronously();
+                Storage.Instance.DeleteFile(userDetailsFilename).RunSynchronously();
+            }
+        }
+
         /// <summary>
         /// Adds log breadcrumb
         /// </summary>

@@ -139,61 +139,9 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private static async void UpdateSession(object sender, EventArgs e)
+        private async void UpdateSession(object sender, EventArgs e)
         {
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
-        }
-
-        /// <summary>
-        /// End Countly tracking session.
-        /// Call from your closing event.
-        /// </summary>
-        public static async Task EndSession()
-        {
-            if (Timer != null)
-            {
-                Timer.Stop();
-                Timer.Tick -= UpdateSession;
-                Timer = null;
-            }
-
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId()), true);
-        }
-
-        /// <summary>
-        /// Immediately disables session, event, exceptions & user details tracking and clears any stored sessions, events, exceptions & user details data.
-        /// This API is useful if your app has a tracking opt-out switch, and you want to immediately
-        /// disable tracking when a user opts out. Call StartSession to enable logging again
-        /// </summary>
-        public static void Halt()
-        {
-            lock (sync)
-            {
-                ServerUrl = null;
-                AppKey = null;
-
-                if (Timer != null)
-                {
-                    Timer.Stop();
-                    Timer.Tick -= UpdateSession;
-                    Timer = null;
-                }
-
-                Events.Clear();
-                Sessions.Clear();
-                Exceptions.Clear();
-                breadcrumb = String.Empty;
-                if (userDetails != null)
-                {
-                    userDetails.UserDetailsChanged -= OnUserDetailsChanged;
-                }
-                userDetails = new CountlyUserDetails();
-
-                Storage.Instance.DeleteFile(eventsFilename).RunSynchronously();
-                Storage.Instance.DeleteFile(sessionsFilename).RunSynchronously();
-                Storage.Instance.DeleteFile(exceptionsFilename).RunSynchronously();
-                Storage.Instance.DeleteFile(userDetailsFilename).RunSynchronously();
-            }
+            UpdateSessionInternal();
         }
 
         /// <summary>

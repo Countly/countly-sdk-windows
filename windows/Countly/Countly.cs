@@ -68,7 +68,7 @@ namespace CountlySDK
         /// Saves collection to the storage
         /// </summary>
         /// <returns>True if success, otherwise - False</returns>
-        private static async Task<bool> SaveCollection<T>(List<T> collection, string path)
+        private async Task<bool> SaveCollection<T>(List<T> collection, string path)
         {
             List<T> collection_;
 
@@ -228,31 +228,16 @@ namespace CountlySDK
         /// <param name="appKey"></param>
         public static async void StartBackgroundSession(string serverUrl, string appKey)
         {
-            await StartSessionCommon(serverUrl, appKey, null, true);            
+            await Countly.Instance.StartSessionCommon(serverUrl, appKey, null, true);            
         }
 
         /// <summary>
         /// Sends session duration. Called automatically each <updateInterval> seconds
         /// </summary>
         /// <param name="timer"></param>
-        private static async void UpdateSession(ThreadPoolTimer timer)
+        private async void UpdateSession(ThreadPoolTimer timer)
         {
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
-        }
-
-        /// <summary>
-        /// End Countly tracking session.
-        /// Call from your App.xaml.cs Application_Deactivated and Application_Closing events.
-        /// </summary>
-        public static async Task EndSession()
-        {
-            if (Timer != null)
-            {
-                Timer.Cancel();
-                Timer = null;
-            }
-
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId()), true);
+            UpdateSessionInternal();
         }
 
         /// <summary>
@@ -260,7 +245,7 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sender">sender param</param>
         /// <param name="e">exception details</param>
-        private static async void OnApplicationUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private async void OnApplicationUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             if (IsExceptionsLoggingEnabled)
             {
@@ -270,40 +255,6 @@ namespace CountlySDK
             }
         }
 
-        /// <summary>
-        /// Immediately disables session, event, exceptions & user details tracking and clears any stored sessions, events, exceptions & user details data.
-        /// This API is useful if your app has a tracking opt-out switch, and you want to immediately
-        /// disable tracking when a user opts out. Call StartSession to enable logging again
-        /// </summary>
-        public static async void Halt()
-        {
-            lock (sync)
-            {
-                ServerUrl = null;
-                AppKey = null;
-
-                if (Timer != null)
-                {
-                    Timer.Cancel();
-                    Timer = null;
-                }
-
-                if (UserDetails != null)
-                {
-                    UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
-                }
-
-                Events.Clear();
-                Sessions.Clear();
-                Exceptions.Clear();
-                breadcrumb = String.Empty;
-                UserDetails = new CountlyUserDetails();
-            }
-
-            await Storage.Instance.DeleteFile(eventsFilename);
-            await Storage.Instance.DeleteFile(sessionsFilename);
-            await Storage.Instance.DeleteFile(exceptionsFilename);
-            await Storage.Instance.DeleteFile(userDetailsFilename);
         protected override void SessionTimerStart()
         {
             Timer = ThreadPoolTimer.CreatePeriodicTimer(UpdateSession, TimeSpan.FromSeconds(updateInterval));
