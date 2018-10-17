@@ -57,11 +57,6 @@ namespace CountlySDK
         private static TimerHelper Timer;
 
         /// <summary>
-        /// Determines if Countly debug messages are displayed to Output window
-        /// </summary>
-        public static bool IsLoggingEnabled { get; set; }
-
-        /// <summary>
         /// Saves collection to the storage
         /// </summary>
         /// <returns>True if success, otherwise - False</returns>
@@ -252,18 +247,5 @@ namespace CountlySDK
             await Storage.Instance.DeleteFile(userDetailsFilename);
         }
 
-        /// <summary>
-        /// Adds log breadcrumb
-        /// </summary>
-        /// <param name="log">log string</param>
-        public static void AddBreadCrumb(string log)
-        {
-            breadcrumb += log + "\r\n";
-        }
-
-        public static async Task<String> GetDeviceId()
-        {
-            return await DeviceData.GetDeviceId();
-        }
     }
 }

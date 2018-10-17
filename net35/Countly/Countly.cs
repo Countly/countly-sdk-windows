@@ -59,10 +59,6 @@ namespace CountlySDK
         // Update session timer
         private static DispatcherTimer Timer;
 
-        /// <summary>
-        /// Determines if Countly debug messages are displayed to Output window
-        /// </summary>
-        public static bool IsLoggingEnabled { get; set; }
 
         /// <summary>
         /// Saves events to the storage
@@ -218,28 +214,5 @@ namespace CountlySDK
         {
             Storage.Instance.SetCustomDataPath(customPath);
         }
-
-        /// <summary>
-        /// Adds log breadcrumb
-        /// </summary>
-        /// <param name="log">log string</param>
-        public static void AddBreadCrumb(string log)
-        {
-            breadcrumb += log + "\r\n";
-        }
-
-        public static async Task<String> GetDeviceId()
-        {
-            if (String.IsNullOrEmpty(ServerUrl))
-            {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("GetDeviceId cannot be called before StartingSession");
-                }
-                return "";
-            }
-
-            return await DeviceData.GetDeviceId();
-        }        
     }  
 }

@@ -87,6 +87,11 @@ namespace CountlySDK.CountlyCommon
         internal Device DeviceData = new Device();
 
         /// <summary>
+        /// Determines if Countly debug messages are displayed to Output window
+        /// </summary>
+        public static bool IsLoggingEnabled { get; set; }
+
+        /// <summary>
         ///  Adds session event to queue and uploads
         /// </summary>
         /// <param name="sessionEvent">session event object</param>
@@ -621,5 +626,28 @@ namespace CountlySDK.CountlyCommon
 
             return (resultResponse != null && resultResponse.IsSuccess);
         }
+        /// <summary>
+        /// Adds log breadcrumb
+        /// </summary>
+        /// <param name="log">log string</param>
+        public static void AddBreadCrumb(string log)
+        {
+            Countly.Instance.breadcrumb += log + "\r\n";
+        }
+
+        public static async Task<String> GetDeviceId()
+        {
+            if (!Countly.Instance.IsServerURLCorrect(Countly.Instance.ServerUrl))
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("GetDeviceId cannot be called before StartingSession");
+                }
+                return "";
+            }
+
+            return await Countly.Instance.DeviceData.GetDeviceId();
+        }
+
     }
 }
