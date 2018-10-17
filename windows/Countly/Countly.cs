@@ -144,20 +144,32 @@ namespace CountlySDK
         /// </summary>
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
-        private static async Task StartSessionCommon(string serverUrl, string appKey, Application application = null, bool calledFromBackground = true)
+        private async Task StartSessionCommon(string serverUrl, string appKey, Application application = null, bool calledFromBackground = true)
         {
-            if (String.IsNullOrWhiteSpace(serverUrl))
+            Countly.Instance.StartSessionInternal(serverUrl, appKey, application, calledFromBackground);
+        }
+
+        public async Task StartSessionInternal(string serverUrl, string appKey, Application application = null, bool calledFromBackground = true)
+        {
+            if (ServerUrl != null)
+            {
+                // session already active
+                return;
+            }
+
+            if (!Countly.Instance.IsServerURLCorrect(serverUrl))
             {
                 throw new ArgumentException("invalid server url");
             }
 
-            if (String.IsNullOrWhiteSpace(appKey))
+            if (!Countly.Instance.IsAppKeyCorrect(appKey))
             {
                 throw new ArgumentException("invalid application key");
             }
 
             ServerUrl = serverUrl;
             AppKey = appKey;
+            AppVersion = DeviceData.AppVersion;
 
             if (application != null)
             {
@@ -167,14 +179,14 @@ namespace CountlySDK
                 application.UnhandledException += OnApplicationUnhandledException;
             }
 
-            Events = await Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename) ?? new List<CountlyEvent>();
-
-            Sessions = await Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
-
-            Exceptions = await Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
+            lock (sync)
+            {
+                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
+                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
+                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
+            }           
 
             String unhandledExceptionValue = Storage.Instance.GetValue<string>(unhandledExceptionFilename, "");
-
             ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(unhandledExceptionValue);
             if(unhandledException != null)
             {
@@ -184,13 +196,9 @@ namespace CountlySDK
                     Debug.WriteLine("Found a stored unhandled exception, adding it the the other stored exceptions");
                 }
                 Exceptions.Add(unhandledException);
-                await SaveExceptions();
+                SaveExceptions();
                 SaveUnhandledException(null);
-            }
-
-            UserDetails = await Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
-
-            UserDetails.UserDetailsChanged += OnUserDetailsChanged;
+            }            
 
             if (!calledFromBackground)
             {
@@ -198,7 +206,7 @@ namespace CountlySDK
 
                 SessionTimerStart();
 
-                await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, DeviceData.AppVersion)));
+                await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, AppVersion)));
 
                 if (null != SessionStarted)
                 {
@@ -216,7 +224,7 @@ namespace CountlySDK
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         public static async Task StartSession(string serverUrl, string appKey, Application application = null)
         {
-            await StartSessionCommon(serverUrl, appKey, application, false);           
+            await Countly.Instance.StartSessionCommon(serverUrl, appKey, application, false);           
         }
 
         /// <summary>

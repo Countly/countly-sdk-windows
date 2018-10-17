@@ -141,18 +141,23 @@ namespace CountlySDK
         /// <param name="appVersion">Application version</param>
         public static async Task StartSession(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
         {
+            Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, fileSystem);
+        }
+
+        public async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
+        {
             if (ServerUrl != null)
             {
                 // session already active
                 return;
             }
 
-            if (String.IsNullOrWhiteSpace(serverUrl))
+            if (!IsServerURLCorrect(serverUrl))
             {
                 throw new ArgumentException("invalid server url");
             }
 
-            if (String.IsNullOrWhiteSpace(appKey))
+            if (!IsAppKeyCorrect(appKey))
             {
                 throw new ArgumentException("invalid application key");
             }
@@ -163,15 +168,12 @@ namespace CountlySDK
 
             Storage.Instance.fileSystem = fileSystem;
 
-            Events = await Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename) ?? new List<CountlyEvent>();
-
-            Sessions = await Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename) ?? new List<SessionEvent>();
-
-            Exceptions = await Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename) ?? new List<ExceptionEvent>();
-
-            UserDetails = await Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename) ?? new CountlyUserDetails();
-
-            UserDetails.UserDetailsChanged += OnUserDetailsChanged;
+            lock (sync)
+            {
+                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
+                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
+                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();                
+            }
 
             startTime = DateTime.Now;
 

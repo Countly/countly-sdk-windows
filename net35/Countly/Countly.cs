@@ -54,8 +54,8 @@ namespace CountlySDK
         //-------------SINGLETON-----------------
 
         //methods for generating device ID
-        public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields };
-
+        public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields };        
+        
         // Update session timer
         private DispatcherTimer Timer;
 
@@ -111,12 +111,23 @@ namespace CountlySDK
         /// <param name="appVersion">Application version</param>
         public static async Task StartSession(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
         {
-            if (String.IsNullOrEmpty(serverUrl))
+            Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, idMethod);
+        }
+
+        public async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
+        {
+            if (ServerUrl != null)
+            {
+                // session already active
+                return;
+            }
+
+            if (!Countly.Instance.IsServerURLCorrect(serverUrl))
             {
                 throw new ArgumentException("invalid server url");
             }
 
-            if (String.IsNullOrEmpty(appKey))
+            if (!Countly.Instance.IsAppKeyCorrect(appKey))
             {
                 throw new ArgumentException("invalid application key");
             }
@@ -124,6 +135,13 @@ namespace CountlySDK
             ServerUrl = serverUrl;
             AppKey = appKey;
             AppVersion = appVersion;
+
+            lock (sync)
+            {
+                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
+                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
+                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();                
+            }
 
             DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal) idMethod);
 

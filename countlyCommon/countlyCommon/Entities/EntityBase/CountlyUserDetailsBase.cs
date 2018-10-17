@@ -321,7 +321,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         /// <returns>true if image is successfully uploaded, false otherwise</returns>
         public async Task<bool> UploadUserPicture(Stream imageStream)
         {
-            return await Countly.UploadUserPicture(imageStream);
+            return await Countly.Instance.UploadUserPicture(imageStream);
         }
 
         /// <summary>
