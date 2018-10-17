@@ -55,6 +55,13 @@ namespace TestProject_common
         public static CountlyUserDetails CreateCountlyUserDetails(int indexData, int indexCustomInfo)
         {
             CountlyUserDetails cud = new CountlyUserDetails();
+            PopulateCountlyUserDetails(cud, indexData, indexCustomInfo);            
+
+            return cud;
+        }
+
+        public static void PopulateCountlyUserDetails(CountlyUserDetails cud, int indexData, int indexCustomInfo)
+        {
             cud.BirthYear = iv[indexData];
             cud.Custom.Add(v[indexData + 0], v[indexData + 1]);
             cud.Custom.Add(v[indexData + 2], v[indexData + 3]);
@@ -68,11 +75,9 @@ namespace TestProject_common
 
             CustomInfo cui = CreateCustomInfo(indexCustomInfo);
             cud.Custom = cui;
-
-            return cud;
         }
 
-        public static DeviceId CreateDeviceId(int index, int indexIdMethod)
+            public static DeviceId CreateDeviceId(int index, int indexIdMethod)
         {
             DeviceBase.DeviceIdMethodInternal method;
             indexIdMethod = indexIdMethod % 6;

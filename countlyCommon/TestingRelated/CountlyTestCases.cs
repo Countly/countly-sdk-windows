@@ -63,11 +63,24 @@ namespace TestProject_common
         public async void BasicDeviceID()
         {
 
-        }        
+        }
+
+        [Fact]
+        public async void SettingUserDetails()
+        {
+            CountlyUserDetails cud = Countly.UserDetails;
+            TestHelper.PopulateCountlyUserDetails(cud, 0, 0);
+            
+            bool res = await Countly.Instance.UploadUserDetails();
+
+            Assert.True(res);
+        }
 
         [Fact]
         public async void MultipleExceptions()
         {
+            bool res;
+
             try
             {
                 throw new Exception("This is some bad exception 3");
@@ -76,7 +89,8 @@ namespace TestProject_common
             {
                 Dictionary<string, string> customInfo = new Dictionary<string, string>();
                 customInfo.Add("customData", "importantStuff");
-                await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
+                res = await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
+                Assert.True(res);
             }
 
             Exception exToUse;
@@ -91,25 +105,39 @@ namespace TestProject_common
 
             Dictionary<String, String> dict = new Dictionary<string, string>();
             dict.Add("booh", "waah");
+           
+            res = await Countly.RecordException("Big error 1");
+            Assert.True(res);
 
-            await Countly.RecordException("Big error 1");
-            await Countly.RecordException(exToUse.Message, exToUse.StackTrace);
-            await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict);
-            await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict, false);
+            res = await Countly.RecordException(exToUse.Message, exToUse.StackTrace);
+            Assert.True(res);
+
+            res = await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict);
+            Assert.True(res);
+
+            res = await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict, false);
+            Assert.True(res);
         }
 
         [Fact]
         public async void MultipleEvents()
         {
-            await Countly.RecordEvent("Some event");
-            await Countly.RecordEvent("Some event", 123);
-            await Countly.RecordEvent("Some event", 123, 456);
+            bool res;
+            res = await Countly.RecordEvent("Some event0");
+            Assert.True(res);
+
+            res = await Countly.RecordEvent("Some event1", 123);
+            Assert.True(res);
+
+            res = await Countly.RecordEvent("Some event2", 123, 456);
+            Assert.True(res);
 
             Segmentation segm = new Segmentation();
             segm.Add("oneKey", "SomeValue");
             segm.Add("anotherKey", "SomeOtherValue");
 
-            await Countly.RecordEvent("Some event", 123, 456, segm);
+            res = await Countly.RecordEvent("Some event3", 123, 456, segm);
+            Assert.True(res);
         }
 
         
