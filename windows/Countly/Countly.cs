@@ -53,39 +53,12 @@ namespace CountlySDK
         public static Countly Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-
-        // File that stores events objects
-        private const string eventsFilename = "events.xml";
-        // File that stores sessions objects
-        private const string sessionsFilename = "sessions.xml";
-        // File that stores exceptions objects
-        private const string exceptionsFilename = "exceptions.xml";
-        // File that stores temporary stored unhandled exception objects
-        private const string unhandledExceptionFilename = "unhandled_exceptions.xml";
-        // File that stores user details object
-        private const string userDetailsFilename = "userdetails.xml";
-
-        // Events queue
-        private static List<CountlyEvent> Events { get; set; }
-
-        // Session queue
-        private static List<SessionEvent> Sessions { get; set; }
-
-        // Exceptions queue
-        private static List<ExceptionEvent> Exceptions { get; set; }
-
         // Raised when the async session is established
         public static event EventHandler SessionStarted;
-
-        // User details info
-        public static CountlyUserDetails UserDetails { get; set; }
 
 
         // Update session timer
         private static ThreadPoolTimer Timer;
-
-        //holds device info
-        private static Device DeviceData = new Device();
 
         /// <summary>
         /// Determines if Countly debug messages are displayed to Output window

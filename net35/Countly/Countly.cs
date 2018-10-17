@@ -53,118 +53,11 @@ namespace CountlySDK
         public static Countly Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-
-        // File that stores events objects
-        private const string eventsFilename = "events.xml";
-        // File that stores sessions objects
-        private const string sessionsFilename = "sessions.xml";
-        // File that stores exceptions objects
-        private const string exceptionsFilename = "exceptions.xml";
-        // File that stores user details object
-        private const string userDetailsFilename = "userdetails.xml";
-
         //methods for generating device ID
         public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields };
 
-        private static List<CountlyEvent> events;
-        // Events queue
-        private static List<CountlyEvent> Events
-        {
-            get
-            {
-                lock (sync)
-                {
-                    if (events == null)
-                    {
-                        events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result;
-
-                        if (events == null)
-                        {
-                            events = new List<CountlyEvent>();
-                        }
-                    }
-                }
-
-                return events;
-            }
-        }
-
-        private static List<SessionEvent> sessions;
-        // Session queue
-        private static List<SessionEvent> Sessions
-        {
-            get
-            {
-                lock (sync)
-                {
-                    if (sessions == null)
-                    {
-                        sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result;
-
-                        if (sessions == null)
-                        {
-                            sessions = new List<SessionEvent>();
-                        }
-                    }
-                }
-
-                return sessions;
-            }
-        }
-
-        private static List<ExceptionEvent> exceptions;
-        // Exceptions queue
-        private static List<ExceptionEvent> Exceptions
-        {
-            get
-            {
-                lock (sync)
-                {
-                    if (exceptions == null)
-                    {
-                        exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result;
-
-                        if (exceptions == null)
-                        {
-                            exceptions = new List<ExceptionEvent>();
-                        }
-                    }
-                }
-
-                return exceptions;
-            }
-        }
-
-        private static CountlyUserDetails userDetails;
-        // User details info
-        public static CountlyUserDetails UserDetails
-        {
-            get
-            {
-                lock (sync)
-                {
-                    if (userDetails == null)
-                    {
-                        userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename).Result;
-
-                        if (userDetails == null)
-                        {
-                            userDetails = new CountlyUserDetails();
-                        }
-
-                        userDetails.UserDetailsChanged += OnUserDetailsChanged;
-                    }
-                }
-
-                return userDetails;
-            }
-
-        }
-
         // Update session timer
         private static DispatcherTimer Timer;
-        //holds device info
-        private static Device DeviceData = new Device();
 
         /// <summary>
         /// Determines if Countly debug messages are displayed to Output window
