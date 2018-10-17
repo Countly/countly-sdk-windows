@@ -92,6 +92,32 @@ namespace CountlySDK.CountlyCommon
         public static bool IsLoggingEnabled { get; set; }
 
         /// <summary>
+        /// Saves events to the storage
+        /// </summary>
+        /// <returns>True if success, otherwise - False</returns>
+        protected abstract bool SaveEvents();
+
+        /// <summary>
+        /// Saves sessions to the storage
+        /// </summary>
+        /// <returns>True if success, otherwise - False</returns>
+        protected abstract bool SaveSessions();
+
+        /// <summary>
+        /// Saves exceptions to the storage
+        /// </summary>
+        protected abstract bool SaveExceptions();
+
+        /// <summary>
+        /// Saves the given unhandled exception to storage
+        /// </summary>
+        internal abstract bool SaveUnhandledException(ExceptionEvent exceptionEvent);
+
+        /// <summary>
+        /// Saves user details info to the storage
+        /// </summary>
+        protected abstract bool SaveUserDetails();
+        /// <summary>
         ///  Adds session event to queue and uploads
         /// </summary>
         /// <param name="sessionEvent">session event object</param>

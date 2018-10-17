@@ -97,47 +97,45 @@ namespace CountlySDK
             }
         }
 
-        /// <summary>
-        /// Saves events to the storage
-        /// </summary>
-        /// <returns>True if success, otherwise - False</returns>
-        private static Task<bool> SaveEvents()
+        protected override bool SaveEvents()
         {
-            return SaveCollection<CountlyEvent>(Events, eventsFilename);
+            lock (sync)
+            {
+                return SaveCollection<CountlyEvent>(Events, eventsFilename).Result;
+            }
         }
 
-        /// <summary>
-        /// Saves sessions to the storage
-        /// </summary>
-        /// <returns>True if success, otherwise - False</returns>
-        private static Task<bool> SaveSessions()
+        protected override bool SaveSessions()
         {
-            return SaveCollection<SessionEvent>(Sessions, sessionsFilename);
+            lock (sync)
+            {
+                return SaveCollection<SessionEvent>(Sessions, sessionsFilename).Result;
+            }
         }
 
-        /// <summary>
-        /// Saves exceptions to the storage
-        /// </summary>
-        private static Task<bool> SaveExceptions()
+        protected override bool SaveExceptions()
         {
-            return SaveCollection<ExceptionEvent>(Exceptions, exceptionsFilename);            
+            lock (sync)
+            {
+                return SaveCollection<ExceptionEvent>(Exceptions, exceptionsFilename).Result;
+            }
         }
 
-        /// <summary>
-        /// Saves the given unhandled exception to storage
-        /// </summary>
-        private static void SaveUnhandledException(ExceptionEvent exceptionEvent)
+        internal override bool SaveUnhandledException(ExceptionEvent exceptionEvent)
         {
-            string json = JsonConvert.SerializeObject(exceptionEvent, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-            Storage.Instance.SetValue(unhandledExceptionFilename, json);
+            lock (sync)
+            {
+                string json = JsonConvert.SerializeObject(exceptionEvent, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                return Storage.Instance.SetValue(unhandledExceptionFilename, json);
+            }
         }
 
-        /// <summary>
-        /// Saves user details info to the storage
-        /// </summary>
-        private static async Task SaveUserDetails()
+        protected override bool SaveUserDetails()
         {
-            await Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
+            lock (sync)
+            {
+                return Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails).Result;
+            }
         }
 
         /// <summary>

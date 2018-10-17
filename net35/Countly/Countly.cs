@@ -59,50 +59,47 @@ namespace CountlySDK
         // Update session timer
         private DispatcherTimer Timer;
 
-
-        /// <summary>
-        /// Saves events to the storage
-        /// </summary>
-        private static void SaveEvents()
+        protected override bool SaveEvents()
         {
             lock (sync)
             {
-                var res = Storage.Instance.SaveToFile<List<SessionEvent>>(eventsFilename, Events).Result;
+                return Storage.Instance.SaveToFile<List<SessionEvent>>(eventsFilename, Events).Result;
             }
         }
 
-        /// <summary>
-        /// Saves sessions to the storage
-        /// </summary>
-        private static void SaveSessions()
+        protected override bool SaveSessions()
         {
             lock (sync)
             {
-                var res = Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions).Result;
+                return Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions).Result;
             }
         }
 
-        /// <summary>
-        /// Saves exceptions to the storage
-        /// </summary>
-        private static void SaveExceptions()
+        protected override bool SaveExceptions()
         {
             lock (sync)
             {
-                var res = Storage.Instance.SaveToFile<List<ExceptionEvent>>(exceptionsFilename, Exceptions).Result;
+                return Storage.Instance.SaveToFile<List<ExceptionEvent>>(exceptionsFilename, Exceptions).Result;
             }
         }
 
-        /// <summary>
-        /// Saves user details info to the storage
-        /// </summary>
-        private static void SaveUserDetails()
+        internal override bool SaveUnhandledException(ExceptionEvent exceptionEvent)
         {
             lock (sync)
             {
-                var res = Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails).Result;
+                //for now we treat unhandled exceptions just like regular exceptions
+                Exceptions.Add(exceptionEvent);
+                return SaveExceptions();
             }
-        }       
+        }
+
+        protected override bool SaveUserDetails()
+        {
+            lock (sync)
+            {
+                return Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails).Result;
+            }
+        }
 
         /// <summary>
         /// Starts Countly tracking session.

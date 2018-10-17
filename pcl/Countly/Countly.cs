@@ -89,39 +89,46 @@ namespace CountlySDK
             }
         }
 
-        /// <summary>
-        /// Saves events to the storage
-        /// </summary>
-        /// <returns>True if success, otherwise - False</returns>
-        private static Task<bool> SaveEvents()
+        protected override bool SaveEvents()
         {
-            return SaveCollection<CountlyEvent>(Events, eventsFilename);
+            lock (sync)
+            {
+                return SaveCollection<CountlyEvent>(Events, eventsFilename).Result;
+            }
         }
 
-        /// <summary>
-        /// Saves sessions to the storage
-        /// </summary>
-        /// <returns>True if success, otherwise - False</returns>
-        private static Task<bool> SaveSessions()
+        protected override bool SaveSessions()
         {
-            return SaveCollection<SessionEvent>(Sessions, sessionsFilename);
+            lock (sync)
+            {
+                return SaveCollection<SessionEvent>(Sessions, sessionsFilename).Result;
+            }
         }
 
-        /// <summary>
-        /// Saves exceptions to the storage
-        /// </summary>
-        /// <returns>True if success, otherwise - False</returns>
-        private static Task<bool> SaveExceptions()
+        protected override bool SaveExceptions()
         {
-            return SaveCollection<ExceptionEvent>(Exceptions, exceptionsFilename);
+            lock (sync)
+            {
+                return SaveCollection<ExceptionEvent>(Exceptions, exceptionsFilename).Result;
+            }
         }
 
-        /// <summary>
-        /// Saves user details info to the storage
-        /// </summary>
-        private static async Task SaveUserDetails()
+        internal override bool SaveUnhandledException(ExceptionEvent exceptionEvent)
         {
-            await Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails);
+            lock (sync)
+            {
+                //for now we treat unhandled exceptions just like regular exceptions
+                Exceptions.Add(exceptionEvent);
+                return SaveExceptions();
+            }
+        }
+
+        protected override bool SaveUserDetails()
+        {
+            lock (sync)
+            {
+                return Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails).Result;
+            }
         }
 
         /// <summary>
