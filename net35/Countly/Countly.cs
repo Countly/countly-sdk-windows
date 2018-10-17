@@ -53,28 +53,6 @@ namespace CountlySDK
         public static Countly Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        // Current version of the Count.ly SDK as a displayable string.
-        private const string sdkVersion = "18.01";
-
-        // How often update session is sent
-        private const int updateInterval = 60;
-
-        // Server url provided by a user
-        private static string ServerUrl;
-
-        // Application key provided by a user
-        private static string AppKey;
-
-        // Application version provided by a user
-        private static string AppVersion;
-
-        // Indicates sync process with a server
-        private static bool uploadInProgress;
-
-        //if stored event/sesstion/exception upload should be defered to a later time
-        //if set to true, upload will not happen, but will just return "true"
-        //data will still be saved in their respective files
-        internal static bool deferUpload = false;
 
         // File that stores events objects
         private const string eventsFilename = "events.xml";
@@ -84,9 +62,6 @@ namespace CountlySDK
         private const string exceptionsFilename = "exceptions.xml";
         // File that stores user details object
         private const string userDetailsFilename = "userdetails.xml";
-
-        // Used for thread-safe operations
-        private static object sync = new object();
 
         //methods for generating device ID
         public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields };
@@ -186,10 +161,6 @@ namespace CountlySDK
 
         }
 
-        private static string breadcrumb = String.Empty;
-
-        // Start session timestamp
-        private static DateTime startTime;
         // Update session timer
         private static DispatcherTimer Timer;
         //holds device info
