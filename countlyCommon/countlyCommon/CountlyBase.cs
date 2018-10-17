@@ -649,6 +649,23 @@ namespace CountlySDK.CountlyCommon
             return await Countly.Instance.DeviceData.GetDeviceId();
         }
 
+        protected bool IsServerURLCorrect(String url)
+        {
+            if (String.IsNullOrEmpty(url))//todo, in future replace with "String.IsNullOrWhiteSpace"
+            {
+                return false;
+            }
+            return true;
+        }
+
+        protected bool IsAppKeyCorrect(String appKey)
+        {
+            if (String.IsNullOrEmpty(appKey))//todo, in future replace with "String.IsNullOrWhiteSpace"
+            {
+                return false;
+            }
+            return true;
+        }
 
         protected abstract void SessionTimerStart();
         protected abstract void SessionTimerStop();
