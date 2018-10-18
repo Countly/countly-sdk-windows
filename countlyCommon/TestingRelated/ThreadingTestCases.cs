@@ -37,7 +37,10 @@ namespace TestProject_common
         {
             this.output = output;
             threadSync = new ManualResetEvent(false);
+            Storage.Instance.fileSystem = FileSystem.Current;
+            Countly.Halt();
             TestHelper.CleanDataFiles();
+            //Countly.Instance.deferUpload = true;
 
             Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
         }

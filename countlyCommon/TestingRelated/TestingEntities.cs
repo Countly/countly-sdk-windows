@@ -18,9 +18,7 @@ namespace TestProject_common
     public class TestingEntities : IDisposable
     {
         ITestOutputHelper output;
-
-        const int itemAmountInLargeList = 150;
-
+        
         /// <summary>
         /// Test setup
         /// </summary>
@@ -746,75 +744,6 @@ namespace TestProject_common
             Segmentation si2 = JsonConvert.DeserializeObject<Segmentation>(s);
 
             Assert.Equal(si1, si2);
-        }
-
-        [Fact]
-        public void SerializingDCSEntitiesListEvent()
-        {
-            List<CountlyEvent> eventList = TestHelper.CreateListEvents(itemAmountInLargeList);
-            String s = TestHelper.DCSSerialize(eventList);
-            List<CountlyEvent> eventList2 = TestHelper.DCSDeserialize<List<CountlyEvent>>(s);
-
-            Assert.Equal(eventList, eventList2);
-        }
-
-        [Fact]
-        public void SerializingDCSEntitiesListException()
-        {
-            List<ExceptionEvent> exceptionList = TestHelper.CreateListExceptions(itemAmountInLargeList);
-            String s = TestHelper.DCSSerialize(exceptionList);
-            List<ExceptionEvent> exceptionList2 = TestHelper.DCSDeserialize<List<ExceptionEvent>>(s);
-
-            Assert.Equal(exceptionList, exceptionList2);
-        }
-
-        [Fact]
-        public void SerializingDCSEntitiesListSession()
-        {
-            List<SessionEvent> sessionList = TestHelper.CreateListSessions(itemAmountInLargeList);
-            String s = TestHelper.DCSSerialize(sessionList);
-            List<SessionEvent> sessionList2 = TestHelper.DCSDeserialize<List<SessionEvent>>(s);
-
-            Assert.Equal(sessionList, sessionList2);
-        }
-
-        [Fact]
-        public void SerializingDCSEntitiesUserDetails()
-        {
-            CountlyUserDetails cud = TestHelper.CreateCountlyUserDetails(0, 0);
-            String s = TestHelper.DCSSerialize(cud);
-            CountlyUserDetails cud2 = TestHelper.DCSDeserialize<CountlyUserDetails>(s);
-
-            Assert.Equal(cud, cud2);
-        }
-
-        [Fact]
-        public async void BasicStorage()
-        {
-            const String filename = "SampleFilename.xml";
-
-            List<String> sampleValues = new List<string>();
-            sampleValues.Add("Book");
-            sampleValues.Add("Car");
-
-            TestHelper.StorageSerDesComp<List<String>>(sampleValues, filename);
-        }
-
-        [Fact]
-        public async void StorageCollections()
-        {
-            int itemAmount = 150;
-            List<SessionEvent> sessionList = TestHelper.CreateListSessions(itemAmount);
-            List<ExceptionEvent> exceptionList = TestHelper.CreateListExceptions(itemAmount);
-            List<CountlyEvent> eventList = TestHelper.CreateListEvents(itemAmount);
-            CountlyUserDetails cud = TestHelper.CreateCountlyUserDetails(0, 0);
-            ExceptionEvent unhandledException = TestHelper.CreateExceptionEvent(0);
-
-            TestHelper.StorageSerDesComp<List<SessionEvent>>(sessionList, Countly.sessionsFilename);
-            TestHelper.StorageSerDesComp<List<ExceptionEvent>>(exceptionList, Countly.exceptionsFilename);
-            TestHelper.StorageSerDesComp<List<CountlyEvent>>(eventList, Countly.eventsFilename);
-            TestHelper.StorageSerDesComp<CountlyUserDetails>(cud, Countly.userDetailsFilename);
-            TestHelper.StorageSerDesComp<ExceptionEvent>(unhandledException, Countly.unhandledExceptionFilename);
         }
     }
 }

@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using PCLStorage;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -25,6 +26,7 @@ namespace TestProject_common
         public CountlyTestCases(ITestOutputHelper output)
         {
             this.output = output;
+            Countly.Halt();
             TestHelper.CleanDataFiles();
             Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
         }
@@ -60,9 +62,9 @@ namespace TestProject_common
         public async void SettingUserDetailsMultiple()
         {
             CountlyUserDetails cud = Countly.UserDetails;
-            for(int a = 0; a < 5; a++)
+            for(int a = 0; a < 2; a++)
             {
-                for(int b = 0; b < 5; b++)
+                for(int b = 0; b < 2; b++)
                 {
                     TestHelper.PopulateCountlyUserDetails(cud, a, b);
                 }
@@ -70,6 +72,24 @@ namespace TestProject_common
             
             bool res = await Countly.Instance.Upload();
 
+            Assert.True(res);
+        }
+
+        [Fact]
+        public void ReadWriteDummyImage()
+        {
+            MemoryStream ms = TestHelper.MemoryStreamRead(TestHelper.testDataLocation + "\\sample_image.png");
+            TestHelper.MemoryStreamWrite("out.png", ms);
+            ms.Close();
+        }
+
+        [Fact]
+        public async void UploadingUserPicture()
+        {
+            //todo, test is succeeding, but not really uploading
+            MemoryStream ms = TestHelper.MemoryStreamRead(TestHelper.testDataLocation + "\\sample_image.png");
+
+            var res = await Countly.Instance.UploadUserPicture(ms);
             Assert.True(res);
         }
 

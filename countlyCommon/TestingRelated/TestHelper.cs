@@ -18,6 +18,8 @@ namespace TestProject_common
 {
     internal class TestHelper
     {
+        public const String testDataLocation = "..\\..\\..\\..\\countlyCommon\\TestingRelated\\TestContent";
+
         //list of generic string values
         public static String[] v = new string[] { "123", "234", "345", "a", "b", "c", "d", "e", "f", "t", "u", "p", "s", "g", "1t", "1u", "1p", "12s", "12g", "12t", "1u2", "12p", "122", "12g" };
         public static int[] iv = new int[] { 12, 23, 34, 45, 56, 67, 52, 23, 76, 975, 3345 };
@@ -246,7 +248,14 @@ namespace TestProject_common
 
         public static void ValidateDataPointUpload()
         {
-            while (Countly.Instance.Events.Count > 0 || Countly.Instance.Exceptions.Count > 0 || Countly.Instance.Sessions.Count > 0)
+            if (Countly.Instance.deferUpload)
+            {
+                return;
+            }
+
+            while (Countly.Instance.Events.Count > 0 || 
+                Countly.Instance.Exceptions.Count > 0 || 
+                Countly.Instance.Sessions.Count > 0)                
             {
                 Thread.Sleep(100);
                 if (!Countly.Instance.uploadInProgress)
@@ -263,11 +272,12 @@ namespace TestProject_common
                 Storage.Instance.fileSystem = FileSystem.Current;
             }
 
-            await Storage.Instance.DeleteFile(Countly.eventsFilename);
-            await Storage.Instance.DeleteFile(Countly.exceptionsFilename);
-            await Storage.Instance.DeleteFile(Countly.sessionsFilename);
-            await Storage.Instance.DeleteFile(Countly.unhandledExceptionFilename);
-            await Storage.Instance.DeleteFile(Countly.userDetailsFilename);
+            Storage.Instance.DeleteFile(Countly.eventsFilename).Wait();
+            Storage.Instance.DeleteFile(Countly.exceptionsFilename).Wait();
+            Storage.Instance.DeleteFile(Countly.sessionsFilename).Wait();
+            Storage.Instance.DeleteFile(Countly.unhandledExceptionFilename).Wait();
+            Storage.Instance.DeleteFile(Countly.userDetailsFilename).Wait();
+            Storage.Instance.DeleteFile(Device.deviceFilename).Wait();
         }
 
         public static string DCSSerialize(object obj)
@@ -292,6 +302,68 @@ namespace TestProject_common
                 stream.Position = 0;
                 DataContractSerializer deserializer = new DataContractSerializer(toType);
                 return (T)deserializer.ReadObject(stream);
+            }
+        }
+
+
+        public static void MemoryStreamWrite(String filepath, MemoryStream ms)
+        {
+            ms.Seek(0, SeekOrigin.Begin);//go to start of stream
+            using (FileStream file = new FileStream(filepath, FileMode.Create, System.IO.FileAccess.Write))
+            {
+                //file.Write(ms.GetBuffer(), 0, (int)file.Length);
+
+
+                byte[] bytes = new byte[ms.Length];
+                //ms.Read(bytes, 0, (int)ms.Length);
+
+                ReadWholeArray(ms, bytes);
+                file.Write(bytes, 0, bytes.Length);
+                //ms.Close();
+            }
+        }
+
+        public static MemoryStream MemoryStreamRead(String filepath)
+        {
+            MemoryStream ms = new MemoryStream();
+            using (FileStream file = new FileStream(filepath, FileMode.Open, System.IO.FileAccess.Read))
+            {
+                //ms.SetLength(file.Length);
+                //file.Read(ms.GetBuffer(), 0, (int)file.Length);
+
+                byte[] bytes = new byte[file.Length];
+                ReadWholeArray(file, bytes);
+                //file.Read(bytes, 0, (int)file.Length);
+                ms.Write(bytes, 0, (int)file.Length);
+            }
+            return ms;
+        }
+
+
+
+        /// <summary>
+        /// Reads data into a complete array, throwing an EndOfStreamException
+        /// if the stream runs out of data first, or if an IOException
+        /// naturally occurs.
+        /// </summary>
+        /// <param name="stream">The stream to read data from</param>
+        /// <param name="data">The array to read bytes into. The array
+        /// will be completely filled from the stream, so an appropriate
+        /// size must be given.</param>
+        /// http://jonskeet.uk/csharp/readbinary.html
+        public static void ReadWholeArray(Stream stream, byte[] data)
+        {
+            int offset = 0;
+            int remaining = data.Length;
+            while (remaining > 0)
+            {
+                int read = stream.Read(data, offset, remaining);
+                if (read <= 0)
+                {
+                    throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
+                }
+                remaining -= read;
+                offset += read;
             }
         }
     }
