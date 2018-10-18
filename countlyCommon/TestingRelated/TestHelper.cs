@@ -2,11 +2,17 @@
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
+using CountlySDK.Helpers;
+using PCLStorage;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace TestProject_common
 {
@@ -170,6 +176,123 @@ namespace TestProject_common
             cust.Add(v[index + 3], v[index + 4]);
             
             return ce;
+        }
+
+        public static List<CountlyEvent> CreateListEvents(int count)
+        {
+            List<CountlyEvent> eventList = new List<CountlyEvent>();
+
+            for (int a = 0; a < count; a++)
+            {
+                CountlyEvent ce = TestHelper.CreateCountlyEvent(a % 5);
+                eventList.Add(ce);
+            }
+
+            return eventList;
+        }
+
+        public static List<ExceptionEvent> CreateListExceptions(int count)
+        {
+            List<ExceptionEvent> exceptionList = new List<ExceptionEvent>();
+
+            for (int a = 0; a < count; a++)
+            {
+                ExceptionEvent ce = TestHelper.CreateExceptionEvent(a % 5);
+                exceptionList.Add(ce);
+            }
+
+            return exceptionList;
+        }
+
+        public static List<SessionEvent> CreateListSessions(int count)
+        {
+            List<SessionEvent> sessionList = new List<SessionEvent>();
+
+            for (int a = 0; a < count; a++)
+            {
+                SessionEvent se;
+                switch (a % 3)
+                {
+                    case 0:
+                        se = TestHelper.CreateBeginSession(a % 5, a % 4);
+                        break;
+                    case 1:
+                        se = TestHelper.CreateEndSession(a % 5);
+                        break;
+                    case 2:
+                    default:
+                        se = TestHelper.CreateUpdateSession(a % 5, a % 6);
+                        break;
+                }
+
+                sessionList.Add(se);
+            }
+
+            return sessionList;
+        }
+
+        public static async void StorageSerDesComp<T>(T obj, String filename) where T : class
+        {
+            await Storage.Instance.DeleteFile(filename);
+            T res1 = await Storage.Instance.LoadFromFile<T>(filename);
+            Assert.Null(res1);
+
+            await Storage.Instance.SaveToFile<T>(filename, obj);
+
+            T res = await Storage.Instance.LoadFromFile<T>(filename);
+
+            Assert.Equal(obj, res);
+        }
+
+        public static void ValidateDataPointUpload()
+        {
+            while (Countly.Instance.Events.Count > 0 || Countly.Instance.Exceptions.Count > 0 || Countly.Instance.Sessions.Count > 0)
+            {
+                Thread.Sleep(100);
+                if (!Countly.Instance.uploadInProgress)
+                {
+                    Countly.Instance.Upload();
+                }
+            } 
+        }
+
+        public static async void CleanDataFiles()
+        {
+            if(Storage.Instance.fileSystem == null)
+            {
+                Storage.Instance.fileSystem = FileSystem.Current;
+            }
+
+            await Storage.Instance.DeleteFile(Countly.eventsFilename);
+            await Storage.Instance.DeleteFile(Countly.exceptionsFilename);
+            await Storage.Instance.DeleteFile(Countly.sessionsFilename);
+            await Storage.Instance.DeleteFile(Countly.unhandledExceptionFilename);
+            await Storage.Instance.DeleteFile(Countly.userDetailsFilename);
+        }
+
+        public static string DCSSerialize(object obj)
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (StreamReader reader = new StreamReader(memoryStream))
+            {
+                DataContractSerializer serializer = new DataContractSerializer(obj.GetType());
+                serializer.WriteObject(memoryStream, obj);
+                memoryStream.Position = 0;
+                return reader.ReadToEnd();
+            }
+        }
+
+        public static T DCSDeserialize<T>(string xml)
+        {
+            Type toType = typeof(T);
+            using (Stream stream = new MemoryStream())
+            {
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(xml);
+                stream.Write(data, 0, data.Length);
+                stream.Position = 0;
+                DataContractSerializer deserializer = new DataContractSerializer(toType);
+                return (T)deserializer.ReadObject(stream);
+            }
         }
     }
 }

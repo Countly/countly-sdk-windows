@@ -18,14 +18,14 @@ namespace TestProject_common
         ITestOutputHelper output;
 
         //how many work iterations in each thread
-        public int threadIterations = 10;
+        public int threadIterations = 5;
 
         //wait times in each thread after every iteration
         int threadWaitStart = 50;
         int threadWaitEnd = 200;
 
         //how many copies of thread actions
-        int threadCountMultiplyer = 20;//Does every action so many times
+        int threadCountMultiplyer = 10;//Does every action so many times
 
         //used to start all threads at the same time
         ManualResetEvent threadSync;
@@ -37,6 +37,7 @@ namespace TestProject_common
         {
             this.output = output;
             threadSync = new ManualResetEvent(false);
+            TestHelper.CleanDataFiles();
 
             Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
         }
@@ -46,6 +47,7 @@ namespace TestProject_common
         /// </summary>
         public void Dispose()
         {
+            TestHelper.ValidateDataPointUpload();
             Countly.EndSession().Wait();
         }
 
@@ -60,7 +62,7 @@ namespace TestProject_common
 
             for (int a = 0; a < threadCountMultiplyer; a++)
             {
-                for(int b = 0; b< threadActions.Length; b++)
+                for (int b = 0; b < threadActions.Length; b++)
                 {
                     int idx = b + threadActions.Length * a;
                     int idxA = b;
@@ -70,7 +72,7 @@ namespace TestProject_common
                         Thread.Sleep(sleepTimes[idx]);
                         threadActions[idxA]();
                     })));
-                }                
+                }
             }
 
             //start all threades
@@ -98,7 +100,7 @@ namespace TestProject_common
 
             actionsToDo.Add(ThreadWorkEvents);
             actionsToDo.Add(ThreadWorkExceptions);
-            actionsToDo.Add(ThreadWorkExceptions);
+            actionsToDo.Add(ThreadWorkUserDetails);
 
             return actionsToDo.ToArray();
         }        
@@ -148,7 +150,6 @@ namespace TestProject_common
                         segm2.Add("what", "is");
                         segm2.Add("world", "ending");
                         Countly.RecordEvent(eventKeys[4], 3, 4.3, segm2);
-                        Countly.RecordEvent(eventKeys[5], 2, 5.3, segm2);
                         break;
                     default:
                         break;
@@ -209,9 +210,9 @@ namespace TestProject_common
             for (int a = 0; a < threadIterations; a++)
             {
                 CountlyUserDetails cud = Countly.UserDetails;
-                TestHelper.PopulateCountlyUserDetails(cud, 0, 0);
+                TestHelper.PopulateCountlyUserDetails(cud, a, a);
 
-                bool res = Countly.Instance.UploadUserDetails().Result;
+                bool res = Countly.Instance.Upload().Result;
 
                 Assert.True(res);
                 Thread.Sleep(rnd.Next(threadWaitStart, threadWaitEnd));

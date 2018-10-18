@@ -24,7 +24,8 @@ namespace TestProject_common
         /// </summary>
         public CountlyTestCases(ITestOutputHelper output)
         {
-            this.output = output;   
+            this.output = output;
+            TestHelper.CleanDataFiles();
             Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
         }
 
@@ -33,28 +34,10 @@ namespace TestProject_common
         /// </summary>
         public void Dispose()
         {
+            TestHelper.ValidateDataPointUpload();
             Countly.EndSession().Wait();
-        }
-
-        [Fact]
-        public async void BasicStorage()
-        {
-            const String filename = "SampleFilename.xml";
-
-            List<String> sampleValues = new List<string>();
-            sampleValues.Add("Book");
-            sampleValues.Add("Car");
-
-            await Storage.Instance.DeleteFile(filename);
-            List<String> res1 = await Storage.Instance.LoadFromFile<List<String>>(filename);            
-            Assert.Null(res1);
-
-            await Storage.Instance.SaveToFile<List<String>>(filename, sampleValues);
-
-            List<String> res2 = await Storage.Instance.LoadFromFile<List<String>>(filename);
-
-            Assert.Equal(sampleValues, res2);
-        }
+            
+        }        
 
         [Fact]
         public async void BasicDeviceID()
@@ -63,12 +46,29 @@ namespace TestProject_common
         }
 
         [Fact]
-        public async void SettingUserDetails()
+        public async void SettingUserDetailsSingle()
         {
             CountlyUserDetails cud = Countly.UserDetails;
-            TestHelper.PopulateCountlyUserDetails(cud, 0, 0);
+            cud.Name = "George";
+
+            bool res = await Countly.Instance.Upload();
+
+            Assert.True(res);
+        }
+
+        [Fact]
+        public async void SettingUserDetailsMultiple()
+        {
+            CountlyUserDetails cud = Countly.UserDetails;
+            for(int a = 0; a < 5; a++)
+            {
+                for(int b = 0; b < 5; b++)
+                {
+                    TestHelper.PopulateCountlyUserDetails(cud, a, b);
+                }
+            }            
             
-            bool res = await Countly.Instance.UploadUserDetails();
+            bool res = await Countly.Instance.Upload();
 
             Assert.True(res);
         }
