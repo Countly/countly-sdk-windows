@@ -31,9 +31,10 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="date">DateTime object</param>
         /// <returns>Unix timestamp</returns>
-        public static Int32 ToUnixTime(DateTime date)
+        public static long ToUnixTime(DateTime date)
         {
-            return (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            TimeSpan ts = date.Subtract(new DateTime(1970, 1, 1));
+            return (long)ts.TotalMilliseconds;
         }
     }
 }

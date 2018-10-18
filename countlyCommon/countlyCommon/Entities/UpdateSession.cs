@@ -38,7 +38,8 @@ namespace CountlySDK.Entities
         /// <param name="duration">Session duration in seconds</param>
         public UpdateSession(string appKey, string deviceId, int duration)
         {
-            Content = String.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timespamp={3}", appKey, deviceId, duration, TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()));
+            long timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            Content = String.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timespamp={3}", appKey, deviceId, duration, timestamp);
         }
 
         [JsonConstructor]
