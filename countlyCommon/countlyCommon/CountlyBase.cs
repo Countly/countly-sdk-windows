@@ -29,7 +29,7 @@ namespace CountlySDK.CountlyCommon
         protected string AppVersion;
 
         // Indicates sync process with a server
-        protected bool uploadInProgress;
+        internal bool uploadInProgress;
 
         //if stored event/sesstion/exception upload should be defered to a later time
         //if set to true, upload will not happen, but will just return "true"
@@ -37,15 +37,15 @@ namespace CountlySDK.CountlyCommon
         internal bool deferUpload = false;
 
         // File that stores events objects
-        protected const string eventsFilename = "events.xml";
+        internal const string eventsFilename = "events.xml";
         // File that stores sessions objects
-        protected const string sessionsFilename = "sessions.xml";
+        internal const string sessionsFilename = "sessions.xml";
         // File that stores exceptions objects
-        protected const string exceptionsFilename = "exceptions.xml";
+        internal const string exceptionsFilename = "exceptions.xml";
         // File that stores temporary stored unhandled exception objects (currently used only for the windows target)
-        protected const string unhandledExceptionFilename = "unhandled_exceptions.xml";
+        internal const string unhandledExceptionFilename = "unhandled_exceptions.xml";
         // File that stores user details object
-        protected const string userDetailsFilename = "userdetails.xml";
+        internal const string userDetailsFilename = "userdetails.xml";
 
         // Events queue
         internal List<CountlyEvent> Events { get; set; }
@@ -187,7 +187,7 @@ namespace CountlySDK.CountlyCommon
         /// Upload sessions, events & exception queues
         /// </summary>
         /// <returns>True if success</returns>
-        protected async Task<bool> Upload()
+        internal async Task<bool> Upload()
         {
             if (deferUpload) return true;
 
@@ -201,6 +201,20 @@ namespace CountlySDK.CountlyCommon
             if (success)
             {
                 success = await UploadExceptions();
+            }
+
+            if (success)
+            {
+                success = await UploadUserDetails();
+            }
+
+            if (success && !uploadInProgress)
+            {
+                if(Sessions.Count > 0 || Exceptions.Count > 0 || Events.Count > 0 || UserDetails.isChanged)
+                {
+                    //work still needs to be done
+                    return await Upload();
+                }
             }
 
             return success;
@@ -639,10 +653,23 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            lock (sync)
+            {
+                // Allow uploading in one thread only
+                if (uploadInProgress) return true;
+
+                uploadInProgress = true;
+            }
+
             ResultResponse resultResponse = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), UserDetails);
 
-            if (resultResponse != null && resultResponse.IsSuccess)
+            lock (sync)
             {
+                uploadInProgress = false;
+            }
+
+            if (resultResponse != null && resultResponse.IsSuccess)
+            {                
                 UserDetails.isChanged = false;
 
                 SaveUserDetails();
@@ -650,7 +677,7 @@ namespace CountlySDK.CountlyCommon
                 return true;
             }
             else
-            {
+            {                
                 return false;
             }
         }
@@ -664,7 +691,7 @@ namespace CountlySDK.CountlyCommon
 
             SaveUserDetails();
 
-            await UploadUserDetails();
+            await Upload();
         }
 
         /// <summary>
