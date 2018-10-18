@@ -48,7 +48,7 @@ namespace CountlySDK.Helpers
         /// <summary>
         /// Countly folder
         /// </summary>
-        private const string folder = "countly";
+        internal const string folder = "countly";
 
         private Dictionary<string, bool> filesInUse = new Dictionary<string, bool>();
         
@@ -257,7 +257,7 @@ namespace CountlySDK.Helpers
                     return true;
                 }
             }
-
+            
             return false;
         }
 
@@ -266,7 +266,7 @@ namespace CountlySDK.Helpers
         /// </summary>
         /// <param name="folder">folder path</param>
         /// <returns>StorageFolder object</returns>
-        private async Task<IFolder> GetFolder(string folder)
+        internal async Task<IFolder> GetFolder(string folder)
         {            
             IFolder storageFolder;
                 

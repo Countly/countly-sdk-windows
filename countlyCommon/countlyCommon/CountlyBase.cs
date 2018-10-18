@@ -730,21 +730,23 @@ namespace CountlySDK.CountlyCommon
 
                 SessionTimerStop();
 
-                Events.Clear();
-                Sessions.Clear();
-                Exceptions.Clear();
+                Events?.Clear();
+                Sessions?.Clear();
+                Exceptions?.Clear();
                 breadcrumb = String.Empty;
+                DeviceData = new Device();
 
                 if (UserDetails != null)
                 {
                     UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
                 }
-                userDetails = new CountlyUserDetails();
+                userDetails = null;//set it null so that it can be loaded from the file system (if needed)
 
-                Storage.Instance.DeleteFile(eventsFilename).RunSynchronously();
-                Storage.Instance.DeleteFile(sessionsFilename).RunSynchronously();
-                Storage.Instance.DeleteFile(exceptionsFilename).RunSynchronously();
-                Storage.Instance.DeleteFile(userDetailsFilename).RunSynchronously();
+                Storage.Instance.DeleteFile(eventsFilename).Wait();
+                Storage.Instance.DeleteFile(sessionsFilename).Wait();
+                Storage.Instance.DeleteFile(exceptionsFilename).Wait();
+                Storage.Instance.DeleteFile(userDetailsFilename).Wait();
+                Storage.Instance.DeleteFile(Device.deviceFilename).Wait();
             }
         }
 

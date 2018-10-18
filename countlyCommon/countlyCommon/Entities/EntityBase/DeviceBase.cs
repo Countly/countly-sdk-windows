@@ -30,7 +30,7 @@ namespace CountlySDK.Entities.EntityBase
     {
         internal enum DeviceIdMethodInternal { none = 0, cpuId = 1, multipleWindowsFields = 2, windowsGUID = 3, winHardwareToken = 4, developerSupplied = 100 };
 
-        protected const string deviceFilename = "device.xml";
+        internal const string deviceFilename = "device.xml";
 
         //currently used device ID
         protected string deviceId;

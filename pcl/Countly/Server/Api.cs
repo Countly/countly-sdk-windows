@@ -54,11 +54,19 @@ namespace CountlySDK
         {
             try
             {
-                UtilityHelper.CountlyLogging("POST " + address);                
+                UtilityHelper.CountlyLogging("POST " + address);
+
+                if(data != null)
+                {
+                    //make sure stream is at start
+                    data.Seek(0, SeekOrigin.Begin);
+                }
+
+                HttpContent httpContent = (data != null) ? new StreamContent(data) : null;
 
                 System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
 
-                System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, (data != null) ? new StreamContent(data) : null);
+                System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, httpContent);
 
                 if (httpResponseMessage.IsSuccessStatusCode)
                 {
