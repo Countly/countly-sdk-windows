@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Diagnostics;
 
 namespace CountlySDK.Helpers
 {
@@ -55,6 +56,14 @@ namespace CountlySDK.Helpers
         {
             String escapedString = System.Uri.EscapeDataString(data);
             return escapedString;
+        }
+
+        public static void CountlyLogging(String msg)
+        {
+            if (Countly.IsLoggingEnabled)
+            {
+                Debug.WriteLine(msg);
+            }
         }
     }
 }

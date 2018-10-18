@@ -1,4 +1,5 @@
 ﻿using CountlySDK.CountlyCommon.Server;
+using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
@@ -51,21 +52,26 @@ namespace CountlySDK
 
         private static async Task<string> RequestAsync(string address, Stream data = null)
         {
-            if (Countly.IsLoggingEnabled)
+            try
             {
-                Debug.WriteLine("POST " + address);
+                UtilityHelper.CountlyLogging("POST " + address);                
+
+                System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
+
+                System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, (data != null) ? new StreamContent(data) : null);
+
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    return await httpResponseMessage.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    return null;
+                }
             }
-
-            System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
-
-            System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, (data != null) ? new StreamContent(data) : null);
-
-            if (httpResponseMessage.IsSuccessStatusCode)
+            catch (Exception ex)
             {
-                return await httpResponseMessage.Content.ReadAsStringAsync();
-            }
-            else
-            {
+                UtilityHelper.CountlyLogging(ex.ToString());
                 return null;
             }
         }
