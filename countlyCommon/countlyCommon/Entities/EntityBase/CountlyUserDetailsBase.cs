@@ -244,8 +244,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         /// <summary>
         /// User custom data
         /// </summary>
-        [JsonIgnore]
-        [DataMemberAttribute]
+        [JsonIgnore]        
         public CustomInfo Custom
         {
             get
@@ -281,6 +280,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         /// Custom data ready for json serializer
         /// </summary>
         [JsonProperty("custom")]
+        [DataMemberAttribute]
         private Dictionary<string, string> _custom
         {
             get

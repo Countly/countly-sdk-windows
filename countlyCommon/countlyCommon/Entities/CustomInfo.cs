@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,6 +44,9 @@ namespace CountlySDK.Entities
         [DataMemberAttribute]
         internal List<CustomInfoItem> items { get; set; }
 
+        [JsonIgnore]
+        protected object sync = new object();
+
         /// <summary>
         /// Adds new custom item
         /// </summary>
@@ -57,7 +61,10 @@ namespace CountlySDK.Entities
 
             if (Value != null)
             {
-                items.Add(new CustomInfoItem(Name, Value));
+                lock (sync)
+                {
+                    items.Add(new CustomInfoItem(Name, Value));
+                }
             }
 
             if (CollectionChanged != null)
@@ -70,12 +77,18 @@ namespace CountlySDK.Entities
         /// <param name="Name">item name</param>
         public void Remove(string Name)
         {
-            CustomInfoItem customInfoItem = items.FirstOrDefault(c => c.Name == Name);
+            CustomInfoItem customInfoItem;
+            lock (sync)
+            {
+                customInfoItem = items.FirstOrDefault(c => c.Name == Name);
+                if (customInfoItem != null)
+                {
+                    items.Remove(customInfoItem);
+                }
+            }
 
             if (customInfoItem != null)
             {
-                items.Remove(customInfoItem);
-
                 if (CollectionChanged != null)
                     CollectionChanged();
             }
@@ -86,7 +99,10 @@ namespace CountlySDK.Entities
         /// </summary>
         public void Clear()
         {
-            items.Clear();
+            lock (sync)
+            {
+                items.Clear();
+            }
 
             if (CollectionChanged != null)
                 CollectionChanged();
@@ -101,7 +117,11 @@ namespace CountlySDK.Entities
         {
             get
             {
-                CustomInfoItem customInfoItem = items.FirstOrDefault(c => c.Name == name);
+                CustomInfoItem customInfoItem;
+                lock (sync)
+                {
+                    customInfoItem = items.FirstOrDefault(c => c.Name == name);
+                }
 
                 if (customInfoItem != null)
                 {
@@ -123,7 +143,10 @@ namespace CountlySDK.Entities
         /// </summary>
         public CustomInfo()
         {
-            items = new List<CustomInfoItem>();
+            lock (sync)
+            {
+                items = new List<CustomInfoItem>();
+            }
         }
 
         /// <summary>
@@ -132,13 +155,19 @@ namespace CountlySDK.Entities
         /// <returns></returns>
         internal Dictionary<string, string> ToDictionary()
         {
-            if (items.Count == 0) return null;
+            lock (sync)
+            {
+                if (items.Count == 0) return null;
+            }
 
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
 
-            foreach (CustomInfoItem item in items)
+            lock (sync)
             {
-                dictionary.Add(item.Name, item.Value);
+                foreach (CustomInfoItem item in items)
+                {
+                    dictionary[item.Name] = item.Value;
+                }
             }
 
             return dictionary;
