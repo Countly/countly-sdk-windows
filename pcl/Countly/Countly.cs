@@ -180,12 +180,9 @@ namespace CountlySDK
             SessionTimerStart();
 
             Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, appVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
+            AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
 
-            if (null != SessionStarted)
-            {
-                SessionStarted(null, EventArgs.Empty);
-            }
+            SessionStarted?.Invoke(null, EventArgs.Empty);
         }
 
         /// <summary>

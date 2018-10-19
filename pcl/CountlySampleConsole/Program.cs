@@ -16,9 +16,9 @@ namespace CountlySample
         const String appKey = "APP_key";//put your server APP key here       
         const bool enableDebugOpptions = false;
         public int threadIterations = 100;
-        int threadWaitStart = 100;
-        int threadWaitEnd = 1000;
-        int threadCount = 20;
+        const int threadWaitStart = 100;
+        const int threadWaitEnd = 1000;
+        const int threadCount = 20;
 
         static void Main(string[] args)
         {
@@ -55,6 +55,7 @@ namespace CountlySample
                 Console.WriteLine("4) Change the name of the current user");
                 Console.WriteLine("5) Exit");
                 Console.WriteLine("6) Another caught Exception");
+                Console.WriteLine("7) Sample event without await");
 
                 if (enableDebugOpptions)
                 {
@@ -122,6 +123,11 @@ namespace CountlySample
                 {
                     Console.WriteLine("6");
                     await Countly.RecordException("What is here", "");
+                }
+                else if (cki.Key == ConsoleKey.D7)
+                {
+                    Console.WriteLine("7");
+                    Countly.RecordEvent("Some event");
                 }
                 else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
                 {

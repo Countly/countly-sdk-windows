@@ -50,10 +50,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
 
         protected void CallUserDetailsChanged()
         {
-            if (UserDetailsChanged != null)
-            {
-                UserDetailsChanged();
-            }
+            UserDetailsChanged?.Invoke();
         }
 
         private string name;
@@ -285,7 +282,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         {
             get
             {
-                return Custom.ToDictionary();
+                return Custom?.ToDictionary();
             }
             set
             {

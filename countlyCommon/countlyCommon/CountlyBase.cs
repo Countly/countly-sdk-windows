@@ -131,7 +131,7 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         public static async Task EndSession()
         {
-            Countly.Instance.EndSessionInternal();
+            await Countly.Instance.EndSessionInternal();
         }
 
         protected async Task EndSessionInternal()
@@ -669,6 +669,9 @@ namespace CountlySDK.CountlyCommon
 
             lock (sync)
             {
+                //upload only when needed
+                if (!UserDetails.isChanged) return true;
+
                 // Allow uploading in one thread only
                 if (uploadInProgress) return true;
 
@@ -732,10 +735,10 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         public static async void Halt()
         {
-            Countly.Instance.HaltInternal();
+            await Countly.Instance.HaltInternal();
         }
 
-        protected async void HaltInternal()
+        protected async Task HaltInternal()
         {
             lock (sync)
             {
@@ -755,13 +758,12 @@ namespace CountlySDK.CountlyCommon
                     UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
                 }
                 userDetails = null;//set it null so that it can be loaded from the file system (if needed)
-
-                Storage.Instance.DeleteFile(eventsFilename).Wait();
-                Storage.Instance.DeleteFile(sessionsFilename).Wait();
-                Storage.Instance.DeleteFile(exceptionsFilename).Wait();
-                Storage.Instance.DeleteFile(userDetailsFilename).Wait();
-                Storage.Instance.DeleteFile(Device.deviceFilename).Wait();
             }
+            await Storage.Instance.DeleteFile(eventsFilename);
+            await Storage.Instance.DeleteFile(sessionsFilename);
+            await Storage.Instance.DeleteFile(exceptionsFilename);
+            await Storage.Instance.DeleteFile(userDetailsFilename);
+            await Storage.Instance.DeleteFile(Device.deviceFilename);
         }
 
         /// <summary>
