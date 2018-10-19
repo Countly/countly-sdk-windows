@@ -26,6 +26,7 @@ namespace TestProject_common
         public CountlyTestCases(ITestOutputHelper output)
         {
             this.output = output;
+            Storage.Instance.fileSystem = FileSystem.Current;
             Countly.Halt();
             TestHelper.CleanDataFiles();
             Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
@@ -86,10 +87,15 @@ namespace TestProject_common
         [Fact]
         public async void UploadingUserPicture()
         {
+            CountlyUserDetails cud = Countly.UserDetails;
+            cud.Name = "PinocioWithARealImage";
+
+            var res = await Countly.Instance.Upload();
+
             //todo, test is succeeding, but not really uploading
             MemoryStream ms = TestHelper.MemoryStreamRead(TestHelper.testDataLocation + "\\sample_image.png");
 
-            var res = await Countly.Instance.UploadUserPicture(ms);
+            res = await Countly.Instance.UploadUserPicture(ms);
             Assert.True(res);
         }
 

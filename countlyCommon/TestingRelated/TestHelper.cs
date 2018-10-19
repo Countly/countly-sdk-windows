@@ -27,22 +27,24 @@ namespace TestProject_common
         public static long[] lv = new long[] { 23, 345, 543, 76, 87, 3245, 3543, 9780, 43534, 123, 5634 };
         public static double[] dv = new double[] { 123.43, 456.43, 678.543, 456.23, 765.34, 3.232323, 7.5345435, 878.5452, 98.00496, 35.15766 };
 
-        public static BeginSession CreateBeginSession(int indexData, int indexMetrics)
+        public static string[] locales = new string[] { "pt-BR", "en-US", "nl-NL", "fr-CA", "de-DE", "th-TH", "ja-JP" };
+
+        public static BeginSession CreateBeginSession(int indexData, int indexMetrics, long? timestamp = null)
         {
             Metrics m = CreateMetrics(indexMetrics);
-            BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m);
+            BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m, timestamp);
             return bs;
         }
 
-        public static EndSession CreateEndSession(int index)
+        public static EndSession CreateEndSession(int index, long? timestamp = null)
         {
-            EndSession es = new EndSession(v[index + 0], v[index + 1]);
+            EndSession es = new EndSession(v[index + 0], v[index + 1], timestamp);
             return es;
         }
 
-        public static UpdateSession CreateUpdateSession(int indexData, int indexDuration)
+        public static UpdateSession CreateUpdateSession(int indexData, int indexDuration, long? timestamp = null)
         {
-            UpdateSession us = new UpdateSession(v[indexData + 0], v[indexData + 1], iv[indexDuration]);
+            UpdateSession us = new UpdateSession(v[indexData + 0], v[indexData + 1], iv[indexDuration], timestamp);
             return us;
         }
 
@@ -149,7 +151,8 @@ namespace TestProject_common
 
         public static Metrics CreateMetrics(int index)
         {
-            Metrics m = new Metrics(v[index], v[index + 1], v[index + 2], v[index + 3], v[index + 4], v[index + 5], null);//todo, fix locale
+            String locale = locales[index % locales.Length];
+            Metrics m = new Metrics(v[index], v[index + 1], v[index + 2], v[index + 3], v[index + 4], v[index + 5], locale);//todo, fix locale
 
             return m;
         }

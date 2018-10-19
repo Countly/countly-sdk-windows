@@ -36,5 +36,10 @@ namespace CountlySDK.Helpers
             TimeSpan ts = date.Subtract(new DateTime(1970, 1, 1));
             return (long)ts.TotalMilliseconds;
         }
+
+        public static long UnixTimeNow()
+        {
+            return ToUnixTime(DateTime.Now.ToUniversalTime());
+        }
     }
 }

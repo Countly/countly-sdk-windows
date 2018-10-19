@@ -41,25 +41,26 @@ namespace TestProject_common
         [InlineData(2)]
         public void ComparingEntitiesSession(int i)
         {
-            BeginSession bs0 = TestHelper.CreateBeginSession(i, i);
-            BeginSession bs1 = TestHelper.CreateBeginSession(i, i);
-            BeginSession bs2 = TestHelper.CreateBeginSession(i + 1, i);
-            BeginSession bs3 = TestHelper.CreateBeginSession(i, i + 1);
+            long ts = TimeHelper.UnixTimeNow();
+            BeginSession bs0 = TestHelper.CreateBeginSession(i, i, ts);
+            BeginSession bs1 = TestHelper.CreateBeginSession(i, i, ts);
+            BeginSession bs2 = TestHelper.CreateBeginSession(i + 1, i, ts);
+            BeginSession bs3 = TestHelper.CreateBeginSession(i, i + 1, ts);
 
             Assert.Equal(bs0, bs1);
             Assert.NotEqual(bs1, bs2);
             Assert.NotEqual(bs1, bs3);
 
-            EndSession es0 = TestHelper.CreateEndSession(i);
-            EndSession es1 = TestHelper.CreateEndSession(i);
-            EndSession es2 = TestHelper.CreateEndSession(i + 1);
+            EndSession es0 = TestHelper.CreateEndSession(i, ts);
+            EndSession es1 = TestHelper.CreateEndSession(i, ts);
+            EndSession es2 = TestHelper.CreateEndSession(i + 1, ts);
 
             Assert.Equal(es0, es1);
             Assert.NotEqual(es1, es2);
 
-            UpdateSession us0 = TestHelper.CreateUpdateSession(i, i);
-            UpdateSession us1 = TestHelper.CreateUpdateSession(i, i);
-            UpdateSession us2 = TestHelper.CreateUpdateSession(i + 1, i);
+            UpdateSession us0 = TestHelper.CreateUpdateSession(i, i, ts);
+            UpdateSession us1 = TestHelper.CreateUpdateSession(i, i, ts);
+            UpdateSession us2 = TestHelper.CreateUpdateSession(i + 1, i, ts);
 
             Assert.Equal(us0, us1);
             Assert.NotEqual(us1, us2);
@@ -68,8 +69,9 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesSessionNull()
         {
-            BeginSession bs0 = TestHelper.CreateBeginSession(0, 0);
-            BeginSession bs1 = TestHelper.CreateBeginSession(0, 0);
+            long ts = TimeHelper.UnixTimeNow();
+            BeginSession bs0 = TestHelper.CreateBeginSession(0, 0, ts);
+            BeginSession bs1 = TestHelper.CreateBeginSession(0, 0, ts);
             bs1.Content = bs0.Content;
             
             Assert.Equal(bs0, bs1);
@@ -77,28 +79,28 @@ namespace TestProject_common
             bs1.Content = null;
             Assert.Equal(bs0, bs1);
 
-            bs0 = TestHelper.CreateBeginSession(0, 0);
-            bs1 = TestHelper.CreateBeginSession(0, 0);
+            bs0 = TestHelper.CreateBeginSession(0, 0, ts);
+            bs1 = TestHelper.CreateBeginSession(0, 0, ts);
             bs1.Content = null;
             Assert.NotEqual(bs0, bs1);
             Assert.NotEqual(bs1, bs0);
 
-            EndSession es1 = TestHelper.CreateEndSession(0);
-            EndSession es2 = TestHelper.CreateEndSession(0);
+            EndSession es1 = TestHelper.CreateEndSession(0, ts);
+            EndSession es2 = TestHelper.CreateEndSession(0, ts);
             
             Assert.Equal(es1, es2);
             es1.Content = null;
             es2.Content = null;
             Assert.Equal(es1, es2);
 
-            es1 = TestHelper.CreateEndSession(0);
-            es2 = TestHelper.CreateEndSession(0);
+            es1 = TestHelper.CreateEndSession(0, ts);
+            es2 = TestHelper.CreateEndSession(0, ts);
             es1.Content = null;
             Assert.NotEqual(es1, es2);
             Assert.NotEqual(es2, es1);
 
-            UpdateSession us1 = TestHelper.CreateUpdateSession(0, 0);
-            UpdateSession us2 = TestHelper.CreateUpdateSession(0, 0);
+            UpdateSession us1 = TestHelper.CreateUpdateSession(0, 0, ts);
+            UpdateSession us2 = TestHelper.CreateUpdateSession(0, 0, ts);
 
             Assert.Equal(us1, us2);
             us1.Content = null;
