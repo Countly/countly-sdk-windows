@@ -22,6 +22,8 @@ THE SOFTWARE.
 
 using CountlySDK.CountlyCommon.Entities;
 using System;
+using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CountlySDK.Entities.EntityBase
@@ -261,5 +263,17 @@ namespace CountlySDK.Entities.EntityBase
         }
 
         protected abstract bool GetOnline();
+
+        /// <summary>
+        /// Returns devices current locale
+        /// </summary>
+        public String Locale
+        {
+            get
+            {
+                CultureInfo ci = CultureInfo.CurrentUICulture;
+                return ci.Name;
+            }
+        }
     }
 }

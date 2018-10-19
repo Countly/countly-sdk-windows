@@ -141,7 +141,7 @@ namespace CountlySDK
         /// <param name="appVersion">Application version</param>
         public static async Task StartSession(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
         {
-            Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, fileSystem);
+            await Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, fileSystem);
         }
 
         public async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
@@ -179,7 +179,8 @@ namespace CountlySDK
 
             SessionTimerStart();
 
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, null, null, null, null, appVersion)));
+            Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, appVersion, DeviceData.Locale);
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
 
             if (null != SessionStarted)
             {

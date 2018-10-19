@@ -75,6 +75,13 @@ namespace CountlySDK.Entities
         public string AppVersion { get; set; }
 
         /// <summary>
+        /// Locale
+        /// </summary>
+        [JsonProperty("_locale")]
+        [DataMemberAttribute]
+        public string Locale { get; set; }
+
+        /// <summary>
         /// Creates Metrics object with provided values
         /// </summary>
         /// <param name="OS">Name of the current operating system</param>
@@ -83,7 +90,7 @@ namespace CountlySDK.Entities
         /// <param name="Resolution">Device resolution</param>
         /// <param name="Carrier">Cellular mobile operator</param>
         /// <param name="AppVersion">Application version</param>
-        public Metrics(string OS, string OSVersion, string Device, string Resolution, string Carrier, string AppVersion)
+        public Metrics(string OS, string OSVersion, string Device, string Resolution, string Carrier, string AppVersion, string Locale)
         {
             this.OS = OS;
             this.OSVersion = OSVersion;
@@ -91,6 +98,7 @@ namespace CountlySDK.Entities
             this.Resolution = Resolution;
             this.Carrier = Carrier;
             this.AppVersion = AppVersion;
+            this.Locale = Locale;
         }
 
         /// <summary>

@@ -206,7 +206,8 @@ namespace CountlySDK
 
                 SessionTimerStart();
 
-                await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, AppVersion)));
+                Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, AppVersion, DeviceData.Locale);
+                await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
 
                 if (null != SessionStarted)
                 {

@@ -25,11 +25,11 @@ namespace TestProject_common
         public static int[] iv = new int[] { 12, 23, 34, 45, 56, 67, 52, 23, 76, 975, 3345 };
         public static bool[] bv = new bool[] { true, false };
         public static long[] lv = new long[] { 23, 345, 543, 76, 87, 3245, 3543, 9780, 43534, 123, 5634 };
-        public static double[] dv = new double[] {123.43, 456.43, 678.543, 456.23, 765.34 };
+        public static double[] dv = new double[] { 123.43, 456.43, 678.543, 456.23, 765.34, 3.232323, 7.5345435, 878.5452, 98.00496, 35.15766 };
 
         public static BeginSession CreateBeginSession(int indexData, int indexMetrics)
         {
-            Metrics m = new Metrics(v[indexMetrics + 4], v[indexMetrics + 5], v[indexMetrics + 6], v[indexMetrics + 7], v[indexMetrics + 8], v[indexMetrics + 9]);
+            Metrics m = CreateMetrics(indexMetrics);
             BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m);
             return bs;
         }
@@ -149,7 +149,7 @@ namespace TestProject_common
 
         public static Metrics CreateMetrics(int index)
         {
-            Metrics m = new Metrics(v[index], v[index + 1], v[index + 2], v[index + 3], v[index + 4], v[index + 5]);
+            Metrics m = new Metrics(v[index], v[index + 1], v[index + 2], v[index + 3], v[index + 4], v[index + 5], null);//todo, fix locale
 
             return m;
         }
@@ -171,7 +171,7 @@ namespace TestProject_common
         public static CountlyEvent CreateCountlyEvent(int index)
         {
             Segmentation se = CreateSegmentation(index);
-            CountlyEvent ce = new CountlyEvent(v[index], iv[index], dv[index], se);
+            CountlyEvent ce = new CountlyEvent(v[index], iv[index], dv[index], dv[index + 1], se);
 
             Dictionary<String, String> cust = new Dictionary<string, string>();
             cust.Add(v[index + 1], v[index + 2]);
