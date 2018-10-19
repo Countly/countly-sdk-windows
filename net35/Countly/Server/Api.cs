@@ -1,4 +1,5 @@
 ﻿using CountlySDK.CountlyCommon.Server;
+using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
@@ -25,46 +26,11 @@ namespace CountlySDK
         {
             return await TaskEx.Run(async () =>
             {
-                TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
-
-                try
-                {
-                    string responseJson = await RequestAsync(address, data);
-
-                    if (responseJson != null)
-                    {
-                        if (Countly.IsLoggingEnabled)
-                        {
-                            Debug.WriteLine(responseJson);
-                        }
-
-                        T response = JsonConvert.DeserializeObject<T>(responseJson);
-
-                        tcs.SetResult(response);
-                    }
-                    else
-                    {
-                        if (Countly.IsLoggingEnabled)
-                        {
-                            Debug.WriteLine("Received null response");
-                        }
-                        tcs.SetResult(default(T));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("Encountered an exeption while making a request, " + ex);
-                    }
-                    tcs.SetResult(default(T));
-                }
-
-                return await tcs.Task;
+                return await CallJob<T>(address, data);
             }).ConfigureAwait(false);
         }
 
-        private static async Task<string> RequestAsync(string address, Stream data)
+        protected override async Task<string> RequestAsync(string address, Stream data)
         {
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
 
@@ -72,10 +38,7 @@ namespace CountlySDK
             {
                 try
                 {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("POST " + address);
-                    }
+                    UtilityHelper.CountlyLogging("POST " + address);
 
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
                     request.Method = "POST";

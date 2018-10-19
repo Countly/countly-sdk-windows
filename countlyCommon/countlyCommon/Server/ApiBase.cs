@@ -86,5 +86,37 @@ namespace CountlySDK.CountlyCommon.Server
         }
 
         protected abstract Task<T> Call<T>(string address, Stream data = null);
+
+        protected async Task<T> CallJob<T>(string address, Stream data = null)
+        {
+            TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
+            
+            try
+            {
+                string responseJson = await RequestAsync(address, data);
+
+                if (responseJson != null)
+                {
+                    UtilityHelper.CountlyLogging(responseJson);
+
+                    T response = JsonConvert.DeserializeObject<T>(responseJson);
+                    tcs.SetResult(response);
+                }
+                else
+                {
+                    UtilityHelper.CountlyLogging("Received null response");
+                    tcs.SetResult(default(T));
+                }
+            }
+            catch (Exception ex)
+            {
+                UtilityHelper.CountlyLogging("Encountered an exeption while making a request, " + ex);
+                tcs.SetResult(default(T));
+            }
+
+            return await tcs.Task;
+        }
+
+        protected abstract Task<string> RequestAsync(string address, Stream data = null);
     }
 }

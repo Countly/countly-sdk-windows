@@ -26,31 +26,11 @@ namespace CountlySDK
         {
             return Task.Run<T>(async () =>
             {
-                TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
-
-                try
-                {
-                    string responseJson = await RequestAsync(address, data);
-
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine(responseJson);
-                    }
-
-                    T response = JsonConvert.DeserializeObject<T>(responseJson);
-
-                    tcs.SetResult(response);
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetResult(default(T));
-                }
-
-                return await tcs.Task;
+                return await CallJob<T>(address, data);
             });
         }
 
-        private static async Task<string> RequestAsync(string address, Stream data = null)
+        protected override async Task<string> RequestAsync(string address, Stream data = null)
         {
             try
             {
