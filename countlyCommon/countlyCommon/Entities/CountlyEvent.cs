@@ -58,6 +58,13 @@ namespace CountlySDK.Entities
         public double? Sum { get; set; }
 
         /// <summary>
+        /// Duration of event, can be null
+        /// </summary>
+        [DataMemberAttribute]
+        [JsonProperty("dur")]
+        public double? Duration { get; set; }
+
+        /// <summary>
         /// Segmentation parameter
         /// </summary>        
         [DataMemberAttribute]
@@ -103,7 +110,7 @@ namespace CountlySDK.Entities
         /// <param name="Count">Count parameter, must me positive number</param>
         /// <param name="Sum">Sum parameter, can be null</param>
         /// <param name="Segmentation">Segmentation parameter</param>
-        public CountlyEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
+        public CountlyEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(Key))
             {
@@ -118,7 +125,8 @@ namespace CountlySDK.Entities
             this.Key = Key;
             this.Count = Count;
             this.Sum = Sum;
-            this.Segmentation = Segmentation;           
+            this.Segmentation = Segmentation;
+            this.Duration = Duration;
         }
 
         public int CompareTo(CountlyEvent other)
@@ -137,6 +145,13 @@ namespace CountlySDK.Entities
                 if (Sum == null) { return -1; }
                 if (other.Sum == null) { return 1; }
                 if (!Sum.Equals(other.Sum)) { return Sum.Value.CompareTo(other.Sum.Value); }
+            }
+
+            if (!(Duration == null && other.Duration == null))
+            {
+                if (Duration == null) { return -1; }
+                if (other.Duration == null) { return 1; }
+                if (!Duration.Equals(other.Duration)) { return Duration.Value.CompareTo(other.Duration.Value); }
             }
 
             if (!(segmentation == null && other.segmentation == null))

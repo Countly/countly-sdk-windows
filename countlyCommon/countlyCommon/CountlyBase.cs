@@ -303,7 +303,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key)
         {
-            return Countly.Instance.RecordEventInternal(Key, 1, null, null);
+            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null);
         }
 
         /// <summary>
@@ -314,7 +314,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count)
         {
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null);
         }
 
         /// <summary>
@@ -324,9 +324,9 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Count">Count to associate with the event, should be more than zero</param>
         /// <param name="Sum">Sum to associate with the event</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        public static Task<bool> RecordEvent(string Key, int Count, double Sum)
+        public static Task<bool> RecordEvent(string Key, int Count, double? Sum)
         {
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null);
         }
 
         /// <summary>
@@ -338,7 +338,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, Segmentation Segmentation)
         {
-            return Countly.Instance.RecordEventInternal(Key, Count, null, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation);
         }
 
         /// <summary>
@@ -349,9 +349,23 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        public static Task<bool> RecordEvent(string Key, int Count, double Sum, Segmentation Segmentation)
+        public static Task<bool> RecordEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation);
+        }
+
+        /// <summary>
+        /// Records a custom event with the specified segmentation values, count and a sum
+        /// </summary>
+        /// <param name="Key">Name of the custom event, required, must not be the empty string</param>
+        /// <param name="Count">Count to associate with the event, should be more than zero</param>
+        /// <param name="Sum">Sum to associate with the event</param>
+        /// /// <param name="Sum">Event duration</param>
+        /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+        /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        {
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation);
         }
 
         /// <summary>
@@ -362,14 +376,14 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, Segmentation Segmentation)
+        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl))
             {
                 return false;
             }
 
-            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Segmentation);
+            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation);
 
             bool saveSuccess = false;
             lock (sync)

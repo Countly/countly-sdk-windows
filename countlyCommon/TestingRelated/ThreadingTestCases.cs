@@ -129,7 +129,7 @@ namespace TestProject_common
 
             for (int a = 0; a < threadIterations; a++)
             {
-                int choice = a % 5;
+                int choice = a % 6;
 
                 switch (choice)
                 {
@@ -155,6 +155,11 @@ namespace TestProject_common
                         Countly.RecordEvent(eventKeys[4], 3, 4.3, segm2);
                         break;
                     default:
+                    case 5:
+                        Segmentation segm3 = new Segmentation();
+                        segm3.Add("what3", "is");
+                        segm3.Add("world2", "ending");
+                        Countly.RecordEvent(eventKeys[4], 3, 4.3, 6.7, segm3);
                         break;
                 }
 

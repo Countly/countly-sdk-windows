@@ -149,11 +149,16 @@ namespace TestProject_common
             res = await Countly.RecordEvent("Some event2", 123, 456);
             Assert.True(res);
 
+            res = await Countly.RecordEvent("Some event3", 4234, 1236.12, 234.5, null);
+            Assert.True(res);
+
             Segmentation segm = new Segmentation();
             segm.Add("oneKey", "SomeValue");
             segm.Add("anotherKey", "SomeOtherValue");
 
-            res = await Countly.RecordEvent("Some event3", 123, 456, segm);
+            res = await Countly.RecordEvent("Some event4", 123, 456, segm);
+
+            res = await Countly.RecordEvent("Some event5", 123, 456, 42.54, segm);
             Assert.True(res);
         }
     }
