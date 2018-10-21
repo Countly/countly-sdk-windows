@@ -30,46 +30,38 @@ namespace CountlySDK
             }).ConfigureAwait(false);
         }
 
-        protected override async Task<string> RequestAsync(string address, Stream data)
+        protected override async Task<string> RequestAsync(string address, Stream data = null)
         {
-            TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
-
-            await Task.Factory.StartNew(() =>
+            try
             {
-                try
+                UtilityHelper.CountlyLogging("POST " + address);
+
+                //make sure stream is at start
+                data?.Seek(0, SeekOrigin.Begin);
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
+                request.Method = "POST";
+                request.ContentType = "application/json";
+
+                if (data != null)
                 {
-                    UtilityHelper.CountlyLogging("POST " + address);
-
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
-                    request.Method = "POST";
-                    request.ContentType = "application/json";
-
-                    if (data != null)
+                    using (var stream = request.GetRequestStream())
                     {
-                        using (var stream = request.GetRequestStream())
-                        {
-                            CopyStream(data, stream);
+                        CopyStream(data, stream);
 
-                            stream.Flush();
-                        }
+                        stream.Flush();
                     }
-
-                    var response = (HttpWebResponse)request.GetResponse();
-
-                    tcs.SetResult(new StreamReader(response.GetResponseStream()).ReadToEnd());
                 }
-                catch (Exception ex)
-                {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        //Debug.WriteLine("Encountered a exception while making a POST request");
-                        //Debug.WriteLine(ex);
-                    }
-                    tcs.SetResult(null);
-                }
-            });
 
-            return await tcs.Task;
+                var response = (HttpWebResponse)request.GetResponse();
+
+                return new StreamReader(response.GetResponseStream()).ReadToEnd();
+            }
+            catch (Exception ex)
+            {
+                UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
+                return null;
+            }
         }
 
         private static void CopyStream(Stream sourceStream, Stream targetStream)

@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -22,12 +23,12 @@ namespace CountlySDK
         public static Api Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        protected override Task<T> Call<T>(string address, Stream data = null)
+        protected override async Task<T> Call<T>(string address, Stream data = null)
         {
-            return Task.Run<T>(async () =>
+            return await Task.Run<T>(async () =>
             {
                 return await CallJob<T>(address, data);
-            });
+            }).ConfigureAwait(false);
         }
 
         protected override async Task<string> RequestAsync(string address, Stream data = null)
@@ -35,12 +36,9 @@ namespace CountlySDK
             try
             {
                 UtilityHelper.CountlyLogging("POST " + address);
-
-                if(data != null)
-                {
-                    //make sure stream is at start
-                    data.Seek(0, SeekOrigin.Begin);
-                }
+                
+                //make sure stream is at start
+                data?.Seek(0, SeekOrigin.Begin);
 
                 HttpContent httpContent = (data != null) ? new StreamContent(data) : null;
 
@@ -59,7 +57,7 @@ namespace CountlySDK
             }
             catch (Exception ex)
             {
-                UtilityHelper.CountlyLogging(ex.ToString());
+                UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
                 return null;
             }
         }

@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 
 using HttpClient = Windows.Web.Http.HttpClient;
@@ -49,10 +50,10 @@ namespace CountlySDK
         {
             try
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("POST " + address);
-                }
+                UtilityHelper.CountlyLogging("POST " + address);
+
+                //make sure stream is at start
+                data?.Seek(0, SeekOrigin.Begin);
 
                 var httpResponseMessage = await Client.PostAsync(new Uri(address), (data != null) ? new HttpStreamContent(data.AsInputStream()) : null);
 
@@ -67,11 +68,7 @@ namespace CountlySDK
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    //Debug.WriteLine("Encountered a exception while making a POST request");
-                    //Debug.WriteLine(ex);
-                }
+                UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
                 return null;
             }
         }
