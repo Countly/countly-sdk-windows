@@ -100,6 +100,19 @@ namespace TestProject_common
         }
 
         [Fact]
+        public async void SetLocationSimple()
+        {
+            String loc = "63.445821, 10.898868";
+            bool res = await Countly.Instance.SetLocation(loc);
+        }
+
+        [Fact]
+        public async void DisableLocationSimple()
+        {
+            bool res = await Countly.Instance.DisableLocation();
+        }
+
+        [Fact]
         public async void MultipleExceptions()
         {
             bool res;

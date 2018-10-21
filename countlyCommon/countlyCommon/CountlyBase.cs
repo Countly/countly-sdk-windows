@@ -895,6 +895,31 @@ namespace CountlySDK.CountlyCommon
         protected abstract void SessionTimerStart();
         protected abstract void SessionTimerStop();
 
+        public async Task<bool> SetLocation(String gpsLocation, String ipAddress = null, String country_code = null, String city = null)
+        {
+            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SetLocation'"); }
+
+            if (gpsLocation == null && ipAddress == null && country_code == null && city == null)
+            {
+                return false;
+            }
+
+            //create the required request
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId());
+            String lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
+
+            //add the request to queue and upload it
+            await AddRequest(lr);
+            return await Upload();
+        }
+
+        public async Task<bool> DisableLocation()
+        {
+            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'DisableLocation'"); }
+
+            return await SetLocation("", "", "", "");
+        }
+
         internal bool IsInitialized()
         {
             if(ServerUrl != null && AppKey != null)
