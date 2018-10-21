@@ -183,6 +183,12 @@ namespace TestProject_common
             return ce;
         }
 
+        public static StoredRequest CreateStoredRequest(int index)
+        {
+            StoredRequest br = new StoredRequest(v[index]);
+            return br;
+        }
+
         public static List<CountlyEvent> CreateListEvents(int count)
         {
             List<CountlyEvent> eventList = new List<CountlyEvent>();
@@ -236,6 +242,19 @@ namespace TestProject_common
             return sessionList;
         }
 
+        public static Queue<StoredRequest> CreateQueueStoredRequests(int count)
+        {
+            Queue<StoredRequest> srQueue = new Queue<StoredRequest>();
+
+            for (int a = 0; a < count; a++)
+            {
+                StoredRequest sr = CreateStoredRequest(a % 10);
+                srQueue.Enqueue(sr);
+            }
+
+            return srQueue;
+        }
+
         public static async void StorageSerDesComp<T>(T obj, String filename) where T : class
         {
             await Storage.Instance.DeleteFile(filename);
@@ -258,7 +277,9 @@ namespace TestProject_common
 
             while (Countly.Instance.Events.Count > 0 || 
                 Countly.Instance.Exceptions.Count > 0 || 
-                Countly.Instance.Sessions.Count > 0)                
+                Countly.Instance.Sessions.Count > 0 || 
+                Countly.Instance.StoredRequests.Count > 0 ||
+                Countly.UserDetails.isChanged)                
             {
                 Thread.Sleep(100);
                 if (!Countly.Instance.uploadInProgress)

@@ -72,6 +72,16 @@ namespace TestProject_common
         }
 
         [Fact]
+        public void SerializingDCSEntitiesQueueStoredRequests()
+        {
+            Queue<StoredRequest> srQueue = TestHelper.CreateQueueStoredRequests(itemAmountInLargeList);
+            String s = TestHelper.DCSSerialize(srQueue);
+            Queue<StoredRequest> srQueue2 = TestHelper.DCSDeserialize<Queue<StoredRequest>>(s);
+
+            Assert.Equal(srQueue, srQueue2);
+        }
+
+        [Fact]
         public void SerializingDCSEntitiesUserDetails()
         {
             CountlyUserDetails cud = TestHelper.CreateCountlyUserDetails(0, 0);
@@ -82,7 +92,17 @@ namespace TestProject_common
         }
 
         [Fact]
-        public async void BasicStorage()
+        public void SerializingDCSEntitiesStoredRequest()
+        {
+            StoredRequest sr1 = TestHelper.CreateStoredRequest(0);
+            String s4 = TestHelper.DCSSerialize(sr1);
+            StoredRequest sr2 = TestHelper.DCSDeserialize<StoredRequest>(s4);
+
+            Assert.Equal(sr1, sr2);
+        }
+
+        [Fact]
+        public void BasicStorage()
         {
             const String filename = "SampleFilename.xml";
 
@@ -94,18 +114,20 @@ namespace TestProject_common
         }
 
         [Fact]
-        public async void StorageCollections()
+        public void StorageCollections()
         {
             int itemAmount = 150;
             List<SessionEvent> sessionList = TestHelper.CreateListSessions(itemAmount);
             List<ExceptionEvent> exceptionList = TestHelper.CreateListExceptions(itemAmount);
             List<CountlyEvent> eventList = TestHelper.CreateListEvents(itemAmount);
+            Queue<StoredRequest> requestQueue = TestHelper.CreateQueueStoredRequests(itemAmount);
             CountlyUserDetails cud = TestHelper.CreateCountlyUserDetails(0, 0);
             ExceptionEvent unhandledException = TestHelper.CreateExceptionEvent(0);
 
             TestHelper.StorageSerDesComp<List<SessionEvent>>(sessionList, Countly.sessionsFilename);
             TestHelper.StorageSerDesComp<List<ExceptionEvent>>(exceptionList, Countly.exceptionsFilename);
             TestHelper.StorageSerDesComp<List<CountlyEvent>>(eventList, Countly.eventsFilename);
+            TestHelper.StorageSerDesComp<Queue<StoredRequest>>(requestQueue, Countly.storedRequestsFilename);
             TestHelper.StorageSerDesComp<CountlyUserDetails>(cud, Countly.userDetailsFilename);
             TestHelper.StorageSerDesComp<ExceptionEvent>(unhandledException, Countly.unhandledExceptionFilename);
         }

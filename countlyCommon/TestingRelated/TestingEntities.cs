@@ -643,6 +643,41 @@ namespace TestProject_common
             Assert.NotEqual(ce2, ce1);
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        public void ComparingEntitiesStoredRequest(int i)
+        {
+            long ts = TimeHelper.UnixTimeNow();
+            StoredRequest sr1 = TestHelper.CreateStoredRequest(i);
+            StoredRequest sr2 = TestHelper.CreateStoredRequest(i);
+            StoredRequest sr3 = TestHelper.CreateStoredRequest(i + 1);
+
+            Assert.Equal(sr1, sr2);
+            Assert.NotEqual(sr1, sr3);
+        }
+
+        [Fact]
+        public void ComparingEntitiesStoredRequestNull()
+        {
+            long ts = TimeHelper.UnixTimeNow();
+            StoredRequest sr1 = TestHelper.CreateStoredRequest(0);
+            StoredRequest sr2 = TestHelper.CreateStoredRequest(0);
+
+            Assert.Equal(sr1, sr2);
+            sr1.Request = null;
+            sr2.Request = null;
+            Assert.Equal(sr1, sr2);
+
+            sr1 = TestHelper.CreateStoredRequest(0);
+            sr2 = TestHelper.CreateStoredRequest(0);
+
+            sr2.Request = null;
+            Assert.NotEqual(sr1, sr2);
+            Assert.NotEqual(sr2, sr1);
+        }
+
         [Fact]
         public void SerializingEntitiesSession()
         {
@@ -746,6 +781,16 @@ namespace TestProject_common
             Segmentation si2 = JsonConvert.DeserializeObject<Segmentation>(s);
 
             Assert.Equal(si1, si2);
+        }
+
+        [Fact]
+        public void SerializingEntitiesStoredRequest()
+        {
+            StoredRequest sr1 = TestHelper.CreateStoredRequest(0);
+            String s4 = JsonConvert.SerializeObject(sr1);
+            StoredRequest sr2 = JsonConvert.DeserializeObject<StoredRequest>(s4);
+
+            Assert.Equal(sr1, sr2);
         }
     }
 }

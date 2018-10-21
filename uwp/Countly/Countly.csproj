@@ -151,11 +151,17 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SessionEvent.cs">
       <Link>Entities\SessionEvent.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\StoredRequest.cs">
+      <Link>Entities\StoredRequest.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs">
       <Link>Entities\UpdateSession.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs">
       <Link>Helpers\PhoneNameHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\RequestHelper.cs">
+      <Link>Helpers\RequestHelper.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs">
       <Link>Helpers\StorageBase.cs</Link>

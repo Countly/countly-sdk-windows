@@ -80,6 +80,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\DataStructureSerializationTests.cs">
       <Link>DataStructureSerializationTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
+      <Link>RequestTestCases.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\TestHelper.cs">
       <Link>TestHelper.cs</Link>
     </Compile>

@@ -67,8 +67,7 @@ namespace CountlySDK.Entities
                 }
             }
 
-            if (CollectionChanged != null)
-                CollectionChanged();
+            CollectionChanged?.Invoke();
         }
 
         /// <summary>
@@ -89,8 +88,7 @@ namespace CountlySDK.Entities
 
             if (customInfoItem != null)
             {
-                if (CollectionChanged != null)
-                    CollectionChanged();
+                CollectionChanged?.Invoke();
             }
         }
 
@@ -104,8 +102,7 @@ namespace CountlySDK.Entities
                 items.Clear();
             }
 
-            if (CollectionChanged != null)
-                CollectionChanged();
+            CollectionChanged?.Invoke();
         }
 
         /// <summary>

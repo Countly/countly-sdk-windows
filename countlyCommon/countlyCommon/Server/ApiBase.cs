@@ -1,4 +1,5 @@
-﻿using CountlySDK.CountlyCommon.Server;
+﻿using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Server;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
@@ -85,10 +86,18 @@ namespace CountlySDK.CountlyCommon.Server
             return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}", serverUrl, appKey, deviceId, userDetailsJson), imageStream);
         }
 
+        public async Task<ResultResponse> SendStoredRequest(string serverUrl, StoredRequest request)
+        {
+            Debug.Assert(serverUrl != null);
+            Debug.Assert(request != null);
+            return await Call<ResultResponse>(String.Format("{0}{1}", serverUrl, request.Request));
+        }
+
         protected abstract Task<T> Call<T>(string address, Stream data = null);
 
         protected async Task<T> CallJob<T>(string address, Stream data = null)
         {
+            Debug.Assert(address != null);
             TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
             
             try

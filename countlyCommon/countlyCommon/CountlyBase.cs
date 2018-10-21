@@ -1,4 +1,6 @@
-﻿using CountlySDK.Entities;
+﻿using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using System;
@@ -46,6 +48,8 @@ namespace CountlySDK.CountlyCommon
         internal const string unhandledExceptionFilename = "unhandled_exceptions.xml";
         // File that stores user details object
         internal const string userDetailsFilename = "userdetails.xml";
+        // File that stores unsent stored requests
+        internal const string storedRequestsFilename = "storedRequests.xml";
 
         // Events queue
         internal List<CountlyEvent> Events { get; set; }
@@ -74,6 +78,9 @@ namespace CountlySDK.CountlyCommon
                 return userDetails;
             }
         }
+
+        // StoredRequests queue
+        internal Queue<StoredRequest> StoredRequests { get; set; }
 
         // Used for thread-safe operations
         protected object sync = new object();
@@ -118,7 +125,15 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         protected abstract bool SaveUserDetails();
 
-        protected async void UpdateSessionInternal()
+        internal async Task<bool> SaveStoredRequests()
+        {
+            lock (sync)
+            {
+                return Storage.Instance.SaveToFile<Queue<StoredRequest>>(storedRequestsFilename, StoredRequests).Result;
+            }
+        }
+
+        protected async Task UpdateSessionInternal()
         {
             await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
         }
@@ -189,35 +204,108 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if success</returns>
         internal async Task<bool> Upload()
         {
-            if (deferUpload) return true;
+            bool success = false;
+            bool shouldContinue = false;
 
-            bool success = await UploadSessions();
-
-            if (success)
+            do
             {
-                success = await UploadEvents();
-            }
+                if (deferUpload) return true;
 
-            if (success)
-            {
-                success = await UploadExceptions();
-            }
+                success = await UploadSessions();
 
-            if (success)
-            {
-                success = await UploadUserDetails();
-            }
-
-            if (success && !uploadInProgress)
-            {
-                if(Sessions.Count > 0 || Exceptions.Count > 0 || Events.Count > 0 || UserDetails.isChanged)
+                if (success)
                 {
-                    //work still needs to be done
-                    return await Upload();
+                    success = await UploadEvents();
+                }
+
+                if (success)
+                {
+                    success = await UploadExceptions();
+                }
+
+                if (success)
+                {
+                    success = await UploadUserDetails();
+                }
+
+                if (success)
+                {
+                    success = await UploadStoredRequests();
+                }
+
+                if (success && !uploadInProgress)
+                {
+                    int sC, exC, evC, rC;
+                    bool isChanged;
+
+                    lock (sync)
+                    {
+                        sC = Sessions.Count;
+                        exC = Exceptions.Count;
+                        evC = Events.Count;
+                        rC = StoredRequests.Count;
+                        isChanged = UserDetails.isChanged;
+                    }                
+
+                    if (sC > 0 || exC > 0 || evC > 0 || isChanged)
+                    {
+                        //work still needs to be done
+                        return await Upload();
+                    }
+                }
+            } while (success && shouldContinue);
+
+
+            return success;
+        }
+
+        private async Task<bool> UploadStoredRequests()
+        {
+            StoredRequest sr = null;
+
+            lock (sync)
+            {
+                if (uploadInProgress) return true;
+                uploadInProgress = true;
+
+                if (StoredRequests.Count > 0)
+                {
+                    sr = StoredRequests.Peek();
+                    Debug.Assert(sr != null);
                 }
             }
 
-            return success;
+            if(sr != null)
+            {
+                ResultResponse resultResponse = await Api.Instance.SendStoredRequest(ServerUrl, sr);
+
+                if (resultResponse != null && resultResponse.IsSuccess)
+                {
+                    lock (sync)
+                    {
+                        uploadInProgress = false;
+
+                        //remove the excecuted request
+                        StoredRequest srd = null;
+                        try { srd = StoredRequests.Dequeue(); } catch { }
+                        Debug.Assert(srd != null);
+                        Debug.Assert(srd == sr);
+
+                        bool success = SaveStoredRequests().Result;//todo, handle this in the future                        
+                    }
+                    return true;
+                }
+                else
+                {
+                    lock (sync) { uploadInProgress = false; }
+                    return false;
+                }
+            }
+            else
+            {
+                lock (sync) { uploadInProgress = false; } 
+                return true;
+            }            
         }
 
         /// <summary>
@@ -226,17 +314,13 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         private async Task<bool> UploadSessions()
         {
-            lock (sync)
-            {
-                if (uploadInProgress) return true;
-
-                uploadInProgress = true;
-            }
-
             SessionEvent sessionEvent = null;
 
             lock (sync)
             {
+                if (uploadInProgress) return true;
+                uploadInProgress = true;
+            
                 if (Sessions.Count > 0)
                 {
                     sessionEvent = Sessions[0];
@@ -772,6 +856,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="log">log string</param>
         public static void AddBreadCrumb(string log)
         {
+            Debug.Assert(log != null);
             Countly.Instance.breadcrumb += log + "\r\n";
         }
 
@@ -818,6 +903,21 @@ namespace CountlySDK.CountlyCommon
             }
             return false;
         }
+
+        internal async Task AddRequest(String networkRequest)
+        {
+            Debug.Assert(networkRequest != null);
+
+            if(networkRequest == null) { return; }
+
+            lock (sync)
+            {
+                StoredRequest sr = new StoredRequest(networkRequest);
+                StoredRequests.Enqueue(sr);
+                SaveStoredRequests();
+            }
+        }
+
         public async Task Init(CountlyConfig config)
         {
             if (!IsServerURLCorrect(config.serverUrl))
