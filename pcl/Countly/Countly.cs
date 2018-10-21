@@ -152,28 +152,13 @@ namespace CountlySDK
                 return;
             }
 
-            if (!IsServerURLCorrect(serverUrl))
-            {
-                throw new ArgumentException("invalid server url");
-            }
-
-            if (!IsAppKeyCorrect(appKey))
-            {
-                throw new ArgumentException("invalid application key");
-            }
-
-            ServerUrl = serverUrl;
-            AppKey = appKey;
-            AppVersion = appVersion;
-
             Storage.Instance.fileSystem = fileSystem;
-
-            lock (sync)
+                    
+            if (!IsInitialized())
             {
-                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
-                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
-                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();                
-            }
+                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl };
+                await Init(cc);
+            }        
 
             startTime = DateTime.Now;
 
@@ -192,7 +177,7 @@ namespace CountlySDK
         /// <param name="e"></param>
         private async void UpdateSession(object sender, object e)
         {
-            UpdateSessionInternal();
+            await UpdateSessionInternal();
         }        
 
         protected override void SessionTimerStart()

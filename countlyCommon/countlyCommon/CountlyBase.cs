@@ -809,5 +809,38 @@ namespace CountlySDK.CountlyCommon
 
         protected abstract void SessionTimerStart();
         protected abstract void SessionTimerStop();
+
+        internal bool IsInitialized()
+        {
+            if(ServerUrl != null && AppKey != null)
+            {
+                return true;
+            }
+            return false;
+        }
+        public async Task Init(CountlyConfig config)
+        {
+            if (!IsServerURLCorrect(config.serverUrl))
+            {
+                throw new ArgumentException("invalid server url");
+            }
+
+            if (!IsAppKeyCorrect(config.appKey))
+            {
+                throw new ArgumentException("invalid application key");
+            }
+
+            ServerUrl = config.serverUrl;
+            AppKey = config.appKey;
+            AppVersion = config.appVersion;
+
+            lock (sync)
+            {
+                StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(eventsFilename).Result ?? new Queue<StoredRequest>();
+                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
+                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
+                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
+            }                    
+        }
     }
 }

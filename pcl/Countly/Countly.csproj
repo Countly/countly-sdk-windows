@@ -46,6 +46,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs">
       <Link>Entities\BeginSession.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyConfigBase.cs">
+      <Link>Entities\CountlyConfigBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs">
       <Link>Entities\CountlyEvent.cs</Link>
     </Compile>
@@ -107,6 +110,7 @@
       <Link>Entities\CountlyUserDetails.cs</Link>
     </Compile>
     <Compile Include="Countly.cs" />
+    <Compile Include="Entities\CountlyConfig.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Helpers\TimerHelper.cs" />

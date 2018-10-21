@@ -122,25 +122,10 @@ namespace CountlySDK
                 return;
             }
 
-            if (!Countly.Instance.IsServerURLCorrect(serverUrl))
+            if (!IsInitialized())
             {
-                throw new ArgumentException("invalid server url");
-            }
-
-            if (!Countly.Instance.IsAppKeyCorrect(appKey))
-            {
-                throw new ArgumentException("invalid application key");
-            }
-
-            ServerUrl = serverUrl;
-            AppKey = appKey;
-            AppVersion = appVersion;
-
-            lock (sync)
-            {
-                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
-                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
-                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();                
+                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl };
+                await Init(cc);
             }
 
             DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal) idMethod);
@@ -160,7 +145,7 @@ namespace CountlySDK
         /// <param name="e"></param>
         private async void UpdateSession(object sender, EventArgs e)
         {
-            UpdateSessionInternal();
+            await UpdateSessionInternal();
         }
 
         /// <summary>

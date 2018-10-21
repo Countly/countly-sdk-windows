@@ -112,6 +112,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs">
       <Link>Entities\BeginSession.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyConfigBase.cs">
+      <Link>Entities\CountlyConfigBase.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs">
       <Link>Entities\CountlyEvent.cs</Link>
     </Compile>
@@ -174,6 +177,9 @@
     </Compile>
     <Compile Include="..\..\pcl\Countly\Countly.cs">
       <Link>Countly.cs</Link>
+    </Compile>
+    <Compile Include="..\..\pcl\Countly\Entities\CountlyConfig.cs">
+      <Link>Entities\CountlyConfig.cs</Link>
     </Compile>
     <Compile Include="..\..\pcl\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
