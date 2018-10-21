@@ -42,7 +42,9 @@ namespace TestProject_common
             TestHelper.CleanDataFiles();
             //Countly.Instance.deferUpload = true;
 
-            Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
+            CountlyConfig cc = new CountlyConfig() { serverUrl = ServerInfo.serverURL, appKey = ServerInfo.appKey, appVersion = ServerInfo.appVersion, fileSystem = FileSystem.Current };
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.SessionBegin().Wait();
         }
 
         /// <summary>
@@ -51,7 +53,8 @@ namespace TestProject_common
         public void Dispose()
         {
             TestHelper.ValidateDataPointUpload();
-            Countly.EndSession().Wait();
+            Countly.Instance.SessionEnd().Wait();
+            TestHelper.ValidateDataPointUpload();
         }
 
         [Fact]

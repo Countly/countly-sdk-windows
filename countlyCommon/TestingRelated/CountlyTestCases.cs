@@ -18,18 +18,17 @@ namespace TestProject_common
 {
     public class CountlyTestCases : IDisposable
     {
-        ITestOutputHelper output;
-
         /// <summary>
-        /// Test setup
+        /// Used for testing legacy session control
         /// </summary>
-        public CountlyTestCases(ITestOutputHelper output)
+        public CountlyTestCases()
         {
-            this.output = output;
             Storage.Instance.fileSystem = FileSystem.Current;
             Countly.Halt();
             TestHelper.CleanDataFiles();
-            Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
+            CountlyConfig cc = new CountlyConfig() { serverUrl = ServerInfo.serverURL, appKey = ServerInfo.appKey, appVersion = ServerInfo.appVersion, fileSystem = FileSystem.Current };
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.SessionBegin().Wait();
         }
 
         /// <summary>
@@ -38,8 +37,8 @@ namespace TestProject_common
         public void Dispose()
         {
             TestHelper.ValidateDataPointUpload();
-            Countly.EndSession().Wait();
-            
+            Countly.Instance.SessionEnd().Wait();
+            TestHelper.ValidateDataPointUpload();
         }        
 
         [Fact]
