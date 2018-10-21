@@ -90,6 +90,9 @@ namespace CountlySDK.CountlyCommon
         // Start session timestamp
         protected DateTime startTime;
 
+        // When the last session update was sent
+        protected DateTime lastSessionUpdateTime;
+
         //holds device info
         internal Device DeviceData = new Device();
 
@@ -137,10 +140,12 @@ namespace CountlySDK.CountlyCommon
         {            
             if(elapsedTime == null)
             {
-                elapsedTime = (int)DateTime.Now.Subtract(startTime).TotalSeconds;
+                //calculate elapsed time from the last time update was sent (includes manual calls)
+                elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
             }
 
             Debug.Assert(elapsedTime != null);
+            lastSessionUpdateTime = DateTime.Now;
 
             await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value));
         }

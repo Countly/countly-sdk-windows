@@ -176,6 +176,7 @@ namespace CountlySDK
         protected override async Task SessionBeginInternal()
         {
             startTime = DateTime.Now;
+            lastSessionUpdateTime = startTime;
             SessionTimerStart();
             SessionStarted?.Invoke(null, EventArgs.Empty);
 

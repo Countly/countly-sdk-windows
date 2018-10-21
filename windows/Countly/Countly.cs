@@ -206,6 +206,7 @@ namespace CountlySDK
         protected override async Task SessionBeginInternal()
         {
             startTime = DateTime.Now;
+            lastSessionUpdateTime = startTime;
             SessionTimerStart();
 
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, AppVersion, DeviceData.Locale);
