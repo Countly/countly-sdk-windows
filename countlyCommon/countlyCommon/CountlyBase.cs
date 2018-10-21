@@ -91,7 +91,7 @@ namespace CountlySDK.CountlyCommon
         protected DateTime startTime;
 
         // When the last session update was sent
-        protected DateTime lastSessionUpdateTime;
+        internal DateTime lastSessionUpdateTime;
 
         //holds device info
         internal Device DeviceData = new Device();
@@ -166,7 +166,8 @@ namespace CountlySDK.CountlyCommon
         protected async Task EndSessionInternal()
         {
             SessionTimerStop();
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId()), true);
+            int elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
+            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), null, elapsedTime), true);
         }
 
         /// <summary>

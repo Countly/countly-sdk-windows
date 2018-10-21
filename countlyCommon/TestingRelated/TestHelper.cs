@@ -268,7 +268,7 @@ namespace TestProject_common
             Assert.Equal(obj, res);
         }
 
-        public static void ValidateDataPointUpload()
+        public static async Task ValidateDataPointUpload()
         {
             if (Countly.Instance.deferUpload)
             {
@@ -284,7 +284,7 @@ namespace TestProject_common
                 Thread.Sleep(100);
                 if (!Countly.Instance.uploadInProgress)
                 {
-                    Countly.Instance.Upload();
+                    await Countly.Instance.Upload();
                 }
             } 
         }
@@ -363,8 +363,6 @@ namespace TestProject_common
             return ms;
         }
 
-
-
         /// <summary>
         /// Reads data into a complete array, throwing an EndOfStreamException
         /// if the stream runs out of data first, or if an IOException
@@ -389,6 +387,11 @@ namespace TestProject_common
                 remaining -= read;
                 offset += read;
             }
+        }
+
+        public static CountlyConfig CreateConfig()
+        {
+            return new CountlyConfig() { serverUrl = ServerInfo.serverURL, appKey = ServerInfo.appKey, appVersion = ServerInfo.appVersion, fileSystem = FileSystem.Current };
         }
     }
 }

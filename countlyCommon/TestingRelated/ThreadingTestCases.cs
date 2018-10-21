@@ -42,7 +42,7 @@ namespace TestProject_common
             TestHelper.CleanDataFiles();
             //Countly.Instance.deferUpload = true;
 
-            CountlyConfig cc = new CountlyConfig() { serverUrl = ServerInfo.serverURL, appKey = ServerInfo.appKey, appVersion = ServerInfo.appVersion, fileSystem = FileSystem.Current };
+            CountlyConfig cc = TestHelper.CreateConfig();
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
         }

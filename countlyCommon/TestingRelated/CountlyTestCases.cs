@@ -26,7 +26,7 @@ namespace TestProject_common
             Storage.Instance.fileSystem = FileSystem.Current;
             Countly.Halt();
             TestHelper.CleanDataFiles();
-            CountlyConfig cc = new CountlyConfig() { serverUrl = ServerInfo.serverURL, appKey = ServerInfo.appKey, appVersion = ServerInfo.appVersion, fileSystem = FileSystem.Current };
+            CountlyConfig cc = TestHelper.CreateConfig();
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
         }

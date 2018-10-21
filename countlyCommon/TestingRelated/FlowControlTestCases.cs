@@ -1,5 +1,6 @@
 ﻿using CountlySDK;
 using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.Entities;
 using PCLStorage;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,19 @@ namespace TestProject_common
         public void Dispose()
         {
         }
-        
+
+        [Fact]
+        public async void SimpleControlFlow()
+        {
+            CountlyConfig cc = TestHelper.CreateConfig();
+            await Countly.Instance.Init(cc);
+            await Countly.Instance.SessionBegin();
+            await Countly.Instance.SessionUpdate(10);
+            Countly.Instance.lastSessionUpdateTime = DateTime.Now.AddSeconds(-10);
+            await Countly.Instance.SessionEnd();
+            await TestHelper.ValidateDataPointUpload();
+        }
+
         [Fact]
         public async void LegacyInitSimple()
         {
