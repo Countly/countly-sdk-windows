@@ -133,9 +133,16 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        protected async Task UpdateSessionInternal()
-        {
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), (int)DateTime.Now.Subtract(startTime).TotalSeconds));
+        protected async Task UpdateSessionInternal(int? elapsedTime = null)
+        {            
+            if(elapsedTime == null)
+            {
+                elapsedTime = (int)DateTime.Now.Subtract(startTime).TotalSeconds;
+            }
+
+            Debug.Assert(elapsedTime != null);
+
+            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value));
         }
 
         /// <summary>
@@ -153,14 +160,6 @@ namespace CountlySDK.CountlyCommon
         {
             SessionTimerStop();
             await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId()), true);
-
-            ServerUrl = null;
-            AppKey = null;
-
-            if (UserDetails != null)
-            {
-                UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
-            }
         }
 
         /// <summary>
@@ -968,6 +967,43 @@ namespace CountlySDK.CountlyCommon
                 Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
                 Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
             }                    
+        }
+
+        protected abstract Task SessionBeginInternal();
+
+        /// <summary>
+        /// Start tracking a session
+        /// Should be called only once
+        /// </summary>
+        /// <returns></returns>
+        public async Task SessionBegin()
+        {
+            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
+
+            await SessionBeginInternal();
+        }
+
+        /// <summary>
+        /// Manually update session
+        /// </summary>
+        /// <returns></returns>
+        public async Task SessionUpdate(int elapsedTimeSeconds)
+        {
+            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionUpdate'"); }
+            if (elapsedTimeSeconds < 0) { throw new ArgumentException("Elapsed time can not be negative"); }
+
+            await UpdateSessionInternal(elapsedTimeSeconds);
+        }
+
+        /// <summary>
+        /// End tracking a session
+        /// </summary>
+        /// <returns></returns>
+        public async Task SessionEnd()
+        {
+            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionEnd'"); }
+
+            await Countly.Instance.EndSessionInternal();
         }
     }
 }
