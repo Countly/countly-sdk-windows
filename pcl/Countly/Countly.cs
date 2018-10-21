@@ -139,6 +139,7 @@ namespace CountlySDK
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="appVersion">Application version</param>
+        [Obsolete("static 'StartSession' is deprecated, please use 'Countly.Instance.Init' together with 'Countly.Instance.SessionBegin' in place of this call")]
         public static async Task StartSession(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
         {
             await Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, fileSystem);

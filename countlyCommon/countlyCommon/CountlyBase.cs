@@ -151,8 +151,10 @@ namespace CountlySDK.CountlyCommon
         /// * your closing event
         /// * your App.xaml.cs Application_Deactivated and Application_Closing events.
         /// </summary>
+        [Obsolete("static 'EndSession' is deprecated, please use 'Countly.Instance.SessionEnd' in place of this call")]
         public static async Task EndSession()
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'EndSession'"); }
             await Countly.Instance.EndSessionInternal();
         }
 
@@ -386,6 +388,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
             return Countly.Instance.RecordEventInternal(Key, 1, null, null, null);
         }
 
@@ -397,6 +400,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
             return Countly.Instance.RecordEventInternal(Key, Count, null, null, null);
         }
 
@@ -409,6 +413,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
             return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null);
         }
 
@@ -421,6 +426,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, Segmentation Segmentation)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
             return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation);
         }
 
@@ -434,6 +440,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
             return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation);
         }
 
@@ -448,6 +455,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
             return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation);
         }
 
@@ -568,6 +576,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
             return await RecordException(error, null, null);
         }
 
@@ -579,6 +588,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace = null)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
             return await RecordException(error, stackTrace, null);
         }
 
@@ -589,6 +599,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="stackTrace">exception stacktrace</param>
         protected async Task<bool> RecordUnhandledException(string error, string stackTrace)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
             return await RecordException(error, stackTrace, null, true);
         }
 
@@ -601,6 +612,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
             return await RecordException(error, stackTrace, customInfo, false);
         }
 
@@ -614,6 +626,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
             return await Countly.Instance.RecordExceptionInternal(error, stackTrace, customInfo, unhandled);
         }
 
@@ -855,20 +868,14 @@ namespace CountlySDK.CountlyCommon
         /// <param name="log">log string</param>
         public static void AddBreadCrumb(string log)
         {
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
             Debug.Assert(log != null);
             Countly.Instance.breadcrumb += log + "\r\n";
         }
 
         public static async Task<String> GetDeviceId()
         {
-            if (!Countly.Instance.IsServerURLCorrect(Countly.Instance.ServerUrl))
-            {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("GetDeviceId cannot be called before StartingSession");
-                }
-                return "";
-            }
+            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'GetDeviceId'"); }
 
             return await Countly.Instance.DeviceData.GetDeviceId();
         }

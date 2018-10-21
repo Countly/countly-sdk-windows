@@ -221,6 +221,7 @@ namespace CountlySDK
         /// </summary>
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
+        [Obsolete("static 'StartSession' is deprecated, please use 'Countly.Instance.Init' together with 'Countly.Instance.SessionBegin' in place of this call")]
         public static async Task StartSession(string serverUrl, string appKey, Application application = null)
         {
             await Countly.Instance.StartSessionCommon(serverUrl, appKey, application, false);           
@@ -233,6 +234,7 @@ namespace CountlySDK
         /// </summary>
         /// <param name="serverUrl"></param>
         /// <param name="appKey"></param>
+        [Obsolete("static 'StartBackgroundSession' is deprecated, please use 'Countly.Instance.Init' in place of this call")]
         public static async void StartBackgroundSession(string serverUrl, string appKey)
         {
             await Countly.Instance.StartSessionCommon(serverUrl, appKey, null, true);            
