@@ -7,13 +7,22 @@ namespace CountlySDK.CountlyCommon.Entities
 {
     public class CountlyConfigBase
     {
-        // Server url
+        /// <summary>
+        /// Server url
+        /// [Mandatory field]
+        /// </summary>
         public String serverUrl;
 
-        // Application key
+        /// <summary>
+        /// Application key
+        /// [Mandatory field]
+        /// </summary>
         public String appKey;
 
-        //Application version
+        /// <summary>
+        /// Application version
+        /// [Mandatory field]
+        /// </summary>
         public String appVersion;        
     }
 }

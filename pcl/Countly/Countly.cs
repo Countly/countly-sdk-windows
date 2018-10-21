@@ -144,30 +144,42 @@ namespace CountlySDK
             await Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, fileSystem);
         }
 
-        public async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
+        private async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
         {
             if (ServerUrl != null)
             {
                 // session already active
                 return;
-            }
-
-            Storage.Instance.fileSystem = fileSystem;
+            }            
                     
             if (!IsInitialized())
             {
-                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl };
+                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl, fileSystem = fileSystem };
                 await Init(cc);
-            }        
+            }
 
+            await SessionBeginInternal();
+        }
+
+        public override async Task Init(CountlyConfig config)
+        {
+            if(IsInitialized()) { return; }
+
+            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
+
+            Storage.Instance.fileSystem = config.fileSystem;
+
+            await InitBase(config);
+        }
+
+        protected override async Task SessionBeginInternal()
+        {
             startTime = DateTime.Now;
-
             SessionTimerStart();
-
-            Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, appVersion, DeviceData.Locale);
-            AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
-
             SessionStarted?.Invoke(null, EventArgs.Empty);
+
+            Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
         }
 
         /// <summary>
@@ -192,6 +204,6 @@ namespace CountlySDK
                 Timer.Dispose();
                 Timer = null;
             }
-        }
+        }        
     }
 }

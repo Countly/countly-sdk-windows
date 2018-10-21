@@ -943,7 +943,9 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        public async Task Init(CountlyConfig config)
+        public abstract Task Init(CountlyConfig config);
+
+        protected async Task InitBase(CountlyConfig config)
         {
             if (!IsServerURLCorrect(config.serverUrl))
             {

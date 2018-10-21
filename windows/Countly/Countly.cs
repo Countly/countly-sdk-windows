@@ -149,58 +149,69 @@ namespace CountlySDK
             Countly.Instance.StartSessionInternal(serverUrl, appKey, application, calledFromBackground);
         }
 
-        public async Task StartSessionInternal(string serverUrl, string appKey, Application application = null, bool calledFromBackground = true)
+        private async Task StartSessionInternal(string serverUrl, string appKey, Application application = null, bool calledFromBackground = true)
         {
             if (ServerUrl != null)
             {
                 // session already active
                 return;
-            }
-
-            string appVersion = DeviceData.AppVersion;
-
-            if (application != null)
-            {
-                IsExceptionsLoggingEnabled = true;
-
-                application.UnhandledException -= OnApplicationUnhandledException;
-                application.UnhandledException += OnApplicationUnhandledException;
-            }
+            }                       
 
             if (!IsInitialized())
             {
-                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl };
+                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = DeviceData.AppVersion, serverUrl = serverUrl, application = application };
                 await Init(cc);
-            }       
-
-            String unhandledExceptionValue = Storage.Instance.GetValue<string>(unhandledExceptionFilename, "");
-            ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(unhandledExceptionValue);
-            if(unhandledException != null)
-            {
-                //add the saved unhandled exception to the other ones
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("Found a stored unhandled exception, adding it the the other stored exceptions");
-                }
-                Exceptions.Add(unhandledException);
-                SaveExceptions();
-                SaveUnhandledException(null);
-            }            
+            }                   
 
             if (!calledFromBackground)
             {
-                startTime = DateTime.Now;
-
-                SessionTimerStart();
-
-                Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, AppVersion, DeviceData.Locale);
-                await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
-
-                if (null != SessionStarted)
-                {
-                    SessionStarted(null, EventArgs.Empty);
-                }
+                await SessionBeginInternal();
             }
+        }
+
+        /// <summary>
+        /// Initializing Countly SDK. Must be called before any other calls
+        /// </summary>
+        /// <param name="config">Provide your configuration with this</param>
+        /// <returns></returns>
+        public override async Task Init(CountlyConfig config)
+        {
+            if (IsInitialized()) { return; }
+
+            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
+
+            if (config.application != null)
+            {
+                //add unhandled exception handler
+                IsExceptionsLoggingEnabled = true;
+
+                config.application.UnhandledException -= OnApplicationUnhandledException;
+                config.application.UnhandledException += OnApplicationUnhandledException;
+            }
+
+            await InitBase(config);
+
+            String unhandledExceptionValue = Storage.Instance.GetValue<string>(unhandledExceptionFilename, "");
+            ExceptionEvent unhandledException = JsonConvert.DeserializeObject<ExceptionEvent>(unhandledExceptionValue);
+            if (unhandledException != null)
+            {
+                //add the saved unhandled exception to the other ones
+                UtilityHelper.CountlyLogging("Found a stored unhandled exception, adding it the the other stored exceptions");
+                Exceptions.Add(unhandledException);
+                SaveExceptions();
+                SaveUnhandledException(null);
+            }
+        }
+
+        protected override async Task SessionBeginInternal()
+        {
+            startTime = DateTime.Now;
+            SessionTimerStart();
+
+            Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, DeviceData.Carrier, AppVersion, DeviceData.Locale);
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
+
+            SessionStarted?.Invoke(null, EventArgs.Empty);
         }
 
         /// <summary>

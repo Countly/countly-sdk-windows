@@ -114,7 +114,7 @@ namespace CountlySDK
             Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, idMethod);
         }
 
-        public async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
+        private async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
         {
             if (ServerUrl != null)
             {
@@ -124,17 +124,30 @@ namespace CountlySDK
 
             if (!IsInitialized())
             {
-                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl };
+                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl, deviceIdMethod = idMethod };
                 await Init(cc);
             }
 
-            DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal) idMethod);
+            await SessionBeginInternal();
+        }
 
+        public override async Task Init(CountlyConfig config)
+        {
+            if (IsInitialized()) { return; }
+
+            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Conutly"); }
+
+            await InitBase(config);
+
+            DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod);            
+        }
+
+        protected override async Task SessionBeginInternal()
+        {
             startTime = DateTime.Now;
-
             SessionTimerStart();
 
-            Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, appVersion, DeviceData.Locale);
+            Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
             await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
         }
 
@@ -145,7 +158,7 @@ namespace CountlySDK
         /// <param name="e"></param>
         private async void UpdateSession(object sender, EventArgs e)
         {
-            await UpdateSessionInternal();
+            await UpdateSessionInternal();            
         }
 
         /// <summary>
