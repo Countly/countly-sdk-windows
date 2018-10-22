@@ -33,8 +33,9 @@ namespace TestProject_common
         /// </summary>
         public void Dispose()
         {
-            TestHelper.ValidateDataPointUpload();
+            TestHelper.ValidateDataPointUpload().Wait();
             Countly.EndSession().Wait();
+            TestHelper.ValidateDataPointUpload().Wait();
         }        
     }
 }

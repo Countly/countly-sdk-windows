@@ -18,7 +18,7 @@ namespace TestProject_common
 {
     public class DataStructureSerializationTests : IDisposable
     {
-        
+
         ITestOutputHelper output;
 
         const int itemAmountInLargeList = 150;
@@ -146,9 +146,9 @@ namespace TestProject_common
             File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");
 
             //Thread.Sleep(100);
-    
+
             Countly.Instance.deferUpload = true;
-            Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current).Wait();
+            await Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current);
 
             Assert.Equal(50, Countly.Instance.Events.Count);
             Assert.Equal(50, Countly.Instance.Exceptions.Count);
@@ -164,7 +164,24 @@ namespace TestProject_common
             Assert.Equal("p", cud.Phone);
             Assert.Equal("1t", cud.Picture);
             Assert.Equal("u", cud.Username);
+        }
 
+        [Fact]
+        public async void DeserializeDeviceIdString_18_1()
+        {
+            IFolder folder = await Storage.Instance.GetFolder(Storage.folder);
+            String targetPath = folder.Path + "\\";
+            String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\18_1\\";
+
+            File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");
+            CountlyConfig cc = TestHelper.CreateConfig();
+
+            await Countly.Instance.Init(cc);
+            String deviceId = "B249FB85668941FAA8301E2A5CA95901";
+            Assert.Equal(deviceId, await Countly.GetDeviceId());
+            DeviceId res = await Storage.Instance.LoadFromFile<DeviceId>(Device.deviceFilename);
+            Assert.Equal(deviceId, res.deviceId);
+            Assert.True((DeviceBase.DeviceIdMethodInternal)Countly.DeviceIdMethod.windowsGUID == res.deviceIdMethod);
         }
     }
 }

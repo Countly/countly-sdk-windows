@@ -42,26 +42,27 @@ namespace CountlySDK.Entities
     /// </summary>
     internal class Device : DeviceBase
     {
-        protected override async Task LoadDeviceIDFromStorage()
-        {
-            
-        }
-        protected override async Task SaveDeviceIDToStorage()
-        {
-            
-        }
         protected override DeviceId ComputeDeviceID()
         {
             DeviceId dId;
-            HardwareToken token = HardwareIdentification.GetPackageSpecificToken(null);
-            IBuffer hardwareId = token.Id;
 
-            HashAlgorithmProvider hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
-            IBuffer hashed = hasher.HashData(hardwareId);
+            if (preferredIdMethod == DeviceIdMethodInternal.winHardwareToken)
+            {
+                HardwareToken token = HardwareIdentification.GetPackageSpecificToken(null);
+                IBuffer hardwareId = token.Id;
 
-            string newId = CryptographicBuffer.EncodeToHexString(hashed);
+                HashAlgorithmProvider hasher = HashAlgorithmProvider.OpenAlgorithm(HashAlgorithmNames.Md5);
+                IBuffer hashed = hasher.HashData(hardwareId);
 
-            dId = new DeviceId(newId, DeviceIdMethodInternal.winHardwareToken);
+                string newId = CryptographicBuffer.EncodeToHexString(hashed);
+
+                dId = new DeviceId(newId, DeviceIdMethodInternal.winHardwareToken);
+            }
+            else
+            {
+                //The other remaining option is either Guid or 'developer supplied'
+                dId = CreateGUIDDeviceId();
+            }
 
             return dId;
         }

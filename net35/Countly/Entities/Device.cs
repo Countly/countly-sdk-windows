@@ -33,38 +33,24 @@ namespace CountlySDK.Entities
     /// This class provides several static methods to retrieve information about the current device and operating environment.
     /// </summary>
     internal class Device : DeviceBase
-    {
-        protected override async Task LoadDeviceIDFromStorage()
-        {
-            DeviceId dId = await Storage.Instance.LoadFromFile<DeviceId>(deviceFilename);
-
-            if (dId != null && dId.deviceId != null)
-            {
-                deviceId = dId.deviceId;
-                usedIdMethod = dId.deviceIdMethod;
-            }
-        }
-        protected override async Task SaveDeviceIDToStorage()
-        {
-            //only try saving if the id is not null
-            if(deviceId != null)
-            {
-                DeviceId dId = new DeviceId(deviceId, usedIdMethod);
-
-                await Storage.Instance.SaveToFile<DeviceId>(deviceFilename, dId);
-            }            
-        }
+    {        
         protected override DeviceId ComputeDeviceID()
         {
             DeviceId dId;
 
-            if(preferredIdMethod == DeviceIdMethodInternal.cpuId)
+            if (preferredIdMethod == DeviceIdMethodInternal.cpuId)
             {
                 dId = new DeviceId(OpenUDID.value, DeviceIdMethodInternal.cpuId);
-            } else if(preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields)
+            }
+            else if (preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields)
             {
                 dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
-            } else
+            }
+            else if (preferredIdMethod == DeviceIdMethodInternal.windowsGUID)
+            {
+                dId = CreateGUIDDeviceId();
+            }
+            else
             {
                 dId = new DeviceId(OpenUDID.value, DeviceIdMethodInternal.cpuId);
             }

@@ -36,15 +36,17 @@ namespace TestProject_common
         /// </summary>
         public void Dispose()
         {
-            TestHelper.ValidateDataPointUpload();
+            TestHelper.ValidateDataPointUpload().Wait();
             Countly.Instance.SessionEnd().Wait();
-            TestHelper.ValidateDataPointUpload();
+            TestHelper.ValidateDataPointUpload().Wait();
         }        
 
         [Fact]
         public async void BasicDeviceID()
         {
-
+            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            Assert.NotNull(dId);
+            Assert.NotEqual(0, dId.Length);
         }
 
         [Fact]

@@ -36,25 +36,17 @@ namespace CountlySDK.Entities
     /// </summary>
     internal class Device : DeviceBase
     {   
-        protected override async Task LoadDeviceIDFromStorage()
-        {
-            deviceId = await Storage.Instance.LoadFromFile<string>(deviceFilename);
-        }
-        protected override async Task SaveDeviceIDToStorage()
-        {
-            await Storage.Instance.SaveToFile<string>(deviceFilename, deviceId);
-        }
         protected override DeviceId ComputeDeviceID()
         {
             DeviceId dId;
 
-            Guid guid = Guid.NewGuid();        
-            string newId = guid.ToString().Replace("-", "").ToUpper();
-
-            dId = new DeviceId(newId, DeviceIdMethodInternal.windowsGUID);
+            //the only possible method is Guid and developer supplied
+            //if it's dev supplied and we still need to generate it, then
+            //there is no other way
+            dId = CreateGUIDDeviceId();
 
             return dId;
-        }
+        }        
 
         protected override string GetOS()
         {

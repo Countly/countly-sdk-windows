@@ -54,7 +54,7 @@ namespace CountlySDK
         //-------------SINGLETON-----------------
 
         //methods for generating device ID
-        public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields };        
+        public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields, windowsGUID = DeviceBase.DeviceIdMethodInternal.windowsGUID, developerSupplied = DeviceBase.DeviceIdMethodInternal.developerSupplied };
         
         // Update session timer
         private DispatcherTimer Timer;
@@ -138,9 +138,7 @@ namespace CountlySDK
 
             if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Conutly"); }
 
-            await InitBase(config);
-
-            DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod);            
+            await InitBase(config);            
         }
 
         protected override async Task SessionBeginInternal()

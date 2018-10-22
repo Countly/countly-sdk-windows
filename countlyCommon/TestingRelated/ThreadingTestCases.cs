@@ -52,9 +52,9 @@ namespace TestProject_common
         /// </summary>
         public void Dispose()
         {
-            TestHelper.ValidateDataPointUpload();
+            TestHelper.ValidateDataPointUpload().Wait();
             Countly.Instance.SessionEnd().Wait();
-            TestHelper.ValidateDataPointUpload();
+            TestHelper.ValidateDataPointUpload().Wait();
         }
 
         [Fact]

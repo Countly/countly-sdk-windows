@@ -31,6 +31,7 @@ using CountlySDK.Server.Responses;
 using System.IO;
 using PCLStorage;
 using CountlySDK.CountlyCommon;
+using CountlySDK.Entities.EntityBase;
 
 namespace CountlySDK
 {
@@ -49,6 +50,9 @@ namespace CountlySDK
         internal Countly() { }
         public static Countly Instance { get { return instance; } }
         //-------------SINGLETON-----------------
+
+        //methods for generating device ID
+        public enum DeviceIdMethod { windowsGUID = DeviceBase.DeviceIdMethodInternal.windowsGUID, developerSupplied = DeviceBase.DeviceIdMethodInternal.developerSupplied };
 
         // Raised when the async session is established
         public static event EventHandler SessionStarted;

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static CountlySDK.Entities.EntityBase.DeviceBase;
 
 namespace CountlySDK.CountlyCommon
 {
@@ -972,6 +973,8 @@ namespace CountlySDK.CountlyCommon
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
             AppVersion = config.appVersion;
+
+            await DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
 
             lock (sync)
             {

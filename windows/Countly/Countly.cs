@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 using Windows.System.Threading;
 using System.Diagnostics;
 using CountlySDK.CountlyCommon;
+using CountlySDK.Entities.EntityBase;
 
 namespace CountlySDK
 {
@@ -52,6 +53,9 @@ namespace CountlySDK
         internal Countly() { }
         public static Countly Instance { get { return instance; } }
         //-------------SINGLETON-----------------
+
+        //methods for generating device ID
+        public enum DeviceIdMethod { windowsGUID = DeviceBase.DeviceIdMethodInternal.windowsGUID, winHardwareToken = DeviceBase.DeviceIdMethodInternal.winHardwareToken, developerSupplied = DeviceBase.DeviceIdMethodInternal.developerSupplied };
 
         // Raised when the async session is established
         public static event EventHandler SessionStarted;

@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.Helpers;
 using System;
 using System.Globalization;
 using System.Threading;
@@ -92,14 +93,72 @@ namespace CountlySDK.Entities.EntityBase
             }
         }
 
-        internal void SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod)
+        internal async Task SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod, String suppliedDeviceId)
         {
-            preferredIdMethod = deviceIdMethod;
+            if(suppliedDeviceId != null)
+            {
+                deviceId = suppliedDeviceId;
+                deviceIdMethod = DeviceIdMethodInternal.developerSupplied;
+                await SaveDeviceIDToStorage();
+            }
+            else
+            {
+                preferredIdMethod = deviceIdMethod;
+            }
         }
 
-        protected abstract Task LoadDeviceIDFromStorage();
-        protected abstract Task SaveDeviceIDToStorage();   
+        protected async Task LoadDeviceIDFromStorage()
+        {
+            DeviceId dId = await Storage.Instance.LoadFromFile<DeviceId>(deviceFilename);
+            bool saveAfterLoading = false;
+
+            if (dId == null)
+            {
+                // if it's null then either there is no device Id saved or it's saved 
+                // in the legacy format as just a string. Try deserializing that
+                String backupDeviceId = await Storage.Instance.LoadFromFile<string>(deviceFilename);
+
+                if (backupDeviceId != null)
+                {
+                    //it was in the backup format, assume it's Guid
+                    dId = new DeviceId(backupDeviceId, DeviceIdMethodInternal.windowsGUID);
+                    saveAfterLoading = true;
+                }
+            }
+
+            if (dId != null && dId.deviceId != null)
+            {
+                deviceId = dId.deviceId;
+                usedIdMethod = dId.deviceIdMethod;
+            }
+
+            if (saveAfterLoading)
+            {
+                //it must have been in the legacy format, save it before continueing
+                await SaveDeviceIDToStorage();
+            }
+        }
+
+        protected async Task SaveDeviceIDToStorage()
+        {
+            //only try saving if the id is not null
+            if (deviceId != null)
+            {
+                DeviceId dId = new DeviceId(deviceId, usedIdMethod);
+
+                await Storage.Instance.SaveToFile<DeviceId>(deviceFilename, dId);
+            }
+        }
+
         protected abstract DeviceId ComputeDeviceID();
+
+        protected DeviceId CreateGUIDDeviceId()
+        {
+            Guid guid = Guid.NewGuid();
+            string newId = guid.ToString().Replace("-", "").ToUpper();
+
+            return new DeviceId(newId, DeviceIdMethodInternal.windowsGUID);
+        }
 
         /// <summary>
         /// Returns the display name of the current operating system
