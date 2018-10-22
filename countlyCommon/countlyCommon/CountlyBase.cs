@@ -848,6 +848,7 @@ namespace CountlySDK.CountlyCommon
                 Exceptions?.Clear();
                 breadcrumb = String.Empty;
                 DeviceData = new Device();
+                StoredRequests?.Clear();
 
                 if (UserDetails != null)
                 {
@@ -862,6 +863,7 @@ namespace CountlySDK.CountlyCommon
             await Storage.Instance.DeleteFile(sessionsFilename);
             await Storage.Instance.DeleteFile(exceptionsFilename);
             await Storage.Instance.DeleteFile(userDetailsFilename);
+            await Storage.Instance.DeleteFile(storedRequestsFilename);
             await Storage.Instance.DeleteFile(Device.deviceFilename);
         }
 
@@ -970,7 +972,7 @@ namespace CountlySDK.CountlyCommon
 
             lock (sync)
             {
-                StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(eventsFilename).Result ?? new Queue<StoredRequest>();
+                StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(storedRequestsFilename).Result ?? new Queue<StoredRequest>();
                 Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
                 Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
                 Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();

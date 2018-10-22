@@ -131,7 +131,7 @@ namespace CountlySDK.Helpers
             
                     using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
-                        if (typeof(T) == null || file == null)
+                        if (typeof(T) == null || file != null)
                         {
                             DataContractSerializer ser = new DataContractSerializer(typeof(T));
                             obj = (T)ser.ReadObject(file);
@@ -150,8 +150,6 @@ namespace CountlySDK.Helpers
                     {
                         Debug.WriteLine("countly queue lost");
                     }
-
-                    DeleteFile(Path + @"\" + filename).RunSynchronously();
                 }
             }
 
@@ -175,9 +173,9 @@ namespace CountlySDK.Helpers
             { }
         }
 
-        internal override Task<string> GetFolderPath(string folderName)
+        internal override async Task<string> GetFolderPath(string folderName)
         {
-            throw new NotImplementedException();
+            return System.IO.Directory.GetCurrentDirectory() + @"\" + folderName;
         }
     }
 }

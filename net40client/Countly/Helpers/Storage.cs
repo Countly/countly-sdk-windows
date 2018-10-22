@@ -136,7 +136,7 @@ namespace CountlySDK.Helpers
 
                     using (var file = store.OpenFile(Path.Combine(folder, filename), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
-                        if (typeof(T) == null || file == null)
+                        if (typeof(T) == null || file != null)
                         {
                             DataContractSerializer ser = new DataContractSerializer(typeof(T));
                             obj = (T)ser.ReadObject(file);
@@ -155,8 +155,6 @@ namespace CountlySDK.Helpers
                     {
                         Debug.WriteLine("countly queue lost");
                     }
-
-                    DeleteFile(filename).RunSynchronously();
                 }
             }
 
@@ -174,7 +172,7 @@ namespace CountlySDK.Helpers
                 var store = IsolatedStorageFile.GetUserStoreForAssembly();
                 if (IsFileExists(store, filename))
                 {
-                    store.DeleteFile(filename);
+                    store.DeleteFile(Path.Combine(folder, filename));
                 }
             }
             catch

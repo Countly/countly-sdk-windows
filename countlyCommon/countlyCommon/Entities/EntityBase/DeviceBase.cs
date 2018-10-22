@@ -105,7 +105,8 @@ namespace CountlySDK.Entities.EntityBase
             if(suppliedDeviceId != null)
             {
                 deviceId = suppliedDeviceId;
-                deviceIdMethod = DeviceIdMethodInternal.developerSupplied;
+                usedIdMethod = DeviceIdMethodInternal.developerSupplied;
+                preferredIdMethod = usedIdMethod;
                 await SaveDeviceIDToStorage();
             }
             else
