@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v3.5' ">RUNNING_ON_35</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">RUNNING_ON_40</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\countlyCommon\countlyCommon\CountlyBase.cs" Link="CountlyBase.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs" Link="Entities\BeginSession.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyConfigBase.cs" Link="Entities\CountlyConfigBase.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs" Link="Entities\CountlyEvent.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs" Link="Entities\CustomInfo.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs" Link="Entities\CustomInfoItem.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\DeviceId.cs" Link="Entities\DeviceId.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EndSession.cs" Link="Entities\EndSession.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\CountlyUserDetailsBase.cs" Link="Entities\EntityBase\CountlyUserDetailsBase.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\EntityBase\DeviceBase.cs" Link="Entities\EntityBase\DeviceBase.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\ExceptionEvent.cs" Link="Entities\ExceptionEvent.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Metrics.cs" Link="Entities\Metrics.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\Segmentation.cs" Link="Entities\Segmentation.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SegmentationItem.cs" Link="Entities\SegmentationItem.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SessionEvent.cs" Link="Entities\SessionEvent.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\StoredRequest.cs" Link="Entities\StoredRequest.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs" Link="Entities\UpdateSession.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs" Link="Helpers\PhoneNameHelper.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\RequestHelper.cs" Link="Helpers\RequestHelper.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs" Link="Helpers\StorageBase.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs" Link="Helpers\TimeHelper.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs" Link="Helpers\UtilityHelper.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Server\ApiBase.cs" Link="Server\ApiBase.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs" Link="Server\Responses\ResultResponse.cs" />
+    <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs" Link="Entities\CountlyUserDetails.cs" />
+    <Compile Include="..\..\pcl\Countly\Helpers\TimerHelper.cs" Link="Helpers\TimerHelper.cs" />
+    <Compile Include="..\..\pcl\Countly\Server\Api.cs" Link="Server\Api.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Entities\EntityBase\" />
+    <Folder Include="Server\Responses\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
+  </ItemGroup>
+
+</Project>
