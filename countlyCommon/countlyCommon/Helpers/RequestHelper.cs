@@ -1,6 +1,7 @@
 ﻿using CountlySDK.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -10,7 +11,8 @@ namespace CountlySDK.CountlyCommon.Helpers
     {
         internal static String CreateLocationRequest(String bRequest, String gpsLocation = null, String ipAddress = null, String country_code = null, String city = null)
         {
-            if (bRequest == null) return null;
+            Debug.Assert(bRequest != null);
+            if (bRequest == null) return null;            
 
             if (gpsLocation != null || ipAddress != null || country_code != null || city != null)
             {
@@ -26,6 +28,16 @@ namespace CountlySDK.CountlyCommon.Helpers
             }
 
             return null;
+        }
+
+        internal static String CreateDeviceIdMergeRequest(String bRequest, String oldId)
+        {
+            Debug.Assert(bRequest != null);
+            Debug.Assert(oldId != null);
+            if (bRequest == null) return null;
+
+            String res = String.Format("{0}&old_device_id={1}", bRequest, oldId);
+            return res;
         }
 
         internal static String CreateBaseRequest(string appKey, string deviceId, long? timestamp = null)

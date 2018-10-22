@@ -942,7 +942,7 @@ namespace CountlySDK.CountlyCommon
             return false;
         }
 
-        internal async Task AddRequest(String networkRequest)
+        internal async Task AddRequest(String networkRequest, bool isIdMerge = false)
         {
             Debug.Assert(networkRequest != null);
 
@@ -950,7 +950,7 @@ namespace CountlySDK.CountlyCommon
 
             lock (sync)
             {
-                StoredRequest sr = new StoredRequest(networkRequest);
+                StoredRequest sr = new StoredRequest(networkRequest, isIdMerge);
                 StoredRequests.Enqueue(sr);
                 SaveStoredRequests();
             }
@@ -1035,6 +1035,22 @@ namespace CountlySDK.CountlyCommon
                 await SessionEnd();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 await SessionBegin();
+            }
+            else
+            {
+                //need server merge, therefore send special request
+                String oldId = await DeviceData.GetDeviceId();
+
+                //create the required merge request
+                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId);
+                String dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
+
+                //change device ID
+                await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
+
+                //add the request to queue and upload it
+                await AddRequest(dimr, true);
+                await Upload();
             }
         }
     }

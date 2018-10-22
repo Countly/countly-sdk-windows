@@ -14,16 +14,26 @@ namespace CountlySDK.CountlyCommon.Entities
         [JsonProperty("request")]
         public String Request;
 
-        public StoredRequest(String request)
+        [DataMemberAttribute]
+        [JsonProperty("idMerge")]
+        public bool IdMerge;
+
+        public StoredRequest(String request, bool isIdMerge = false)
         {
             Request = request;
+            IdMerge = isIdMerge;
         }
 
         public int CompareTo(StoredRequest other)
         {
             if (Request == null && other.Request == null)
             {
-                return 0;
+                return IdMerge.CompareTo(other.IdMerge);
+            }
+
+            if (Request.Equals(other.Request))
+            {
+                return IdMerge.CompareTo(other.IdMerge);
             }
             return Request.CompareTo(other.Request);
         }

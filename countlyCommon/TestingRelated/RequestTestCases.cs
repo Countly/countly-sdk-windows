@@ -42,9 +42,6 @@ namespace TestProject_common
         [Fact]
         public void LocationRequestBasic()
         {
-            String res = RequestHelper.CreateLocationRequest(null);
-            Assert.Null(res);
-
             String res2 = RequestHelper.CreateLocationRequest("asd");
             Assert.Null(res2);
 

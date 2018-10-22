@@ -52,6 +52,9 @@ namespace TestProject_common
         [Fact]
         public async void ChengeDeviceIDNoMerge()
         {
+            bool res;
+            res = await Countly.RecordEvent("Some event user1", 123);
+            Assert.True(res);
             String dId = await Countly.Instance.DeviceData.GetDeviceId();
             Assert.NotNull(dId);
             Assert.NotEqual(0, dId.Length);
@@ -61,6 +64,27 @@ namespace TestProject_common
             await Countly.Instance.ChangeDeviceId(newId, false);
             String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
             Assert.Equal(newId, dId2);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            Assert.True(res);
+        }
+
+        [Fact]
+        public async void ChengeDeviceIDWithMerge()
+        {
+            bool res;
+            res = await Countly.RecordEvent("Some event user1", 123);
+            Assert.True(res);
+            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            Assert.NotNull(dId);
+            Assert.NotEqual(0, dId.Length);
+
+            String newId = "qweqwe";
+            Api.Instance.DeviceMergeWaitTime = 500;
+            await Countly.Instance.ChangeDeviceId(newId, true);
+            String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
+            Assert.Equal(newId, dId2);
+            res = await Countly.RecordEvent("Some event same user", 123);
+            Assert.True(res);
         }
 
         [Fact]
