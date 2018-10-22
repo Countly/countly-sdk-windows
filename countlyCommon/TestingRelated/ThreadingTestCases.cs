@@ -229,6 +229,7 @@ namespace TestProject_common
         void ThreadWorkMergeDeviceId()
         {
             Random rnd = new Random(2);
+            Api.Instance.DeviceMergeWaitTime = 500;
             for (int a = 0; a < threadIterations; a++)
             {
                 String deviceId = "SDSDSD" + rnd.Next();

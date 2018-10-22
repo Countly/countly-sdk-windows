@@ -48,7 +48,6 @@ namespace TestProject_common
         [Fact]
         public async void ChengeDeviceIDNoMerge()
         {
-            return;
             bool res;
             res = await Countly.RecordEvent("Some event user1", 123);
             Assert.True(res);

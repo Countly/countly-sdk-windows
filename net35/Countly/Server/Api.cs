@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CountlySDK
@@ -70,6 +71,11 @@ namespace CountlySDK
             int n;
             while ((n = sourceStream.Read(buffer, 0, buffer.Length)) != 0)
                 targetStream.Write(buffer, 0, n);
+        }
+
+        protected override async Task DoSleep(int sleepTime)
+        {
+            Thread.Sleep(sleepTime);
         }
     }
 }

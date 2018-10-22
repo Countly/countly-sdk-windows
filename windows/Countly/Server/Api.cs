@@ -72,5 +72,10 @@ namespace CountlySDK
                 return null;
             }
         }
+
+        protected override async Task DoSleep(int sleepTime)
+        {
+            System.Threading.Tasks.Task.Delay(DeviceMergeWaitTime).Wait();
+        }
     }
 }

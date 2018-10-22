@@ -29,7 +29,7 @@ namespace CountlySDK
             {
                 return await CallJob<T>(address, data);
             }).ConfigureAwait(false);
-        }
+        }      
 
         protected override async Task<string> RequestAsync(string address, Stream data = null)
         {
@@ -60,6 +60,11 @@ namespace CountlySDK
                 UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
                 return null;
             }
+        }
+
+        protected override async Task DoSleep(int sleepTime)
+        {
+            System.Threading.Tasks.Task.Delay(DeviceMergeWaitTime).Wait();
         }
     }
 }

@@ -17,6 +17,8 @@ namespace CountlySDK.CountlyCommon.Server
     {
         internal int DeviceMergeWaitTime = 10000;
 
+        protected abstract Task DoSleep(int sleepTime);
+
         public async Task<ResultResponse> BeginSession(string serverUrl, string appKey, string deviceId, string sdkVersion, string metricsJson)
         {
             return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&sdk_version={3}&begin_session=1&metrics={4}", serverUrl, appKey, deviceId, sdkVersion, UtilityHelper.EncodeDataForURL(metricsJson)));
@@ -96,13 +98,7 @@ namespace CountlySDK.CountlyCommon.Server
 
             if (request.IdMerge)
             {
-#if RUNNING_ON_35
-                Thread.Sleep(DeviceMergeWaitTime);
-#elif RUNNING_ON_40
-                Thread.Sleep(DeviceMergeWaitTime);
-#else
-                System.Threading.Tasks.Task.Delay(DeviceMergeWaitTime).Wait();
-#endif
+                await DoSleep(DeviceMergeWaitTime);
             }
 
             return await Call<ResultResponse>(String.Format("{0}{1}", serverUrl, request.Request));

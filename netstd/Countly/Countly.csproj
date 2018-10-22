@@ -4,6 +4,12 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v3.5' ">RUNNING_ON_35</DefineConstants>
     <DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">RUNNING_ON_40</DefineConstants>
+    <Description>Countly Windows SDK targeting net standard 2.0</Description>
+    <Product>Countly SDK</Product>
+    <AssemblyVersion>18.10.0.0</AssemblyVersion>
+    <Copyright>Copyright © Countly 2018</Copyright>
+    <FileVersion>18.10.0.0</FileVersion>
+    <Version>18.10.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
