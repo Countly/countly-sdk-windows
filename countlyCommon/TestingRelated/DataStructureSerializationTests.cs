@@ -4,7 +4,6 @@ using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
-using PCLStorage;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,24 +11,20 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace TestProject_common
 {
     public class DataStructureSerializationTests : IDisposable
     {
 
-        ITestOutputHelper output;
-
         const int itemAmountInLargeList = 150;
 
         /// <summary>
         /// Test setup
         /// </summary>
-        public DataStructureSerializationTests(ITestOutputHelper output)
+        public DataStructureSerializationTests()
         {
-            this.output = output;
-            Storage.Instance.fileSystem = FileSystem.Current;
+            CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
             TestHelper.CleanDataFiles();
         }
@@ -48,7 +43,7 @@ namespace TestProject_common
             String s = TestHelper.DCSSerialize(eventList);
             List<CountlyEvent> eventList2 = TestHelper.DCSDeserialize<List<CountlyEvent>>(s);
 
-            Assert.Equal(eventList, eventList2);
+            Assert.Equal(0, UtilityHelper.CompareLists(eventList, eventList2));
         }
 
         [Fact]
@@ -58,7 +53,7 @@ namespace TestProject_common
             String s = TestHelper.DCSSerialize(exceptionList);
             List<ExceptionEvent> exceptionList2 = TestHelper.DCSDeserialize<List<ExceptionEvent>>(s);
 
-            Assert.Equal(exceptionList, exceptionList2);
+            Assert.Equal(0, UtilityHelper.CompareLists(exceptionList, exceptionList2));
         }
 
         [Fact]
@@ -68,7 +63,7 @@ namespace TestProject_common
             String s = TestHelper.DCSSerialize(sessionList);
             List<SessionEvent> sessionList2 = TestHelper.DCSDeserialize<List<SessionEvent>>(s);
 
-            Assert.Equal(sessionList, sessionList2);
+            Assert.Equal(0, UtilityHelper.CompareLists(sessionList, sessionList2));
         }
 
         [Fact]
@@ -78,7 +73,7 @@ namespace TestProject_common
             String s = TestHelper.DCSSerialize(srQueue);
             Queue<StoredRequest> srQueue2 = TestHelper.DCSDeserialize<Queue<StoredRequest>>(s);
 
-            Assert.Equal(srQueue, srQueue2);
+            Assert.Equal(0, UtilityHelper.CompareQueues(srQueue, srQueue2));
         }
 
         [Fact]
@@ -135,8 +130,7 @@ namespace TestProject_common
         [Fact]
         public async void BasicDeserialization_18_1()
         {
-            IFolder folder = await Storage.Instance.GetFolder(Storage.folder);
-            String targetPath = folder.Path + "\\";
+            String targetPath = await Storage.Instance.GetFolderPath(Storage.folder) + "\\";
             String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\18_1\\";
 
             File.Copy(sourceFolder + "sessions.xml", targetPath + "sessions.xml");
@@ -148,11 +142,12 @@ namespace TestProject_common
             //Thread.Sleep(100);
 
             Countly.Instance.deferUpload = true;
-            await Countly.StartSession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion, FileSystem.Current);
+            await CountlyImpl.StartLegacyCountlySession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion);
 
             Assert.Equal(50, Countly.Instance.Events.Count);
             Assert.Equal(50, Countly.Instance.Exceptions.Count);
             Assert.Equal(3, Countly.Instance.Sessions.Count);
+            Assert.Empty(Countly.Instance.StoredRequests);
             Assert.Equal("B249FB85668941FAA8301E2A5CA95901", await Countly.GetDeviceId());
 
             CountlyUserDetails cud = Countly.UserDetails;
@@ -168,9 +163,8 @@ namespace TestProject_common
 
         [Fact]
         public async void DeserializeDeviceIdString_18_1()
-        {
-            IFolder folder = await Storage.Instance.GetFolder(Storage.folder);
-            String targetPath = folder.Path + "\\";
+        {            
+            String targetPath = await Storage.Instance.GetFolderPath(Storage.folder) + "\\";
             String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\18_1\\";
 
             File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");

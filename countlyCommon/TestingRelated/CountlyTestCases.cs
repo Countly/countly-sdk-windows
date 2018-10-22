@@ -2,7 +2,6 @@
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
-using PCLStorage;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,9 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
-using Xunit.Abstractions;
-
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace TestProject_common
 {
@@ -23,7 +19,7 @@ namespace TestProject_common
         /// </summary>
         public CountlyTestCases()
         {
-            Storage.Instance.fileSystem = FileSystem.Current;
+            CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
             TestHelper.CleanDataFiles();
             CountlyConfig cc = TestHelper.CreateConfig();

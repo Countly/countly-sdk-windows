@@ -298,5 +298,11 @@ namespace CountlySDK.Helpers
             catch
             { }
         }
+
+        internal async override Task<string> GetFolderPath(string folderName)
+        {
+            IFolder folder = await Storage.Instance.GetFolder(Storage.folder);
+            return folder.Path;
+        }
     }
 }

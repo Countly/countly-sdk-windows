@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleWIndowsForm", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleAspNet", "CountlySampleAspNet\CountlySampleAspNet.csproj", "{2496E70F-921F-4BDC-B77D-FAB1BB6EEB78}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlyTest_40", "CountlyTest_40\CountlyTest_40.csproj", "{C25FB332-2321-4995-AA8A-F63DBEA85C2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

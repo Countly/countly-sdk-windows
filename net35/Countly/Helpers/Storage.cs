@@ -47,7 +47,7 @@ namespace CountlySDK.Helpers
         /// <summary>
         /// Countly folder
         /// </summary>
-        private const string folder = "countly";        
+        internal const string folder = "countly";        
         private string customDataPath = null;
 
         private string Path
@@ -173,6 +173,11 @@ namespace CountlySDK.Helpers
             }
             catch
             { }
+        }
+
+        internal override Task<string> GetFolderPath(string folderName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

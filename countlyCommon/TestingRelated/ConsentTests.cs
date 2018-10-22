@@ -2,29 +2,24 @@
 using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
-using PCLStorage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace TestProject_common
 {
     public class ConsentTests : IDisposable
     {
-        ITestOutputHelper output;
-
         /// <summary>
         /// Test setup
         /// </summary>
-        public ConsentTests(ITestOutputHelper output)
+        public ConsentTests()
         {
-            this.output = output;
-            Storage.Instance.fileSystem = FileSystem.Current;
+            CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
             TestHelper.CleanDataFiles();
             Countly.Instance.deferUpload = false;
@@ -107,6 +102,7 @@ namespace TestProject_common
             cc.consentRequired = true;
             Countly.Instance.deferUpload = true;
             Countly.Instance.Init(cc).Wait();
+            int previousCount = Countly.Instance.Sessions.Count;
             Countly.Instance.SessionBegin().Wait();
 
             await Countly.Instance.SetConsent(consentRemoved);
@@ -117,7 +113,7 @@ namespace TestProject_common
             Countly.Instance.SessionEnd().Wait();
             TestHelper.ValidateDataPointUpload().Wait();
 
-            Assert.Equal(2, Countly.Instance.Sessions.Count);
+            Assert.Equal(2 + previousCount, Countly.Instance.Sessions.Count);
             Assert.Equal(4, Countly.Instance.StoredRequests.Count);
         }
     }

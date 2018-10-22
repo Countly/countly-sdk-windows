@@ -1,27 +1,22 @@
 ﻿using CountlySDK;
 using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.Entities;
-using PCLStorage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace TestProject_common
 {
     public class FlowControlTestCases : IDisposable
     {
-        ITestOutputHelper output;
-
         /// <summary>
         /// Test setup
         /// </summary>
-        public FlowControlTestCases(ITestOutputHelper output)
+        public FlowControlTestCases()
         {
-            this.output = output;
             TestHelper.CleanDataFiles();
             Countly.Halt();
         }
@@ -47,8 +42,8 @@ namespace TestProject_common
 
         [Fact]
         public async void LegacyInitSimple()
-        {
-            await Countly.StartSession("123", "234", "345", FileSystem.Current);
+        {            
+            await CountlyImpl.StartLegacyCountlySession("123", "234", "345");
             await Countly.EndSession();
         }
 
@@ -59,7 +54,7 @@ namespace TestProject_common
 
             try
             {
-                await Countly.StartSession(null, "234", "345", FileSystem.Current);
+                await CountlyImpl.StartLegacyCountlySession(null, "234", "345");
             }
             catch(Exception ex) { exToCatch = ex; }
 
@@ -69,7 +64,7 @@ namespace TestProject_common
 
             try
             {
-                await Countly.StartSession("123", null, "345", FileSystem.Current);
+                await CountlyImpl.StartLegacyCountlySession("123", null, "345");
             }
             catch (Exception ex) { exToCatch = ex; }
 
@@ -79,7 +74,7 @@ namespace TestProject_common
 
             try
             {
-                await Countly.StartSession(null, null, null, FileSystem.Current);
+                await CountlyImpl.StartLegacyCountlySession(null, null, null);
             }
             catch (Exception ex) { exToCatch = ex; }
 

@@ -25,6 +25,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.IsolatedStorage;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace CountlySDK.Helpers
         /// <summary>
         /// Countly folder
         /// </summary>
-        private const string folder = "countly_data";
+        internal const string folder = "countly_data";
 
         private bool IsFileExists(IsolatedStorageFile store, string fileName)
         {
@@ -92,7 +93,7 @@ namespace CountlySDK.Helpers
                         store.CreateDirectory(folder);
                     }
 
-                    using (var file =  store.OpenFile(Path.Combine(folder, filename), FileMode.Create, FileAccess.Write, FileShare.Read))
+                    using (var file = store.OpenFile(Path.Combine(folder, filename), FileMode.Create, FileAccess.Write, FileShare.Read))
                     {
                         if (file != null && objForSave != null)
                         {
@@ -178,6 +179,21 @@ namespace CountlySDK.Helpers
             }
             catch
             { }
+        }
+
+        internal override async Task<string> GetFolderPath(string folderName)
+        {
+            // Create a file in isolated storage.
+            IsolatedStorageFile store = IsolatedStorageFile.GetStore(IsolatedStorageScope.User | IsolatedStorageScope.Assembly, null, null);
+            IsolatedStorageFileStream stream = new IsolatedStorageFileStream("test.txt", FileMode.Create, store);
+            StreamWriter writer = new StreamWriter(stream);
+            writer.WriteLine("Hello");
+            writer.Close();
+            stream.Close();
+
+            // Retrieve the actual path of the file using reflection.
+            string path = stream.GetType().GetField("m_FullPath", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(stream).ToString();
+            return path.Replace("test.txt", folderName);
         }
     }
 }

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace TestProject_common
 {
-    interface CountlyInterface
+    abstract class CountlyInterface
     {
+        public static void SetPCLStorageIfNeeded();
     }
 }

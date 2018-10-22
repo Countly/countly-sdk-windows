@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySample", "CountlySam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleWindowsForm", "CountlySampleWindowsForm\CountlySampleWindowsForm.csproj", "{F311A539-9F92-4331-90E4-9474776DAFD4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlyTest_35", "CountlyTest_35\CountlyTest_35.csproj", "{DF2549FA-7312-45CA-ACAC-888E6A2B2A53}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
