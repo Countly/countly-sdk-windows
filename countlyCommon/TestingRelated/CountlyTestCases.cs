@@ -50,6 +50,20 @@ namespace TestProject_common
         }
 
         [Fact]
+        public async void ChengeDeviceIDNoMerge()
+        {
+            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            Assert.NotNull(dId);
+            Assert.NotEqual(0, dId.Length);
+
+            String newId = "qweqwe";
+
+            await Countly.Instance.ChangeDeviceId(newId, false);
+            String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
+            Assert.Equal(newId, dId2);
+        }
+
+        [Fact]
         public async void SettingUserDetailsSingle()
         {
             CountlyUserDetails cud = Countly.UserDetails;

@@ -93,7 +93,14 @@ namespace CountlySDK.Entities.EntityBase
             }
         }
 
-        internal async Task SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod, String suppliedDeviceId)
+        /// <summary>
+        /// Set preferred method for generating device id. If a Id is already provided, use that and
+        /// set method to developerSupplied
+        /// </summary>
+        /// <param name="deviceIdMethod">preferred method</param>
+        /// <param name="suppliedDeviceId">device id to use</param>
+        /// <returns></returns>
+        internal async Task SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod, String suppliedDeviceId = null)
         {
             if(suppliedDeviceId != null)
             {

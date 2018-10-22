@@ -960,20 +960,14 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
-            if (!IsServerURLCorrect(config.serverUrl))
-            {
-                throw new ArgumentException("invalid server url");
-            }
-
-            if (!IsAppKeyCorrect(config.appKey))
-            {
-                throw new ArgumentException("invalid application key");
-            }
+            if (!IsServerURLCorrect(config.serverUrl)) { throw new ArgumentException("invalid server url"); }
+            if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
 
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
             AppVersion = config.appVersion;
 
+            if(config.developerProvidedDeviceId?.Length == 0) { throw new ArgumentException("'developerProvidedDeviceId' cannot be empty string"); }
             await DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
 
             lock (sync)
@@ -1020,6 +1014,28 @@ namespace CountlySDK.CountlyCommon
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionEnd'"); }
 
             await Countly.Instance.EndSessionInternal();
+        }
+
+
+        /// <summary>
+        /// Change this devices Id
+        /// </summary>
+        /// <param name="newDeviceId">New Id that should be used</param>
+        /// <param name="serverSideMerge">If set to true, old user id's data will be merged into new user</param>
+        /// <returns></returns>
+        public async Task ChangeDeviceId(String newDeviceId, bool serverSideMerge = false)
+        {
+            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'ChangeDeviceId'"); }
+            if (newDeviceId == null) { throw new ArgumentException("New device id cannot be null"); }
+            if (newDeviceId.Length == 0) { throw new ArgumentException("New device id cannot be empty string"); }
+
+            if (!serverSideMerge)
+            {
+                //if no server side merge is needed, we just end the previous session and start a new session with the new id
+                await SessionEnd();
+                await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
+                await SessionBegin();
+            }
         }
     }
 }
