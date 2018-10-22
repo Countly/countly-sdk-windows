@@ -137,9 +137,7 @@ namespace TestProject_common
             File.Copy(sourceFolder + "userdetails.xml", targetPath + "userdetails.xml");
             File.Copy(sourceFolder + "events.xml", targetPath + "events.xml");
             File.Copy(sourceFolder + "exceptions.xml", targetPath + "exceptions.xml");
-            File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");
-
-            //Thread.Sleep(100);
+            File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");        
 
             Countly.Instance.deferUpload = true;
             await CountlyImpl.StartLegacyCountlySession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion);
@@ -159,6 +157,40 @@ namespace TestProject_common
             Assert.Equal("p", cud.Phone);
             Assert.Equal("1t", cud.Picture);
             Assert.Equal("u", cud.Username);
+        }
+
+        [Fact]
+        public async void BasicDeserialization_002()
+        {
+            String targetPath = await Storage.Instance.GetFolderPath(Storage.folder) + "\\";
+            String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\Test_002\\";
+
+            File.Copy(sourceFolder + "sessions.xml", targetPath + "sessions.xml", true);
+            File.Copy(sourceFolder + "userdetails.xml", targetPath + "userdetails.xml", true);
+            File.Copy(sourceFolder + "events.xml", targetPath + "events.xml", true);
+            File.Copy(sourceFolder + "exceptions.xml", targetPath + "exceptions.xml", true);
+            File.Copy(sourceFolder + "device.xml", targetPath + "device.xml", true);
+            File.Copy(sourceFolder + "storedRequests.xml", targetPath + "storedRequests.xml", true);
+
+            Countly.Instance.deferUpload = true;
+            CountlyConfig cc = TestHelper.CreateConfig();
+            await Countly.Instance.Init(cc);
+
+            Assert.Equal(100, Countly.Instance.Events.Count);
+            Assert.Equal(100, Countly.Instance.Exceptions.Count);
+            Assert.Equal(102, Countly.Instance.Sessions.Count);
+            Assert.Equal(150, Countly.Instance.StoredRequests.Count);
+            Assert.Equal("SDSDSD1570501868", await Countly.GetDeviceId());
+
+            CountlyUserDetails cud = Countly.UserDetails;
+            Assert.Equal(975, cud.BirthYear);
+            Assert.Equal("g", cud.Email);
+            Assert.Equal("1t", cud.Gender);
+            Assert.Equal("12g", cud.Name);
+            Assert.Equal("12s", cud.Organization);
+            Assert.Equal("1p", cud.Phone);
+            Assert.Equal("12t", cud.Picture);
+            Assert.Equal("1u", cud.Username);
         }
 
         [Fact]

@@ -14,7 +14,7 @@ namespace TestProject_common
     public class ThreadingTestCases : IDisposable
     {
         //how many work iterations in each thread
-        public int threadIterations = 5;
+        public int threadIterations = 10;
 
         //wait times in each thread after every iteration
         int threadWaitStart = 50;
@@ -100,6 +100,8 @@ namespace TestProject_common
             actionsToDo.Add(ThreadWorkEvents);
             actionsToDo.Add(ThreadWorkExceptions);
             actionsToDo.Add(ThreadWorkUserDetails);
+            actionsToDo.Add(ThreadWorkMergeDeviceId);
+            actionsToDo.Add(ThreadWorkSetLocation);
 
             return actionsToDo.ToArray();
         }        
@@ -184,25 +186,26 @@ namespace TestProject_common
             for (int a = 0; a < threadIterations; a++)
             {
                 int choice = a % 4;
+                bool res;
 
                 switch (choice)
                 {
                     case 0:
-                        Countly.RecordException("Big error 1");
+                        res = Countly.RecordException("Big error 1").Result;
                         break;
                     case 1:
-                        Countly.RecordException(exToUse.Message, exToUse.StackTrace);
+                        res = Countly.RecordException(exToUse.Message, exToUse.StackTrace).Result;
                         break;
                     case 2:
-                        Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict);
+                        res = Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict).Result;
                         break;
                     case 3:
-                        Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict, false);
-                        break;
                     default:
+                        res = Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict, false).Result;
                         break;
                 }
 
+                Assert.True(res);
                 Thread.Sleep(rnd.Next(threadWaitStart, threadWaitEnd));
             }
         }
@@ -217,6 +220,50 @@ namespace TestProject_common
                 TestHelper.PopulateCountlyUserDetails(cud, a, a);
 
                 bool res = Countly.Instance.Upload().Result;
+
+                Assert.True(res);
+                Thread.Sleep(rnd.Next(threadWaitStart, threadWaitEnd));
+            }
+        }
+
+        void ThreadWorkMergeDeviceId()
+        {
+            Random rnd = new Random(2);
+            for (int a = 0; a < threadIterations; a++)
+            {
+                String deviceId = "SDSDSD" + rnd.Next();
+
+                switch (a % 2)
+                {
+                    case 0:
+                        Countly.Instance.ChangeDeviceId(deviceId, false);
+                        break;
+                    case 1:
+                        Countly.Instance.ChangeDeviceId(deviceId, true);
+                        break;
+                }
+
+                Thread.Sleep(rnd.Next(threadWaitStart, threadWaitEnd));
+            }
+        }
+
+        void ThreadWorkSetLocation()
+        {
+            Random rnd = new Random(2);
+            for (int a = 0; a < threadIterations; a++)
+            {
+                bool res;
+
+                switch (a % 2)
+                {
+                    case 0:
+                        res = Countly.Instance.SetLocation("fdsf").Result;
+                        break;
+                    case 1:
+                    default:
+                        res = Countly.Instance.DisableLocation().Result;
+                        break;
+                }
 
                 Assert.True(res);
                 Thread.Sleep(rnd.Next(threadWaitStart, threadWaitEnd));

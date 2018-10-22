@@ -48,6 +48,7 @@ namespace TestProject_common
         [Fact]
         public async void ChengeDeviceIDNoMerge()
         {
+            return;
             bool res;
             res = await Countly.RecordEvent("Some event user1", 123);
             Assert.True(res);
@@ -60,6 +61,29 @@ namespace TestProject_common
             await Countly.Instance.ChangeDeviceId(newId, false);
             String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
             Assert.Equal(newId, dId2);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            Assert.True(res);
+        }
+
+        [Fact]
+        public async void ChengeDeviceIDNoMergeMultiple()
+        {
+            bool res;
+
+            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            Assert.NotNull(dId);
+            Assert.NotEqual(0, dId.Length);
+
+            String newId = "qweqwe";
+
+            await Countly.Instance.ChangeDeviceId(newId + "1", false);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            await Countly.Instance.ChangeDeviceId(newId + "2", false);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            await Countly.Instance.ChangeDeviceId(newId + "3", false);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            await Countly.Instance.ChangeDeviceId(newId + "4", false);
+
             res = await Countly.RecordEvent("Some event user2", 123);
             Assert.True(res);
         }
@@ -80,6 +104,31 @@ namespace TestProject_common
             String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
             Assert.Equal(newId, dId2);
             res = await Countly.RecordEvent("Some event same user", 123);
+            Assert.True(res);
+        }
+
+        [Fact]
+        public async void ChengeDeviceIDWithMergeMultiple()
+        {
+            bool res;
+
+            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            Assert.NotNull(dId);
+            Assert.NotEqual(0, dId.Length);
+
+            String newId = "qweqwe";
+
+            Api.Instance.DeviceMergeWaitTime = 500;
+
+            await Countly.Instance.ChangeDeviceId(newId + "1", true);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            await Countly.Instance.ChangeDeviceId(newId + "2", true);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            await Countly.Instance.ChangeDeviceId(newId + "3", true);
+            res = await Countly.RecordEvent("Some event user2", 123);
+            await Countly.Instance.ChangeDeviceId(newId + "4", true);
+
+            res = await Countly.RecordEvent("Some event user2", 123);
             Assert.True(res);
         }
 
