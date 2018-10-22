@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace TestProject_common
 {
@@ -392,6 +393,18 @@ namespace TestProject_common
         public static CountlyConfig CreateConfig()
         {
             return new CountlyConfig() { serverUrl = ServerInfo.serverURL, appKey = ServerInfo.appKey, appVersion = ServerInfo.appVersion, fileSystem = FileSystem.Current };
+        }
+
+        public static Dictionary<ConsentFeatures, bool> AllConsentValues(bool IsGiven)
+        {
+            Dictionary<ConsentFeatures, bool> consent = new Dictionary<ConsentFeatures, bool>();
+            consent.Add(ConsentFeatures.Crashes, IsGiven);
+            consent.Add(ConsentFeatures.Events, IsGiven);
+            consent.Add(ConsentFeatures.Location, IsGiven);
+            consent.Add(ConsentFeatures.Sessions, IsGiven);
+            consent.Add(ConsentFeatures.Users, IsGiven);
+
+            return consent;
         }
     }
 }

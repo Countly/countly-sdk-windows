@@ -180,10 +180,9 @@ namespace CountlySDK.CountlyCommon
         {
             try
             {
-                if (!Countly.Instance.IsServerURLCorrect(ServerUrl))
-                {
-                    return;
-                }
+                if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return; }
+
+                if(!IsConsentGiven(ConsentFeatures.Sessions)) { return; }
 
                 lock (sync)
                 {
@@ -476,10 +475,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
-            if (!Countly.Instance.IsServerURLCorrect(ServerUrl))
-            {
-                return false;
-            }
+            if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
+            if (!IsConsentGiven(ConsentFeatures.Events)) { return true; }
 
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation);
 
@@ -647,10 +644,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         internal async Task<bool> RecordExceptionInternal(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
-            if(!IsServerURLCorrect(ServerUrl))
-            {
-                return false;
-            }            
+            if(!IsServerURLCorrect(ServerUrl)) { return false; }
+            if (!IsConsentGiven(ConsentFeatures.Crashes)) { return true; }
 
             TimeSpan run = DateTime.Now.Subtract(startTime);
 
@@ -765,10 +760,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>true if details are successfully uploaded, false otherwise</returns>
         internal async Task<bool> UploadUserDetails()
         {
-            if (!IsServerURLCorrect(ServerUrl))
-            {
-                return false;
-            }
+            if (!IsServerURLCorrect(ServerUrl)) { return false; }
+            if (!IsConsentGiven(ConsentFeatures.Users)) { return true; }
 
             lock (sync)
             {
@@ -861,6 +854,9 @@ namespace CountlySDK.CountlyCommon
                     UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
                 }
                 userDetails = null;//set it null so that it can be loaded from the file system (if needed)
+
+                consentRequired = false;
+                givenConsent = new Dictionary<ConsentFeatures, bool>();
             }
             await Storage.Instance.DeleteFile(eventsFilename);
             await Storage.Instance.DeleteFile(sessionsFilename);
@@ -911,6 +907,7 @@ namespace CountlySDK.CountlyCommon
         public async Task<bool> SetLocation(String gpsLocation, String ipAddress = null, String country_code = null, String city = null)
         {
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SetLocation'"); }
+            if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
             if (gpsLocation == null && ipAddress == null && country_code == null && city == null)
             {
@@ -929,6 +926,7 @@ namespace CountlySDK.CountlyCommon
         public async Task<bool> DisableLocation()
         {
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'DisableLocation'"); }
+            if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
             return await SetLocation("", "", "", "");
         }
@@ -976,7 +974,11 @@ namespace CountlySDK.CountlyCommon
                 Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
                 Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
                 Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
-            }                    
+            }
+
+            //consent related
+            consentRequired = config.consentRequired;
+            if (config.givenConsent != null) { await SetConsent(config.givenConsent); }
         }
 
         protected abstract Task SessionBeginInternal();
@@ -1052,6 +1054,104 @@ namespace CountlySDK.CountlyCommon
                 await AddRequest(dimr, true);
                 await Upload();
             }
+        }
+
+        internal bool consentRequired = false;
+        internal Dictionary<ConsentFeatures, bool> givenConsent = new Dictionary<ConsentFeatures, bool>();
+
+        public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users };
+
+        internal bool IsConsentGiven(ConsentFeatures feature)
+        {
+            Debug.Assert(givenConsent != null);
+            //if consent is not required, all is fine
+            if (!consentRequired) { return true; };
+
+            //if it's required
+            //check if it's given
+            if(givenConsent == null) { return false; }
+
+            //nothing set for a feature, pressume that it's denied
+            if (!givenConsent.ContainsKey(feature)) { return false; }
+
+            //if a feature's consent is set, return it
+            return givenConsent[feature];
+        }
+
+        public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
+        {
+            Debug.Assert(consentChanges != null);
+            if (consentChanges == null) { throw new ArgumentException("'consentChanges' cannot be null"); }
+            //if we don't need consent, no need to track it
+            if (!consentRequired) { return; }
+
+            Dictionary<ConsentFeatures, bool> valuesToUpdate = new Dictionary<ConsentFeatures, bool>();
+
+            //filter out those values that are changed
+            foreach (KeyValuePair<ConsentFeatures, bool> entry in consentChanges)
+            {
+                bool oldV = IsConsentGiven(entry.Key);
+                bool containsOld = givenConsent.ContainsKey(entry.Key);
+                bool newV = entry.Value;
+
+                if(!containsOld || oldV != newV)
+                {                 
+                    //if there is no entry about this feature, of the consent has changed, update the value
+                    valuesToUpdate[entry.Key] = newV;
+                }
+            }
+
+            if(valuesToUpdate.Count > 0)
+            {
+                //send request of the consent changes
+                await SendConsentChanges(valuesToUpdate);
+
+                //react to consent changes locally
+                foreach (KeyValuePair<ConsentFeatures, bool> entryChanges in valuesToUpdate)
+                {
+                    bool isGiven = entryChanges.Value;
+                    ConsentFeatures feature = entryChanges.Key;
+
+                    //mark changes locally
+                    givenConsent[feature] = isGiven;
+
+                    //do special actions
+                    switch (feature)
+                    {
+                        case ConsentFeatures.Crashes:
+                            break;
+                        case ConsentFeatures.Events:
+                            break;
+                        case ConsentFeatures.Location:
+                            if (!isGiven) { await DisableLocation(); }
+                            break;
+                        case ConsentFeatures.Sessions:
+                            if (isGiven)
+                            {
+                                if(!startTime.Equals(DateTime.MinValue))
+                                {
+                                    //if it's not null then we had already tried tracking a session
+                                    await SessionBegin();
+                                }                                
+                            }
+                            else { await SessionEnd(); }
+                            break;
+                        case ConsentFeatures.Users:
+                            break;
+                    }
+                }
+            }
+        }
+
+        internal async Task SendConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsentChanges)
+        {
+            //create the required merge request
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId());
+            String cur = RequestHelper.CreateCosnentUpdateRequest(br, updatedConsentChanges);
+
+            //add the request to queue and upload it
+            await AddRequest(cur);
+            await Upload();
         }
     }
 }

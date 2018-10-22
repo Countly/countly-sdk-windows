@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Helpers
 {
@@ -37,6 +38,48 @@ namespace CountlySDK.CountlyCommon.Helpers
             if (bRequest == null) return null;
 
             String res = String.Format("{0}&old_device_id={1}", bRequest, oldId);
+            return res;
+        }
+
+        internal static String CreateCosnentUpdateRequest(String bRequest, Dictionary<ConsentFeatures, bool> updatedConsentChanges)
+        {
+            Debug.Assert(bRequest != null);
+            Debug.Assert(updatedConsentChanges != null);
+            Debug.Assert(updatedConsentChanges.Count > 0);
+            if (bRequest == null) return null;
+
+            String consentChanges = "{";
+
+            KeyValuePair<ConsentFeatures, bool>[] entryChanges = updatedConsentChanges.ToArray();
+
+            for(int a = 0; a < entryChanges.Length; a++)
+            {
+                if(a != 0) { consentChanges += ","; }
+
+                KeyValuePair<ConsentFeatures, bool> feature = entryChanges[a];
+                switch (feature.Key)
+                {
+                    case ConsentFeatures.Crashes:
+                        consentChanges += "\"crashes\":" + (feature.Value ? "true" : "false");
+                        break;
+                    case ConsentFeatures.Events:
+                        consentChanges += "\"events\":" + (feature.Value ? "true" : "false");
+                        break;
+                    case ConsentFeatures.Location:
+                        consentChanges += "\"location\":" + (feature.Value ? "true" : "false");
+                        break;
+                    case ConsentFeatures.Sessions:
+                        consentChanges += "\"sessions\":" + (feature.Value ? "true" : "false");
+                        break;
+                    case ConsentFeatures.Users:
+                        consentChanges += "\"users\":" + (feature.Value ? "true" : "false");
+                        break;
+                }
+            }
+            
+            consentChanges += "}";
+
+            String res = String.Format("{0}&consent={1}", bRequest, UtilityHelper.EncodeDataForURL(consentChanges));
             return res;
         }
 

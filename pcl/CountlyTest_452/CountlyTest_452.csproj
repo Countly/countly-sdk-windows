@@ -71,6 +71,9 @@
     <Compile Include="..\..\..\countly-sdk-windows-server-info\ServerInfo.cs">
       <Link>ServerInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ConsentTests.cs">
+      <Link>ConsentTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\CountlyInterface.cs">
       <Link>CountlyInterface.cs</Link>
     </Compile>
