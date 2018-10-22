@@ -4,27 +4,22 @@ using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
-using PCLStorage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace TestProject_common
 {
     public class TestingEntities : IDisposable
     {
-        ITestOutputHelper output;
-        
         /// <summary>
         /// Test setup
         /// </summary>
-        public TestingEntities(ITestOutputHelper output)
+        public TestingEntities()
         {
-            this.output = output;
             TestHelper.CleanDataFiles();
         }
 
@@ -35,35 +30,35 @@ namespace TestProject_common
         {
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesSession(int i)
+        [Fact]
+        public void ComparingEntitiesSession()
         {
-            long ts = TimeHelper.UnixTimeNow();
-            BeginSession bs0 = TestHelper.CreateBeginSession(i, i, ts);
-            BeginSession bs1 = TestHelper.CreateBeginSession(i, i, ts);
-            BeginSession bs2 = TestHelper.CreateBeginSession(i + 1, i, ts);
-            BeginSession bs3 = TestHelper.CreateBeginSession(i, i + 1, ts);
+            for (int i = 0; i < 3; i++)
+            {
+                long ts = TimeHelper.UnixTimeNow();
+                BeginSession bs0 = TestHelper.CreateBeginSession(i, i, ts);
+                BeginSession bs1 = TestHelper.CreateBeginSession(i, i, ts);
+                BeginSession bs2 = TestHelper.CreateBeginSession(i + 1, i, ts);
+                BeginSession bs3 = TestHelper.CreateBeginSession(i, i + 1, ts);
 
-            Assert.Equal(bs0, bs1);
-            Assert.NotEqual(bs1, bs2);
-            Assert.NotEqual(bs1, bs3);
+                Assert.Equal(bs0, bs1);
+                Assert.NotEqual(bs1, bs2);
+                Assert.NotEqual(bs1, bs3);
 
-            EndSession es0 = TestHelper.CreateEndSession(i, ts);
-            EndSession es1 = TestHelper.CreateEndSession(i, ts);
-            EndSession es2 = TestHelper.CreateEndSession(i + 1, ts);
+                EndSession es0 = TestHelper.CreateEndSession(i, ts);
+                EndSession es1 = TestHelper.CreateEndSession(i, ts);
+                EndSession es2 = TestHelper.CreateEndSession(i + 1, ts);
 
-            Assert.Equal(es0, es1);
-            Assert.NotEqual(es1, es2);
+                Assert.Equal(es0, es1);
+                Assert.NotEqual(es1, es2);
 
-            UpdateSession us0 = TestHelper.CreateUpdateSession(i, i, ts);
-            UpdateSession us1 = TestHelper.CreateUpdateSession(i, i, ts);
-            UpdateSession us2 = TestHelper.CreateUpdateSession(i + 1, i, ts);
+                UpdateSession us0 = TestHelper.CreateUpdateSession(i, i, ts);
+                UpdateSession us1 = TestHelper.CreateUpdateSession(i, i, ts);
+                UpdateSession us2 = TestHelper.CreateUpdateSession(i + 1, i, ts);
 
-            Assert.Equal(us0, us1);
-            Assert.NotEqual(us1, us2);
+                Assert.Equal(us0, us1);
+                Assert.NotEqual(us1, us2);
+            }
         }
 
         [Fact]
@@ -114,25 +109,42 @@ namespace TestProject_common
             Assert.NotEqual(us2, us1);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesCustomInfo(int i)
+        [Fact]        
+        public void ComparingEntitiesCustomInfo()
         {
-            CustomInfoItem cii0 = TestHelper.CreateCustomInfoItem(i);
-            CustomInfoItem cii1 = TestHelper.CreateCustomInfoItem(i);
-            CustomInfoItem cii2 = TestHelper.CreateCustomInfoItem(i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                CustomInfoItem cii0 = TestHelper.CreateCustomInfoItem(i);
+                CustomInfoItem cii1 = TestHelper.CreateCustomInfoItem(i);
+                CustomInfoItem cii2 = TestHelper.CreateCustomInfoItem(i + 1);
+
+                Assert.Equal(cii0, cii1);
+                Assert.NotEqual(cii1, cii2);
+
+                CustomInfo ci0 = TestHelper.CreateCustomInfo(i);
+                CustomInfo ci1 = TestHelper.CreateCustomInfo(i);
+                CustomInfo ci2 = TestHelper.CreateCustomInfo(i + 1);
+
+                Assert.Equal(ci0, ci1);
+                Assert.NotEqual(ci1, ci2);
+            }
+        }
+
+        [Fact]
+        public void ComparingEntitiesCustomInfoItemList()
+        {
+            CustomInfoItem cii0 = TestHelper.CreateCustomInfoItem(0);
+            CustomInfoItem cii1 = TestHelper.CreateCustomInfoItem(0);
 
             Assert.Equal(cii0, cii1);
-            Assert.NotEqual(cii1, cii2);
 
-            CustomInfo ci0 = TestHelper.CreateCustomInfo(i);
-            CustomInfo ci1 = TestHelper.CreateCustomInfo(i);
-            CustomInfo ci2 = TestHelper.CreateCustomInfo(i + 1);
+            List<CustomInfoItem> ciil0 = new List<CustomInfoItem>();
+            ciil0.Add(cii0);
 
-            Assert.Equal(ci0, ci1);
-            Assert.NotEqual(ci1, ci2);
+            List<CustomInfoItem> ciil1 = new List<CustomInfoItem>();
+            ciil1.Add(cii1);
+
+            Assert.Equal(0, UtilityHelper.CompareLists(ciil0, ciil1));
         }
 
         [Fact]
@@ -180,20 +192,20 @@ namespace TestProject_common
             Assert.NotEqual(ci2, ci1);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesCountlyUserDetails(int i)
+        [Fact]
+        public void ComparingEntitiesCountlyUserDetails()
         {
-            CountlyUserDetails cud0 = TestHelper.CreateCountlyUserDetails(i, i);
-            CountlyUserDetails cud1 = TestHelper.CreateCountlyUserDetails(i, i);
-            CountlyUserDetails cud2 = TestHelper.CreateCountlyUserDetails(i + 1, i);
-            CountlyUserDetails cud3 = TestHelper.CreateCountlyUserDetails(i, i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                CountlyUserDetails cud0 = TestHelper.CreateCountlyUserDetails(i, i);
+                CountlyUserDetails cud1 = TestHelper.CreateCountlyUserDetails(i, i);
+                CountlyUserDetails cud2 = TestHelper.CreateCountlyUserDetails(i + 1, i);
+                CountlyUserDetails cud3 = TestHelper.CreateCountlyUserDetails(i, i + 1);
 
-            Assert.Equal(cud0, cud1);
-            Assert.NotEqual(cud1, cud2);
-            Assert.NotEqual(cud1, cud3);
+                Assert.Equal(cud0, cud1);
+                Assert.NotEqual(cud1, cud2);
+                Assert.NotEqual(cud1, cud3);
+            }
         }
 
         [Fact]
@@ -278,22 +290,22 @@ namespace TestProject_common
             Assert.NotEqual(cud1, cud0);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesDeviceId(int i)
+        [Fact]
+        public void ComparingEntitiesDeviceId()
         {
-            DeviceId did0 = TestHelper.CreateDeviceId(i, i);
-            DeviceId did1 = TestHelper.CreateDeviceId(i, i);
-            DeviceId did2 = TestHelper.CreateDeviceId(i + 1, i);
-            DeviceId did3 = TestHelper.CreateDeviceId(i, i + 1);
-            DeviceId did4 = TestHelper.CreateDeviceId(i, i + 2);
+            for (int i = 0; i < 3; i++)
+            {
+                DeviceId did0 = TestHelper.CreateDeviceId(i, i);
+                DeviceId did1 = TestHelper.CreateDeviceId(i, i);
+                DeviceId did2 = TestHelper.CreateDeviceId(i + 1, i);
+                DeviceId did3 = TestHelper.CreateDeviceId(i, i + 1);
+                DeviceId did4 = TestHelper.CreateDeviceId(i, i + 2);
 
-            Assert.Equal(did0, did1);
-            Assert.NotEqual(did1, did2);
-            Assert.NotEqual(did1, did3);
-            Assert.NotEqual(did1, did4);
+                Assert.Equal(did0, did1);
+                Assert.NotEqual(did1, did2);
+                Assert.NotEqual(did1, did3);
+                Assert.NotEqual(did1, did4);
+            }
         }
 
         [Fact]
@@ -315,18 +327,18 @@ namespace TestProject_common
             Assert.NotEqual(did1, did0);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesExceptionEvent(int i)
+        [Fact]
+        public void ComparingEntitiesExceptionEvent()
         {
-            ExceptionEvent did0 = TestHelper.CreateExceptionEvent(i);
-            ExceptionEvent did1 = TestHelper.CreateExceptionEvent(i);
-            ExceptionEvent did2 = TestHelper.CreateExceptionEvent(i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                ExceptionEvent did0 = TestHelper.CreateExceptionEvent(i);
+                ExceptionEvent did1 = TestHelper.CreateExceptionEvent(i);
+                ExceptionEvent did2 = TestHelper.CreateExceptionEvent(i + 1);
 
-            Assert.Equal(did0, did1);
-            Assert.NotEqual(did1, did2);
+                Assert.Equal(did0, did1);
+                Assert.NotEqual(did1, did2);
+            }
         }
 
         [Fact]
@@ -447,18 +459,18 @@ namespace TestProject_common
 
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesMetrics(int i)
+        [Fact]
+        public void ComparingEntitiesMetrics()
         {
-            Metrics m1 = TestHelper.CreateMetrics(i);
-            Metrics m2 = TestHelper.CreateMetrics(i);
-            Metrics m3 = TestHelper.CreateMetrics(i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                Metrics m1 = TestHelper.CreateMetrics(i);
+                Metrics m2 = TestHelper.CreateMetrics(i);
+                Metrics m3 = TestHelper.CreateMetrics(i + 1);
 
-            Assert.Equal(m1, m2);
-            Assert.NotEqual(m1, m3);
+                Assert.Equal(m1, m2);
+                Assert.NotEqual(m1, m3);
+            }        
         }
 
         [Fact]
@@ -520,18 +532,18 @@ namespace TestProject_common
             Assert.NotEqual(m2, m1);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesSegmentationItem(int i)
+        [Fact]
+        public void ComparingEntitiesSegmentationItem()
         {
-            SegmentationItem si1 = TestHelper.CreateSegmentationItem(i);
-            SegmentationItem si2 = TestHelper.CreateSegmentationItem(i);
-            SegmentationItem si3 = TestHelper.CreateSegmentationItem(i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                SegmentationItem si1 = TestHelper.CreateSegmentationItem(i);
+                SegmentationItem si2 = TestHelper.CreateSegmentationItem(i);
+                SegmentationItem si3 = TestHelper.CreateSegmentationItem(i + 1);
 
-            Assert.Equal(si1, si2);
-            Assert.NotEqual(si1, si3);
+                Assert.Equal(si1, si2);
+                Assert.NotEqual(si1, si3);
+            }
         }
 
         [Fact]
@@ -561,18 +573,18 @@ namespace TestProject_common
             Assert.NotEqual(si2, si1);       
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesSegmentation(int i)
+        [Fact]
+        public void ComparingEntitiesSegmentation()
         {
-            Segmentation si1 = TestHelper.CreateSegmentation(i);
-            Segmentation si2 = TestHelper.CreateSegmentation(i);
-            Segmentation si3 = TestHelper.CreateSegmentation(i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                Segmentation si1 = TestHelper.CreateSegmentation(i);
+                Segmentation si2 = TestHelper.CreateSegmentation(i);
+                Segmentation si3 = TestHelper.CreateSegmentation(i + 1);
 
-            Assert.Equal(si1, si2);
-            Assert.NotEqual(si1, si3);
+                Assert.Equal(si1, si2);
+                Assert.NotEqual(si1, si3);
+            }
         }
 
         [Fact]
@@ -594,18 +606,18 @@ namespace TestProject_common
             Assert.NotEqual(si2, si1);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesCountlyEvent(int i)
+        [Fact]
+        public void ComparingEntitiesCountlyEvent()
         {
-            CountlyEvent ce1 = TestHelper.CreateCountlyEvent(i);
-            CountlyEvent ce2 = TestHelper.CreateCountlyEvent(i);
-            CountlyEvent ce3 = TestHelper.CreateCountlyEvent(i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                CountlyEvent ce1 = TestHelper.CreateCountlyEvent(i);
+                CountlyEvent ce2 = TestHelper.CreateCountlyEvent(i);
+                CountlyEvent ce3 = TestHelper.CreateCountlyEvent(i + 1);
 
-            Assert.Equal(ce1, ce2);
-            Assert.NotEqual(ce1, ce3);
+                Assert.Equal(ce1, ce2);
+                Assert.NotEqual(ce1, ce3);
+            }
         }
 
         [Fact]
@@ -643,19 +655,19 @@ namespace TestProject_common
             Assert.NotEqual(ce2, ce1);
         }
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(2)]
-        public void ComparingEntitiesStoredRequest(int i)
+        [Fact]
+        public void ComparingEntitiesStoredRequest()
         {
-            long ts = TimeHelper.UnixTimeNow();
-            StoredRequest sr1 = TestHelper.CreateStoredRequest(i);
-            StoredRequest sr2 = TestHelper.CreateStoredRequest(i);
-            StoredRequest sr3 = TestHelper.CreateStoredRequest(i + 1);
+            for (int i = 0; i < 3; i++)
+            {
+                long ts = TimeHelper.UnixTimeNow();
+                StoredRequest sr1 = TestHelper.CreateStoredRequest(i);
+                StoredRequest sr2 = TestHelper.CreateStoredRequest(i);
+                StoredRequest sr3 = TestHelper.CreateStoredRequest(i + 1);
 
-            Assert.Equal(sr1, sr2);
-            Assert.NotEqual(sr1, sr3);
+                Assert.Equal(sr1, sr2);
+                Assert.NotEqual(sr1, sr3);
+            }
         }
 
         [Fact]
@@ -720,7 +732,9 @@ namespace TestProject_common
             String s2 = JsonConvert.SerializeObject(ci);
             CustomInfo ci2 = JsonConvert.DeserializeObject<CustomInfo>(s2);
 
-            Assert.Equal(ci.items, ci2.items);
+            Assert.Equal(0, UtilityHelper.CompareLists(ci.items, ci2.items));
+            //Assert.True(ci.items.Equals(ci2.items));
+            //Assert.Equal(ci.items, ci2.items);
         }
 
         [Fact]

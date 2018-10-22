@@ -63,13 +63,21 @@ namespace CountlySDK.Entities
 
         public int CompareTo(CustomInfoItem other)
         {
-            if ((Name == null && other.Name == null) || Name.Equals(other.Name))
+            if (!(Name == null && other.Name == null))
             {
-                if (Value == null && other.Value == null) return 0;
-                return Value.CompareTo(other.Value);
+                if (Name == null) { return -1; }
+                if (other.Name == null) { return 1; }
+                if (!Name.Equals(other.Name)) { return Name.CompareTo(other.Name); }
             }
 
-            return Name.CompareTo(other.Name);
+            if (!(Value == null && other.Value == null))
+            {
+                if (Value == null) { return -1; }
+                if (other.Value == null) { return 1; }
+                if (!Value.Equals(other.Value)) { return Value.CompareTo(other.Value); }
+            }
+            
+            return 0;
         }
     }
 }

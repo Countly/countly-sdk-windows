@@ -31,6 +31,9 @@ namespace CountlySDK.CountlyCommon.Entities
                 return IdMerge.CompareTo(other.IdMerge);
             }
 
+            if (Request == null) { return -1; }
+            if (other.Request == null) { return 1; }
+
             if (Request.Equals(other.Request))
             {
                 return IdMerge.CompareTo(other.IdMerge);

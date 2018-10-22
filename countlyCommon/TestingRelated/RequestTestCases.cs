@@ -5,20 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace TestProject_common
 {
     public class RequestTestCases : IDisposable
     {
-        ITestOutputHelper output;
-
         /// <summary>
         /// Test setup
         /// </summary>
-        public RequestTestCases(ITestOutputHelper output)
+        public RequestTestCases()
         {
-            this.output = output;
             TestHelper.CleanDataFiles();
         }
 

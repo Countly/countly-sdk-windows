@@ -2,21 +2,17 @@
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
-using PCLStorage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace TestProject_common
 {
     public class ThreadingTestCases : IDisposable
     {
-        ITestOutputHelper output;
-
         //how many work iterations in each thread
         public int threadIterations = 5;
 
@@ -33,11 +29,10 @@ namespace TestProject_common
         /// <summary>
         /// Test setup
         /// </summary>
-        public ThreadingTestCases(ITestOutputHelper output)
+        public ThreadingTestCases()
         {
-            this.output = output;
             threadSync = new ManualResetEvent(false);
-            Storage.Instance.fileSystem = FileSystem.Current;
+            CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
             TestHelper.CleanDataFiles();
             //Countly.Instance.deferUpload = true;
@@ -96,8 +91,6 @@ namespace TestProject_common
             {
                 threads[a].Join();
             }
-
-            output.WriteLine("Threading test is over.");
         }
 
         Action[] PrepareThreadActions()

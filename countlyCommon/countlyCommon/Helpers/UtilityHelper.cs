@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace CountlySDK.Helpers
@@ -64,6 +65,37 @@ namespace CountlySDK.Helpers
             {
                 Debug.WriteLine(msg);
             }
+        }
+
+        public static int CompareQueues<T>(Queue<T> first, Queue<T> second) where T : IComparable<T>
+        {
+            if (first == null && second == null) return 0;
+            if (first == null) { return -1; }
+            if (second == null) { return 1; }
+
+            List<T> firstA = new List<T>(first.ToArray());
+            List<T> secondA = new List<T>(second.ToArray());
+            return CompareLists(firstA, secondA);
+        }
+
+        public static int CompareLists<T>(List<T> first, List<T> second) where T : IComparable<T>
+        {
+            if (first == null && second == null) return 0;
+            if (first == null) { return -1; }
+            if (second == null) { return 1; }
+
+            if (first.Count > second.Count) { return 1; }
+            if (first.Count < second.Count) { return -1; }
+
+            for (int a = 0; a < first.Count; a++)
+            {
+                if (!first[a].Equals(second[a]))
+                {
+                    return first[a].CompareTo(second[a]);
+                }
+            }
+
+            return 0;
         }
     }
 }

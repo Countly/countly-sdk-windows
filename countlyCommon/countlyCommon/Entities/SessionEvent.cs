@@ -18,6 +18,10 @@ namespace CountlySDK.Entities
             {
                 return 0;
             }
+
+            if (Content == null) { return -1; }
+            if (other.Content == null) { return 1; }
+
             return Content.CompareTo(other.Content);
         }
     }

@@ -3,7 +3,6 @@ using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
-using PCLStorage;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -292,16 +291,14 @@ namespace TestProject_common
 
         public static async void CleanDataFiles()
         {
-            if(Storage.Instance.fileSystem == null)
-            {
-                Storage.Instance.fileSystem = FileSystem.Current;
-            }
+            CountlyImpl.SetPCLStorageIfNeeded();
 
             Storage.Instance.DeleteFile(Countly.eventsFilename).Wait();
             Storage.Instance.DeleteFile(Countly.exceptionsFilename).Wait();
             Storage.Instance.DeleteFile(Countly.sessionsFilename).Wait();
             Storage.Instance.DeleteFile(Countly.unhandledExceptionFilename).Wait();
             Storage.Instance.DeleteFile(Countly.userDetailsFilename).Wait();
+            Storage.Instance.DeleteFile(Countly.storedRequestsFilename).Wait();
             Storage.Instance.DeleteFile(Device.deviceFilename).Wait();
         }
 
@@ -392,7 +389,7 @@ namespace TestProject_common
 
         public static CountlyConfig CreateConfig()
         {
-            return new CountlyConfig() { serverUrl = ServerInfo.serverURL, appKey = ServerInfo.appKey, appVersion = ServerInfo.appVersion, fileSystem = FileSystem.Current };
+            return CountlyImpl.CreateCountlyConfig();
         }
 
         public static Dictionary<ConsentFeatures, bool> AllConsentValues(bool IsGiven)

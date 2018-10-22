@@ -74,9 +74,6 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ConsentTests.cs">
       <Link>ConsentTests.cs</Link>
     </Compile>
-    <Compile Include="..\..\countlyCommon\TestingRelated\CountlyInterface.cs">
-      <Link>CountlyInterface.cs</Link>
-    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\CountlyTestCases.cs">
       <Link>CountlyTestCases.cs</Link>
     </Compile>

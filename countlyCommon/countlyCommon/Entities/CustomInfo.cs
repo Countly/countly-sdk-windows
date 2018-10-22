@@ -177,6 +177,9 @@ namespace CountlySDK.Entities
                 return 0;
             }
 
+            if (items == null) { return -1; }
+            if (other.items == null) { return 1; }
+
             if (!items.Count.Equals(other.items.Count))
             {
                 return items.Count.CompareTo(other.items.Count);
