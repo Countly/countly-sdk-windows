@@ -120,7 +120,7 @@ namespace CountlySDK
         [Obsolete("static 'StartSession' is deprecated, please use 'Countly.Instance.Init' together with 'Countly.Instance.SessionBegin' in place of this call")]
         public static async Task StartSession(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
         {
-            Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, idMethod);
+            await Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, idMethod);
         }
 
         private async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)

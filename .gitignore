@@ -257,3 +257,6 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+
+# for nuget packages
+/nuget/lib/*

@@ -365,5 +365,10 @@ namespace CountlySDK.Helpers
             catch
             { }
         }
+
+        internal override Task<string> GetFolderPath(string folderName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

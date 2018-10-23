@@ -10,6 +10,12 @@
     <Copyright>Copyright © Countly 2018</Copyright>
     <FileVersion>18.10.0.0</FileVersion>
     <Version>18.10.0</Version>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>D:\programming\Countly\countly-sdk-windows\netstd\Countly\Countly.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
