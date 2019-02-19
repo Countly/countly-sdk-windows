@@ -2,11 +2,13 @@
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace CountlySDK
 {
@@ -31,28 +33,36 @@ namespace CountlySDK
             }).ConfigureAwait(false);
         }
 
-        protected override async Task<string> RequestAsync(string address, Stream data = null)
-        {
+        protected override async Task<string> RequestAsync(string address, String requestData = null, Stream imageData = null)
+        {            
+            Stream dataStream = null;
             try
             {
                 UtilityHelper.CountlyLogging("POST " + address);
 
                 //make sure stream is at start
-                data?.Seek(0, SeekOrigin.Begin);
+                imageData?.Seek(0, SeekOrigin.Begin);
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
                 request.Method = "POST";
                 request.ContentType = "application/json";
 
-                if (data != null)
+                if (imageData != null) { dataStream = imageData; }
+
+                if(requestData != null)
+                {
+                    request.ContentType = "application/x-www-form-urlencoded";
+                    dataStream = UtilityHelper.GenerateStreamFromString(requestData);
+                }
+
+                if (dataStream != null)
                 {
                     using (var stream = request.GetRequestStream())
                     {
-                        CopyStream(data, stream);
-
+                        CopyStream(dataStream, stream);
                         stream.Flush();
                     }
-                }
+                }                
 
                 var response = (HttpWebResponse)request.GetResponse();
 
@@ -62,6 +72,14 @@ namespace CountlySDK
             {
                 UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
                 return null;
+            }
+            finally
+            {
+                if(dataStream != null)
+                {
+                    dataStream.Close();
+                    dataStream.Dispose();
+                }
             }
         }
 

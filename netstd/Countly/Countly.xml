@@ -1,0 +1,826 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Countly</name>
+    </assembly>
+    <members>
+        <member name="T:CountlySDK.Countly">
+            <summary>
+            This class is the public API for the Countly Windows Phone SDK.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Countly.SaveCollection``1(System.Collections.Generic.List{``0},System.String)">
+            <summary>
+            Saves collection to the storage
+            </summary>
+            <returns>True if success, otherwise - False</returns>
+        </member>
+        <member name="M:CountlySDK.Countly.StartSession(System.String,System.String,System.String)">
+            <summary>
+            Starts Countly tracking session.
+            Call from your App.xaml.cs Application_Launching and Application_Activated events.
+            Must be called before other SDK methods can be used.
+            </summary>
+            <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
+            <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
+            <param name="appVersion">Application version</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.Countly.UpdateSession(System.Object,System.Object)" -->
+        <member name="F:CountlySDK.Entities.CountlyConfig.deviceIdMethod">
+            <summary>
+            Which method for deviceId generation is used
+            </summary>
+        </member>
+        <member name="T:CountlySDK.Entities.Device">
+            <summary>
+            This class provides static methods to retrieve information about the current device.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.Device.IsNetworkAvailable">
+            <summary>
+            Indicates whether any network connection is available
+            Filter connections below a specified speed, as well as virtual network cards.
+            </summary>
+            <returns>
+                <c>true</c> if a network connection is available; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:CountlySDK.Entities.Device.IsNetworkAvailable(System.Int64)">
+            <summary>
+            Indicates whether any network connection is available.
+            Filter connections below a specified speed, as well as virtual network cards.
+            </summary>
+            <param name="minimumSpeed">The minimum speed required. Passing 0 will not filter connection using speed.</param>
+            <returns>
+                <c>true</c> if a network connection is available; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:CountlySDK.Entities.BeginSession.#ctor(System.String,System.String,System.String,CountlySDK.Entities.Metrics,System.Nullable{System.Int64})">
+            <summary>
+            Creates BeginSession object with provided values
+            </summary>
+            <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
+            <param name="deviceId">Unique ID for the device the app is running on</param>
+            <param name="sdkVersion">SDK version string</param>
+            <param name="metrics">Metrics parameters</param>
+        </member>
+        <member name="M:CountlySDK.Entities.BeginSession.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="T:CountlySDK.Entities.CountlyEvent">
+            <summary>
+            This class holds the data for a single Count.ly custom event instance.
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CountlyEvent.Key">
+            <summary>
+            Key attribute, must be non-empty
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CountlyEvent.Count">
+            <summary>
+            Count parameter, must me positive number
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CountlyEvent.Sum">
+            <summary>
+            Sum parameter, can be null
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CountlyEvent.Duration">
+            <summary>
+            Duration of event, can be null
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CountlyEvent.Segmentation">
+            <summary>
+            Segmentation parameter
+            </summary>        
+        </member>
+        <member name="P:CountlySDK.Entities.CountlyEvent.segmentation">
+            <summary>
+            Segmentation json-ready object
+            </summary>        
+        </member>
+        <member name="M:CountlySDK.Entities.CountlyEvent.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.CountlyEvent.#ctor(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
+            <summary>
+            Create Countly event with provided values
+            </summary>
+            <param name="Key">Key attribute, must be non-empty</param>
+            <param name="Count">Count parameter, must me positive number</param>
+            <param name="Sum">Sum parameter, can be null</param>
+            <param name="Segmentation">Segmentation parameter</param>
+        </member>
+        <member name="T:CountlySDK.Entities.CustomInfo">
+            <summary>
+            Holds a dictionary of custom info values
+            </summary>
+        </member>
+        <member name="E:CountlySDK.Entities.CustomInfo.CollectionChanged">
+            <summary>
+            Raised when collection is changed
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.CustomInfo.Add(System.String,System.String)">
+            <summary>
+            Adds new custom item
+            </summary>
+            <param name="Name">item name</param>
+            <param name="Value">item value</param>
+        </member>
+        <member name="M:CountlySDK.Entities.CustomInfo.Remove(System.String)">
+            <summary>
+            Removes custom item
+            </summary>
+            <param name="Name">item name</param>
+        </member>
+        <member name="M:CountlySDK.Entities.CustomInfo.Clear">
+            <summary>
+            Clears items collection
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CustomInfo.Item(System.String)">
+            <summary>
+            Gets or sets item value based on provided item name
+            </summary>
+            <param name="name">item name</param>
+            <returns>item value</returns>
+        </member>
+        <member name="M:CountlySDK.Entities.CustomInfo.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.CustomInfo.ToDictionary">
+            <summary>
+            Returns items as key/value dictionary pairs
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:CountlySDK.Entities.CustomInfoItem">
+            <summary>
+            Holds data about segmentation value
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CustomInfoItem.Name">
+            <summary>
+            Property name
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.CustomInfoItem.Value">
+            <summary>
+            Preperty value
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.CustomInfoItem.#ctor(System.String,System.String)">
+            <summary>
+            Creates object with provided values
+            </summary>
+            <param name="Name">Property name</param>
+            <param name="Value">Preperty value</param>
+        </member>
+        <member name="M:CountlySDK.Entities.CustomInfoItem.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.EndSession.#ctor(System.String,System.String,System.Nullable{System.Int64},System.Nullable{System.Int64})">
+            <summary>
+            Creates EndSession object with provided values
+            </summary>
+            <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
+            <param name="deviceId">Unique ID for the device the app is running on</param>
+        </member>
+        <member name="M:CountlySDK.Entities.EntityBase.DeviceBase.GetDeviceId">
+            <summary>
+            Returns the unique device identificator
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.EntityBase.DeviceBase.SetDeviceId(System.String)">
+            <summary>
+            Sets the unique device identificator
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.EntityBase.DeviceBase.SetPreferredDeviceIdMethod(CountlySDK.Entities.EntityBase.DeviceBase.DeviceIdMethodInternal,System.String)">
+            <summary>
+            Set preferred method for generating device id. If a Id is already provided, use that and
+            set method to developerSupplied
+            </summary>
+            <param name="deviceIdMethod">preferred method</param>
+            <param name="suppliedDeviceId">device id to use</param>
+            <returns></returns>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.OS">
+            <summary>
+            Returns the display name of the current operating system
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.OSVersion">
+            <summary>
+            Returns the current operating system version as a displayable string
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.Manufacturer">
+            <summary>
+            Returns the current device manufacturer
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.DeviceName">
+            <summary>
+            Returns the local machine name
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.AppVersion">
+            <summary>
+            Returns application version from Package.appxmanifest
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "P:CountlySDK.Entities.EntityBase.DeviceBase.Resolution" -->
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.Carrier">
+            <summary>
+            Returns cellular mobile operator
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.Orientation">
+            <summary>
+            Returns current device orientation
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.RamCurrent">
+            <summary>
+            Returns available RAM space
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.RamTotal">
+            <summary>
+            Returns total RAM size
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.Online">
+            <summary>
+            Returns current device connection to the internet
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.Locale">
+            <summary>
+            Returns devices current locale
+            </summary>
+        </member>
+        <member name="T:CountlySDK.Entities.ExceptionEvent">
+            <summary>
+            This class holds the data about an application exception
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.ExceptionEvent.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="T:CountlySDK.Entities.Metrics">
+            <summary>
+            Holds device-specific info in json-ready format
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.Metrics.OS">
+            <summary>
+            Name of the current operating system
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.Metrics.OSVersion">
+            <summary>
+            Current operating system version
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.Metrics.Device">
+            <summary>
+            Local machine name (windows) or current device model (mobile)
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.Metrics.Resolution">
+            <summary>
+            Device resolution
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.Metrics.Carrier">
+            <summary>
+            Cellular mobile operator (where applicable)
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.Metrics.AppVersion">
+            <summary>
+            Application version
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Entities.Metrics.Locale">
+            <summary>
+            Locale
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.Metrics.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Creates Metrics object with provided values
+            </summary>
+            <param name="OS">Name of the current operating system</param>
+            <param name="OSVersion">Current operating system version</param>
+            <param name="Device">Current device model</param>
+            <param name="Resolution">Device resolution</param>
+            <param name="Carrier">Cellular mobile operator</param>
+            <param name="AppVersion">Application version</param>
+        </member>
+        <member name="M:CountlySDK.Entities.Metrics.ToString">
+            <summary>
+            Serializes object into json
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.Entities.UpdateSession.#ctor(System.String,System.String,System.Int32,System.Nullable{System.Int64})">
+            <summary>
+            Creates UpdateSession object with provided values
+            </summary>
+            <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
+            <param name="deviceId">Unique ID for the device the app is running on</param>
+            <param name="duration">Session duration in seconds</param>
+        </member>
+        <member name="T:CountlySDK.Entities.CountlyUserDetails">
+            <summary>
+            Holds user-specific info in json-ready format
+            </summary>
+        </member>
+        <member name="F:CountlySDK.Helpers.Storage.folder">
+            <summary>
+            Countly folder
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Helpers.Storage.DeleteFile(System.String)">
+            <summary>
+            Delete file
+            </summary>
+            <param name="filename">Filename to delete</param>
+        </member>
+        <member name="M:CountlySDK.Helpers.TimeHelper.ToUnixTime(System.DateTime)">
+            <summary>
+            Converts DateTime to Unix time format
+            </summary>
+            <param name="date">DateTime object</param>
+            <returns>Unix timestamp</returns>
+        </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.IsNullOrEmptyOrWhiteSpace(System.String)">
+            <summary>
+            Indicates wheater the given value is null, empty or consists only of white space characters 
+            </summary>
+            <param name="value"></param>
+            <returns></returns>
+        </member>
+        <member name="T:CountlySDK.Helpers.TimerHelper">
+            <summary>
+            Used in place of DispatchTimer
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.CountlyBase.IsLoggingEnabled">
+            <summary>
+            Determines if Countly debug messages are displayed to Output window
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SaveEvents">
+            <summary>
+            Saves events to the storage
+            </summary>
+            <returns>True if success, otherwise - False</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SaveSessions">
+            <summary>
+            Saves sessions to the storage
+            </summary>
+            <returns>True if success, otherwise - False</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SaveExceptions">
+            <summary>
+            Saves exceptions to the storage
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SaveUnhandledException(CountlySDK.Entities.ExceptionEvent)">
+            <summary>
+            Saves the given unhandled exception to storage
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SaveUserDetails">
+            <summary>
+            Saves user details info to the storage
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.EndSession">
+            <summary>
+            End Countly tracking session.
+            Call from one of these places:
+            * your closing event
+            * your App.xaml.cs Application_Deactivated and Application_Closing events.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddSessionEvent(CountlySDK.Entities.SessionEvent,System.Boolean)">
+            <summary>
+             Adds session event to queue and uploads
+            </summary>
+            <param name="sessionEvent">session event object</param>
+            <param name="uploadImmediately">indicates when start to upload, by default - immediately after event was added</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.Upload" -->
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadSessions">
+            <summary>
+            Uploads sessions queue to Countly server
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEvent(System.String)">
+            <summary>
+            Records a custom event with no segmentation values, a count of one and a sum of zero
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be the empty string</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEvent(System.String,System.Int32)">
+            <summary>
+            Records a custom event with no segmentation values, the specified count, and a sum of zero.
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be the empty string</param>
+            <param name="Count">Count to associate with the event, should be more than zero</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEvent(System.String,System.Int32,System.Nullable{System.Double})">
+            <summary>
+            Records a custom event with no segmentation values, and the specified count and sum.
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be the empty string</param>
+            <param name="Count">Count to associate with the event, should be more than zero</param>
+            <param name="Sum">Sum to associate with the event</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEvent(System.String,System.Int32,CountlySDK.Segmentation)">
+            <summary>
+            Records a custom event with the specified segmentation values and count, and a sum of zero.
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be the empty string</param>
+            <param name="Count">Count to associate with the event, should be more than zero</param>
+            <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEvent(System.String,System.Int32,System.Nullable{System.Double},CountlySDK.Segmentation)">
+            <summary>
+            Records a custom event with the specified segmentation values, count and a sum
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be the empty string</param>
+            <param name="Count">Count to associate with the event, should be more than zero</param>
+            <param name="Sum">Sum to associate with the event</param>
+            <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEvent(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
+            <summary>
+            Records a custom event with the specified segmentation values, count and a sum
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be the empty string</param>
+            <param name="Count">Count to associate with the event, should be more than zero</param>
+            <param name="Sum">Sum to associate with the event</param>
+            /// <param name="Sum">Event duration</param>
+            <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventInternal(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
+            <summary>
+            Records a custom event with the specified values
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be the empty string</param>
+            <param name="Count">Count to associate with the event, should be more than zero</param>
+            <param name="Sum">Sum to associate with the event</param>
+            <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadEvents">
+            <summary>
+            Uploads event queue to Countly server
+            </summary>
+            <returns>True if success</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordException(System.String)">
+            <summary>
+            Records exception
+            </summary>
+            <param name="error">exception title</param>
+            <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordException(System.String,System.String)">
+            <summary>
+            Records exception with stacktrace
+            </summary>
+            <param name="error">exception title</param>
+            <param name="stackTrace">exception stacktrace</param>
+            <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordUnhandledException(System.String,System.String)">
+            <summary>
+            Records unhandled exception with stacktrace
+            </summary>
+            <param name="error">exception title</param>
+            <param name="stackTrace">exception stacktrace</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordException(System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Records exception with stacktrace and custom info
+            </summary>
+            <param name="error">exception title</param>
+            <param name="stackTrace">exception stacktrace</param>
+            <param name="customInfo">exception custom info</param>
+            <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordException(System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean)">
+            <summary>
+            Records exception with stacktrace and custom info
+            </summary>
+            <param name="error">exception title</param>
+            <param name="stackTrace">exception stacktrace</param>
+            <param name="customInfo">exception custom info</param>
+            <param name="unhandled">bool indicates is exception is fatal or not</param>
+            <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordExceptionInternal(System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean)">
+            <summary>
+            Records exception with stacktrace and custom info
+            </summary>
+            <param name="error">exception title</param>
+            <param name="stackTrace">exception stacktrace</param>
+            <param name="customInfo">exception custom info</param>
+            <param name="unhandled">bool indicates is exception is fatal or not</param>
+            <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadExceptions">
+            <summary>
+            Uploads exceptions queue to Countly server
+            </summary>
+            <returns>True if success</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadUserDetails">
+            <summary>
+            Uploads user details
+            </summary>
+            <returns>true if details are successfully uploaded, false otherwise</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.OnUserDetailsChanged">
+            <summary>
+            Raised when user details propery is changed
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadUserPicture(System.IO.Stream)">
+            <summary>
+            Uploads user picture. Accepted picture formats are .png, .gif and .jpeg and picture will be resized to maximal 150x150 dimensions
+            </summary>
+            <param name="stream">Image stream</param>
+            <returns>true if image is successfully uploaded, false otherwise</returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.Halt" -->
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddBreadCrumb(System.String)">
+            <summary>
+            Adds log breadcrumb
+            </summary>
+            <param name="log">log string</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SessionBegin">
+            <summary>
+            Start tracking a session
+            Should be called only once
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SessionUpdate(System.Int32)">
+            <summary>
+            Manually update session
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SessionEnd">
+            <summary>
+            End tracking a session
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.ChangeDeviceId(System.String,System.Boolean)">
+            <summary>
+            Change this devices Id
+            </summary>
+            <param name="newDeviceId">New Id that should be used</param>
+            <param name="serverSideMerge">If set to true, old user id's data will be merged into new user</param>
+            <returns></returns>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.serverUrl">
+            <summary>
+            Server url
+            [Mandatory field]
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.appKey">
+            <summary>
+            Application key
+            [Mandatory field]
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.appVersion">
+            <summary>
+            Application version
+            [Mandatory field]
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.developerProvidedDeviceId">
+            <summary>
+            Device Id provided by the developer. If value is not null,
+            changes the DeviceIdMethod to 'developerSupplied' and overwrites
+            the previously used/saved deviceId
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.consentRequired">
+            <summary>
+            If user consent for features is required. If enabled, then features
+            will not work without explicitly granting permission.
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.givenConsent">
+            <summary>
+            Features for which consent is given or denied. These set values are not persistent
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.DeviceId.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase">
+            <summary>
+            Holds user-specific info in json-ready format
+            </summary>
+        </member>
+        <member name="E:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.UserDetailsChanged">
+            <summary>
+            raised when any of properties are changed
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Name">
+            <summary>
+            Name
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Username">
+            <summary>
+            Username or login info
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Email">
+            <summary>
+            User email address
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Organization">
+            <summary>
+            User organization
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Phone">
+            <summary>
+            User phone
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Picture">
+            <summary>
+            Web URL to picture
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Gender">
+            <summary>
+            User gender
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.BirthYear">
+            <summary>
+            User birth year
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Custom">
+            <summary>
+            User custom data
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase._custom">
+            <summary>
+            Custom data ready for json serializer
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.UploadUserPicture(System.IO.Stream)">
+            <summary>
+            Uploads user picture. Accepted picture formats are .png, .gif and .jpeg and picture will be resized to maximal 150x150 dimensions
+            </summary>
+            <param name="stream">Image stream</param>
+            <returns>true if image is successfully uploaded, false otherwise</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.ToString">
+            <summary>
+            Serializes object into json
+            </summary>
+            <returns>json representation string</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.StorageBase.SaveToFile``1(System.String,System.Object)">
+            <summary>
+            Saves object into file
+            </summary>
+            <typeparam name="T">Object type</typeparam>
+            <param name="filename">File to save to</param>
+            <param name="objForSave">Object to save</param>
+            <returns>True if success, otherwise - False</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.StorageBase.LoadFromFile``1(System.String)">
+            <summary>
+            Load object from file
+            </summary>
+            <typeparam name="T">Object type</typeparam>
+            <param name="filename">Filename to load from</param>
+            <returns>Object from file</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.StorageBase.DeleteFile(System.String)">
+            <summary>
+            Delete file
+            </summary>
+            <param name="filename">Filename to delete</param>
+        </member>
+        <member name="T:CountlySDK.Segmentation">
+            <summary>
+            Holds an array of segmentation values
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Segmentation.segmentation">
+            <summary>
+            Segmenation array
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Segmentation.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="M:CountlySDK.Segmentation.Add(System.String,System.String)">
+            <summary>
+            Add new segmentation value
+            </summary>
+            <param name="Key">Segmenation key</param>
+            <param name="Value">Segmenation value</param>
+        </member>
+        <member name="T:CountlySDK.SegmentationItem">
+            <summary>
+            Holds data about segmentation value
+            </summary>
+        </member>
+        <member name="P:CountlySDK.SegmentationItem.Key">
+            <summary>
+            Segmentation key
+            </summary>
+        </member>
+        <member name="P:CountlySDK.SegmentationItem.Value">
+            <summary>
+            Segmentation value
+            </summary>
+        </member>
+        <member name="M:CountlySDK.SegmentationItem.#ctor(System.String,System.String)">
+            <summary>
+            Creates object with provided values
+            </summary>
+            <param name="Key">Segmentation key</param>
+            <param name="Value">Segmentation value</param>
+        </member>
+        <member name="M:CountlySDK.SegmentationItem.#ctor">
+            <summary>
+            Needed for JSON deserialization
+            </summary>
+        </member>
+        <member name="T:CountlySDK.Server.Responses.ResultResponse">
+            <summary>
+            Represents API response
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Server.Responses.ResultResponse.Result">
+            <summary>
+            Result value
+            </summary>
+        </member>
+        <member name="P:CountlySDK.Server.Responses.ResultResponse.IsSuccess">
+            <summary>
+            Checks if response is success
+            </summary>
+        </member>
+    </members>
+</doc>

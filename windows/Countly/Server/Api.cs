@@ -46,16 +46,21 @@ namespace CountlySDK
             });
         }
 
-        protected override async Task<string> RequestAsync(string address, Stream data = null)
+        protected override async Task<string> RequestAsync(string address, String requestData = null, Stream imageData = null)
         {
             try
             {
+                if(requestData != null)
+                {
+                    address += "?" + requestData;
+                }
+
                 UtilityHelper.CountlyLogging("POST " + address);
 
                 //make sure stream is at start
-                data?.Seek(0, SeekOrigin.Begin);
-
-                var httpResponseMessage = await Client.PostAsync(new Uri(address), (data != null) ? new HttpStreamContent(data.AsInputStream()) : null);
+                imageData?.Seek(0, SeekOrigin.Begin);
+                
+                var httpResponseMessage = await Client.PostAsync(new Uri(address), (imageData != null) ? new HttpStreamContent(imageData.AsInputStream()) : null);
 
                 if (httpResponseMessage.IsSuccessStatusCode)
                 {

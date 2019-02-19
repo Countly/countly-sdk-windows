@@ -23,6 +23,7 @@ THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace CountlySDK.Helpers
 {
@@ -57,6 +58,12 @@ namespace CountlySDK.Helpers
         {
             String escapedString = System.Uri.EscapeDataString(data);
             return escapedString;
+        }
+
+        public static String DecodeDataForURL(String data)
+        {
+            String unescapedString = System.Uri.UnescapeDataString(data);
+            return unescapedString;
         }
 
         public static void CountlyLogging(String msg)
@@ -96,6 +103,23 @@ namespace CountlySDK.Helpers
             }
 
             return 0;
+        }
+
+
+        /// <summary>
+        /// Create a stream from given string
+        /// Used when sending data to server
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public static Stream GenerateStreamFromString(string streamData)
+        {
+            var stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(streamData);
+            writer.Flush();
+            stream.Position = 0;
+            return stream;
         }
     }
 }

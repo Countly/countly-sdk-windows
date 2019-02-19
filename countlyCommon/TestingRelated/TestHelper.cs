@@ -403,5 +403,26 @@ namespace TestProject_common
 
             return consent;
         }
+
+        public static String[] CreateLargeStrings(int stepAmount, int stepSize)
+        {
+            StringBuilder sbSingleStep = new StringBuilder();
+
+            for (int a = 0; a < stepSize; a++)
+            {
+                sbSingleStep.Append("A");
+            }
+
+            String acc = "";
+            String[] steps = new string[stepAmount];
+
+            for (int a = 0; a < stepAmount; a++)
+            {
+                acc += sbSingleStep.ToString();
+                steps[a] = acc;
+            }
+
+            return steps;
+        }
     }
 }

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,6 +17,8 @@ namespace CountlySDK.CountlyCommon.Server
     abstract class ApiBase
     {
         internal int DeviceMergeWaitTime = 10000;
+
+        internal const int maxLengthForDataInUrl = 2000;
 
         protected abstract Task DoSleep(int sleepTime);
 
@@ -104,16 +107,25 @@ namespace CountlySDK.CountlyCommon.Server
             return await Call<ResultResponse>(String.Format("{0}{1}", serverUrl, request.Request));
         }
 
-        protected abstract Task<T> Call<T>(string address, Stream data = null);
+        protected abstract Task<T> Call<T>(string address, Stream imageData = null);
 
-        protected async Task<T> CallJob<T>(string address, Stream data = null)
+        protected async Task<T> CallJob<T>(string address, Stream imageData = null)
         {
             Debug.Assert(address != null);
             TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
             
             try
             {
-                string responseJson = await RequestAsync(address, data);
+                String rData = null;
+                if (address.Length > maxLengthForDataInUrl)
+                {
+                    //request url was too long, split off the data and pass it as form data
+                    String[] splitData = address.Split('?');
+                    address = splitData[0];
+                    rData = splitData[1];
+                }
+
+                string responseJson = await RequestAsync(address, rData, imageData);
 
                 if (responseJson != null)
                 {
@@ -137,6 +149,6 @@ namespace CountlySDK.CountlyCommon.Server
             return await tcs.Task;
         }
 
-        protected abstract Task<string> RequestAsync(string address, Stream data = null);
+        protected abstract Task<string> RequestAsync(string address, String requestData, Stream imageData = null);
     }
 }
