@@ -38,7 +38,7 @@
     <DocumentationFile>bin\Release\Countly.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>

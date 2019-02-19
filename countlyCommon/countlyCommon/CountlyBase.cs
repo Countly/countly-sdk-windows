@@ -17,7 +17,7 @@ namespace CountlySDK.CountlyCommon
     abstract public class CountlyBase
     {
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "18.01";
+        protected const string sdkVersion = "19.02";
 
         // How often update session is sent
         protected const int updateInterval = 60;
