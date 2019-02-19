@@ -75,7 +75,7 @@ namespace CountlySDK.Entities
 
         protected override string GetDeviceName()
         {
-            return System.Environment.MachineName;
+            return null;
         }
 
         protected override string GetAppVersion()

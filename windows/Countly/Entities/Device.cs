@@ -117,20 +117,7 @@ namespace CountlySDK.Entities
 
         protected override string GetCarrier()
         {
-            var result = NetworkInformation.GetConnectionProfiles();
-
-            foreach (var connectionProfile in result)
-            {
-                if (connectionProfile.IsWwanConnectionProfile)
-                {
-                    foreach (var networkName in connectionProfile.GetNetworkNames())
-                    {
-                        return networkName;
-                    }
-                }
-            }
-
-            return String.Empty;
+            return null;
         }
     
         private string orientation;
