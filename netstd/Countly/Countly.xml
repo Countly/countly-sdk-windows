@@ -378,6 +378,14 @@
             <param name="value"></param>
             <returns></returns>
         </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.GenerateStreamFromString(System.String)">
+            <summary>
+            Create a stream from given string
+            Used when sending data to server
+            </summary>
+            <param name="s"></param>
+            <returns></returns>
+        </member>
         <member name="T:CountlySDK.Helpers.TimerHelper">
             <summary>
             Used in place of DispatchTimer
