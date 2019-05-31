@@ -1,5 +1,5 @@
 19.02.1
-* Reworked Storage for UWP so that it does not use PCLStorage
+* [Common, UWP] Reworked Storage for UWP so that it does not use PCLStorage
 
 19.02
 * Added support for uploading larger server requests
