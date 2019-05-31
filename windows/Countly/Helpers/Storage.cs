@@ -44,10 +44,7 @@ namespace CountlySDK.Helpers
         public static Storage Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        /// <summary>
-        /// Countly folder
-        /// </summary>
-        private const string folder = "countly";
+        internal override string folder { get { return "countly"; } }
 
         private Dictionary<string, bool> filesInUse = new Dictionary<string, bool>();
 

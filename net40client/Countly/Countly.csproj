@@ -183,6 +183,9 @@
     <Compile Include="..\..\net35\Countly\Server\Api.cs">
       <Link>Server\Api.cs</Link>
     </Compile>
+    <Compile Include="..\..\netstd\Countly\Helpers\StorageNetStd.cs">
+      <Link>Helpers\StorageNetStd.cs</Link>
+    </Compile>
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

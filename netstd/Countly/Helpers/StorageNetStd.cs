@@ -25,55 +25,38 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.IsolatedStorage;
+using System.Reflection;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CountlySDK.Helpers
 {
-    internal class Storage : StorageBase
+    internal class StorageNetStd : StorageBase
     {
-        //==============SINGLETON============
-        //fourth version from:
-        //http://csharpindepth.com/Articles/General/Singleton.aspx
-        private static readonly Storage instance = new Storage();
-        // Explicit static constructor to tell C# compiler
-        // not to mark type as beforefieldinit    
-        static Storage() { }
-        internal Storage() { }
-        public static Storage Instance { get { return instance; } }
-        //-------------SINGLETON-----------------
+        internal override string folder => throw new NotImplementedException();
 
-        /// <summary>
-        /// Countly folder
-        /// </summary>
-        internal override string folder { get { return "countly"; } }
-        private string customDataPath = null;
+        internal virtual IsolatedStorageFile isolatedStorage { get { throw new NotImplementedException(); } }
 
-        private string Path
+        internal virtual void closeIsolatedStorageStream(IsolatedStorageFileStream file) { throw new NotImplementedException(); }
+
+        internal virtual void closeStreamWriter(StreamWriter stream) { throw new NotImplementedException(); }
+
+        private bool IsFileExists(IsolatedStorageFile store, string fileName)
         {
-            get
+            if (!store.DirectoryExists(folder))
             {
-                if (customDataPath == null)
-                {
-                    return System.IO.Directory.GetCurrentDirectory() + @"\" + folder;
-                } else
-                {
-                    return customDataPath + @"\" + folder;
-                }
+                return false;
             }
+
+            return store.FileExists(Path.Combine(folder, fileName));
         }
 
-        /// <summary>
-        /// Set custom data path for countly data cache
-        /// If path is set to null, it will clear the custom path
-        /// </summary>
-        /// <param name="customPath">Given custom path</param>
-        public void SetCustomDataPath(string customPath)
+        public bool IsFileExists(string fileName)
         {
-            customDataPath = customPath;
+            var store = isolatedStorage;
+            return IsFileExists(store, fileName);
         }
-       
+
         public override async Task<bool> SaveToFile<T>(string filename, object objForSave)
         {
             Debug.Assert(filename != null, "Provided filename can't be null");
@@ -84,12 +67,14 @@ namespace CountlySDK.Helpers
                 bool success = true;
                 try
                 {
-                    bool exists = System.IO.Directory.Exists(Path);
+                    var store = isolatedStorage;
 
-                    if (!exists)
-                        System.IO.Directory.CreateDirectory(Path);
-                
-                    using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Create, FileAccess.Write, FileShare.Read))
+                    if (!store.DirectoryExists(folder))
+                    {
+                        store.CreateDirectory(folder);
+                    }
+
+                    using (IsolatedStorageFileStream file = store.OpenFile(Path.Combine(folder, filename), FileMode.Create, FileAccess.Write, FileShare.Read))
                     {
                         if (file != null && objForSave != null)
                         {
@@ -97,7 +82,7 @@ namespace CountlySDK.Helpers
                             ser.WriteObject(file, objForSave);
                         }
 
-                        file.Close();
+                        closeIsolatedStorageStream(file);
                     }
                 }
                 catch
@@ -110,11 +95,12 @@ namespace CountlySDK.Helpers
                 }
                 return success;
             }
+
         }
-       
+
         public override async Task<T> LoadFromFile<T>(string filename)
         {
-            Debug.Assert(filename != null, "Provided filename can't be null");            
+            Debug.Assert(filename != null, "Provided filename can't be null");
 
             T obj = default(T);
 
@@ -122,14 +108,15 @@ namespace CountlySDK.Helpers
             {
                 try
                 {
-                    if (!System.IO.Directory.Exists(Path))
+                    var store = isolatedStorage;
+
+                    if (!IsFileExists(store, filename))
                     {
-                        System.IO.Directory.CreateDirectory(Path);
+                        //if file does not exist, return null
+                        return obj;
                     }
 
-                    if (!File.Exists(Path + @"\" + filename)) return obj;
-            
-                    using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                    using (var file = store.OpenFile(Path.Combine(folder, filename), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         if (file != null)
                         {
@@ -138,17 +125,17 @@ namespace CountlySDK.Helpers
                         }
                         else
                         {
-                            obj = null;
+                            obj = default(T);
                         }
 
-                        file.Close();
+                        closeIsolatedStorageStream(file);
                     }
                 }
                 catch
                 {
                     if (Countly.IsLoggingEnabled)
                     {
-                        Debug.WriteLine("countly queue lost");
+                        Debug.WriteLine("Probem while loading from file");
                     }
                 }
             }
@@ -164,9 +151,10 @@ namespace CountlySDK.Helpers
         {
             try
             {
-                if (File.Exists(Path + @"\" + filename))
+                var store = isolatedStorage;
+                if (IsFileExists(store, filename))
                 {
-                    File.Delete(Path + @"\" + filename);
+                    store.DeleteFile(Path.Combine(folder, filename));
                 }
             }
             catch
@@ -175,7 +163,19 @@ namespace CountlySDK.Helpers
 
         internal override async Task<string> GetFolderPath(string folderName)
         {
-            return System.IO.Directory.GetCurrentDirectory() + @"\" + folderName;
+            // Create a file in isolated storage.
+            IsolatedStorageFile store = isolatedStorage;
+            IsolatedStorageFileStream stream = new IsolatedStorageFileStream("test.txt", FileMode.Create, store);
+            StreamWriter writer = new StreamWriter(stream);
+            writer.WriteLine("Hello");
+            closeStreamWriter(writer);
+            closeIsolatedStorageStream(stream);
+            
+
+
+            // Retrieve the actual path of the file using reflection.
+            string path = stream.GetType().GetField("m_FullPath", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(stream).ToString();
+            return path.Replace("test.txt", folderName);
         }
     }
 }

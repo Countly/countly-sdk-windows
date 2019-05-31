@@ -144,7 +144,7 @@ namespace CountlySDK
         {
             if (IsInitialized()) { return; }
 
-            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Conutly"); }
+            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
 
             await InitBase(config);            
         }

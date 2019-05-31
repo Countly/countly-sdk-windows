@@ -33,6 +33,16 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// <param name="filename">Filename to delete</param>
         public abstract Task DeleteFile(string filename);
 
+        /// <summary>
+        /// Required for testing
+        /// </summary>
+        /// <param name="folderName"></param>
+        /// <returns></returns>
         internal abstract Task<String> GetFolderPath(String folderName);
+
+        /// <summary>
+        /// Retrive storage folder name
+        /// </summary>
+        internal abstract String folder { get; }        
     }
 }

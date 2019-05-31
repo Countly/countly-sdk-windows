@@ -49,10 +49,10 @@ namespace CountlySDK.Helpers
         /// </summary>
         internal override string folder { get { return "countly"; } }
 
-        internal override IsolatedStorageFile isolatedStorage { get { return IsolatedStorageFile.GetUserStoreForAssembly(); } }
+        internal override IsolatedStorageFile isolatedStorage { get { return IsolatedStorageFile.GetUserStoreForApplication(); } }
 
-        internal override void closeIsolatedStorageStream(IsolatedStorageFileStream file) { file.Close(); }
+        internal override void closeIsolatedStorageStream(IsolatedStorageFileStream file) { file.Flush(); file.Dispose(); }
 
-        internal override void closeStreamWriter(StreamWriter stream) { stream.Close(); }
+        internal override void closeStreamWriter(StreamWriter stream) { stream.Dispose(); }
     }
 }

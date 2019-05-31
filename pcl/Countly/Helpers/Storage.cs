@@ -48,7 +48,7 @@ namespace CountlySDK.Helpers
         /// <summary>
         /// Countly folder
         /// </summary>
-        internal const string folder = "countly";
+        internal override string folder { get { return "countly"; } }
 
         private Dictionary<string, bool> filesInUse = new Dictionary<string, bool>();
         
@@ -301,7 +301,7 @@ namespace CountlySDK.Helpers
 
         internal async override Task<string> GetFolderPath(string folderName)
         {
-            IFolder folder = await Storage.Instance.GetFolder(Storage.folder);
+            IFolder folder = await Storage.Instance.GetFolder(Storage.Instance.folder);
             return folder.Path;
         }
     }

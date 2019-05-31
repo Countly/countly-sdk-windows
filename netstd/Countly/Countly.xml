@@ -353,12 +353,12 @@
             Holds user-specific info in json-ready format
             </summary>
         </member>
-        <member name="F:CountlySDK.Helpers.Storage.folder">
+        <member name="P:CountlySDK.Helpers.Storage.folder">
             <summary>
             Countly folder
             </summary>
         </member>
-        <member name="M:CountlySDK.Helpers.Storage.DeleteFile(System.String)">
+        <member name="M:CountlySDK.Helpers.StorageNetStd.DeleteFile(System.String)">
             <summary>
             Delete file
             </summary>
@@ -765,6 +765,18 @@
             Delete file
             </summary>
             <param name="filename">Filename to delete</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.StorageBase.GetFolderPath(System.String)">
+            <summary>
+            Required for testing
+            </summary>
+            <param name="folderName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Helpers.StorageBase.folder">
+            <summary>
+            Retrive storage folder name
+            </summary>
         </member>
         <member name="T:CountlySDK.Segmentation">
             <summary>
