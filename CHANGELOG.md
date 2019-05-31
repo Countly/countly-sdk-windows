@@ -1,3 +1,6 @@
+19.02.1
+* Reworked Storage for UWP so that it does not use PCLStorage
+
 19.02
 * Added support for uploading larger server requests
 * Fixed metrics that might reveal more information about users then wanted

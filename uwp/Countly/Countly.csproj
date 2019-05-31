@@ -199,15 +199,13 @@
     <Compile Include="..\..\netstd\Countly\Helpers\StorageNetStd.cs">
       <Link>Helpers\StorageNetStd.cs</Link>
     </Compile>
-    <Compile Include="..\..\pcl\Countly\Entities\Device.cs">
-      <Link>Entities\Device.cs</Link>
-    </Compile>
     <Compile Include="..\..\pcl\Countly\Helpers\TimerHelper.cs">
       <Link>Helpers\TimerHelper.cs</Link>
     </Compile>
     <Compile Include="..\..\pcl\Countly\Server\Api.cs">
       <Link>Server\Api.cs</Link>
     </Compile>
+    <Compile Include="Entities\Device.cs" />
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Countly.rd.xml" />
@@ -227,7 +225,7 @@
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>

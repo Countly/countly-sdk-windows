@@ -34,8 +34,8 @@ using CountlySDK.CountlyCommon;
 using CountlySDK.Entities.EntityBase;
 
 using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo("CountlySampleConsole")]
-[assembly: InternalsVisibleTo("CountlyTest_452")]
+//[assembly: InternalsVisibleTo("CountlySampleConsole")]
+//[assembly: InternalsVisibleTo("CountlyTest_452")]
 
 namespace CountlySDK
 {
