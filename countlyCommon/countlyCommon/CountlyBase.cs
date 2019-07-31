@@ -395,7 +395,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null);
+            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null, false);
         }
 
         /// <summary>
@@ -407,7 +407,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null, false);
         }
 
         /// <summary>
@@ -420,7 +420,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null, false);
         }
 
         /// <summary>
@@ -433,7 +433,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation, false);
         }
 
         /// <summary>
@@ -447,7 +447,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation, false);
         }
 
         /// <summary>
@@ -462,7 +462,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation, false);
         }
 
         /// <summary>
@@ -472,11 +472,12 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Count">Count to associate with the event, should be more than zero</param>
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+        /// <param name="consentOverride">set by views or other features which record their values by events</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, bool consentOverride)
         {
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
-            if (!IsConsentGiven(ConsentFeatures.Events)) { return true; }
+            if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation);
 
@@ -1061,7 +1062,7 @@ namespace CountlySDK.CountlyCommon
         internal bool consentRequired = false;
         internal Dictionary<ConsentFeatures, bool> givenConsent = new Dictionary<ConsentFeatures, bool>();
 
-        public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users };
+        public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users, Views };
 
         internal bool IsConsentGiven(ConsentFeatures feature)
         {
@@ -1149,11 +1150,86 @@ namespace CountlySDK.CountlyCommon
         {
             //create the required merge request
             String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId());
-            String cur = RequestHelper.CreateCosnentUpdateRequest(br, updatedConsentChanges);
+            String cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
 
             //add the request to queue and upload it
             await AddRequest(cur);
             await Upload();
         }
+
+        
+        //track views
+        private String lastView = null;
+        private long lastViewStart = 0;
+        private bool firstView = true;
+        private const String VIEW_EVENT_KEY = "[CLY]_view";
+
+        /// <summary>
+        /// Records view
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> RecordView(String viewName)
+        {
+            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
+            if (viewName == null) { throw new ArgumentException("'viewName' cannot be null"); }
+            if (viewName.Length == 0) { throw new ArgumentException("'viewName' cannot be a empty string"); }
+
+            if (!IsConsentGiven(ConsentFeatures.Views))
+            {
+                //if we don't have consent, do nothing
+                return false;
+            }
+
+
+            reportViewDuration();
+            lastView = viewName;
+            
+            lastViewStart = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            Segmentation segm = new Segmentation();
+            segm.Add("name", viewName);
+            segm.Add("visit", "1");
+            segm.Add("segment", "Windows");
+
+            if (firstView)
+            {
+                firstView = false;
+                segm.Add("start", "1");
+            }
+            return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm, true);
+        }
+
+        /// <summary>
+        /// Reports duration of last view
+        /// <summary>
+        private async void reportViewDuration()
+        {
+            if (lastView != null && lastViewStart <= 0)
+            {
+                if (IsLoggingEnabled) { Debug.WriteLine("Last view start value is not normal: [" + lastViewStart + "]"); }
+            }
+
+            if (!IsConsentGiven(ConsentFeatures.Views))
+            {
+                //if we don't have consent, do nothing
+                return;
+            }
+
+            //only record view if the view name is not null and if it has a reasonable duration
+            //if the lastViewStart is equal to 0, the duration would be set to the current timestamp
+            //and therefore will be ignored
+            if (lastView != null && lastViewStart > 0)
+            {
+                Segmentation segm = new Segmentation();
+                segm.Add("name", lastView);
+                segm.Add("dur", "" + (TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()) - lastViewStart));
+                segm.Add("segment", "Windows");
+
+                await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm, true);
+
+                lastView = null;
+                lastViewStart = 0;
+            }
+        }
+        
     }
 }

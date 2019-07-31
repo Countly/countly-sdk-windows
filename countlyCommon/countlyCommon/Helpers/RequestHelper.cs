@@ -41,7 +41,7 @@ namespace CountlySDK.CountlyCommon.Helpers
             return res;
         }
 
-        internal static String CreateCosnentUpdateRequest(String bRequest, Dictionary<ConsentFeatures, bool> updatedConsentChanges)
+        internal static String CreateConsentUpdateRequest(String bRequest, Dictionary<ConsentFeatures, bool> updatedConsentChanges)
         {
             Debug.Assert(bRequest != null);
             Debug.Assert(updatedConsentChanges != null);

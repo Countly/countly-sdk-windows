@@ -499,7 +499,7 @@
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventInternal(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventInternal(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation,System.Boolean)">
             <summary>
             Records a custom event with the specified values
             </summary>
@@ -507,6 +507,7 @@
             <param name="Count">Count to associate with the event, should be more than zero</param>
             <param name="Sum">Sum to associate with the event</param>
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+            <param name="consentOverride">set by views or other features which record their values by events</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadEvents">
@@ -624,6 +625,13 @@
             <param name="serverSideMerge">If set to true, old user id's data will be merged into new user</param>
             <returns></returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordView(System.String)">
+            <summary>
+            Records view
+            </summary>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.reportViewDuration" -->
         <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.serverUrl">
             <summary>
             Server url

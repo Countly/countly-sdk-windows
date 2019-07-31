@@ -196,6 +196,12 @@ namespace TestProject_common
         }
 
         [Fact]
+        public async void SimpleView()
+        {
+            bool res = await Countly.Instance.RecordView("SampleViewName");
+        }
+
+        [Fact]
         public async void MultipleExceptions()
         {
             bool res;
