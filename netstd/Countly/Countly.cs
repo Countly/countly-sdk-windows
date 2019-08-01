@@ -174,9 +174,22 @@ namespace CountlySDK
         {
             if(IsInitialized()) { return; }
 
-            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
-            
+            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }                       
+
             await InitBase(config);
+
+            //after SDK has been initialized check for additional features
+            if (config.application != null)
+            {
+                //if application reference is given, set up unhandled exception handling
+                config.application.UnhandledException += unhandledExceptionHandler;
+            }
+        }
+
+        private async void unhandledExceptionHandler(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+        {
+            if (!IsConsentGiven(ConsentFeatures.Crashes)) { return; }
+            await RecordExceptionInternal(e.Message, null, null, true);
         }
 
         protected override async Task SessionBeginInternal()
@@ -202,7 +215,7 @@ namespace CountlySDK
 
         protected override void SessionTimerStart()
         {
-            Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
+            Timer = new TimerHelper(UpdateSession, null, sessionUpdateInterval * 1000, sessionUpdateInterval * 1000);
         }
 
         protected override void SessionTimerStop()

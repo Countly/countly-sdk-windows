@@ -43,5 +43,10 @@ namespace CountlySDK.CountlyCommon.Entities
         /// Features for which consent is given or denied. These set values are not persistent
         /// </summary>
         public Dictionary<ConsentFeatures, bool> givenConsent = null;
+
+        /// <summary>
+        /// After how many seconds a session update is sent
+        /// </summary>
+        public int sessionUpdateInterval = 60;
     }
 }

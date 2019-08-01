@@ -17,10 +17,10 @@ namespace CountlySDK.CountlyCommon
     abstract public class CountlyBase
     {
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "19.02";
+        protected const string sdkVersion = "19.07";
 
         // How often update session is sent
-        protected const int updateInterval = 60;
+        protected int sessionUpdateInterval = 60;
 
         // Server url provided by a user
         protected string ServerUrl;
@@ -138,12 +138,14 @@ namespace CountlySDK.CountlyCommon
         }
 
         protected async Task UpdateSessionInternal(int? elapsedTime = null)
-        {            
-            if(elapsedTime == null)
+        {
+            if (IsLoggingEnabled) { Debug.WriteLine("Session Update happening"); }
+            if (elapsedTime == null)
             {
                 //calculate elapsed time from the last time update was sent (includes manual calls)
                 elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
             }
+            if (IsLoggingEnabled) { Debug.WriteLine("Session Update elapsed time: [" + elapsedTime + "]"); }
 
             Debug.Assert(elapsedTime != null);
             lastSessionUpdateTime = DateTime.Now;
@@ -160,12 +162,16 @@ namespace CountlySDK.CountlyCommon
         [Obsolete("static 'EndSession' is deprecated, please use 'Countly.Instance.SessionEnd' in place of this call")]
         public static async Task EndSession()
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'EndSession'"); }
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'EndSession'"); }
             await Countly.Instance.EndSessionInternal();
         }
 
         protected async Task EndSessionInternal()
         {
+            //report the duration of current view
+            reportViewDuration();
+
             SessionTimerStop();
             int elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
             await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), null, elapsedTime), true);
@@ -476,6 +482,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, bool consentOverride)
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'RecordEvent'"); }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
@@ -645,7 +652,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         internal async Task<bool> RecordExceptionInternal(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
-            if(!IsServerURLCorrect(ServerUrl)) { return false; }
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'RecordException'"); }
+            if (!IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Crashes)) { return true; }
 
             TimeSpan run = DateTime.Now.Subtract(startTime);
@@ -832,6 +840,7 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         public static async void Halt()
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'Halt'"); }
             await Countly.Instance.HaltInternal();
         }
 
@@ -909,6 +918,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> SetLocation(String gpsLocation, String ipAddress = null, String country_code = null, String city = null)
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SetLocation'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SetLocation'"); }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
@@ -928,6 +938,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> DisableLocation()
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'DisableLocation'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'DisableLocation'"); }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
@@ -963,10 +974,12 @@ namespace CountlySDK.CountlyCommon
         {
             if (!IsServerURLCorrect(config.serverUrl)) { throw new ArgumentException("invalid server url"); }
             if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
+            if (config.sessionUpdateInterval <= 0) { throw new ArgumentException("session update interval can't be less than 1 second"); }
 
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
             AppVersion = config.appVersion;
+            sessionUpdateInterval = config.sessionUpdateInterval;
 
             if(config.developerProvidedDeviceId?.Length == 0) { throw new ArgumentException("'developerProvidedDeviceId' cannot be empty string"); }
             await DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
@@ -993,6 +1006,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionBegin()
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SessionBegin'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
 
             await SessionBeginInternal();
@@ -1004,6 +1018,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionUpdate(int elapsedTimeSeconds)
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SessionUpdate'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionUpdate'"); }
             if (elapsedTimeSeconds < 0) { throw new ArgumentException("Elapsed time can not be negative"); }
 
@@ -1016,6 +1031,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionEnd()
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SessionEnd'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionEnd'"); }
 
             await Countly.Instance.EndSessionInternal();
@@ -1030,6 +1046,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task ChangeDeviceId(String newDeviceId, bool serverSideMerge = false)
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'ChangeDeviceId'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'ChangeDeviceId'"); }
             if (newDeviceId == null) { throw new ArgumentException("New device id cannot be null"); }
             if (newDeviceId.Length == 0) { throw new ArgumentException("New device id cannot be empty string"); }
@@ -1170,6 +1187,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task<bool> RecordView(String viewName)
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'RecordView'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
             if (viewName == null) { throw new ArgumentException("'viewName' cannot be null"); }
             if (viewName.Length == 0) { throw new ArgumentException("'viewName' cannot be a empty string"); }
@@ -1219,9 +1237,10 @@ namespace CountlySDK.CountlyCommon
             //and therefore will be ignored
             if (lastView != null && lastViewStart > 0)
             {
+                long timestampSeconds = (TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()) - lastViewStart) / 1000;
                 Segmentation segm = new Segmentation();
                 segm.Add("name", lastView);
-                segm.Add("dur", "" + (TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()) - lastViewStart));
+                segm.Add("dur", "" + timestampSeconds);
                 segm.Add("segment", "Windows");
 
                 await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm, true);

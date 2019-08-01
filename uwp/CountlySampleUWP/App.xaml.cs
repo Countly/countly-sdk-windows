@@ -79,20 +79,26 @@ namespace CountlySampleUWP
 
         private async void Launched()
         {
-            Countly.IsLoggingEnabled = true;
+            //create the Countly init object
+            CountlySDK.CountlyCommon.CountlyBase.IsLoggingEnabled = true;
+            var cc = new CountlyConfig
+            {
+                serverUrl = "SERVER_URL",
+                appKey = "APP_KEY",                
+                appVersion = "1.2.3",                
+            };
 
-            string ServerUrl = "SERVER_URL";
-            string AppKey = "API_KEY";
-
-            if (ServerUrl == null)
-                throw new ArgumentNullException("Type your ServerUrl");
-            if (AppKey == null)
-                throw new ArgumentNullException("Type your AppKey");
-
-            await Countly.StartSession(ServerUrl, AppKey, "1.0", FileSystem.Current);
-
-            Countly.RecordEvent("SDFDSFDSFSDF");
-            Countly.RecordEvent("4345345345");
+            try
+            {
+                await Countly.Instance.Init(cc);
+                await Countly.Instance.SessionBegin();            
+                await Countly.RecordEvent("qwedqwe");
+                await Countly.Instance.RecordView("Some View");
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine("Some exception found!" + exception);
+            }
         }
 
 
@@ -113,10 +119,11 @@ namespace CountlySampleUWP
         /// </summary>
         /// <param name="sender">The source of the suspend request.</param>
         /// <param name="e">Details about the suspend request.</param>
-        private void OnSuspending(object sender, SuspendingEventArgs e)
+        private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
+            await Countly.Instance.SessionEnd();
             deferral.Complete();
         }
     }
