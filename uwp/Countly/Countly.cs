@@ -25,28 +25,22 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using CountlySDK.Server.Responses;
 using System.IO;
-using System.Diagnostics;
-using static CountlySDK.Entities.EntityBase.DeviceBase;
-using CountlySDK.Entities.EntityBase;
 using CountlySDK.CountlyCommon;
+using CountlySDK.Entities.EntityBase;
+
 
 using System.Runtime.CompilerServices;
-
-#if RUNNING_ON_35
-    //[assembly: InternalsVisibleTo("CountlyTest_35")]
-#elif RUNNING_ON_40
-    //[assembly: InternalsVisibleTo("CountlyTest_40")]
-#endif
+[assembly: InternalsVisibleTo("CountlyTest_461")]
+[assembly: InternalsVisibleTo("CountlySampleUWP")]
 
 namespace CountlySDK
 {
     /// <summary>
-    /// This class is the public API for the Countly .NET 3.5/4.0 SDK.
+    /// This class is the public API for the Countly Windows Phone SDK.
     /// </summary>
     public class Countly : CountlyBase
     {
@@ -62,16 +56,52 @@ namespace CountlySDK
         //-------------SINGLETON-----------------
 
         //methods for generating device ID
-        public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields, windowsGUID = DeviceBase.DeviceIdMethodInternal.windowsGUID, developerSupplied = DeviceBase.DeviceIdMethodInternal.developerSupplied };
-        
+        public enum DeviceIdMethod { windowsGUID = DeviceBase.DeviceIdMethodInternal.windowsGUID, developerSupplied = DeviceBase.DeviceIdMethodInternal.developerSupplied };
+
+        // Raised when the async session is established
+        public static event EventHandler SessionStarted;
+
         // Update session timer
-        private DispatcherTimer Timer;
+        private TimerHelper Timer;
+
+        /// <summary>
+        /// Saves collection to the storage
+        /// </summary>
+        /// <returns>True if success, otherwise - False</returns>
+        private async Task<bool> SaveCollection<T>(List<T> collection, string path)
+        {
+            List<T> collection_;
+
+            lock (sync)
+            {
+                collection_ = collection.ToList();
+            }
+
+            bool success = await Storage.Instance.SaveToFile<List<T>>(path, collection_);
+
+            if (success)
+            {
+                if (collection_.Count != collection.Count)
+                {
+                    // collection was changed during saving, save it again
+                    return await SaveCollection<T>(collection, path);
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         protected override bool SaveEvents()
         {
             lock (sync)
             {
-                return Storage.Instance.SaveToFile<List<SessionEvent>>(eventsFilename, Events).Result;
+                return SaveCollection<CountlyEvent>(Events, eventsFilename).Result;
             }
         }
 
@@ -79,7 +109,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                return Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions).Result;
+                return SaveCollection<SessionEvent>(Sessions, sessionsFilename).Result;
             }
         }
 
@@ -87,7 +117,7 @@ namespace CountlySDK
         {
             lock (sync)
             {
-                return Storage.Instance.SaveToFile<List<ExceptionEvent>>(exceptionsFilename, Exceptions).Result;
+                return SaveCollection<ExceptionEvent>(Exceptions, exceptionsFilename).Result;
             }
         }
 
@@ -111,29 +141,29 @@ namespace CountlySDK
 
         /// <summary>
         /// Starts Countly tracking session.
-        /// Call from your entry point.
+        /// Call from your App.xaml.cs Application_Launching and Application_Activated events.
         /// Must be called before other SDK methods can be used.
         /// </summary>
         /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
         /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="appVersion">Application version</param>
         [Obsolete("static 'StartSession' is deprecated, please use 'Countly.Instance.Init' together with 'Countly.Instance.SessionBegin' in place of this call")]
-        public static async Task StartSession(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
+        public static async Task StartSession(string serverUrl, string appKey, string appVersion)
         {
-            await Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, idMethod);
+            await Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion);
         }
 
-        private async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, DeviceIdMethod idMethod = DeviceIdMethod.cpuId)
+        private async Task StartSessionInternal(string serverUrl, string appKey, string appVersion)
         {
             if (ServerUrl != null)
             {
                 // session already active
                 return;
-            }
-
+            }            
+                    
             if (!IsInitialized())
             {
-                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl, deviceIdMethod = idMethod };
+                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl };
                 await Init(cc);
             }
 
@@ -142,11 +172,24 @@ namespace CountlySDK
 
         public override async Task Init(CountlyConfig config)
         {
-            if (IsInitialized()) { return; }
+            if(IsInitialized()) { return; }
 
-            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
+            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }                       
 
-            await InitBase(config);            
+            await InitBase(config);
+
+            //after SDK has been initialized check for additional features
+            if (config.application != null)
+            {
+                //if application reference is given, set up unhandled exception handling
+                config.application.UnhandledException += unhandledExceptionHandler;
+            }
+        }
+
+        private async void unhandledExceptionHandler(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+        {
+            if (!IsConsentGiven(ConsentFeatures.Crashes)) { return; }
+            await RecordExceptionInternal(e.Message, null, null, true);
         }
 
         protected override async Task SessionBeginInternal()
@@ -154,8 +197,9 @@ namespace CountlySDK
             startTime = DateTime.Now;
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
+            SessionStarted?.Invoke(null, EventArgs.Empty);
 
-            Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
+            Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
             await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
         }
 
@@ -164,41 +208,23 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void UpdateSession(object sender, EventArgs e)
+        private async void UpdateSession(object sender, object e)
         {
-            await UpdateSessionInternal();            
-        }
-
-        /// <summary>
-        /// Set the custom data path for temporary caching files
-        /// Set it to null if you want to use the default location
-        /// THIS WILL ONLY WORK WHEN TARGETING .NET3.5
-        /// If you downloaded this package from nuget and are targeting .net4.0,
-        /// this will do nothing.
-        /// </summary>
-        /// <param name="customPath">Custom location for countly data files</param>
-        [Obsolete("static 'SetCustomDataPath' is deprecated, please set the value 'customDataPath' in 'CountlyConfig' while initiating the SDK")]
-        public static void SetCustomDataPath(string customPath)
-        {
-            Storage.Instance.SetCustomDataPath(customPath);
-        }
+            await UpdateSessionInternal();
+        }        
 
         protected override void SessionTimerStart()
         {
-            Timer = new DispatcherTimer();
-            Timer.Interval = TimeSpan.FromSeconds(sessionUpdateInterval);
-            Timer.Tick += UpdateSession;
-            Timer.Start();
+            Timer = new TimerHelper(UpdateSession, null, sessionUpdateInterval * 1000, sessionUpdateInterval * 1000);
         }
 
         protected override void SessionTimerStop()
         {
             if (Timer != null)
             {
-                Timer.Stop();
-                Timer.Tick -= UpdateSession;
+                Timer.Dispose();
                 Timer = null;
             }
-        }
+        }        
     }
 }

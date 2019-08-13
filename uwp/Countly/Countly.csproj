@@ -190,12 +190,6 @@
     <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs">
       <Link>Entities\CountlyUserDetails.cs</Link>
     </Compile>
-    <Compile Include="..\..\netstd\Countly\Countly.cs">
-      <Link>Countly.cs</Link>
-    </Compile>
-    <Compile Include="..\..\netstd\Countly\Entities\CountlyConfig.cs">
-      <Link>Entities\CountlyConfig.cs</Link>
-    </Compile>
     <Compile Include="..\..\netstd\Countly\Helpers\StorageNetStd.cs">
       <Link>Helpers\StorageNetStd.cs</Link>
     </Compile>
@@ -205,6 +199,8 @@
     <Compile Include="..\..\pcl\Countly\Server\Api.cs">
       <Link>Server\Api.cs</Link>
     </Compile>
+    <Compile Include="Countly.cs" />
+    <Compile Include="Entities\CountlyConfig.cs" />
     <Compile Include="Entities\Device.cs" />
     <Compile Include="Helpers\Storage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

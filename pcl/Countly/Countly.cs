@@ -204,7 +204,7 @@ namespace CountlySDK
 
         protected override void SessionTimerStart()
         {
-            Timer = new TimerHelper(UpdateSession, null, updateInterval * 1000, updateInterval * 1000);
+            Timer = new TimerHelper(UpdateSession, null, sessionUpdateInterval * 1000, sessionUpdateInterval * 1000);
         }
 
         protected override void SessionTimerStop()
