@@ -38,9 +38,18 @@ namespace CountlySample
             //Countly.SetCustomDataPath(@"D:\123z\");//usable only when targeting .net3.5
             //Countly.SetCustomDataPath(null);
 
+            CountlyConfig countlyConfig = new CountlyConfig();            
+            countlyConfig.serverUrl = serverURL;
+            countlyConfig.appKey = appKey;
+            countlyConfig.appVersion = "123";
+
+            await Countly.Instance.Init(countlyConfig);
+            await Countly.Instance.SessionBegin();
+
+            /*
             //Countly.deferUpload = true;//this call is only available by allowing access to internal members to this project, should not be used
             await Countly.StartSession(serverURL, appKey, "1.234", Countly.DeviceIdMethod.multipleFields);
-
+            */
             Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
 
             System.Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
@@ -55,7 +64,9 @@ namespace CountlySample
                 Console.WriteLine("4) Change the name of the current user");
                 Console.WriteLine("5) Exit");
                 Console.WriteLine("6) Another caught Exception");
-                Console.WriteLine("7) Test");
+                Console.WriteLine("7) Some view");
+                Console.WriteLine("8) Another view");
+                Console.WriteLine("9) Test");
 
                 if (enableDebugOpptions)
                 {
@@ -104,14 +115,21 @@ namespace CountlySample
                 else if (cki.Key == ConsoleKey.D6)
                 {
                     Console.WriteLine("6");
-                    Countly.RecordException("What is here", "");                    
+                    await Countly.RecordException("What is here", "");                    
                 }
                 else if (cki.Key == ConsoleKey.D7)
                 {
                     Console.WriteLine("7");
+                    await Countly.Instance.RecordView("Some view Name");
                       
                 }
-                else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
+                else if (cki.Key == ConsoleKey.D8)
+                {
+                    Console.WriteLine("8");
+                    await Countly.Instance.RecordView("Another view Name");
+
+                }
+                else if (enableDebugOpptions && cki.Key == ConsoleKey.D9)
                 {
                     Console.WriteLine("8");
                     Console.WriteLine("Running threaded debug test");

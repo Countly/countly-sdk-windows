@@ -486,7 +486,8 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
-            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation);
+            long timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timestamp);
 
             bool saveSuccess = false;
             lock (sync)
