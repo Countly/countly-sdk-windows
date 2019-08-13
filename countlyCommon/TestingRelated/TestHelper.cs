@@ -174,7 +174,7 @@ namespace TestProject_common
         public static CountlyEvent CreateCountlyEvent(int index)
         {
             Segmentation se = CreateSegmentation(index);
-            CountlyEvent ce = new CountlyEvent(v[index], iv[index], dv[index], dv[index + 1], se);
+            CountlyEvent ce = new CountlyEvent(v[index], iv[index], dv[index], dv[index + 1], se, 234343);
 
             Dictionary<String, String> cust = new Dictionary<string, string>();
             cust.Add(v[index + 1], v[index + 2]);

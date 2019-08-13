@@ -34,8 +34,8 @@ using CountlySDK.Entities.EntityBase;
 
 
 using System.Runtime.CompilerServices;
-[assembly: InternalsVisibleTo("CountlyTest_461")]
-[assembly: InternalsVisibleTo("CountlySampleUWP")]
+//[assembly: InternalsVisibleTo("CountlyTest_461")]
+//[assembly: InternalsVisibleTo("CountlySampleUWP")]
 
 namespace CountlySDK
 {

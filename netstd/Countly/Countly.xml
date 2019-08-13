@@ -94,6 +94,11 @@
             Duration of event, can be null
             </summary>
         </member>
+        <member name="P:CountlySDK.Entities.CountlyEvent.Timestamp">
+            <summary>
+            Timestamp of event, can be null
+            </summary>
+        </member>
         <member name="P:CountlySDK.Entities.CountlyEvent.Segmentation">
             <summary>
             Segmentation parameter
@@ -109,7 +114,7 @@
             Needed for JSON deserialization
             </summary>
         </member>
-        <member name="M:CountlySDK.Entities.CountlyEvent.#ctor(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
+        <member name="M:CountlySDK.Entities.CountlyEvent.#ctor(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation,System.Nullable{System.Int64})">
             <summary>
             Create Countly event with provided values
             </summary>
@@ -666,6 +671,11 @@
         <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.givenConsent">
             <summary>
             Features for which consent is given or denied. These set values are not persistent
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.sessionUpdateInterval">
+            <summary>
+            After how many seconds a session update is sent
             </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.DeviceId.#ctor">
