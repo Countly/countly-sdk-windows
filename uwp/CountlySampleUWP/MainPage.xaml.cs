@@ -13,6 +13,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -51,6 +52,21 @@ namespace CountlySampleUWP
         {
             //throwing unhandled exception
             throw new IndexOutOfRangeException();
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            bool consent = true;
+
+            Countly.Instance.SetConsent(new Dictionary<ConsentFeatures, bool>
+            {
+                { ConsentFeatures.Crashes, consent },
+                { ConsentFeatures.Events, consent },
+                { ConsentFeatures.Location, false },
+                { ConsentFeatures.Sessions, consent },
+                { ConsentFeatures.Users, false },
+                { ConsentFeatures.Views, consent }
+            });
         }
     }
 }

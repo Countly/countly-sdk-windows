@@ -11,6 +11,7 @@
         <Button Content="Record Handled Crash" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click"/>
         <Button Content="Record View" HorizontalAlignment="Left" Margin="10,84,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click_1"/>
         <Button Content="Cause Unhandled Crash" HorizontalAlignment="Left" Margin="10,158,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click_2"/>
+        <Button Content="Set consent" HorizontalAlignment="Left" Margin="10,232,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click_3"/>
 
     </Grid>
 </Page>

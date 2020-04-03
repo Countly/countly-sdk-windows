@@ -31,8 +31,10 @@ namespace CountlySampleUWP
         /// </summary>
         public App()
         {
+            Debug.WriteLine("Calling [App]");
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            this.Resuming += OnResuming;
         }
 
         /// <summary>
@@ -79,6 +81,7 @@ namespace CountlySampleUWP
 
         private async void Launched()
         {
+            Debug.WriteLine("Calling [Launched]");
             //create the Countly init object
             CountlySDK.CountlyCommon.CountlyBase.IsLoggingEnabled = true;
             var cc = new CountlyConfig
@@ -88,17 +91,11 @@ namespace CountlySampleUWP
                 appVersion = "1.2.3",                
             };
 
-            try
-            {
-                await Countly.Instance.Init(cc);
-                await Countly.Instance.SessionBegin();            
-                await Countly.RecordEvent("qwedqwe");
-                await Countly.Instance.RecordView("Some View");
-            }
-            catch (Exception exception)
-            {
-                Debug.WriteLine("Some exception found!" + exception);
-            }
+            //Countly.Instance.deferUpload = true;
+            await Countly.Instance.Init(cc);
+            await Countly.Instance.SessionBegin();
+            await Countly.RecordEvent("qwedqwe");
+            await Countly.Instance.RecordView("Some View");
         }
 
 
@@ -121,10 +118,25 @@ namespace CountlySampleUWP
         /// <param name="e">Details about the suspend request.</param>
         private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
+            Debug.WriteLine("Calling [OnSuspending]");
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             await Countly.Instance.SessionEnd();
+            
             deferral.Complete();
+        }
+
+        private async void OnResuming(object sender, object e)
+        {
+            Debug.WriteLine("Calling [OnResuming]");
+            await Countly.Instance.SessionBegin();
+            await Countly.RecordEvent("qwedqwe");
+            await Countly.Instance.RecordView("Some View");
+        }
+
+        protected override async void OnActivated(IActivatedEventArgs args)
+        {
+            Debug.WriteLine("Calling [OnActivated]");
         }
     }
 }

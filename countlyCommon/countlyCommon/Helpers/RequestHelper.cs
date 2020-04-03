@@ -74,6 +74,12 @@ namespace CountlySDK.CountlyCommon.Helpers
                     case ConsentFeatures.Users:
                         consentChanges += "\"users\":" + (feature.Value ? "true" : "false");
                         break;
+                    case ConsentFeatures.Views:
+                        consentChanges += "\"views\":" + (feature.Value ? "true" : "false");
+                        break;
+                    default:
+                        consentChanges += "\"unknown\":false";
+                        break;
                 }
             }
             

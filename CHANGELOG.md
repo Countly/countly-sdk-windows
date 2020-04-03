@@ -1,3 +1,6 @@
+19.08
+* Added functionality to manually record views
+
 19.02.1
 * [Common, UWP] Reworked Storage for UWP so that it does not use PCLStorage
 
