@@ -23,6 +23,7 @@ THE SOFTWARE.
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Helpers;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,9 +88,12 @@ namespace CountlySDK.Entities.EntityBase
 
                 await SaveDeviceIDToStorage();                
             }
-            catch
+            catch(Exception ex)
             {
-                //todo log
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("[SetDeviceId] thrown exception, " + ex.ToString());
+                }
             }
         }
 

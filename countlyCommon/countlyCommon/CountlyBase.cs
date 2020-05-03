@@ -462,7 +462,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Key">Name of the custom event, required, must not be the empty string</param>
         /// <param name="Count">Count to associate with the event, should be more than zero</param>
         /// <param name="Sum">Sum to associate with the event</param>
-        /// /// <param name="Sum">Event duration</param>
+        /// <param name="Duration">Event duration</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
@@ -482,7 +482,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, bool consentOverride)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'RecordEvent'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'RecordEvent'"); }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
@@ -653,7 +653,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         internal async Task<bool> RecordExceptionInternal(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'RecordException'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'RecordException'"); }
             if (!IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Crashes)) { return true; }
 
@@ -730,7 +730,13 @@ namespace CountlySDK.CountlyCommon
                         {
                             Exceptions.RemoveAt(0);
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            if (Countly.IsLoggingEnabled)
+                            {
+                                Debug.WriteLine("[UploadExceptions] thrown exception, " + ex.ToString());
+                            }
+                        }
 
                         var res = SaveExceptions();//todo, in the future, react to this failing
 
@@ -806,7 +812,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         /// <summary>
-        /// Raised when user details propery is changed
+        /// Raised when user details property is changed
         /// </summary>
         protected async void OnUserDetailsChanged()
         {
@@ -820,7 +826,7 @@ namespace CountlySDK.CountlyCommon
         /// <summary>
         /// Uploads user picture. Accepted picture formats are .png, .gif and .jpeg and picture will be resized to maximal 150x150 dimensions
         /// </summary>
-        /// <param name="stream">Image stream</param>
+        /// <param name="imageStream">Image stream</param>
         /// <returns>true if image is successfully uploaded, false otherwise</returns>
         internal async Task<bool> UploadUserPicture(Stream imageStream)
         {
@@ -841,7 +847,7 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         public static async void Halt()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'Halt'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'Halt'"); }
             await Countly.Instance.HaltInternal();
         }
 
@@ -884,6 +890,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="log">log string</param>
         public static void AddBreadCrumb(string log)
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'AddBreadCrumb'"); }
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
             Debug.Assert(log != null);
             Countly.Instance.breadcrumb += log + "\r\n";
@@ -891,6 +898,7 @@ namespace CountlySDK.CountlyCommon
 
         public static async Task<String> GetDeviceId()
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'GetDeviceId'"); }
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'GetDeviceId'"); }
 
             return await Countly.Instance.DeviceData.GetDeviceId();
@@ -919,7 +927,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> SetLocation(String gpsLocation, String ipAddress = null, String country_code = null, String city = null)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SetLocation'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SetLocation'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SetLocation'"); }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
@@ -939,7 +947,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> DisableLocation()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'DisableLocation'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'DisableLocation'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'DisableLocation'"); }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
@@ -973,6 +981,7 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'InitBase'"); }
             if (!IsServerURLCorrect(config.serverUrl)) { throw new ArgumentException("invalid server url"); }
             if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
             if (config.sessionUpdateInterval <= 0) { throw new ArgumentException("session update interval can't be less than 1 second"); }
@@ -1007,7 +1016,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionBegin()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SessionBegin'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SessionBegin'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
 
             await SessionBeginInternal();
@@ -1019,7 +1028,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionUpdate(int elapsedTimeSeconds)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SessionUpdate'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SessionUpdate'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionUpdate'"); }
             if (elapsedTimeSeconds < 0) { throw new ArgumentException("Elapsed time can not be negative"); }
 
@@ -1032,7 +1041,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionEnd()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'SessionEnd'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SessionEnd'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionEnd'"); }
 
             await Countly.Instance.EndSessionInternal();
@@ -1047,7 +1056,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task ChangeDeviceId(String newDeviceId, bool serverSideMerge = false)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'ChangeDeviceId'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'ChangeDeviceId'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'ChangeDeviceId'"); }
             if (newDeviceId == null) { throw new ArgumentException("New device id cannot be null"); }
             if (newDeviceId.Length == 0) { throw new ArgumentException("New device id cannot be empty string"); }
@@ -1188,7 +1197,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task<bool> RecordView(String viewName)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'RecordView'"); }
+            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'RecordView'"); }
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
             if (viewName == null) { throw new ArgumentException("'viewName' cannot be null"); }
             if (viewName.Length == 0) { throw new ArgumentException("'viewName' cannot be a empty string"); }
@@ -1219,12 +1228,12 @@ namespace CountlySDK.CountlyCommon
 
         /// <summary>
         /// Reports duration of last view
-        /// <summary>
+        /// </summary>
         private async void reportViewDuration()
         {
             if (lastView != null && lastViewStart <= 0)
             {
-                if (IsLoggingEnabled) { Debug.WriteLine("Last view start value is not normal: [" + lastViewStart + "]"); }
+                if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Last view start value is not normal: [" + lastViewStart + "]"); }
             }
 
             if (!IsConsentGiven(ConsentFeatures.Views))

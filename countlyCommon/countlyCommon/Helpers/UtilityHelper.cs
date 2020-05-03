@@ -30,7 +30,7 @@ namespace CountlySDK.Helpers
     internal class UtilityHelper
     {
         /// <summary>
-        /// Indicates wheater the given value is null, empty or consists only of white space characters 
+        /// Indicates whether the given value is null, empty or consists only of white space characters 
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>

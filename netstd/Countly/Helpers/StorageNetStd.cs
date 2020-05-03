@@ -135,7 +135,7 @@ namespace CountlySDK.Helpers
                 {
                     if (Countly.IsLoggingEnabled)
                     {
-                        Debug.WriteLine("Probem while loading from file");
+                        Debug.WriteLine("Problem while loading from file");
                     }
                 }
             }
