@@ -1,3 +1,6 @@
+19.08.1
+* Fixed a consent bug regaring "view" consent.
+
 19.08
 * Added functionality to manually record views
 
