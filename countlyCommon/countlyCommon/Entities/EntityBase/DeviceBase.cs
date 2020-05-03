@@ -138,7 +138,7 @@ namespace CountlySDK.Entities.EntityBase
                 }
             }
 
-            if (dId != null && dId.deviceId != null)
+            if (dId?.deviceId != null)
             {
                 deviceId = dId.deviceId;
                 usedIdMethod = dId.deviceIdMethod;

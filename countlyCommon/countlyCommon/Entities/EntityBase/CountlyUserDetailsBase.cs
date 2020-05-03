@@ -265,7 +265,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
                     }
                     else
                     {
-                        custom.Clear();
+                        custom?.Clear();
                     }
 
                     NotifyDetailsChanged();
@@ -287,9 +287,13 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set
             {
                 Custom = new CustomInfo();
-                foreach(var a in value)
+
+                if (value != null)
                 {
-                    Custom.Add(a.Key, a.Value);
+                    foreach (var a in value)
+                    {
+                        Custom.Add(a.Key, a.Value);
+                    }
                 }
             }
         }

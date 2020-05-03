@@ -134,7 +134,7 @@ namespace CountlySDK.Entities
             //error info
             this.Name = Error;
             this.Error = StackTrace;
-            if (this.Error == null || this.Error.Length == 0)
+            if (string.IsNullOrEmpty(this.Error))
             {
                 //in case stacktrace is empty, replace it with the error name
                 this.Error = this.Name;
