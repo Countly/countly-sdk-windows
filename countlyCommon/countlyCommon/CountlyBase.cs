@@ -986,6 +986,13 @@ namespace CountlySDK.CountlyCommon
             if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
             if (config.sessionUpdateInterval <= 0) { throw new ArgumentException("session update interval can't be less than 1 second"); }
 
+            //remove last backslash
+            if (config.serverUrl.EndsWith("/"))
+            {
+                config.serverUrl = config.serverUrl.Substring(0, config.serverUrl.Length - 1);
+            }
+            
+
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
             AppVersion = config.appVersion;

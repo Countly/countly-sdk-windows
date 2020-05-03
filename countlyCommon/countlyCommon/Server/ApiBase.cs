@@ -142,7 +142,7 @@ namespace CountlySDK.CountlyCommon.Server
             }
             catch (Exception ex)
             {
-                UtilityHelper.CountlyLogging("Encountered an exeption while making a request, " + ex);
+                UtilityHelper.CountlyLogging("Encountered an exception while making a request, " + ex);
                 tcs.SetResult(default(T));
             }
 
