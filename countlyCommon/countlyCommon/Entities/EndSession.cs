@@ -46,7 +46,7 @@ namespace CountlySDK.Entities
             if(duration != null && duration > 0)
             {
                 duration = Math.Min(duration.Value, 60);
-                durationAddition = String.Format("&duration={0}", duration.Value);
+                durationAddition = String.Format("&session_duration={0}", duration.Value);
             }
 
             Content = String.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}{3}", appKey, deviceId, timestamp, durationAddition);

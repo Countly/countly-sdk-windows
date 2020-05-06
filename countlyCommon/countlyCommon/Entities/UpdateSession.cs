@@ -42,7 +42,7 @@ namespace CountlySDK.Entities
             {
                 timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             }
-            Content = String.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timespamp={3}", appKey, deviceId, duration, timestamp);
+            Content = String.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}", appKey, deviceId, duration, timestamp);
         }
 
         [JsonConstructor]
