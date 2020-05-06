@@ -22,21 +22,6 @@ namespace CountlySDK.CountlyCommon.Server
 
         protected abstract Task DoSleep(int sleepTime);
 
-        public async Task<ResultResponse> BeginSession(string serverUrl, string appKey, string deviceId, string sdkVersion, string metricsJson)
-        {
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&sdk_version={3}&begin_session=1&metrics={4}", serverUrl, appKey, deviceId, sdkVersion, UtilityHelper.EncodeDataForURL(metricsJson)));
-        }
-
-        public async Task<ResultResponse> UpdateSession(string serverUrl, string appKey, string deviceId, int duration)
-        {
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&session_duration={3}", serverUrl, appKey, deviceId, duration));
-        }
-
-        public async Task<ResultResponse> EndSession(string serverUrl, string appKey, string deviceId)
-        {
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&end_session=1", serverUrl, appKey, deviceId));
-        }
-
         public async Task<ResultResponse> SendSession(string serverUrl, SessionEvent sesisonEvent, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = String.Empty;

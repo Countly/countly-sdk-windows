@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleAspNet", "Coun
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlyTest_40", "CountlyTest_40\CountlyTest_40.csproj", "{C25FB332-2321-4995-AA8A-F63DBEA85C2C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleWPF", "CountlySampleWPF\CountlySampleWPF.csproj", "{C1C9F5CB-6261-4649-8215-51D2E7B712DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{C25FB332-2321-4995-AA8A-F63DBEA85C2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C25FB332-2321-4995-AA8A-F63DBEA85C2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C25FB332-2321-4995-AA8A-F63DBEA85C2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1C9F5CB-6261-4649-8215-51D2E7B712DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1C9F5CB-6261-4649-8215-51D2E7B712DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1C9F5CB-6261-4649-8215-51D2E7B712DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1C9F5CB-6261-4649-8215-51D2E7B712DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

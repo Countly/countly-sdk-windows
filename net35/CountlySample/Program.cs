@@ -11,7 +11,7 @@ namespace CountlySample
     {
         const String serverURL = "http://try.count.ly";//put your server URL here
         const String appKey = null;//put your server APP key here       
-        const bool enableDebugOpptions = false;
+        const bool enableDebugOptions = false;
         public int threadIterations = 100;
         int threadWaitStart = 100;
         int threadWaitEnd = 1000;
@@ -68,7 +68,7 @@ namespace CountlySample
                 Console.WriteLine("8) Another view");
                 Console.WriteLine("9) Test");
 
-                if (enableDebugOpptions)
+                if (enableDebugOptions)
                 {
                     Console.WriteLine("8) (debug) Threading test");
                 }
@@ -129,7 +129,7 @@ namespace CountlySample
                     await Countly.Instance.RecordView("Another view Name");
 
                 }
-                else if (enableDebugOpptions && cki.Key == ConsoleKey.D9)
+                else if (enableDebugOptions && cki.Key == ConsoleKey.D9)
                 {
                     Console.WriteLine("8");
                     Console.WriteLine("Running threaded debug test");

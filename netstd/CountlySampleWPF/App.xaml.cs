@@ -39,7 +39,11 @@ namespace CountlySampleWPF
             Countly.UserDetails.Name = "fdf";
         }
 
-        
+        protected async override void OnExit(ExitEventArgs e)
+        {
+            base.OnExit(e);
+            await Countly.Instance.SessionEnd();
+        }
     }
     
 }

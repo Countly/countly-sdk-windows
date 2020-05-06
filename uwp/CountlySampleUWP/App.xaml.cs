@@ -83,7 +83,7 @@ namespace CountlySampleUWP
         {
             Debug.WriteLine("Calling [Launched]");
             //create the Countly init object
-            CountlySDK.CountlyCommon.CountlyBase.IsLoggingEnabled = true;
+            Countly.IsLoggingEnabled = true;
             var cc = new CountlyConfig
             {
                 serverUrl = "SERVER_URL",
