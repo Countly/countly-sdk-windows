@@ -136,6 +136,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\ApiBase.cs">
       <Link>Server\ApiBase.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\RequestResult.cs">
+      <Link>Server\Responses\RequestResult.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
       <Link>Server\Responses\ResultResponse.cs</Link>
     </Compile>

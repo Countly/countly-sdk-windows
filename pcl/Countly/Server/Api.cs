@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Server.Responses;
 
 namespace CountlySDK
 {
@@ -24,16 +25,17 @@ namespace CountlySDK
         public static Api Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        protected override async Task<T> Call<T>(string address, Stream imageData = null)
+        protected override async Task<RequestResult> Call(string address, Stream imageData = null)
         {
-            return await Task.Run<T>(async () =>
+            return await Task.Run<RequestResult>(async () =>
             {
-                return await CallJob<T>(address, imageData);
+                return await CallJob(address, imageData);
             }).ConfigureAwait(false);
         }      
 
-        protected override async Task<string> RequestAsync(string address, String requestData = null, Stream imageData = null)
+        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null)
         {
+            RequestResult requestResult = new RequestResult();
             try
             {
                 UtilityHelper.CountlyLogging("POST " + address);
@@ -60,19 +62,15 @@ namespace CountlySDK
                 System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
                 System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, httpContent);
 
-                if (httpResponseMessage.IsSuccessStatusCode)
-                {
-                    return await httpResponseMessage.Content.ReadAsStringAsync();
-                }
-                else
-                {
-                    return null;
-                }
+                requestResult.responseText = await httpResponseMessage.Content.ReadAsStringAsync();
+                requestResult.responseCode = (int) httpResponseMessage.StatusCode;
+
+                return requestResult;
             }
             catch (Exception ex)
             {
                 UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
-                return null;
+                return requestResult;
             }
         }
 

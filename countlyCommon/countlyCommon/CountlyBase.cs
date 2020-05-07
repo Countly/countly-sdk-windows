@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Server.Responses;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 
 namespace CountlySDK.CountlyCommon
@@ -290,15 +291,16 @@ namespace CountlySDK.CountlyCommon
 
             if(sr != null)
             {
-                ResultResponse resultResponse = await Api.Instance.SendStoredRequest(ServerUrl, sr);
+                RequestResult requestResult = await Api.Instance.SendStoredRequest(ServerUrl, sr);
 
-                if (resultResponse != null && resultResponse.IsSuccess)
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
                 {
+                    //if it's a successful or bad request, remove it from the queue
                     lock (sync)
                     {
                         uploadInProgress = false;
 
-                        //remove the excecuted request
+                        //remove the executed request
                         StoredRequest srd = null;
                         try { srd = StoredRequests.Dequeue(); } catch { }
                         Debug.Assert(srd != null);
@@ -342,10 +344,11 @@ namespace CountlySDK.CountlyCommon
 
             if (sessionEvent != null)
             {
-                ResultResponse resultResponse = await Api.Instance.SendSession(ServerUrl, sessionEvent, (UserDetails.isChanged) ? UserDetails : null);
+                RequestResult requestResult = await Api.Instance.SendSession(ServerUrl, sessionEvent, (UserDetails.isChanged) ? UserDetails : null);
 
-                if (resultResponse != null && resultResponse.IsSuccess)
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
                 {
+                    //if it's a successful or bad request, remove it from the queue
                     lock (sync)
                     {
                         UserDetails.isChanged = false;
@@ -532,10 +535,11 @@ namespace CountlySDK.CountlyCommon
                 {
                     eventsToSend = Events.Take(eventsCount).ToList();
                 }
-                ResultResponse resultResponse = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
-                if (resultResponse != null && resultResponse.IsSuccess)
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
                 {
+                    //if it's a successful or bad request, remove it from the queue
                     int eventsCountToUploadAgain = 0;
 
                     UserDetails.isChanged = false;
@@ -717,11 +721,12 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 //do the exception upload
-                ResultResponse resultResponse = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), exEvent);
+                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), exEvent);
 
                 //check if we got a response and that it was a success
-                if (resultResponse != null && resultResponse.IsSuccess)
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
                 {
+                    //if it's a successful or bad request, remove it from the queue
                     int exceptionsCountToUploadAgain = 0;
 
                     lock (sync)
@@ -790,15 +795,16 @@ namespace CountlySDK.CountlyCommon
                 uploadInProgress = true;
             }
 
-            ResultResponse resultResponse = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), UserDetails);
+            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), UserDetails);
 
             lock (sync)
             {
                 uploadInProgress = false;
             }
 
-            if (resultResponse != null && resultResponse.IsSuccess)
-            {                
+            if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
+            {
+                //if it's a successful or bad request, remove it from the queue              
                 UserDetails.isChanged = false;
 
                 SaveUserDetails();
@@ -835,9 +841,9 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
-            ResultResponse resultResponse = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
-            return (resultResponse != null && resultResponse.IsSuccess);
+            return (requestResult != null && requestResult.IsSuccess());
         }
 
         /// <summary>

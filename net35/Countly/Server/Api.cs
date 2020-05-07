@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using CountlySDK.CountlyCommon.Server.Responses;
 
 namespace CountlySDK
 {
@@ -25,17 +26,31 @@ namespace CountlySDK
         public static Api Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        protected override async Task<T> Call<T>(string address, Stream data = null)
+        /// <summary>
+        /// Platform specific task wrapper
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected override async Task<RequestResult> Call(string address, Stream data = null)
         {
             return await TaskEx.Run(async () =>
             {
-                return await CallJob<T>(address, data);
+                return await CallJob(address, data);
             }).ConfigureAwait(false);
         }
 
-        protected override async Task<string> RequestAsync(string address, String requestData = null, Stream imageData = null)
+        /// <summary>
+        /// Platform specific networking code
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="requestData"></param>
+        /// <param name="imageData"></param>
+        /// <returns></returns>
+        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null)
         {            
             Stream dataStream = null;
+            RequestResult requestResult = new RequestResult();
             try
             {
                 UtilityHelper.CountlyLogging("POST " + address);
@@ -43,13 +58,16 @@ namespace CountlySDK
                 //make sure stream is at start
                 imageData?.Seek(0, SeekOrigin.Begin);
 
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
+                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(address);
                 request.Method = "POST";
                 request.ContentType = "application/json";
 
-                if (imageData != null) { dataStream = imageData; }
+                if (imageData != null)
+                {
+                    dataStream = imageData;
+                }
 
-                if(requestData != null)
+                if (requestData != null)
                 {
                     request.ContentType = "application/x-www-form-urlencoded";
                     dataStream = UtilityHelper.GenerateStreamFromString(requestData);
@@ -62,16 +80,18 @@ namespace CountlySDK
                         CopyStream(dataStream, stream);
                         stream.Flush();
                     }
-                }                
+                }
 
-                var response = (HttpWebResponse)request.GetResponse();
+                var response = (HttpWebResponse) request.GetResponse();
+                requestResult.responseCode = (int)response.StatusCode;
+                requestResult.responseText = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
-                return new StreamReader(response.GetResponseStream()).ReadToEnd();
+                return requestResult;
             }
             catch (Exception ex)
             {
                 UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
-                return null;
+                return requestResult;
             }
             finally
             {

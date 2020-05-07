@@ -11,6 +11,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Server.Responses;
 
 namespace CountlySDK.CountlyCommon.Server
 {
@@ -22,7 +23,7 @@ namespace CountlySDK.CountlyCommon.Server
 
         protected abstract Task DoSleep(int sleepTime);
 
-        public async Task<ResultResponse> SendSession(string serverUrl, SessionEvent sesisonEvent, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendSession(string serverUrl, SessionEvent sessionEvent, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = String.Empty;
 
@@ -31,10 +32,10 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
-            return await Call<ResultResponse>(serverUrl + sesisonEvent.Content + userDetailsJson);
+            return await Call(serverUrl + sessionEvent.Content + userDetailsJson);
         }
 
-        public async Task<ResultResponse> SendEvents(string serverUrl, string appKey, string deviceId, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendEvents(string serverUrl, string appKey, string deviceId, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
         {
             string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
@@ -45,17 +46,17 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson));
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson));
         }
 
-        public async Task<ResultResponse> SendException(string serverUrl, string appKey, string deviceId, ExceptionEvent exception)
+        public async Task<RequestResult> SendException(string serverUrl, string appKey, string deviceId, ExceptionEvent exception)
         {
             string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson)));
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson)));
         }
 
-        public async Task<ResultResponse> UploadUserDetails(string serverUrl, string appKey, string deviceId, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserDetails(string serverUrl, string appKey, string deviceId, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = String.Empty;
 
@@ -64,10 +65,10 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}", serverUrl, appKey, deviceId, userDetailsJson));
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}", serverUrl, appKey, deviceId, userDetailsJson));
         }
 
-        public async Task<ResultResponse> UploadUserPicture(string serverUrl, string appKey, string deviceId, Stream imageStream, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserPicture(string serverUrl, string appKey, string deviceId, Stream imageStream, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = String.Empty;
 
@@ -76,10 +77,10 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            return await Call<ResultResponse>(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}", serverUrl, appKey, deviceId, userDetailsJson), imageStream);
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}", serverUrl, appKey, deviceId, userDetailsJson), imageStream);
         }
 
-        public async Task<ResultResponse> SendStoredRequest(string serverUrl, StoredRequest request)
+        public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request)
         {
             Debug.Assert(serverUrl != null);
             Debug.Assert(request != null);
@@ -89,19 +90,32 @@ namespace CountlySDK.CountlyCommon.Server
                 await DoSleep(DeviceMergeWaitTime);
             }
 
-            return await Call<ResultResponse>(String.Format("{0}{1}", serverUrl, request.Request));
+            return await Call(String.Format("{0}{1}", serverUrl, request.Request));
         }
 
-        protected abstract Task<T> Call<T>(string address, Stream imageData = null);
+        /// <summary>
+        /// Platform specific task wrapper
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="imageData"></param>
+        /// <returns></returns>
+        protected abstract Task<RequestResult> Call(string address, Stream imageData = null);
 
-        protected async Task<T> CallJob<T>(string address, Stream imageData = null)
+        /// <summary>
+        /// Common job handler
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="imageData"></param>
+        /// <returns></returns>
+        protected async Task<RequestResult> CallJob(string address, Stream imageData = null)
         {
             Debug.Assert(address != null);
-            TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();
-            
+            TaskCompletionSource<RequestResult> tcs = new TaskCompletionSource<RequestResult>();
+
             try
             {
                 String rData = null;
+
                 if (address.Length > maxLengthForDataInUrl)
                 {
                     //request url was too long, split off the data and pass it as form data
@@ -110,30 +124,36 @@ namespace CountlySDK.CountlyCommon.Server
                     rData = splitData[1];
                 }
 
-                string responseJson = await RequestAsync(address, rData, imageData);
+                RequestResult requestResult = await RequestAsync(address, rData, imageData);
+                tcs.SetResult(requestResult);
 
-                if (responseJson != null)
+                if (requestResult.responseText != null)
                 {
-                    UtilityHelper.CountlyLogging(responseJson);
-
-                    T response = JsonConvert.DeserializeObject<T>(responseJson);
-                    tcs.SetResult(response);
+                    UtilityHelper.CountlyLogging(requestResult.responseText);
+                    requestResult.parsedResponse = JsonConvert.DeserializeObject<ResultResponse>(requestResult.responseText);
                 }
                 else
                 {
                     UtilityHelper.CountlyLogging("Received null response");
-                    tcs.SetResult(default(T));
                 }
             }
             catch (Exception ex)
             {
-                UtilityHelper.CountlyLogging("Encountered an exception while making a request, " + ex);
-                tcs.SetResult(default(T));
+                RequestResult requestResult = new RequestResult();
+                requestResult.responseText = "Encountered an exception while making a request, " + ex;
+                UtilityHelper.CountlyLogging(requestResult.responseText);
             }
 
             return await tcs.Task;
         }
 
-        protected abstract Task<string> RequestAsync(string address, String requestData, Stream imageData = null);
+        /// <summary>
+        /// Platform specific networking code
+        /// </summary>
+        /// <param name="address"></param>
+        /// <param name="requestData"></param>
+        /// <param name="imageData"></param>
+        /// <returns></returns>
+        protected abstract Task<RequestResult> RequestAsync(string address, String requestData, Stream imageData = null);
     }
 }

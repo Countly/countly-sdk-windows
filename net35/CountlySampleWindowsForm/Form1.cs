@@ -3,11 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading.Tasks;
+using CountlySDK.Entities;
 
 namespace CountlySampleWindowsForm
 {
@@ -22,14 +24,29 @@ namespace CountlySampleWindowsForm
             Countly.IsLoggingEnabled = true;
         }
 
-        private void btnBeginSession_Click(object sender, EventArgs e)
+        private async void btnBeginSession_Click(object sender, EventArgs e)
         {
-            Countly.StartSession(serverURL, appKey, "1.234");
+            Debug.WriteLine("Before init");
+
+            Countly.IsLoggingEnabled = true;
+
+            CountlyConfig countlyConfig = new CountlyConfig();
+            countlyConfig.serverUrl = serverURL;
+            countlyConfig.appKey = appKey;
+            countlyConfig.appVersion = "123";
+
+            await Countly.Instance.Init(countlyConfig);
+
+            Countly.UserDetails.Custom.Add("aaa", "666");
+
+            await Countly.Instance.SessionBegin();
+
+            Debug.WriteLine("After init");
         }
 
-        private void btnEndSession_Click(object sender, EventArgs e)
+        private async void btnEndSession_Click(object sender, EventArgs e)
         {
-            Countly.EndSession();
+            await Countly.Instance.SessionEnd();
         }
 
         private void btnEventSimple_Click(object sender, EventArgs e)
