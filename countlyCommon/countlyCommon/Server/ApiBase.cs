@@ -35,7 +35,7 @@ namespace CountlySDK.CountlyCommon.Server
             return await Call(serverUrl + sessionEvent.Content + userDetailsJson);
         }
 
-        public async Task<RequestResult> SendEvents(string serverUrl, string appKey, string deviceId, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendEvents(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
         {
             string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
@@ -46,17 +46,17 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}{4}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson));
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}&sdk_version={4}&sdk_name={5}{6}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), sdkVersion, sdkName, userDetailsJson));
         }
 
-        public async Task<RequestResult> SendException(string serverUrl, string appKey, string deviceId, ExceptionEvent exception)
+        public async Task<RequestResult> SendException(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, ExceptionEvent exception)
         {
             string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson)));
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}&sdk_version={4}&sdk_name={5}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson), sdkVersion, sdkName));
         }
 
-        public async Task<RequestResult> UploadUserDetails(string serverUrl, string appKey, string deviceId, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserDetails(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = String.Empty;
 
@@ -65,10 +65,10 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}", serverUrl, appKey, deviceId, userDetailsJson));
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}&sdk_version={4}&sdk_name={5}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName));
         }
 
-        public async Task<RequestResult> UploadUserPicture(string serverUrl, string appKey, string deviceId, Stream imageStream, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserPicture(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, Stream imageStream, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = String.Empty;
 
@@ -77,7 +77,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}", serverUrl, appKey, deviceId, userDetailsJson), imageStream);
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName), imageStream);
         }
 
         public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request)

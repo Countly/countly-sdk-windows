@@ -89,13 +89,13 @@ namespace CountlySDK.CountlyCommon.Helpers
             return res;
         }
 
-        internal static String CreateBaseRequest(string appKey, string deviceId, long? timestamp = null)
+        internal static String CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null)
         {
             if (timestamp == null)
             {
                 timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             }
-            return String.Format("/i?app_key={0}&device_id={1}&timestamp={2}", appKey, deviceId, timestamp);
+            return String.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}", appKey, deviceId, timestamp, sdkVersion, sdkName);
         }
     }
 }

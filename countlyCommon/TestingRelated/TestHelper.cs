@@ -32,19 +32,19 @@ namespace TestProject_common
         public static BeginSession CreateBeginSession(int indexData, int indexMetrics, long? timestamp = null)
         {
             Metrics m = CreateMetrics(indexMetrics);
-            BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m, timestamp);
+            BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m, v[indexData + 3], timestamp);
             return bs;
         }
 
         public static EndSession CreateEndSession(int index, long? timestamp = null)
         {
-            EndSession es = new EndSession(v[index + 0], v[index + 1], timestamp);
+            EndSession es = new EndSession(v[index + 0], v[index + 1], v[index + 2], v[index + 3], timestamp);
             return es;
         }
 
         public static UpdateSession CreateUpdateSession(int indexData, int indexDuration, long? timestamp = null)
         {
-            UpdateSession us = new UpdateSession(v[indexData + 0], v[indexData + 1], iv[indexDuration], timestamp);
+            UpdateSession us = new UpdateSession(v[indexData + 0], v[indexData + 1], iv[indexDuration], v[indexData + 2], v[indexData + 3], timestamp);
             return us;
         }
 

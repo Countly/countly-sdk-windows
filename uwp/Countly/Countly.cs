@@ -64,6 +64,11 @@ namespace CountlySDK
         // Update session timer
         private TimerHelper Timer;
 
+        public override string sdkName()
+        {
+            return "csharp-netuwp";
+        }
+
         /// <summary>
         /// Saves collection to the storage
         /// </summary>
@@ -200,7 +205,7 @@ namespace CountlySDK
             SessionStarted?.Invoke(null, EventArgs.Empty);
 
             Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName()));
         }
 
         /// <summary>

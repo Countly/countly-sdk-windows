@@ -39,7 +39,7 @@ namespace CountlySDK.Entities
         public string Name { get; set; }
 
         /// <summary>
-        /// Preperty value
+        /// Property value
         /// </summary>
         [DataMemberAttribute]
         public string Value { get; set; }
@@ -48,7 +48,7 @@ namespace CountlySDK.Entities
         /// Creates object with provided values
         /// </summary>
         /// <param name="Name">Property name</param>
-        /// <param name="Value">Preperty value</param>
+        /// <param name="Value">Property value</param>
         public CustomInfoItem(string Name, string Value)
         {
             this.Name = Name;

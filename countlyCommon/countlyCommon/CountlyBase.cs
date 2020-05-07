@@ -18,7 +18,9 @@ namespace CountlySDK.CountlyCommon
     abstract public class CountlyBase
     {
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "19.08";
+        protected const string sdkVersion = "20.05";
+
+        public abstract string sdkName();
 
         // How often update session is sent
         protected int sessionUpdateInterval = 60;
@@ -151,7 +153,7 @@ namespace CountlySDK.CountlyCommon
             Debug.Assert(elapsedTime != null);
             lastSessionUpdateTime = DateTime.Now;
 
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value));
+            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName()));
         }
 
         /// <summary>
@@ -175,7 +177,7 @@ namespace CountlySDK.CountlyCommon
 
             SessionTimerStop();
             int elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), null, elapsedTime), true);
+            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), null, elapsedTime), true);
         }
 
         /// <summary>
@@ -535,7 +537,7 @@ namespace CountlySDK.CountlyCommon
                 {
                     eventsToSend = Events.Take(eventsCount).ToList();
                 }
-                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
                 {
@@ -721,7 +723,7 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 //do the exception upload
-                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), exEvent);
+                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent);
 
                 //check if we got a response and that it was a success
                 if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
@@ -795,7 +797,7 @@ namespace CountlySDK.CountlyCommon
                 uploadInProgress = true;
             }
 
-            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), UserDetails);
+            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), UserDetails);
 
             lock (sync)
             {
@@ -841,7 +843,7 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
-            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
             return (requestResult != null && requestResult.IsSuccess());
         }
@@ -943,7 +945,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             //create the required request
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId());
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion);
             String lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
 
             //add the request to queue and upload it
@@ -1087,7 +1089,7 @@ namespace CountlySDK.CountlyCommon
                 String oldId = await DeviceData.GetDeviceId();
 
                 //create the required merge request
-                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId);
+                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion);
                 String dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
 
                 //change device ID
@@ -1189,7 +1191,7 @@ namespace CountlySDK.CountlyCommon
         internal async Task SendConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsentChanges)
         {
             //create the required merge request
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId());
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion);
             String cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
 
             //add the request to queue and upload it

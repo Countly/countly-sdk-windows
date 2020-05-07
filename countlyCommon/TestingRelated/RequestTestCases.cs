@@ -28,10 +28,10 @@ namespace TestProject_common
         [Fact]
         public void BaseRequestBasic()
         {
-            String req = RequestHelper.CreateBaseRequest("a", "b", 123);
+            String req = RequestHelper.CreateBaseRequest("a", "b", "c", "d", 123);
             Assert.Equal("/i?app_key=a&device_id=b&timestamp=123", req);
 
-            String req2 = RequestHelper.CreateBaseRequest("a", "b");
+            String req2 = RequestHelper.CreateBaseRequest("a", "b", "c", "d");
             Assert.Contains("/i?app_key=a&device_id=b&timestamp=", req2);
         }
 

@@ -67,6 +67,15 @@ namespace CountlySDK
         // Update session timer
         private DispatcherTimer Timer;
 
+        public override string sdkName()
+        {
+#if RUNNING_ON_35
+            return "csharp-net35";
+#elif RUNNING_ON_40
+            return "csharp-net40";
+#endif
+        }
+
         protected override bool SaveEvents()
         {
             lock (sync)
@@ -156,7 +165,7 @@ namespace CountlySDK
             SessionTimerStart();
 
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName()));
         }
 
         /// <summary>

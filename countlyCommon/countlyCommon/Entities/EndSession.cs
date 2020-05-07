@@ -35,7 +35,7 @@ namespace CountlySDK.Entities
         /// </summary>
         /// <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
-        public EndSession(string appKey, string deviceId, long? timestamp = null, long? duration = null)
+        public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null, long? duration = null)
         {
             if (timestamp == null)
             {
@@ -49,7 +49,7 @@ namespace CountlySDK.Entities
                 durationAddition = String.Format("&session_duration={0}", duration.Value);
             }
 
-            Content = String.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}{3}", appKey, deviceId, timestamp, durationAddition);
+            Content = String.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}{5}", appKey, deviceId, timestamp, sdkVersion, sdkName, durationAddition);
         }
 
         [JsonConstructor]
