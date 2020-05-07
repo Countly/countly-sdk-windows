@@ -76,7 +76,7 @@ namespace CountlySDK
 
         protected override async Task DoSleep(int sleepTime)
         {
-            System.Threading.Tasks.Task.Delay(DeviceMergeWaitTime).Wait();
+            System.Threading.Tasks.Task.Delay(sleepTime).Wait();
         }
     }
 }

@@ -17,8 +17,6 @@ namespace CountlySDK.CountlyCommon.Server
 {
     abstract class ApiBase
     {
-        internal int DeviceMergeWaitTime = 10000;
-
         internal const int maxLengthForDataInUrl = 2000;
 
         protected abstract Task DoSleep(int sleepTime);
@@ -84,11 +82,6 @@ namespace CountlySDK.CountlyCommon.Server
         {
             Debug.Assert(serverUrl != null);
             Debug.Assert(request != null);
-
-            if (request.IdMerge)
-            {
-                await DoSleep(DeviceMergeWaitTime);
-            }
 
             return await Call(String.Format("{0}{1}", serverUrl, request.Request));
         }

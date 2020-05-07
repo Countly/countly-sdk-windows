@@ -98,7 +98,6 @@ namespace TestProject_common
             Assert.NotEqual(0, dId.Length);
 
             String newId = "qweqwe";
-            Api.Instance.DeviceMergeWaitTime = 500;
             await Countly.Instance.ChangeDeviceId(newId, true);
             String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
             Assert.Equal(newId, dId2);
@@ -116,8 +115,6 @@ namespace TestProject_common
             Assert.NotEqual(0, dId.Length);
 
             String newId = "qweqwe";
-
-            Api.Instance.DeviceMergeWaitTime = 500;
 
             await Countly.Instance.ChangeDeviceId(newId + "1", true);
             res = await Countly.RecordEvent("Some event user2", 123);
