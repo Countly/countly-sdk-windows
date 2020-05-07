@@ -209,5 +209,10 @@ namespace CountlySDK
                 Timer = null;
             }
         }
+
+        public String GenerateDeviceIdMultipleFields()
+        {
+            return DeviceIdHelper.GenerateId();
+        }
     }
 }

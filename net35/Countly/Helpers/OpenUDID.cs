@@ -5,7 +5,7 @@ using System.Text;
 
 namespace CountlySDK.Helpers
 {
-    internal class OpenUDID
+    public class OpenUDID
     {
         public enum OpenUDIDErrors
         {
