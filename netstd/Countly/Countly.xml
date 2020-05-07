@@ -55,7 +55,7 @@
                 <c>true</c> if a network connection is available; otherwise, <c>false</c>.
             </returns>
         </member>
-        <member name="M:CountlySDK.Entities.BeginSession.#ctor(System.String,System.String,System.String,CountlySDK.Entities.Metrics,System.Nullable{System.Int64})">
+        <member name="M:CountlySDK.Entities.BeginSession.#ctor(System.String,System.String,System.String,CountlySDK.Entities.Metrics,System.String,System.Nullable{System.Int64})">
             <summary>
             Creates BeginSession object with provided values
             </summary>
@@ -181,7 +181,7 @@
         </member>
         <member name="P:CountlySDK.Entities.CustomInfoItem.Value">
             <summary>
-            Preperty value
+            Property value
             </summary>
         </member>
         <member name="M:CountlySDK.Entities.CustomInfoItem.#ctor(System.String,System.String)">
@@ -189,14 +189,14 @@
             Creates object with provided values
             </summary>
             <param name="Name">Property name</param>
-            <param name="Value">Preperty value</param>
+            <param name="Value">Property value</param>
         </member>
         <member name="M:CountlySDK.Entities.CustomInfoItem.#ctor">
             <summary>
             Needed for JSON deserialization
             </summary>
         </member>
-        <member name="M:CountlySDK.Entities.EndSession.#ctor(System.String,System.String,System.Nullable{System.Int64},System.Nullable{System.Int64})">
+        <member name="M:CountlySDK.Entities.EndSession.#ctor(System.String,System.String,System.String,System.String,System.Nullable{System.Int64},System.Nullable{System.Int64})">
             <summary>
             Creates EndSession object with provided values
             </summary>
@@ -345,7 +345,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CountlySDK.Entities.UpdateSession.#ctor(System.String,System.String,System.Int32,System.Nullable{System.Int64})">
+        <member name="M:CountlySDK.Entities.UpdateSession.#ctor(System.String,System.String,System.Int32,System.String,System.String,System.Nullable{System.Int64})">
             <summary>
             Creates UpdateSession object with provided values
             </summary>
@@ -378,7 +378,7 @@
         </member>
         <member name="M:CountlySDK.Helpers.UtilityHelper.IsNullOrEmptyOrWhiteSpace(System.String)">
             <summary>
-            Indicates wheater the given value is null, empty or consists only of white space characters 
+            Indicates whether the given value is null, empty or consists only of white space characters 
             </summary>
             <param name="value"></param>
             <returns></returns>
@@ -500,7 +500,7 @@
             <param name="Key">Name of the custom event, required, must not be the empty string</param>
             <param name="Count">Count to associate with the event, should be more than zero</param>
             <param name="Sum">Sum to associate with the event</param>
-            /// <param name="Sum">Event duration</param>
+            <param name="Duration">Event duration</param>
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         </member>
@@ -586,14 +586,14 @@
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.OnUserDetailsChanged">
             <summary>
-            Raised when user details propery is changed
+            Raised when user details property is changed
             </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadUserPicture(System.IO.Stream)">
             <summary>
             Uploads user picture. Accepted picture formats are .png, .gif and .jpeg and picture will be resized to maximal 150x150 dimensions
             </summary>
-            <param name="stream">Image stream</param>
+            <param name="imageStream">Image stream</param>
             <returns>true if image is successfully uploaded, false otherwise</returns>
         </member>
         <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.Halt" -->
@@ -636,7 +636,11 @@
             </summary>
             <returns></returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.reportViewDuration" -->
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.reportViewDuration">
+            <summary>
+            Reports duration of last view
+            </summary>
+        </member>
         <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.serverUrl">
             <summary>
             Server url
@@ -752,7 +756,7 @@
             <summary>
             Uploads user picture. Accepted picture formats are .png, .gif and .jpeg and picture will be resized to maximal 150x150 dimensions
             </summary>
-            <param name="stream">Image stream</param>
+            <param name="imageStream">Image stream</param>
             <returns>true if image is successfully uploaded, false otherwise</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.ToString">
@@ -795,6 +799,31 @@
             <summary>
             Retrive storage folder name
             </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.Call(System.String,System.IO.Stream)">
+            <summary>
+            Platform specific task wrapper
+            </summary>
+            <param name="address"></param>
+            <param name="imageData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.CallJob(System.String,System.IO.Stream)">
+            <summary>
+            Common job handler
+            </summary>
+            <param name="address"></param>
+            <param name="imageData"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.RequestAsync(System.String,System.String,System.IO.Stream)">
+            <summary>
+            Platform specific networking code
+            </summary>
+            <param name="address"></param>
+            <param name="requestData"></param>
+            <param name="imageData"></param>
+            <returns></returns>
         </member>
         <member name="T:CountlySDK.Segmentation">
             <summary>

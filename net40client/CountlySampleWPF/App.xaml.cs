@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using CountlySDK;
 using CountlySDK.Entities;
+using CountlySDK.Helpers;
 
 namespace CountlySampleWPF
 {
@@ -34,8 +35,11 @@ namespace CountlySampleWPF
             countlyConfig.appVersion = "123";
 
             await Countly.Instance.Init(countlyConfig);
-
+            
             Countly.UserDetails.Custom.Add("aaa", "666");
+
+            String cpuid = OpenUDID.value;
+            String newId = Countly.Instance.GenerateDeviceIdMultipleFields();
 
             await Countly.Instance.SessionBegin();
 

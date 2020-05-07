@@ -32,7 +32,8 @@ namespace TestProject_common
             Assert.Equal("/i?app_key=a&device_id=b&timestamp=123&sdk_version=c&sdk_name=d", req);
 
             String req2 = RequestHelper.CreateBaseRequest("a", "b", "c", "d");
-            Assert.Contains("/i?app_key=a&device_id=b&sdk_version=c&sdk_name=d&timestamp=", req2);
+            Assert.Contains("/i?app_key=a&device_id=b&timestamp=", req2);
+            Assert.True(req2.EndsWith("&sdk_version=c&sdk_name=d"));
         }
 
         [Fact]
