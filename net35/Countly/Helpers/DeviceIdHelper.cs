@@ -40,7 +40,13 @@ namespace CountlySDK.Helpers
             ManagementObjectSearcher _searcher = new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
             foreach (ManagementObject mo in _searcher.Get())
             {
-                s.Append(mo["ProcessorId"].ToString());
+                String appendValue = "";
+                if (mo != null && mo["ProcessorId"] != null)
+                {
+                    appendValue = mo["ProcessorId"].ToString();
+                }
+
+                s.Append(appendValue);
             }
 
             return s.ToString();
@@ -80,8 +86,13 @@ namespace CountlySDK.Helpers
                 ManagementObject disk = new ManagementObject(@"win32_logicaldisk.deviceid=""" + driveLetter + @":""");
                 disk.Get();
 
-                string volumeSerialNumber = disk["VolumeSerialNumber"].ToString();
-                disk.Dispose();
+                string volumeSerialNumber = "";
+
+                if (disk["VolumeSerialNumber"] != null)
+                {
+                    volumeSerialNumber = disk["VolumeSerialNumber"].ToString();
+                    disk.Dispose();
+                }
 
                 return volumeSerialNumber;
             } catch (Exception ex)
@@ -100,7 +111,10 @@ namespace CountlySDK.Helpers
             try
             {
                 ManagementObject mo = new ManagementObject("Win32_OperatingSystem=@");
-                serialNumber = (string)mo["SerialNumber"];
+                if (mo["SerialNumber"] != null)
+                {
+                    serialNumber = (string) mo["SerialNumber"];
+                }
             }
             catch (Exception ex) {
                 if (Countly.IsLoggingEnabled)

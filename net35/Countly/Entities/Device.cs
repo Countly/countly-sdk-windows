@@ -40,7 +40,16 @@ namespace CountlySDK.Entities
 
             if (preferredIdMethod == DeviceIdMethodInternal.cpuId)
             {
-                dId = new DeviceId(OpenUDID.value, DeviceIdMethodInternal.cpuId);
+                String cpuIDValue = OpenUDID.value;
+                if (cpuIDValue != null)
+                {
+                    dId = new DeviceId(cpuIDValue, DeviceIdMethodInternal.cpuId);
+                }
+                else
+                {
+                    //fallback
+                    dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
+                }
             }
             else if (preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields)
             {
@@ -52,7 +61,7 @@ namespace CountlySDK.Entities
             }
             else
             {
-                dId = new DeviceId(OpenUDID.value, DeviceIdMethodInternal.cpuId);
+                dId = CreateGUIDDeviceId();
             }
 
             return dId;
