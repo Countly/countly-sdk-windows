@@ -47,13 +47,22 @@ namespace CountlySDK
                 if(requestData != null)
                 {
                     //if there is request data to stream, that means it was too long
-                    String[] pairsS = UtilityHelper.DecodeDataForURL(requestData).Split('&');
+                    String[] pairsS = requestData.Split('&');
 
                     KeyValuePair<string, string>[] pairs = new KeyValuePair<string, string>[pairsS.Length];
                     for(int a = 0; a < pairsS.Length; a++)
                     {
                         String[] splitPair = pairsS[a].Split('=');
-                        pairs[a] = new KeyValuePair<string, string>(splitPair[0], splitPair[1]);
+
+                        if (splitPair.Length <= 1)
+                        {
+                            //string did not contain a '=', skip it
+                            UtilityHelper.CountlyLogging("Encountered a faulty request param, skipping it: [" + pairsS[a] + "]");
+                            continue;
+                        }
+
+                        String decodedValue = UtilityHelper.DecodeDataForURL(splitPair[1]);
+                        pairs[a] = new KeyValuePair<string, string>(splitPair[0], decodedValue);
                     }
                     
                     httpContent = new FormUrlEncodedContent(pairs);

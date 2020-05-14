@@ -1,7 +1,12 @@
-19.09
+20.05.1
+* Fixed bug that occured when no cpu_id was got returned from OS
+* Fixed bug with API requests, which failed if the request data contained '&'
+
+20.05
+* Added sdk metadata to requests
+* Improved handling of failed API requests
 * Fixed null access bug in user details
 * Fixed session duration bug in end session requests
-
 
 19.08.1
 * Fixed a consent bug regarding "view" consent.
