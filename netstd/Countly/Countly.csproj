@@ -6,10 +6,10 @@
     <DefineConstants Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">RUNNING_ON_40</DefineConstants>
     <Description>Countly Windows SDK targeting net standard 2.0</Description>
     <Product>Countly SDK</Product>
-    <AssemblyVersion>20.5.0.0</AssemblyVersion>
+    <AssemblyVersion>20.5.1.0</AssemblyVersion>
     <Copyright>Copyright © Countly 2020</Copyright>
-    <FileVersion>20.5.0.0</FileVersion>
-    <Version>20.05</Version>
+    <FileVersion>20.5.1.0</FileVersion>
+    <Version>20.05.1</Version>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
