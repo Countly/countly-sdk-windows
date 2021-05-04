@@ -10,7 +10,7 @@
     <Copyright>Copyright © Countly 2020</Copyright>
     <FileVersion>20.5.1.0</FileVersion>
     <Version>20.05.1</Version>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
   </PropertyGroup>

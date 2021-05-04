@@ -20,20 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using CountlySDK.Server.Responses;
-using System.IO;
 using CountlySDK.CountlyCommon;
+using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
-
-
-using System.Runtime.CompilerServices;
+using CountlySDK.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 //[assembly: InternalsVisibleTo("CountlyTest_461")]
 //[assembly: InternalsVisibleTo("CountlySampleUWP")]
 
