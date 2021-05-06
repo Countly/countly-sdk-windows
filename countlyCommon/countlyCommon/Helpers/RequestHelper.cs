@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using static CountlySDK.CountlyCommon.CountlyBase;
@@ -91,11 +92,14 @@ namespace CountlySDK.CountlyCommon.Helpers
 
         internal static String CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null)
         {
-            if (timestamp == null)
-            {
-                timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
-            }
-            return String.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}", appKey, deviceId, timestamp, sdkVersion, sdkName);
+            DateTime dateTime = DateTime.Now.ToUniversalTime();
+            timestamp = TimeHelper.ToUnixTime(dateTime);
+
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+
+            return String.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}", appKey, deviceId, timestamp, sdkVersion, sdkName, hour, dayOfWeek, timezone);
         }
     }
 }

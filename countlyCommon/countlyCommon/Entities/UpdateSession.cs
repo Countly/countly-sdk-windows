@@ -24,6 +24,7 @@ using System;
 using CountlySDK.Helpers;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace CountlySDK.Entities
 {
@@ -38,11 +39,13 @@ namespace CountlySDK.Entities
         /// <param name="duration">Session duration in seconds</param>
         public UpdateSession(string appKey, string deviceId, int duration, string sdkVersion, string sdkName, long? timestamp = null)
         {
-            if (timestamp == null)
-            {
-                timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
-            }
-            Content = String.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}&sdk_version={4}&sdk_name={5}", appKey, deviceId, duration, timestamp, sdkVersion, sdkName);
+            DateTime dateTime = DateTime.Now.ToUniversalTime();
+            timestamp = TimeHelper.ToUnixTime(dateTime);
+
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+            Content = String.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, duration, timestamp, sdkVersion, sdkName, hour, dayOfWeek, timezone);
         }
 
         [JsonConstructor]
