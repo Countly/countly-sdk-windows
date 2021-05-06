@@ -46,7 +46,7 @@ namespace CountlySDK.CountlyCommon.Server
             }
 
 
-            DateTime dateTime = DateTime.Now.ToUniversalTime();
+            DateTime dateTime = DateTime.Now;
 
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;
@@ -59,7 +59,7 @@ namespace CountlySDK.CountlyCommon.Server
         {
             string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
-            DateTime dateTime = DateTime.Now.ToUniversalTime();
+            DateTime dateTime = DateTime.Now;
 
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;
@@ -76,7 +76,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            DateTime dateTime = DateTime.Now.ToUniversalTime();
+            DateTime dateTime = DateTime.Now;
 
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;
@@ -93,7 +93,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            DateTime dateTime = DateTime.Now.ToUniversalTime();
+            DateTime dateTime = DateTime.Now;
 
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;

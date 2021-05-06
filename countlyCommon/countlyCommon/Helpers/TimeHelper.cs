@@ -41,5 +41,18 @@ namespace CountlySDK.Helpers
         {
             return ToUnixTime(DateTime.Now.ToUniversalTime());
         }
+
+        /// <summary>
+        ///Convert a Unix timestamp to DateTime
+        /// </summary>
+        /// <param name="unixTimeStamp"></param>
+        /// <returns>DateTime</returns>
+        internal static DateTime UnixTimeStampToDateTime(long? unixTimeStamp)
+        {
+            // Unix timestamp is seconds past epoch
+            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddSeconds((double)unixTimeStamp).ToLocalTime();
+            return dtDateTime;
+        }
     }
 }

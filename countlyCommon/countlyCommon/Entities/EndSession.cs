@@ -38,8 +38,20 @@ namespace CountlySDK.Entities
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
         public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null, long? duration = null)
         {
-            DateTime dateTime = DateTime.Now.ToUniversalTime();
-            timestamp = TimeHelper.ToUnixTime(dateTime);
+            DateTime dateTime;
+            if (timestamp == null)
+            {
+                dateTime = DateTime.Now;
+                timestamp = TimeHelper.ToUnixTime(dateTime);
+            }
+            else
+            {
+                dateTime = TimeHelper.UnixTimeStampToDateTime(timestamp);
+            }
+
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
 
             String durationAddition = "";
             if (duration != null && duration > 0)
@@ -47,12 +59,6 @@ namespace CountlySDK.Entities
                 duration = Math.Min(duration.Value, 60);
                 durationAddition = String.Format("&session_duration={0}", duration.Value);
             }
-
-
-
-            int hour = dateTime.TimeOfDay.Hours;
-            int dayOfWeek = (int)dateTime.DayOfWeek;
-            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
 
             Content = String.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}", appKey, deviceId, timestamp, sdkVersion, sdkName, hour, dayOfWeek, timezone, durationAddition);
         }

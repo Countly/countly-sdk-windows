@@ -40,8 +40,16 @@ namespace CountlySDK.Entities
         /// <param name="metrics">Metrics parameters</param>
         public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics, string sdkName, long? timestamp = null)
         {
-            DateTime dateTime = DateTime.Now.ToUniversalTime();
-            timestamp = TimeHelper.ToUnixTime(dateTime);
+            DateTime dateTime;
+            if (timestamp == null)
+            {
+                dateTime = DateTime.Now;
+                timestamp = TimeHelper.ToUnixTime(dateTime);
+            }
+            else
+            {
+                dateTime = TimeHelper.UnixTimeStampToDateTime(timestamp);
+            }
 
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;
