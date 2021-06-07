@@ -38,15 +38,10 @@ namespace CountlySDK.Entities
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
         public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null, long? duration = null)
         {
-            DateTime dateTime;
+            DateTime dateTime = DateTime.Now; ;
             if (timestamp == null)
             {
-                dateTime = DateTime.Now;
                 timestamp = TimeHelper.ToUnixTime(dateTime);
-            }
-            else
-            {
-                dateTime = TimeHelper.UnixTimeStampToDateTime(timestamp);
             }
 
             int hour = dateTime.TimeOfDay.Hours;
