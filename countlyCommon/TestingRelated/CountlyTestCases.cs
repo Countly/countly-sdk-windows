@@ -23,6 +23,7 @@ namespace TestProject_common
             Countly.Halt();
             TestHelper.CleanDataFiles();
             CountlyConfig cc = TestHelper.CreateConfig();
+            Countly.Instance.deferUpload = true;
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
         }
