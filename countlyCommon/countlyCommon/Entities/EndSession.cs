@@ -23,6 +23,7 @@ THE SOFTWARE.
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using System;
+using System.Globalization;
 using System.Runtime.Serialization;
 
 namespace CountlySDK.Entities
@@ -37,19 +38,24 @@ namespace CountlySDK.Entities
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
         public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null, long? duration = null)
         {
+            DateTime dateTime = DateTime.Now; ;
             if (timestamp == null)
             {
-                timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+                timestamp = TimeHelper.ToUnixTime(dateTime);
             }
 
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+
             String durationAddition = "";
-            if(duration != null && duration > 0)
+            if (duration != null && duration > 0)
             {
                 duration = Math.Min(duration.Value, 60);
                 durationAddition = String.Format("&session_duration={0}", duration.Value);
             }
 
-            Content = String.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}{5}", appKey, deviceId, timestamp, sdkVersion, sdkName, durationAddition);
+            Content = String.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}", appKey, deviceId, timestamp, sdkVersion, sdkName, hour, dayOfWeek, timezone, durationAddition);
         }
 
         [JsonConstructor]
