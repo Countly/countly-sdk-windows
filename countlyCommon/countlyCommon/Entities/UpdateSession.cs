@@ -39,15 +39,10 @@ namespace CountlySDK.Entities
         /// <param name="duration">Session duration in seconds</param>
         public UpdateSession(string appKey, string deviceId, int duration, string sdkVersion, string sdkName, long? timestamp = null)
         {
-            DateTime dateTime;
+            DateTime dateTime = DateTime.Now; ;
             if (timestamp == null)
             {
-                dateTime = DateTime.Now;
                 timestamp = TimeHelper.ToUnixTime(dateTime);
-            }
-            else
-            {
-                dateTime = TimeHelper.UnixTimeStampToDateTime(timestamp);
             }
 
             int hour = dateTime.TimeOfDay.Hours;
