@@ -36,20 +36,33 @@ namespace CountlySDK.Helpers
 
         private static string GetCPUId()
         {
-            StringBuilder s = new StringBuilder();
-            ManagementObjectSearcher _searcher = new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
-            foreach (ManagementObject mo in _searcher.Get())
+
+            try
             {
-                String appendValue = "";
-                if (mo != null && mo["ProcessorId"] != null)
+                StringBuilder s = new StringBuilder();
+                ManagementObjectSearcher _searcher = new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
+                foreach (ManagementObject mo in _searcher.Get())
                 {
-                    appendValue = mo["ProcessorId"].ToString();
+                    String appendValue = "";
+                    if (mo != null && mo["ProcessorId"] != null)
+                    {
+                        appendValue = mo["ProcessorId"].ToString();
+                    }
+
+                    s.Append(appendValue);
                 }
 
-                s.Append(appendValue);
+                return s.ToString();
             }
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("DeviceIdHelper, problem while getting cpu id." + ex.ToString());
+                }
 
-            return s.ToString();
+                return "";
+            }
         }
 
         private static string GetDiskSerialNumber()
@@ -128,7 +141,19 @@ namespace CountlySDK.Helpers
 
         public static string GetWindowsUsername()
         {
-            return Environment.UserName;
+            try 
+            {
+                return Environment.UserName;
+            }
+            catch (Exception ex) 
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("DeviceIdHelper, problem while getting windows username." + ex.ToString());
+                }
+
+                return "";
+            }
         }
 
         public static string GetMacAddress()
@@ -136,14 +161,21 @@ namespace CountlySDK.Helpers
             const int MIN_ADDR_LENGTH = 12;
             string chosenMacAddress = string.Empty;
             long fastestFoundSpeed = -1;
-
-            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                string potentialMacAddress = nic.GetPhysicalAddress().ToString();
-                if (nic.Speed > fastestFoundSpeed && !string.IsNullOrEmpty(potentialMacAddress) && potentialMacAddress.Length >= MIN_ADDR_LENGTH)
+            try {
+                foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
                 {
-                    chosenMacAddress = potentialMacAddress;
-                    fastestFoundSpeed = nic.Speed;
+                    string potentialMacAddress = nic.GetPhysicalAddress().ToString();
+                    if (nic.Speed > fastestFoundSpeed && !string.IsNullOrEmpty(potentialMacAddress) && potentialMacAddress.Length >= MIN_ADDR_LENGTH)
+                    {
+                        chosenMacAddress = potentialMacAddress;
+                        fastestFoundSpeed = nic.Speed;
+                    }
+                }
+            }
+            catch (Exception ex) {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("DeviceIdHelper, problem while getting mac adress." + ex.ToString());
                 }
             }
 
