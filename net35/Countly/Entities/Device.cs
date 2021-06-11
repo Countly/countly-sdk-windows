@@ -24,6 +24,7 @@ using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -94,7 +95,19 @@ namespace CountlySDK.Entities
 
         protected override string GetResolution()
         {
-            return String.Format("{0}x{1}", SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
+            try
+            {
+                return String.Format("{0}x{1}", SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
+            }
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("Device:GetResolution, problem while getting system virtual screen information." + ex.ToString());
+                }
+
+                return "";
+            }
         }
 
         protected override string GetCarrier()
@@ -107,16 +120,52 @@ namespace CountlySDK.Entities
         }
         protected override long? GetRamCurrent()
         {
-            return (long)(new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory - new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory);
+            try
+            {
+                return (long)(new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory - new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory);
+            }
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("Device:GetRamCurrent, problem while getting physical memory information." + ex.ToString());
+                }
+
+                return 0;
+            }
         }
         protected override long? GetRamTotal()
         {
-            return (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
+            try
+            {
+                return (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
+            }
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("Device:GetRamTotal, problem while getting physical memory information." + ex.ToString());
+                }
+
+                return 0;
+            }
         }       
 
         protected override bool GetOnline()
         {
-            return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
+            try
+            {
+                return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
+            }
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("Device:GetIsNetworkAvailable, problem while getting network information." + ex.ToString());
+                }
+
+                return false;
+            }
         }
     }
 }

@@ -342,9 +342,22 @@ namespace CountlySDK.Entities.EntityBase
         {
             get
             {
-                CultureInfo ci = CultureInfo.CurrentUICulture;
-                return ci.Name;
+               try
+                {
+                    CultureInfo ci = CultureInfo.CurrentUICulture;
+                    return ci.Name;
+                }
+                catch (Exception ex)
+                {
+                    if (Countly.IsLoggingEnabled)
+                    {
+                        Debug.WriteLine("DeviceBase:Locale, problem while getting culture information." + ex.ToString());
+                    }
+
+                    return "";
+                }
             }
+
         }
     }
 }
