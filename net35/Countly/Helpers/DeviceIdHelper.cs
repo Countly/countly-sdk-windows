@@ -61,7 +61,7 @@ namespace CountlySDK.Helpers
                     Debug.WriteLine("DeviceIdHelper, problem while getting cpu id." + ex.ToString());
                 }
 
-                return "";
+                return null;
             }
         }
 
@@ -114,13 +114,13 @@ namespace CountlySDK.Helpers
                 {
                     Debug.WriteLine("DeviceIdHelper, problem while getting disk serial number." + ex.ToString());
                 }
-                return "";
+                return null;
             }
         }
 
         public static string GetWindowsSerialNumber()
         {        
-            var serialNumber = "";
+            string serialNumber = null;
             try
             {
                 ManagementObject mo = new ManagementObject("Win32_OperatingSystem=@");
@@ -152,14 +152,14 @@ namespace CountlySDK.Helpers
                     Debug.WriteLine("DeviceIdHelper, problem while getting windows username." + ex.ToString());
                 }
 
-                return "";
+                return null;
             }
         }
 
         public static string GetMacAddress()
         {
             const int MIN_ADDR_LENGTH = 12;
-            string chosenMacAddress = string.Empty;
+            string chosenMacAddress = null;
             long fastestFoundSpeed = -1;
             try {
                 foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())

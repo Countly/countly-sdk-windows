@@ -354,7 +354,7 @@ namespace CountlySDK.Entities.EntityBase
                         Debug.WriteLine("DeviceBase:Locale, problem while getting culture information." + ex.ToString());
                     }
 
-                    return "";
+                    return null;
                 }
             }
 

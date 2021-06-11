@@ -18,7 +18,7 @@ namespace CountlySDK.CountlyCommon
     abstract public class CountlyBase
     {
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "20.05.1";
+        protected const string sdkVersion = "20.11.0";
 
         public abstract string sdkName();
 

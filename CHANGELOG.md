@@ -1,3 +1,6 @@
+20.11.0
+* Fixed bug that occurred while getting device and system information on restricted machines.
+
 20.05.1
 * Fixed bug that occured when no cpu_id was got returned from OS
 * Fixed bug with API requests, which failed if the request data contained '&'

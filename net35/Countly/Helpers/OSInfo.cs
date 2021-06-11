@@ -49,7 +49,7 @@ namespace CountlySDK.Helpers
                         Debug.WriteLine("OSInfo:OsName, problem while getting LocalMachine information." + ex.ToString());
                     }
 
-                    return "";
+                    return null;
                 }
             }
         }
@@ -67,7 +67,7 @@ namespace CountlySDK.Helpers
 
         private static string GetOSName()
         {
-            string version_Os = String.Empty;
+            string version_Os = null;
 
             try
             {

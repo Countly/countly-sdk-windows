@@ -106,7 +106,7 @@ namespace CountlySDK.Entities
                     Debug.WriteLine("Device:GetResolution, problem while getting system virtual screen information." + ex.ToString());
                 }
 
-                return "";
+                return null;
             }
         }
 
