@@ -48,7 +48,7 @@ namespace CountlySDK
         /// <param name="imageData"></param>
         /// <returns></returns>
         protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null)
-        {            
+        {
             Stream dataStream = null;
             RequestResult requestResult = new RequestResult();
             try

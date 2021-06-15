@@ -4,31 +4,24 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
+using System.Web.Mvc;
+using System.Web.Optimization;
+using System.Web.Routing;
 
-namespace CountlySampleAspNet
+namespace CountlySampleAspNetMVC
 {
-    public partial class WebForm1 : System.Web.UI.Page
-    {        
+    public class MvcApplication : System.Web.HttpApplication
+    {
         const String serverURL = "https://master.count.ly/";//put your server URL here
         const String appKey = "5e20d03806255d314eb6679b26fda6e580b3d899";//put your server APP key here   
-
-        protected void Page_Load(object sender, EventArgs e)
+        protected async void Application_Start()
         {
-            //https://stackoverflow.com/questions/2859790/the-request-was-aborted-could-not-create-ssl-tls-secure-channel
-            //to use TLS 1.2
-            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+            AreaRegistration.RegisterAllAreas();
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-            (StartCountly()).GetAwaiter().GetResult();
-        }
-
-        public async Task StartCountly()
-        {
             Debug.WriteLine("Before init");
 
             Countly.IsLoggingEnabled = true;
@@ -36,17 +29,13 @@ namespace CountlySampleAspNet
             CountlyConfig countlyConfig = new CountlyConfig();
             countlyConfig.serverUrl = serverURL;
             countlyConfig.appKey = appKey;
-            countlyConfig.appVersion = "12.3";
+            countlyConfig.appVersion = "123";
 
             await Countly.Instance.Init(countlyConfig);
+
             await Countly.Instance.SessionBegin();
 
             Debug.WriteLine("After init");
-
-            Countly.UserDetails.Name = "fdf";
-
-            Thread.Sleep(2000);
         }
-
     }
 }
