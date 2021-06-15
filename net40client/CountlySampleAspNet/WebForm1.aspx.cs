@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -18,6 +19,10 @@ namespace CountlySampleAspNet
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            //https://stackoverflow.com/questions/2859790/the-request-was-aborted-could-not-create-ssl-tls-secure-channel
+            //to use TLS 1.2
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+
             (StartCountly()).GetAwaiter().GetResult();
         }
 

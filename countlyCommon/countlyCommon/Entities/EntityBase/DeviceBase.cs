@@ -90,10 +90,7 @@ namespace CountlySDK.Entities.EntityBase
             }
             catch(Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[SetDeviceId] thrown exception, " + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[SetDeviceId] thrown exception, " + ex.ToString());
             }
         }
 
@@ -349,10 +346,7 @@ namespace CountlySDK.Entities.EntityBase
                 }
                 catch (Exception ex)
                 {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("DeviceBase:Locale, problem while getting culture information." + ex.ToString());
-                    }
+                    UtilityHelper.CountlyLogging("DeviceBase:Locale, problem while getting culture information." + ex.ToString());
 
                     return null;
                 }

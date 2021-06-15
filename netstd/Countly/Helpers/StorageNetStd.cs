@@ -88,10 +88,7 @@ namespace CountlySDK.Helpers
                 catch
                 {
                     success = false;
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("save countly data failed");
-                    }
+                    UtilityHelper.CountlyLogging("save countly data failed");
                 }
                 return success;
             }
@@ -133,10 +130,7 @@ namespace CountlySDK.Helpers
                 }
                 catch
                 {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("Problem while loading from file");
-                    }
+                    UtilityHelper.CountlyLogging("Problem while loading from file");
                 }
             }
 

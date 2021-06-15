@@ -103,10 +103,7 @@ namespace CountlySDK.Helpers
                 catch
                 {
                     success = false;
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("save countly data failed");
-                    }
+                    UtilityHelper.CountlyLogging("save countly data failed");
                 }
                 return success;
             }
@@ -146,10 +143,7 @@ namespace CountlySDK.Helpers
                 }
                 catch
                 {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("countly queue lost");
-                    }
+                    UtilityHelper.CountlyLogging("countly queue lost");
                 }
             }
 

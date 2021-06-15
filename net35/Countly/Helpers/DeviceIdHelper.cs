@@ -56,10 +56,7 @@ namespace CountlySDK.Helpers
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("DeviceIdHelper, problem while getting cpu id." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting cpu id." + ex.ToString());
 
                 return null;
             }
@@ -84,10 +81,7 @@ namespace CountlySDK.Helpers
                 if (string.IsNullOrEmpty(driveLetter))
                 {
                     //could not determine valid drive letter
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("Could not determine valid drive letter while trying to generate device Id");
-                    }
+                    UtilityHelper.CountlyLogging("Could not determine valid drive letter while trying to generate device Id");
                     return "";
                 }
 
@@ -110,10 +104,7 @@ namespace CountlySDK.Helpers
                 return volumeSerialNumber;
             } catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("DeviceIdHelper, problem while getting disk serial number." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting disk serial number." + ex.ToString());
                 return null;
             }
         }
@@ -130,10 +121,7 @@ namespace CountlySDK.Helpers
                 }
             }
             catch (Exception ex) {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("DeviceIdHelper, problem while getting serial number." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting serial number." + ex.ToString());
             }
             
             return serialNumber;
@@ -147,10 +135,7 @@ namespace CountlySDK.Helpers
             }
             catch (Exception ex) 
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("DeviceIdHelper, problem while getting windows username." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting windows username." + ex.ToString());
 
                 return null;
             }
@@ -173,10 +158,7 @@ namespace CountlySDK.Helpers
                 }
             }
             catch (Exception ex) {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("DeviceIdHelper, problem while getting mac adress." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting mac adress." + ex.ToString());
             }
 
             return chosenMacAddress;

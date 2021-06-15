@@ -55,10 +55,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetOS, issue." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetOS, issue." + ex.ToString());
                 return null;
             }
         }
@@ -71,10 +68,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetOSVersion, issue." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetOSVersion, issue." + ex.ToString());
                 return null;
             }
         }
@@ -126,10 +120,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetOnline, issue." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetOnline, issue." + ex.ToString());
                 return null;
             }
         }

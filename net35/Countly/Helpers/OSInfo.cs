@@ -44,10 +44,7 @@ namespace CountlySDK.Helpers
                 }
                 catch (Exception ex)
                 {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("OSInfo:OsName, problem while getting LocalMachine information." + ex.ToString());
-                    }
+                    UtilityHelper.CountlyLogging("OSInfo:OsName, problem while getting LocalMachine information." + ex.ToString());
 
                     return null;
                 }
@@ -82,10 +79,7 @@ namespace CountlySDK.Helpers
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("OSInfo:OSVersion, problem while getting Managment information." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("OSInfo:OSVersion, problem while getting Managment information." + ex.ToString());
             }
 
             return version_Os;

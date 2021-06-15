@@ -68,10 +68,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetManufacturer, issue." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetManufacturer, issue." + ex.ToString());
                 return null;
             }
         }
@@ -85,10 +82,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetDeviceName, issue." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetDeviceName, issue." + ex.ToString());
                 return null;
             }
         }
@@ -103,10 +97,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetAppVersion, issue." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetAppVersion, issue." + ex.ToString());
                 return null;
             }
         }
@@ -145,10 +136,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetOnline, issue." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetOnline, issue." + ex.ToString());
                 return null;
             }
         }

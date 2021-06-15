@@ -76,10 +76,7 @@ namespace CountlySDK.Entities
             } 
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetOS, problem while getting OS" + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetOS, problem while getting OS" + ex.ToString());
                 return null;
             }
         }
@@ -92,10 +89,7 @@ namespace CountlySDK.Entities
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetOSVersion, problem while getting OS version" + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetOSVersion, problem while getting OS version" + ex.ToString());
                 return null;
             }
         }       
@@ -123,10 +117,7 @@ namespace CountlySDK.Entities
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetResolution, problem while getting resolution" + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetResolution, problem while getting resolution" + ex.ToString());
 
                 return null;
             }
@@ -148,10 +139,7 @@ namespace CountlySDK.Entities
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetRamCurrent, problem while getting physical memory information." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetRamCurrent, problem while getting physical memory information." + ex.ToString());
 
                 return null;
             }
@@ -164,10 +152,7 @@ namespace CountlySDK.Entities
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetRamTotal, problem while getting physical memory information." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetRamTotal, problem while getting physical memory information." + ex.ToString());
 
                 return null;
             }
@@ -181,10 +166,7 @@ namespace CountlySDK.Entities
             }
             catch (Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[Device] GetIsNetworkAvailable, problem while getting network information." + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[Device] GetIsNetworkAvailable, problem while getting network information." + ex.ToString());
 
                 return null;
             }
