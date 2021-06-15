@@ -70,12 +70,34 @@ namespace CountlySDK.Entities
 
         protected override string GetOS()
         {
-            return OSInfo.OsName;
+            try
+            {
+                return OSInfo.OsName;
+            } 
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("[Device] GetOS, problem while getting OS" + ex.ToString());
+                }
+                return null;
+            }
         }
 
         protected override string GetOSVersion()
         {
-            return OSInfo.OSVersion;
+            try
+            {
+                return OSInfo.OSVersion;
+            }
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("[Device] GetOSVersion, problem while getting OS version" + ex.ToString());
+                }
+                return null;
+            }
         }       
 
         protected override string GetManufacturer()
@@ -103,7 +125,7 @@ namespace CountlySDK.Entities
             {
                 if (Countly.IsLoggingEnabled)
                 {
-                    Debug.WriteLine("Device:GetResolution, problem while getting system virtual screen information." + ex.ToString());
+                    Debug.WriteLine("[Device] GetResolution, problem while getting resolution" + ex.ToString());
                 }
 
                 return null;
@@ -128,10 +150,10 @@ namespace CountlySDK.Entities
             {
                 if (Countly.IsLoggingEnabled)
                 {
-                    Debug.WriteLine("Device:GetRamCurrent, problem while getting physical memory information." + ex.ToString());
+                    Debug.WriteLine("[Device] GetRamCurrent, problem while getting physical memory information." + ex.ToString());
                 }
 
-                return 0;
+                return null;
             }
         }
         protected override long? GetRamTotal()
@@ -144,14 +166,14 @@ namespace CountlySDK.Entities
             {
                 if (Countly.IsLoggingEnabled)
                 {
-                    Debug.WriteLine("Device:GetRamTotal, problem while getting physical memory information." + ex.ToString());
+                    Debug.WriteLine("[Device] GetRamTotal, problem while getting physical memory information." + ex.ToString());
                 }
 
-                return 0;
+                return null;
             }
         }       
 
-        protected override bool GetOnline()
+        protected override bool? GetOnline()
         {
             try
             {
@@ -161,10 +183,10 @@ namespace CountlySDK.Entities
             {
                 if (Countly.IsLoggingEnabled)
                 {
-                    Debug.WriteLine("Device:GetIsNetworkAvailable, problem while getting network information." + ex.ToString());
+                    Debug.WriteLine("[Device] GetIsNetworkAvailable, problem while getting network information." + ex.ToString());
                 }
 
-                return false;
+                return null;
             }
         }
     }

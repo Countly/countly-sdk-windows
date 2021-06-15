@@ -24,6 +24,7 @@ using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
@@ -48,12 +49,34 @@ namespace CountlySDK.Entities
 
         protected override string GetOS()
         {
-            return getOSInfo();
+            try
+            {
+                return getOSInfo();
+            } 
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("[Device] GetOS, issue." + ex.ToString());
+                }
+                return null;
+            }
         }
 
         protected override string GetOSVersion()
         {
-            return Environment.OSVersion.Version.ToString();
+            try
+            {
+                return Environment.OSVersion.Version.ToString();
+            } 
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("[Device] GetOSVersion, issue." + ex.ToString());
+                }
+                return null;
+            }
         }
 
         protected override string GetManufacturer()
@@ -95,9 +118,20 @@ namespace CountlySDK.Entities
             return null;
         }
 
-        protected override bool GetOnline()
+        protected override bool? GetOnline()
         {
-            return IsNetworkAvailable();
+            try
+            {
+                return IsNetworkAvailable();
+            } 
+            catch (Exception ex)
+            {
+                if (Countly.IsLoggingEnabled)
+                {
+                    Debug.WriteLine("[Device] GetOnline, issue." + ex.ToString());
+                }
+                return null;
+            }
         }
 
         //https://stackoverflow.com/questions/2819934/detect-windows-version-in-net/2819974#2819974
@@ -210,7 +244,9 @@ namespace CountlySDK.Entities
         private static bool IsNetworkAvailable(long minimumSpeed)
         {
             if (!NetworkInterface.GetIsNetworkAvailable())
+            {
                 return false;
+            }
 
             foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
             {
@@ -218,21 +254,29 @@ namespace CountlySDK.Entities
                 if ((ni.OperationalStatus != OperationalStatus.Up) ||
                     (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) ||
                     (ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel))
+                {
                     continue;
+                }
 
                 // this allow to filter modems, serial, etc.
                 // I use 10000000 as a minimum speed for most cases
                 if (ni.Speed < minimumSpeed)
+                {
                     continue;
+                }
 
                 // discard virtual cards (virtual box, virtual pc, etc.)
                 if ((ni.Description.IndexOf("virtual", StringComparison.OrdinalIgnoreCase) >= 0) ||
                     (ni.Name.IndexOf("virtual", StringComparison.OrdinalIgnoreCase) >= 0))
+                {
                     continue;
+                }
 
                 // discard "Microsoft Loopback Adapter", it will not show as NetworkInterfaceType.Loopback but as Ethernet Card.
                 if (ni.Description.Equals("Microsoft Loopback Adapter", StringComparison.OrdinalIgnoreCase))
+                {
                     continue;
+                }
 
                 return true;
             }

@@ -78,7 +78,7 @@ namespace CountlySDK.Entities
 
         [DataMemberAttribute]
         [JsonProperty("_online")]
-        public bool Online { get; set; }
+        public bool? Online { get; set; }
 
         //error info
 
@@ -211,7 +211,12 @@ namespace CountlySDK.Entities
                 if (!RamTotal.Equals(other.RamTotal)) { return RamTotal.Value.CompareTo(other.RamTotal.Value); }
             }
 
-            if (!Online.Equals(other.Online)) { return Online.CompareTo(other.Online); }            
+            if (!(Online == null && other.Online == null))
+            {
+                if (Online == null) { return -1; }
+                if (other.Online == null) { return 1; }
+                if (!Online.Equals(other.Online)) { return Online.Value.CompareTo(other.Online.Value); }
+            }           
 
             if (!(Name == null && other.Name == null))
             {

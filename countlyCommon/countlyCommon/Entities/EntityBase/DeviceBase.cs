@@ -325,7 +325,7 @@ namespace CountlySDK.Entities.EntityBase
         /// <summary>
         /// Returns current device connection to the internet
         /// </summary>
-        public bool Online
+        public bool? Online
         {
             get
             {
@@ -333,7 +333,7 @@ namespace CountlySDK.Entities.EntityBase
             }
         }
 
-        protected abstract bool GetOnline();
+        protected abstract bool? GetOnline();
 
         /// <summary>
         /// Returns devices current locale
