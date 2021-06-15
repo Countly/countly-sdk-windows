@@ -2,6 +2,7 @@
 using CountlySDK.Entities;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,7 +19,10 @@ namespace CountlySample
         int threadCount = 20;
 
         static void Main(string[] args)
-        {        
+        {
+            //to use TLS 1.2
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+
             (new Program().Run()).GetAwaiter().GetResult();
         }
 

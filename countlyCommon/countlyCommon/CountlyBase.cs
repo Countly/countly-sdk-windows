@@ -265,14 +265,19 @@ namespace CountlySDK.CountlyCommon
                         evC = Events.Count;
                         rC = StoredRequests.Count;
                         isChanged = UserDetails.isChanged;
-                    }                
+                    }
+
+                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
 
                     if (sC > 0 || exC > 0 || evC > 0 || isChanged)
                     {
                         //work still needs to be done
                         return await Upload();
                     }
-                }
+                } else
+                {
+                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, in progress");
+                } 
             } while (success && shouldContinue);
 
 
@@ -360,7 +365,7 @@ namespace CountlySDK.CountlyCommon
             {
                 RequestResult requestResult = await Api.Instance.SendSession(ServerUrl, sessionEvent, (UserDetails.isChanged) ? UserDetails : null);
 
-                if (true || (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest())))
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
                 {
                     //if it's a successful or bad request, remove it from the queue
                     lock (sync)

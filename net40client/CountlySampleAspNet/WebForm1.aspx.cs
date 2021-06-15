@@ -1,4 +1,5 @@
 ﻿using CountlySDK;
+using CountlySDK.Entities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,10 +29,22 @@ namespace CountlySampleAspNet
 
         public async Task StartCountly()
         {
-            Debug.WriteLine("Initializing Countly");
+            Debug.WriteLine("Before init");
+
             Countly.IsLoggingEnabled = true;
-            await Countly.StartSession(serverURL, appKey, "1.234", Countly.DeviceIdMethod.multipleFields);       
-            Countly.RecordEvent("SomeKey");
+
+            CountlyConfig countlyConfig = new CountlyConfig();
+            countlyConfig.serverUrl = serverURL;
+            countlyConfig.appKey = appKey;
+            countlyConfig.appVersion = "12.3";
+
+            await Countly.Instance.Init(countlyConfig);
+            await Countly.Instance.SessionBegin();
+
+            Debug.WriteLine("After init");
+
+            Countly.UserDetails.Name = "fdf";
+
             Thread.Sleep(2000);
         }
 

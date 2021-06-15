@@ -108,7 +108,9 @@ namespace CountlySDK
             byte[] buffer = new byte[0x10000];
             int n;
             while ((n = sourceStream.Read(buffer, 0, buffer.Length)) != 0)
+            {
                 targetStream.Write(buffer, 0, n);
+            }
         }
 
         protected override async Task DoSleep(int sleepTime)
