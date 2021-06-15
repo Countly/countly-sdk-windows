@@ -281,11 +281,15 @@ namespace CountlySDK.CountlyCommon
 
         private async Task<bool> UploadStoredRequests()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadStoredRequests'");
             StoredRequest sr = null;
 
             lock (sync)
             {
-                if (uploadInProgress) return true;
+                if (uploadInProgress)
+                {
+                    return true;
+                }
                 uploadInProgress = true;
 
                 if (StoredRequests.Count > 0)
@@ -716,6 +720,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if success</returns>
         protected async Task<bool> UploadExceptions()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadExceptions'");
             lock (sync)
             {
                 // Allow uploading in one thread only
@@ -801,6 +806,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>true if details are successfully uploaded, false otherwise</returns>
         internal async Task<bool> UploadUserDetails()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadUserDetails'");
             if (!IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Users)) { return true; }
 

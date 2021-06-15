@@ -71,11 +71,13 @@ namespace CountlySDK.Helpers
         /// <param name="customPath">Given custom path</param>
         public void SetCustomDataPath(string customPath)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'GetFolderPath'");
             customDataPath = customPath;
         }
        
         public override async Task<bool> SaveToFile<T>(string filename, object objForSave)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'SaveToFile'");
             Debug.Assert(filename != null, "Provided filename can't be null");
             Debug.Assert(objForSave != null, "Provided object can't be null");
 
@@ -87,7 +89,9 @@ namespace CountlySDK.Helpers
                     bool exists = System.IO.Directory.Exists(Path);
 
                     if (!exists)
+                    {
                         System.IO.Directory.CreateDirectory(Path);
+                    }
                 
                     using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Create, FileAccess.Write, FileShare.Read))
                     {
@@ -100,10 +104,10 @@ namespace CountlySDK.Helpers
                         file.Close();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
                     success = false;
-                    UtilityHelper.CountlyLogging("save countly data failed");
+                    UtilityHelper.CountlyLogging("[Storage] SaveToFile, save countly data failed. " + ex.ToString());
                 }
                 return success;
             }
@@ -111,6 +115,7 @@ namespace CountlySDK.Helpers
        
         public override async Task<T> LoadFromFile<T>(string filename)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'LoadFromFile'");
             Debug.Assert(filename != null, "Provided filename can't be null");            
 
             T obj = default(T);
@@ -124,7 +129,10 @@ namespace CountlySDK.Helpers
                         System.IO.Directory.CreateDirectory(Path);
                     }
 
-                    if (!File.Exists(Path + @"\" + filename)) return obj;
+                    if (!File.Exists(Path + @"\" + filename))
+                    {
+                        return obj;
+                    }
             
                     using (FileStream file = new FileStream(Path + @"\" + filename, FileMode.Open, FileAccess.Read, FileShare.None))
                     {
@@ -141,9 +149,9 @@ namespace CountlySDK.Helpers
                         file.Close();
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    UtilityHelper.CountlyLogging("countly queue lost");
+                    UtilityHelper.CountlyLogging("[Storage] LoadFromFile, countly queue lost." + ex.ToString());
                 }
             }
 
@@ -156,6 +164,7 @@ namespace CountlySDK.Helpers
         /// <param name="filename">Filename to delete</param>
         public override async Task DeleteFile(string filename)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'DeleteFile'");
             try
             {
                 if (File.Exists(Path + @"\" + filename))
@@ -163,12 +172,15 @@ namespace CountlySDK.Helpers
                     File.Delete(Path + @"\" + filename);
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                UtilityHelper.CountlyLogging("[Storage] DeleteFile." + ex.ToString());
+            }
         }
 
         internal override async Task<string> GetFolderPath(string folderName)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'GetFolderPath'");
             return System.IO.Directory.GetCurrentDirectory() + @"\" + folderName;
         }
     }
