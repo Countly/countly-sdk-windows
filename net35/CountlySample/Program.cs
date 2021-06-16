@@ -145,7 +145,7 @@ namespace CountlySample
                 }
             };
 
-            await Countly.EndSession();
+            await Countly.Instance.SessionEnd();
         }
 
         

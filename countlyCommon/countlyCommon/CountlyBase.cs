@@ -156,20 +156,6 @@ namespace CountlySDK.CountlyCommon
             await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName()));
         }
 
-        /// <summary>
-        /// End Countly tracking session.
-        /// Call from one of these places:
-        /// * your closing event
-        /// * your App.xaml.cs Application_Deactivated and Application_Closing events.
-        /// </summary>
-        [Obsolete("static 'EndSession' is deprecated, please use 'Countly.Instance.SessionEnd' in place of this call")]
-        public static async Task EndSession()
-        {
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'EndSession'");
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'EndSession'"); }
-            await Countly.Instance.EndSessionInternal();
-        }
-
         protected async Task EndSessionInternal()
         {
             //report the duration of current view

@@ -144,37 +144,6 @@ namespace CountlySDK
             }
         }
 
-        /// <summary>
-        /// Starts Countly tracking session.
-        /// Call from your App.xaml.cs Application_Launching and Application_Activated events.
-        /// Must be called before other SDK methods can be used.
-        /// </summary>
-        /// <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
-        /// <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
-        /// <param name="appVersion">Application version</param>
-        [Obsolete("static 'StartSession' is deprecated, please use 'Countly.Instance.Init' together with 'Countly.Instance.SessionBegin' in place of this call")]
-        public static async Task StartSession(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
-        {
-            await Countly.Instance.StartSessionInternal(serverUrl, appKey, appVersion, fileSystem);
-        }
-
-        private async Task StartSessionInternal(string serverUrl, string appKey, string appVersion, IFileSystem fileSystem)
-        {
-            if (ServerUrl != null)
-            {
-                // session already active
-                return;
-            }            
-                    
-            if (!IsInitialized())
-            {
-                CountlyConfig cc = new CountlyConfig() { appKey = appKey, appVersion = appVersion, serverUrl = serverUrl, fileSystem = fileSystem };
-                await Init(cc);
-            }
-
-            await SessionBeginInternal();
-        }
-
         public override async Task Init(CountlyConfig config)
         {
             if(IsInitialized()) { return; }
