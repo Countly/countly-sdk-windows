@@ -90,10 +90,7 @@ namespace CountlySDK.Entities.EntityBase
             }
             catch(Exception ex)
             {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("[SetDeviceId] thrown exception, " + ex.ToString());
-                }
+                UtilityHelper.CountlyLogging("[SetDeviceId] thrown exception, " + ex.ToString());
             }
         }
 
@@ -325,7 +322,7 @@ namespace CountlySDK.Entities.EntityBase
         /// <summary>
         /// Returns current device connection to the internet
         /// </summary>
-        public bool Online
+        public bool? Online
         {
             get
             {
@@ -333,7 +330,7 @@ namespace CountlySDK.Entities.EntityBase
             }
         }
 
-        protected abstract bool GetOnline();
+        protected abstract bool? GetOnline();
 
         /// <summary>
         /// Returns devices current locale
@@ -342,9 +339,19 @@ namespace CountlySDK.Entities.EntityBase
         {
             get
             {
-                CultureInfo ci = CultureInfo.CurrentUICulture;
-                return ci.Name;
+               try
+                {
+                    CultureInfo ci = CultureInfo.CurrentUICulture;
+                    return ci.Name;
+                }
+                catch (Exception ex)
+                {
+                    UtilityHelper.CountlyLogging("DeviceBase:Locale, problem while getting culture information." + ex.ToString());
+
+                    return null;
+                }
             }
+
         }
     }
 }

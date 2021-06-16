@@ -70,13 +70,16 @@ namespace CountlySDK.Helpers
         {
             if (Countly.IsLoggingEnabled)
             {
-                Debug.WriteLine(msg);
+                System.Diagnostics.Debug.WriteLine(msg);
             }
         }
 
         public static int CompareQueues<T>(Queue<T> first, Queue<T> second) where T : IComparable<T>
         {
-            if (first == null && second == null) return 0;
+            if (first == null && second == null)
+            {
+                return 0;
+            }
             if (first == null) { return -1; }
             if (second == null) { return 1; }
 

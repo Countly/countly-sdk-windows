@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.Management;
 
 namespace CountlySDK.Helpers
@@ -35,9 +36,18 @@ namespace CountlySDK.Helpers
         {
             get
             {
-                var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                try
+                {
+                    var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
 
-                return (string)reg.GetValue("ProductName");
+                    return (string)reg.GetValue("ProductName");
+                }
+                catch (Exception ex)
+                {
+                    UtilityHelper.CountlyLogging("OSInfo:OsName, problem while getting LocalMachine information." + ex.ToString());
+
+                    return null;
+                }
             }
         }
 
@@ -54,14 +64,22 @@ namespace CountlySDK.Helpers
 
         private static string GetOSName()
         {
-            string version_Os = String.Empty;
-            // Get the OS information.
-            string os_query = "SELECT * FROM Win32_OperatingSystem";
+            string version_Os = null;
 
-            ManagementObjectSearcher os_searcher = new ManagementObjectSearcher(os_query);
-            foreach (ManagementObject info in os_searcher.Get())
+            try
             {
-                version_Os = info.Properties["Version"].Value.ToString();
+                // Get the OS information.
+                string os_query = "SELECT * FROM Win32_OperatingSystem";
+
+                ManagementObjectSearcher os_searcher = new ManagementObjectSearcher(os_query);
+                foreach (ManagementObject info in os_searcher.Get())
+                {
+                    version_Os = info.Properties["Version"].Value.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                UtilityHelper.CountlyLogging("OSInfo:OSVersion, problem while getting Managment information." + ex.ToString());
             }
 
             return version_Os;

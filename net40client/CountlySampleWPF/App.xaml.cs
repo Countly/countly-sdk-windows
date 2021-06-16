@@ -18,8 +18,8 @@ namespace CountlySampleWPF
     /// </summary>
     public partial class App : Application
     {
-        public const String serverURL = "";
-        public const String appKey = "";
+        const String serverURL = "";//put your server URL here
+        const String appKey = "";//put your server APP key here   
 
         protected async override void OnStartup(StartupEventArgs e)
         {
@@ -35,11 +35,6 @@ namespace CountlySampleWPF
             countlyConfig.appVersion = "123";
 
             await Countly.Instance.Init(countlyConfig);
-            
-            Countly.UserDetails.Custom.Add("aaa", "666");
-
-            String cpuid = OpenUDID.value;
-            String newId = Countly.Instance.GenerateDeviceIdMultipleFields();
 
             await Countly.Instance.SessionBegin();
 

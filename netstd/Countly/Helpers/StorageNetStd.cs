@@ -43,6 +43,7 @@ namespace CountlySDK.Helpers
 
         private bool IsFileExists(IsolatedStorageFile store, string fileName)
         {
+            UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'IsFileExists', with store");
             if (!store.DirectoryExists(folder))
             {
                 return false;
@@ -53,12 +54,14 @@ namespace CountlySDK.Helpers
 
         public bool IsFileExists(string fileName)
         {
+            UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'IsFileExists', without store");
             var store = isolatedStorage;
             return IsFileExists(store, fileName);
         }
 
         public override async Task<bool> SaveToFile<T>(string filename, object objForSave)
         {
+            UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'SaveToFile'");
             Debug.Assert(filename != null, "Provided filename can't be null");
             Debug.Assert(objForSave != null, "Provided object can't be null");
 
@@ -85,13 +88,10 @@ namespace CountlySDK.Helpers
                         closeIsolatedStorageStream(file);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
                     success = false;
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("save countly data failed");
-                    }
+                    UtilityHelper.CountlyLogging("[StorageNetStd] SaveToFile, save countly data failed." + ex.ToString());
                 }
                 return success;
             }
@@ -100,6 +100,7 @@ namespace CountlySDK.Helpers
 
         public override async Task<T> LoadFromFile<T>(string filename)
         {
+            UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'LoadFromFile'");
             Debug.Assert(filename != null, "Provided filename can't be null");
 
             T obj = default(T);
@@ -131,12 +132,9 @@ namespace CountlySDK.Helpers
                         closeIsolatedStorageStream(file);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("Problem while loading from file");
-                    }
+                    UtilityHelper.CountlyLogging("[StorageNetStd] LoadFromFile, Problem while loading from file. " + ex.ToString());
                 }
             }
 
@@ -149,6 +147,7 @@ namespace CountlySDK.Helpers
         /// <param name="filename">Filename to delete</param>
         public override async Task DeleteFile(string filename)
         {
+            UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'DeleteFile'");
             try
             {
                 var store = isolatedStorage;
@@ -156,9 +155,11 @@ namespace CountlySDK.Helpers
                 {
                     store.DeleteFile(Path.Combine(folder, filename));
                 }
+            } 
+            catch (Exception ex)
+            {
+                UtilityHelper.CountlyLogging("[StorageNetStd] DeleteFile, Problem while loading from file. " + ex.ToString());
             }
-            catch
-            { }
         }
 
         internal override async Task<string> GetFolderPath(string folderName)

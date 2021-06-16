@@ -29,7 +29,9 @@ namespace TestProject_common
         public void Dispose()
         {
             TestHelper.ValidateDataPointUpload().Wait();
-            Countly.EndSession().Wait();
+            //the original legacy call has been removed 
+            //this is added only for compatability
+            Countly.Instance.SessionEnd().Wait();
             TestHelper.ValidateDataPointUpload().Wait();
         }        
     }
