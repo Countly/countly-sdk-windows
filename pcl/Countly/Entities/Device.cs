@@ -26,9 +26,6 @@ using CountlySDK.Helpers;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.Networking.Connectivity;
-using Windows.Security.ExchangeActiveSyncProvisioning;
 
 namespace CountlySDK.Entities
 {
@@ -61,45 +58,17 @@ namespace CountlySDK.Entities
 
         protected override string GetManufacturer()
         {
-            try
-            {
-                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
-                return easClientDeviceInformation.SystemManufacturer;
-            } 
-            catch (Exception ex)
-            {
-                UtilityHelper.CountlyLogging("[Device] GetManufacturer, issue." + ex.ToString());
-                return null;
-            }
+            return null;
         }
 
         protected override string GetDeviceName()
         {
-            try
-            {
-                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
-                return PhoneNameHelper.Resolve(easClientDeviceInformation.SystemManufacturer, easClientDeviceInformation.SystemProductName).FullCanonicalName;
-            } 
-            catch (Exception ex)
-            {
-                UtilityHelper.CountlyLogging("[Device] GetDeviceName, issue." + ex.ToString());
-                return null;
-            }
+            return null;
         }
 
         protected override string GetAppVersion()
         {
-            try
-            {
-                PackageVersion packageVersion = Package.Current.Id.Version;
-                Version version = new Version(packageVersion.Major, packageVersion.Minor, packageVersion.Build, packageVersion.Revision);
-                return version.ToString();
-            } 
-            catch (Exception ex)
-            {
-                UtilityHelper.CountlyLogging("[Device] GetAppVersion, issue." + ex.ToString());
-                return null;
-            }
+            return null;
         }
 
         protected override string GetResolution()
@@ -128,17 +97,7 @@ namespace CountlySDK.Entities
 
         protected override bool? GetOnline()
         {
-            try
-            {
-                ConnectionProfile connections = NetworkInformation.GetInternetConnectionProfile();
-
-                return connections != null && connections.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess;
-            } 
-            catch (Exception ex)
-            {
-                UtilityHelper.CountlyLogging("[Device] GetOnline, issue." + ex.ToString());
-                return null;
-            }
+            return null;
         }
     } 
 }

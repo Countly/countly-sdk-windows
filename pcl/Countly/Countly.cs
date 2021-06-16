@@ -144,6 +144,12 @@ namespace CountlySDK
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        [ObsoleteAttribute("This SDK flavour is deprecated and will be removed in the next major release.", false)]
         public override async Task Init(CountlyConfig config)
         {
             if(IsInitialized()) { return; }
