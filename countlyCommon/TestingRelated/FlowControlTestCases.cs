@@ -44,7 +44,8 @@ namespace TestProject_common
         public async void LegacyInitSimple()
         {            
             await CountlyImpl.StartLegacyCountlySession("123", "234", "345");
-            await Countly.EndSession();
+            //reworked after removal of the deprecated function
+            await Countly.Instance.SessionEnd();
         }
 
         [Fact]
