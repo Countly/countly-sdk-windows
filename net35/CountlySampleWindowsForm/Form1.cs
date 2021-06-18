@@ -15,8 +15,8 @@ namespace CountlySampleWindowsForm
 {
     public partial class Form1 : Form
     {        
-        const String serverURL = "http://try.count.ly";//put your server URL here
-        const String appKey = "APP_key";//put your server APP key here       
+        const String serverURL = "http://master.count.ly";//put your server URL here
+        const String appKey = "8c1d653f8f474be24958b282d5e9b4c4209ee552";//put your server APP key here       
 
         public Form1()
         {
@@ -30,10 +30,12 @@ namespace CountlySampleWindowsForm
 
             Countly.IsLoggingEnabled = true;
 
-            CountlyConfig countlyConfig = new CountlyConfig();
-            countlyConfig.serverUrl = serverURL;
-            countlyConfig.appKey = appKey;
-            countlyConfig.appVersion = "123";
+            CountlyConfig countlyConfig = new CountlyConfig
+            {
+                serverUrl = serverURL,
+                appKey = appKey,
+                appVersion = "123"
+            };
 
             await Countly.Instance.Init(countlyConfig);
 
@@ -54,7 +56,7 @@ namespace CountlySampleWindowsForm
             Countly.RecordEvent("Some event");
         }
 
-        private void btnCrash_Click(object sender, EventArgs e)
+        private async void btnCrash_Click(object sender, EventArgs e)
         {
             try
             {
@@ -62,9 +64,11 @@ namespace CountlySampleWindowsForm
             }
             catch (Exception ex)
             {
-                Dictionary<string, string> customInfo = new Dictionary<string, string>();
-                customInfo.Add("customData", "importantStuff");
-                Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
+                Dictionary<string, string> customInfo = new Dictionary<string, string>
+                {
+                    { "customData", "importantStuff" }
+                };
+                await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
             }
         }
     }
