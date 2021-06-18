@@ -15,8 +15,8 @@ namespace CountlySampleWindowsForm
 {
     public partial class Form1 : Form
     {        
-        const String serverURL = "http://master.count.ly";//put your server URL here
-        const String appKey = "8c1d653f8f474be24958b282d5e9b4c4209ee552";//put your server APP key here       
+        const string serverURL = "http://try.count.ly";//put your server URL here
+        const string appKey = "APP_KEY";//put your server APP key here       
 
         public Form1()
         {
