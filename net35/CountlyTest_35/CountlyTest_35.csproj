@@ -70,9 +70,6 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\FlowControlTestCases.cs">
       <Link>FlowControlTestCases.cs</Link>
     </Compile>
-    <Compile Include="..\..\countlyCommon\TestingRelated\LegacyInitTests.cs">
-      <Link>LegacyInitTests.cs</Link>
-    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
     </Compile>
