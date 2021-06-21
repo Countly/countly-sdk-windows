@@ -31,8 +31,7 @@ namespace CountlySDK.Helpers
         {
             var manufacturerNormalized = manufacturer.Trim().ToUpper();
 
-            switch (manufacturerNormalized)
-            {
+            switch (manufacturerNormalized) {
                 case "NOKIA":
                 case "MICROSOFT":
                     return ResolveNokia(manufacturer, model);
@@ -45,8 +44,7 @@ namespace CountlySDK.Helpers
                 case "HUAWEI":
                     return ResolveHuawei(manufacturer, model);
                 default:
-                    return new CanonicalPhoneName()
-                    {
+                    return new CanonicalPhoneName() {
                         ReportedManufacturer = manufacturer,
                         ReportedModel = model,
                         CanonicalManufacturer = manufacturer,
@@ -60,8 +58,7 @@ namespace CountlySDK.Helpers
         {
             var modelNormalized = model.Trim().ToUpper();
 
-            var result = new CanonicalPhoneName()
-            {
+            var result = new CanonicalPhoneName() {
                 ReportedManufacturer = manufacturer,
                 ReportedModel = model,
                 CanonicalManufacturer = "HUAWEI",
@@ -72,23 +69,19 @@ namespace CountlySDK.Helpers
 
             var lookupValue = modelNormalized;
 
-            if (lookupValue.StartsWith("HUAWEI H883G"))
-            {
+            if (lookupValue.StartsWith("HUAWEI H883G")) {
                 lookupValue = "HUAWEI H883G";
             }
 
-            if (lookupValue.StartsWith("HUAWEI W1"))
-            {
+            if (lookupValue.StartsWith("HUAWEI W1")) {
                 lookupValue = "HUAWEI W1";
             }
 
-            if (modelNormalized.StartsWith("HUAWEI W2"))
-            {
+            if (modelNormalized.StartsWith("HUAWEI W2")) {
                 lookupValue = "HUAWEI W2";
             }
 
-            if (huaweiLookupTable.ContainsKey(lookupValue))
-            {
+            if (huaweiLookupTable.ContainsKey(lookupValue)) {
                 var modelMetadata = huaweiLookupTable[lookupValue];
                 result.CanonicalModel = modelMetadata.CanonicalModel;
                 result.Comments = modelMetadata.Comments;
@@ -102,8 +95,7 @@ namespace CountlySDK.Helpers
         {
             var modelNormalized = model.Trim().ToUpper();
 
-            var result = new CanonicalPhoneName()
-            {
+            var result = new CanonicalPhoneName() {
                 ReportedManufacturer = manufacturer,
                 ReportedModel = model,
                 CanonicalManufacturer = "LG",
@@ -114,18 +106,15 @@ namespace CountlySDK.Helpers
 
             var lookupValue = modelNormalized;
 
-            if (lookupValue.StartsWith("LG-C900"))
-            {
+            if (lookupValue.StartsWith("LG-C900")) {
                 lookupValue = "LG-C900";
             }
 
-            if (lookupValue.StartsWith("LG-E900"))
-            {
+            if (lookupValue.StartsWith("LG-E900")) {
                 lookupValue = "LG-E900";
             }
 
-            if (lgLookupTable.ContainsKey(lookupValue))
-            {
+            if (lgLookupTable.ContainsKey(lookupValue)) {
                 var modelMetadata = lgLookupTable[lookupValue];
                 result.CanonicalModel = modelMetadata.CanonicalModel;
                 result.Comments = modelMetadata.Comments;
@@ -139,8 +128,7 @@ namespace CountlySDK.Helpers
         {
             var modelNormalized = model.Trim().ToUpper();
 
-            var result = new CanonicalPhoneName()
-            {
+            var result = new CanonicalPhoneName() {
                 ReportedManufacturer = manufacturer,
                 ReportedModel = model,
                 CanonicalManufacturer = "SAMSUNG",
@@ -151,18 +139,15 @@ namespace CountlySDK.Helpers
 
             var lookupValue = modelNormalized;
 
-            if (lookupValue.StartsWith("GT-S7530"))
-            {
+            if (lookupValue.StartsWith("GT-S7530")) {
                 lookupValue = "GT-S7530";
             }
 
-            if (lookupValue.StartsWith("SGH-I917"))
-            {
+            if (lookupValue.StartsWith("SGH-I917")) {
                 lookupValue = "SGH-I917";
             }
 
-            if (samsungLookupTable.ContainsKey(lookupValue))
-            {
+            if (samsungLookupTable.ContainsKey(lookupValue)) {
                 var modelMetadata = samsungLookupTable[lookupValue];
                 result.CanonicalModel = modelMetadata.CanonicalModel;
                 result.Comments = modelMetadata.Comments;
@@ -176,8 +161,7 @@ namespace CountlySDK.Helpers
         {
             var modelNormalized = model.Trim().ToUpper();
 
-            var result = new CanonicalPhoneName()
-            {
+            var result = new CanonicalPhoneName() {
                 ReportedManufacturer = manufacturer,
                 ReportedModel = model,
                 CanonicalManufacturer = "HTC",
@@ -188,23 +172,19 @@ namespace CountlySDK.Helpers
 
             var lookupValue = modelNormalized;
 
-            if (lookupValue.StartsWith("A620"))
-            {
+            if (lookupValue.StartsWith("A620")) {
                 lookupValue = "A620";
             }
 
-            if (lookupValue.StartsWith("C625"))
-            {
+            if (lookupValue.StartsWith("C625")) {
                 lookupValue = "C625";
             }
 
-            if (lookupValue.StartsWith("C620"))
-            {
+            if (lookupValue.StartsWith("C620")) {
                 lookupValue = "C620";
             }
 
-            if (htcLookupTable.ContainsKey(lookupValue))
-            {
+            if (htcLookupTable.ContainsKey(lookupValue)) {
                 var modelMetadata = htcLookupTable[lookupValue];
                 result.CanonicalModel = modelMetadata.CanonicalModel;
                 result.Comments = modelMetadata.Comments;
@@ -218,8 +198,7 @@ namespace CountlySDK.Helpers
         {
             var modelNormalized = model.Trim().ToUpper();
 
-            var result = new CanonicalPhoneName()
-            {
+            var result = new CanonicalPhoneName() {
                 ReportedManufacturer = manufacturer,
                 ReportedModel = model,
                 CanonicalManufacturer = "NOKIA",
@@ -228,18 +207,15 @@ namespace CountlySDK.Helpers
             };
 
             var lookupValue = modelNormalized;
-            if (modelNormalized.StartsWith("RM-"))
-            {
+            if (modelNormalized.StartsWith("RM-")) {
                 var rms = Regex.Match(modelNormalized, "(RM-)([0-9]+)");
                 lookupValue = rms.Value;
             }
 
-            if (nokiaLookupTable.ContainsKey(lookupValue))
-            {
+            if (nokiaLookupTable.ContainsKey(lookupValue)) {
                 var modelMetadata = nokiaLookupTable[lookupValue];
 
-                if (!string.IsNullOrEmpty(modelMetadata.CanonicalManufacturer))
-                {
+                if (!string.IsNullOrEmpty(modelMetadata.CanonicalManufacturer)) {
                     result.CanonicalManufacturer = modelMetadata.CanonicalManufacturer;
                 }
                 result.CanonicalModel = modelMetadata.CanonicalModel;
