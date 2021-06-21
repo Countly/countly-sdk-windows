@@ -38,7 +38,7 @@ using CountlySDK.CountlyCommon;
 using System.Runtime.CompilerServices;
 
 #if RUNNING_ON_35
-    //[assembly: InternalsVisibleTo("CountlyTest_35")]
+//[assembly: InternalsVisibleTo("CountlyTest_35")]
 #elif RUNNING_ON_40
 //[assembly: InternalsVisibleTo("CountlyTest_40")]
 #endif
