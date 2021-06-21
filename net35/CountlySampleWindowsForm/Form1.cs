@@ -14,7 +14,7 @@ using CountlySDK.Entities;
 namespace CountlySampleWindowsForm
 {
     public partial class Form1 : Form
-    {        
+    {
         const String serverURL = "http://try.count.ly";//put your server URL here
         const String appKey = "APP_key";//put your server APP key here       
 
@@ -56,12 +56,9 @@ namespace CountlySampleWindowsForm
 
         private void btnCrash_Click(object sender, EventArgs e)
         {
-            try
-            {
+            try {
                 throw new Exception("This is some bad exception 3");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Dictionary<string, string> customInfo = new Dictionary<string, string>();
                 customInfo.Add("customData", "importantStuff");
                 Countly.RecordException(ex.Message, ex.StackTrace, customInfo);

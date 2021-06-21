@@ -40,7 +40,7 @@ using System.Runtime.CompilerServices;
 #if RUNNING_ON_35
     //[assembly: InternalsVisibleTo("CountlyTest_35")]
 #elif RUNNING_ON_40
-    //[assembly: InternalsVisibleTo("CountlyTest_40")]
+//[assembly: InternalsVisibleTo("CountlyTest_40")]
 #endif
 
 namespace CountlySDK
@@ -63,7 +63,7 @@ namespace CountlySDK
 
         //methods for generating device ID
         public enum DeviceIdMethod { cpuId = DeviceBase.DeviceIdMethodInternal.cpuId, multipleFields = DeviceBase.DeviceIdMethodInternal.multipleWindowsFields, windowsGUID = DeviceBase.DeviceIdMethodInternal.windowsGUID, developerSupplied = DeviceBase.DeviceIdMethodInternal.developerSupplied };
-        
+
         // Update session timer
         private DispatcherTimer Timer;
 
@@ -78,32 +78,28 @@ namespace CountlySDK
 
         protected override bool SaveEvents()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return Storage.Instance.SaveToFile<List<SessionEvent>>(eventsFilename, Events).Result;
             }
         }
 
         protected override bool SaveSessions()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return Storage.Instance.SaveToFile<List<SessionEvent>>(sessionsFilename, Sessions).Result;
             }
         }
 
         protected override bool SaveExceptions()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return Storage.Instance.SaveToFile<List<ExceptionEvent>>(exceptionsFilename, Exceptions).Result;
             }
         }
 
         internal override bool SaveUnhandledException(ExceptionEvent exceptionEvent)
         {
-            lock (sync)
-            {
+            lock (sync) {
                 //for now we treat unhandled exceptions just like regular exceptions
                 Exceptions.Add(exceptionEvent);
                 return SaveExceptions();
@@ -112,8 +108,7 @@ namespace CountlySDK
 
         protected override bool SaveUserDetails()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails).Result;
             }
         }
@@ -124,7 +119,7 @@ namespace CountlySDK
 
             if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
 
-            await InitBase(config);            
+            await InitBase(config);
         }
 
         protected override async Task SessionBeginInternal()
@@ -144,7 +139,7 @@ namespace CountlySDK
         /// <param name="e"></param>
         private async void UpdateSession(object sender, EventArgs e)
         {
-            await UpdateSessionInternal();            
+            await UpdateSessionInternal();
         }
 
         protected override void SessionTimerStart()
@@ -157,8 +152,7 @@ namespace CountlySDK
 
         protected override void SessionTimerStop()
         {
-            if (Timer != null)
-            {
+            if (Timer != null) {
                 Timer.Stop();
                 Timer.Tick -= UpdateSession;
                 Timer = null;

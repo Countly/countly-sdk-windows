@@ -65,7 +65,7 @@ namespace TestProject_common
         public static CountlyUserDetails CreateCountlyUserDetails(int indexData, int indexCustomInfo)
         {
             CountlyUserDetails cud = new CountlyUserDetails();
-            PopulateCountlyUserDetails(cud, indexData, indexCustomInfo);            
+            PopulateCountlyUserDetails(cud, indexData, indexCustomInfo);
 
             return cud;
         }
@@ -87,12 +87,11 @@ namespace TestProject_common
             cud.Custom = cui;
         }
 
-            public static DeviceId CreateDeviceId(int index, int indexIdMethod)
+        public static DeviceId CreateDeviceId(int index, int indexIdMethod)
         {
             DeviceBase.DeviceIdMethodInternal method;
             indexIdMethod = indexIdMethod % 6;
-            switch (indexIdMethod)
-            {
+            switch (indexIdMethod) {
                 case 0:
                     method = DeviceBase.DeviceIdMethodInternal.none;
                     break;
@@ -179,7 +178,7 @@ namespace TestProject_common
             Dictionary<String, String> cust = new Dictionary<string, string>();
             cust.Add(v[index + 1], v[index + 2]);
             cust.Add(v[index + 3], v[index + 4]);
-            
+
             return ce;
         }
 
@@ -193,8 +192,7 @@ namespace TestProject_common
         {
             List<CountlyEvent> eventList = new List<CountlyEvent>();
 
-            for (int a = 0; a < count; a++)
-            {
+            for (int a = 0; a < count; a++) {
                 CountlyEvent ce = TestHelper.CreateCountlyEvent(a % 5);
                 eventList.Add(ce);
             }
@@ -206,8 +204,7 @@ namespace TestProject_common
         {
             List<ExceptionEvent> exceptionList = new List<ExceptionEvent>();
 
-            for (int a = 0; a < count; a++)
-            {
+            for (int a = 0; a < count; a++) {
                 ExceptionEvent ce = TestHelper.CreateExceptionEvent(a % 5);
                 exceptionList.Add(ce);
             }
@@ -219,11 +216,9 @@ namespace TestProject_common
         {
             List<SessionEvent> sessionList = new List<SessionEvent>();
 
-            for (int a = 0; a < count; a++)
-            {
+            for (int a = 0; a < count; a++) {
                 SessionEvent se;
-                switch (a % 3)
-                {
+                switch (a % 3) {
                     case 0:
                         se = TestHelper.CreateBeginSession(a % 5, a % 4);
                         break;
@@ -246,8 +241,7 @@ namespace TestProject_common
         {
             Queue<StoredRequest> srQueue = new Queue<StoredRequest>();
 
-            for (int a = 0; a < count; a++)
-            {
+            for (int a = 0; a < count; a++) {
                 StoredRequest sr = CreateStoredRequest(a % 10);
                 srQueue.Enqueue(sr);
             }
@@ -270,23 +264,20 @@ namespace TestProject_common
 
         public static async Task ValidateDataPointUpload()
         {
-            if (Countly.Instance.deferUpload)
-            {
+            if (Countly.Instance.deferUpload) {
                 return;
             }
 
-            while (Countly.Instance.Events.Count > 0 || 
-                Countly.Instance.Exceptions.Count > 0 || 
-                Countly.Instance.Sessions.Count > 0 || 
+            while (Countly.Instance.Events.Count > 0 ||
+                Countly.Instance.Exceptions.Count > 0 ||
+                Countly.Instance.Sessions.Count > 0 ||
                 Countly.Instance.StoredRequests.Count > 0 ||
-                Countly.UserDetails.isChanged)                
-            {
+                Countly.UserDetails.isChanged) {
                 Thread.Sleep(100);
-                if (!Countly.Instance.uploadInProgress)
-                {
+                if (!Countly.Instance.uploadInProgress) {
                     await Countly.Instance.Upload();
                 }
-            } 
+            }
         }
 
         public static async void CleanDataFiles()
@@ -305,8 +296,7 @@ namespace TestProject_common
         public static string DCSSerialize(object obj)
         {
             using (MemoryStream memoryStream = new MemoryStream())
-            using (StreamReader reader = new StreamReader(memoryStream))
-            {
+            using (StreamReader reader = new StreamReader(memoryStream)) {
                 DataContractSerializer serializer = new DataContractSerializer(obj.GetType());
                 serializer.WriteObject(memoryStream, obj);
                 memoryStream.Position = 0;
@@ -317,8 +307,7 @@ namespace TestProject_common
         public static T DCSDeserialize<T>(string xml)
         {
             Type toType = typeof(T);
-            using (Stream stream = new MemoryStream())
-            {
+            using (Stream stream = new MemoryStream()) {
                 byte[] data = System.Text.Encoding.UTF8.GetBytes(xml);
                 stream.Write(data, 0, data.Length);
                 stream.Position = 0;
@@ -331,8 +320,7 @@ namespace TestProject_common
         public static void MemoryStreamWrite(String filepath, MemoryStream ms)
         {
             ms.Seek(0, SeekOrigin.Begin);//go to start of stream
-            using (FileStream file = new FileStream(filepath, FileMode.Create, System.IO.FileAccess.Write))
-            {
+            using (FileStream file = new FileStream(filepath, FileMode.Create, System.IO.FileAccess.Write)) {
                 //file.Write(ms.GetBuffer(), 0, (int)file.Length);
 
 
@@ -348,8 +336,7 @@ namespace TestProject_common
         public static MemoryStream MemoryStreamRead(String filepath)
         {
             MemoryStream ms = new MemoryStream();
-            using (FileStream file = new FileStream(filepath, FileMode.Open, System.IO.FileAccess.Read))
-            {
+            using (FileStream file = new FileStream(filepath, FileMode.Open, System.IO.FileAccess.Read)) {
                 //ms.SetLength(file.Length);
                 //file.Read(ms.GetBuffer(), 0, (int)file.Length);
 
@@ -375,11 +362,9 @@ namespace TestProject_common
         {
             int offset = 0;
             int remaining = data.Length;
-            while (remaining > 0)
-            {
+            while (remaining > 0) {
                 int read = stream.Read(data, offset, remaining);
-                if (read <= 0)
-                {
+                if (read <= 0) {
                     throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
                 }
                 remaining -= read;
@@ -408,16 +393,14 @@ namespace TestProject_common
         {
             StringBuilder sbSingleStep = new StringBuilder();
 
-            for (int a = 0; a < stepSize; a++)
-            {
+            for (int a = 0; a < stepSize; a++) {
                 sbSingleStep.Append("A");
             }
 
             String acc = "";
             String[] steps = new string[stepAmount];
 
-            for (int a = 0; a < stepAmount; a++)
-            {
+            for (int a = 0; a < stepAmount; a++) {
                 acc += sbSingleStep.ToString();
                 steps[a] = acc;
             }

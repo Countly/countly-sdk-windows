@@ -14,7 +14,7 @@ using System.Web.UI.WebControls;
 namespace CountlySampleAspNet
 {
     public partial class WebForm1 : System.Web.UI.Page
-    {        
+    {
         const String serverURL = "https://master.count.ly/";//put your server URL here
         const String appKey = "5e20d03806255d314eb6679b26fda6e580b3d899";//put your server APP key here   
 

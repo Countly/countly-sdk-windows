@@ -13,10 +13,10 @@ namespace CountlySDK.CountlyCommon.Helpers
         internal static String CreateLocationRequest(String bRequest, String gpsLocation = null, String ipAddress = null, String country_code = null, String city = null)
         {
             Debug.Assert(bRequest != null);
-            if (bRequest == null) return null;            
+            if (bRequest == null)
+                return null;
 
-            if (gpsLocation != null || ipAddress != null || country_code != null || city != null)
-            {
+            if (gpsLocation != null || ipAddress != null || country_code != null || city != null) {
                 String res = null;
 
                 String rGps = gpsLocation == null ? null : String.Format("&location={0}", UtilityHelper.EncodeDataForURL(gpsLocation));
@@ -35,7 +35,8 @@ namespace CountlySDK.CountlyCommon.Helpers
         {
             Debug.Assert(bRequest != null);
             Debug.Assert(oldId != null);
-            if (bRequest == null) return null;
+            if (bRequest == null)
+                return null;
 
             String res = String.Format("{0}&old_device_id={1}", bRequest, oldId);
             return res;
@@ -46,19 +47,18 @@ namespace CountlySDK.CountlyCommon.Helpers
             Debug.Assert(bRequest != null);
             Debug.Assert(updatedConsentChanges != null);
             Debug.Assert(updatedConsentChanges.Count > 0);
-            if (bRequest == null) return null;
+            if (bRequest == null)
+                return null;
 
             String consentChanges = "{";
 
             KeyValuePair<ConsentFeatures, bool>[] entryChanges = updatedConsentChanges.ToArray();
 
-            for(int a = 0; a < entryChanges.Length; a++)
-            {
-                if(a != 0) { consentChanges += ","; }
+            for (int a = 0; a < entryChanges.Length; a++) {
+                if (a != 0) { consentChanges += ","; }
 
                 KeyValuePair<ConsentFeatures, bool> feature = entryChanges[a];
-                switch (feature.Key)
-                {
+                switch (feature.Key) {
                     case ConsentFeatures.Crashes:
                         consentChanges += "\"crashes\":" + (feature.Value ? "true" : "false");
                         break;
@@ -82,7 +82,7 @@ namespace CountlySDK.CountlyCommon.Helpers
                         break;
                 }
             }
-            
+
             consentChanges += "}";
 
             String res = String.Format("{0}&consent={1}", bRequest, UtilityHelper.EncodeDataForURL(consentChanges));
@@ -91,8 +91,7 @@ namespace CountlySDK.CountlyCommon.Helpers
 
         internal static String CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null)
         {
-            if (timestamp == null)
-            {
+            if (timestamp == null) {
                 timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             }
             return String.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}", appKey, deviceId, timestamp, sdkVersion, sdkName);

@@ -44,8 +44,7 @@ namespace CountlySDK.Helpers
         private bool IsFileExists(IsolatedStorageFile store, string fileName)
         {
             UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'IsFileExists', with store");
-            if (!store.DirectoryExists(folder))
-            {
+            if (!store.DirectoryExists(folder)) {
                 return false;
             }
 
@@ -65,31 +64,24 @@ namespace CountlySDK.Helpers
             Debug.Assert(filename != null, "Provided filename can't be null");
             Debug.Assert(objForSave != null, "Provided object can't be null");
 
-            lock (locker)
-            {
+            lock (locker) {
                 bool success = true;
-                try
-                {
+                try {
                     var store = isolatedStorage;
 
-                    if (!store.DirectoryExists(folder))
-                    {
+                    if (!store.DirectoryExists(folder)) {
                         store.CreateDirectory(folder);
                     }
 
-                    using (IsolatedStorageFileStream file = store.OpenFile(Path.Combine(folder, filename), FileMode.Create, FileAccess.Write, FileShare.Read))
-                    {
-                        if (file != null && objForSave != null)
-                        {
+                    using (IsolatedStorageFileStream file = store.OpenFile(Path.Combine(folder, filename), FileMode.Create, FileAccess.Write, FileShare.Read)) {
+                        if (file != null && objForSave != null) {
                             DataContractSerializer ser = new DataContractSerializer(objForSave.GetType());
                             ser.WriteObject(file, objForSave);
                         }
 
                         closeIsolatedStorageStream(file);
                     }
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     success = false;
                     UtilityHelper.CountlyLogging("[StorageNetStd] SaveToFile, save countly data failed." + ex.ToString());
                 }
@@ -105,35 +97,26 @@ namespace CountlySDK.Helpers
 
             T obj = default(T);
 
-            lock (locker)
-            {
-                try
-                {
+            lock (locker) {
+                try {
                     var store = isolatedStorage;
 
-                    if (!IsFileExists(store, filename))
-                    {
+                    if (!IsFileExists(store, filename)) {
                         //if file does not exist, return null
                         return obj;
                     }
 
-                    using (var file = store.OpenFile(Path.Combine(folder, filename), FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        if (file != null)
-                        {
+                    using (var file = store.OpenFile(Path.Combine(folder, filename), FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+                        if (file != null) {
                             DataContractSerializer ser = new DataContractSerializer(typeof(T));
                             obj = (T)ser.ReadObject(file);
-                        }
-                        else
-                        {
+                        } else {
                             obj = default(T);
                         }
 
                         closeIsolatedStorageStream(file);
                     }
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     UtilityHelper.CountlyLogging("[StorageNetStd] LoadFromFile, Problem while loading from file. " + ex.ToString());
                 }
             }
@@ -148,16 +131,12 @@ namespace CountlySDK.Helpers
         public override async Task DeleteFile(string filename)
         {
             UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'DeleteFile'");
-            try
-            {
+            try {
                 var store = isolatedStorage;
-                if (IsFileExists(store, filename))
-                {
+                if (IsFileExists(store, filename)) {
                     store.DeleteFile(Path.Combine(folder, filename));
                 }
-            } 
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("[StorageNetStd] DeleteFile, Problem while loading from file. " + ex.ToString());
             }
         }
@@ -171,7 +150,7 @@ namespace CountlySDK.Helpers
             writer.WriteLine("Hello");
             closeStreamWriter(writer);
             closeIsolatedStorageStream(stream);
-            
+
 
 
             // Retrieve the actual path of the file using reflection.
