@@ -675,7 +675,7 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[UploadExceptions] thrown exception when removing entry, " + ex.ToString());
                         }
 
-                        var res = SaveExceptions();//todo, in the future, react to this failing
+                        SaveExceptions();//todo, in the future, react to this failing
 
                         exceptionsCountToUploadAgain = Exceptions.Count;
                         uploadInProgress = false;//mark that we have stoped upload
