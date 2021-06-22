@@ -39,7 +39,7 @@ namespace CountlySampleUWP
             catch (Exception ex)
             {
                 await Countly.RecordException(ex.Message, ex.StackTrace);
-            }            
+            }
         }
 
         private async void Button_Click_1(object sender, RoutedEventArgs e)

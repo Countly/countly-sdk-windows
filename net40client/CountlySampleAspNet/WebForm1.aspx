@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="WebForm1.aspx.cs" Inherits="CountlySampleAspNet.WebForm1" Async="true"%>
+﻿<%@ page language="C#" autoeventwireup="true" codebehind="WebForm1.aspx.cs" inherits="CountlySampleAspNet.WebForm1" async="true" %>
 
 <script runat="server">
 
@@ -17,15 +17,15 @@
     <title></title>
 </head>
 <body>
-    <h3> Countly SDK ASP.NET sample </h3>
-      
-      <form runat="server">
-         <input runat="server" id="eventName" type="text" />
-         <input runat="server" id="button1" type="submit" value="Enter..." OnServerClick="sample_1"/>
-         
-         <hr />
-         <h3> Results: </h3>
-         <span runat="server" id="sample_output" />
-      </form>
+    <h3>Countly SDK ASP.NET sample </h3>
+
+    <form runat="server">
+        <input runat="server" id="eventName" type="text" />
+        <input runat="server" id="button1" type="submit" value="Enter..." onserverclick="sample_1" />
+
+        <hr />
+        <h3>Results: </h3>
+        <span runat="server" id="sample_output" />
+    </form>
 </body>
 </html>

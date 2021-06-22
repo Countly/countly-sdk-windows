@@ -39,8 +39,7 @@ namespace CountlySDK.Entities
         /// <param name="metrics">Metrics parameters</param>
         public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics, string sdkName, long? timestamp = null)
         {
-            if (timestamp == null)
-            {
+            if (timestamp == null) {
                 timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             }
             string metricsString = UtilityHelper.EncodeDataForURL(metrics.ToString());

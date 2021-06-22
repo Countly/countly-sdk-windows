@@ -64,15 +64,13 @@ namespace CountlySDK
 
         public int CompareTo(SegmentationItem other)
         {
-            if (!(Key == null && other.Key == null))
-            {
+            if (!(Key == null && other.Key == null)) {
                 if (Key == null) { return -1; }
                 if (other.Key == null) { return 1; }
                 if (!Key.Equals(other.Key)) { return Key.CompareTo(other.Key); }
             }
 
-            if (!(Value == null && other.Value == null))
-            {
+            if (!(Value == null && other.Value == null)) {
                 if (Value == null) { return -1; }
                 if (other.Value == null) { return 1; }
                 if (!Value.Equals(other.Value)) { return Value.CompareTo(other.Value); }

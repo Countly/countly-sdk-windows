@@ -26,16 +26,14 @@ namespace CountlySDK.CountlyCommon.Entities
 
         public int CompareTo(StoredRequest other)
         {
-            if (Request == null && other.Request == null)
-            {
+            if (Request == null && other.Request == null) {
                 return IdMerge.CompareTo(other.IdMerge);
             }
 
             if (Request == null) { return -1; }
             if (other.Request == null) { return 1; }
 
-            if (Request.Equals(other.Request))
-            {
+            if (Request.Equals(other.Request)) {
                 return IdMerge.CompareTo(other.IdMerge);
             }
             return Request.CompareTo(other.Request);
