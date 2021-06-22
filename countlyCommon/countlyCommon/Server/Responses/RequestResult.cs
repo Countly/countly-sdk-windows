@@ -14,8 +14,7 @@ namespace CountlySDK.CountlyCommon.Server.Responses
 
         public bool IsSuccess()
         {
-            if (parsedResponse != null)
-            {
+            if (parsedResponse != null) {
                 return parsedResponse.IsSuccess;
             }
             return false;
@@ -23,8 +22,7 @@ namespace CountlySDK.CountlyCommon.Server.Responses
 
         public bool IsBadRequest()
         {
-            if (responseCode == 400 || responseCode == 404)
-            {
+            if (responseCode == 400 || responseCode == 404) {
                 return true;
             }
             return false;

@@ -71,59 +71,48 @@ namespace CountlySDK
         {
             List<T> collection_;
 
-            lock (sync)
-            {
+            lock (sync) {
                 collection_ = collection.ToList();
             }
 
             bool success = await Storage.Instance.SaveToFile<List<T>>(path, collection_);
 
-            if (success)
-            {
-                if (collection_.Count != collection.Count)
-                {
+            if (success) {
+                if (collection_.Count != collection.Count) {
                     // collection was changed during saving, save it again
                     return await SaveCollection<T>(collection, path);
-                }
-                else
-                {
+                } else {
                     return true;
                 }
-            }
-            else
-            {
+            } else {
                 return false;
             }
         }
 
         protected override bool SaveEvents()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return SaveCollection<CountlyEvent>(Events, eventsFilename).Result;
             }
         }
 
         protected override bool SaveSessions()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return SaveCollection<SessionEvent>(Sessions, sessionsFilename).Result;
             }
         }
 
         protected override bool SaveExceptions()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return SaveCollection<ExceptionEvent>(Exceptions, exceptionsFilename).Result;
             }
         }
 
         internal override bool SaveUnhandledException(ExceptionEvent exceptionEvent)
         {
-            lock (sync)
-            {
+            lock (sync) {
                 //for now we treat unhandled exceptions just like regular exceptions
                 Exceptions.Add(exceptionEvent);
                 return SaveExceptions();
@@ -132,17 +121,16 @@ namespace CountlySDK
 
         protected override bool SaveUserDetails()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return Storage.Instance.SaveToFile<CountlyUserDetails>(userDetailsFilename, UserDetails).Result;
             }
         }
 
         public override async Task Init(CountlyConfig config)
         {
-            if(IsInitialized()) { return; }
+            if (IsInitialized()) { return; }
 
-            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }                       
+            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
 
             await InitBase(config);
         }
@@ -166,7 +154,7 @@ namespace CountlySDK
         private async void UpdateSession(object sender, object e)
         {
             await UpdateSessionInternal();
-        }        
+        }
 
         protected override void SessionTimerStart()
         {
@@ -175,11 +163,10 @@ namespace CountlySDK
 
         protected override void SessionTimerStop()
         {
-            if (Timer != null)
-            {
+            if (Timer != null) {
                 Timer.Dispose();
                 Timer = null;
             }
-        }        
+        }
     }
 }

@@ -42,7 +42,7 @@ namespace TestProject_common
 
         [Fact]
         public async void LegacyInitSimple()
-        {            
+        {
             await CountlyImpl.StartLegacyCountlySession("123", "234", "345");
             //reworked after removal of the deprecated function
             await Countly.Instance.SessionEnd();
@@ -53,34 +53,28 @@ namespace TestProject_common
         {
             Exception exToCatch = null;
 
-            try
-            {
+            try {
                 await CountlyImpl.StartLegacyCountlySession(null, "234", "345");
-            }
-            catch(Exception ex) { exToCatch = ex; }
+            } catch (Exception ex) { exToCatch = ex; }
 
             Assert.NotNull(exToCatch);
             exToCatch = null;
             Countly.Halt();
 
-            try
-            {
+            try {
                 await CountlyImpl.StartLegacyCountlySession("123", null, "345");
-            }
-            catch (Exception ex) { exToCatch = ex; }
+            } catch (Exception ex) { exToCatch = ex; }
 
             Assert.NotNull(exToCatch);
             exToCatch = null;
             Countly.Halt();
 
-            try
-            {
+            try {
                 await CountlyImpl.StartLegacyCountlySession(null, null, null);
-            }
-            catch (Exception ex) { exToCatch = ex; }
+            } catch (Exception ex) { exToCatch = ex; }
 
             Assert.NotNull(exToCatch);
-            exToCatch = null;            
+            exToCatch = null;
         }
     }
 }

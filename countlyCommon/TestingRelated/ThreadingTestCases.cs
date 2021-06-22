@@ -61,14 +61,11 @@ namespace TestProject_common
 
             List<Thread> threads = new List<Thread>();
 
-            for (int a = 0; a < threadCountMultiplyer; a++)
-            {
-                for (int b = 0; b < threadActions.Length; b++)
-                {
+            for (int a = 0; a < threadCountMultiplyer; a++) {
+                for (int b = 0; b < threadActions.Length; b++) {
                     int idx = b + threadActions.Length * a;
                     int idxA = b;
-                    threads.Add(new Thread(new ThreadStart(() =>
-                    {
+                    threads.Add(new Thread(new ThreadStart(() => {
                         threadSync.WaitOne();
                         Thread.Sleep(sleepTimes[idx]);
                         threadActions[idxA]();
@@ -77,8 +74,7 @@ namespace TestProject_common
             }
 
             //start all threades
-            for (int a = 0; a < threads.Count; a++)
-            {
+            for (int a = 0; a < threads.Count; a++) {
                 threads[a].Start();
             }
 
@@ -87,8 +83,7 @@ namespace TestProject_common
             threadSync.Set();
 
             //wait for all threads to finish
-            for (int a = 0; a < threads.Count; a++)
-            {
+            for (int a = 0; a < threads.Count; a++) {
                 threads[a].Join();
             }
         }
@@ -104,7 +99,7 @@ namespace TestProject_common
             actionsToDo.Add(ThreadWorkSetLocation);
 
             return actionsToDo.ToArray();
-        }        
+        }
 
         int[] PrepareThreadSleepTimes(int actionAmount)
         {
@@ -112,8 +107,7 @@ namespace TestProject_common
 
             Random rnd = new Random(100);
 
-            for(int a = 0; a < times.Length; a++)
-            {
+            for (int a = 0; a < times.Length; a++) {
                 times[a] = rnd.Next(10, 200);
             }
 
@@ -125,12 +119,10 @@ namespace TestProject_common
             String[] eventKeys = new string[] { "key_1", "key_2", "key_3", "key_4", "key_5", "key_6" };
             Random rnd = new Random(0);
 
-            for (int a = 0; a < threadIterations; a++)
-            {
+            for (int a = 0; a < threadIterations; a++) {
                 int choice = a % 6;
 
-                switch (choice)
-                {
+                switch (choice) {
                     case 0:
                         Countly.RecordEvent(eventKeys[0]);
                         break;
@@ -168,12 +160,9 @@ namespace TestProject_common
         void ThreadWorkExceptions()
         {
             Exception exToUse;
-            try
-            {
+            try {
                 throw new Exception("This is some bad exception 35454");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 exToUse = ex;
             }
 
@@ -183,13 +172,11 @@ namespace TestProject_common
             dict.Add("booh", "waah");
 
 
-            for (int a = 0; a < threadIterations; a++)
-            {
+            for (int a = 0; a < threadIterations; a++) {
                 int choice = a % 4;
                 bool res;
 
-                switch (choice)
-                {
+                switch (choice) {
                     case 0:
                         res = Countly.RecordException("Big error 1").Result;
                         break;
@@ -214,8 +201,7 @@ namespace TestProject_common
         {
             Random rnd = new Random(2);
 
-            for (int a = 0; a < threadIterations; a++)
-            {
+            for (int a = 0; a < threadIterations; a++) {
                 CountlyUserDetails cud = Countly.UserDetails;
                 TestHelper.PopulateCountlyUserDetails(cud, a, a);
 
@@ -229,12 +215,10 @@ namespace TestProject_common
         void ThreadWorkMergeDeviceId()
         {
             Random rnd = new Random(2);
-            for (int a = 0; a < threadIterations; a++)
-            {
+            for (int a = 0; a < threadIterations; a++) {
                 String deviceId = "SDSDSD" + rnd.Next();
 
-                switch (a % 2)
-                {
+                switch (a % 2) {
                     case 0:
                         Countly.Instance.ChangeDeviceId(deviceId, false);
                         break;
@@ -250,12 +234,10 @@ namespace TestProject_common
         void ThreadWorkSetLocation()
         {
             Random rnd = new Random(2);
-            for (int a = 0; a < threadIterations; a++)
-            {
+            for (int a = 0; a < threadIterations; a++) {
                 bool res;
 
-                switch (a % 2)
-                {
+                switch (a % 2) {
                     case 0:
                         res = Countly.Instance.SetLocation("fdsf").Result;
                         break;

@@ -43,24 +43,23 @@ namespace CountlySDK.Entities.EntityBase
         protected DeviceIdMethodInternal preferredIdMethod = DeviceIdMethodInternal.none;
 
         //method used for generating currently used device ID
-        protected DeviceIdMethodInternal usedIdMethod = DeviceIdMethodInternal.none;        
+        protected DeviceIdMethodInternal usedIdMethod = DeviceIdMethodInternal.none;
 
         // Used for thread-safe operations
-        protected object sync = new object();        
+        protected object sync = new object();
 
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
         internal async Task<string> GetDeviceId()
         {
-            try
-            {
-                if (deviceId != null) return deviceId;
+            try {
+                if (deviceId != null)
+                    return deviceId;
 
-                await LoadDeviceIDFromStorage();                
+                await LoadDeviceIDFromStorage();
 
-                if (deviceId == null)
-                {
+                if (deviceId == null) {
                     DeviceId dId = ComputeDeviceID();
                     deviceId = dId.deviceId;
                     usedIdMethod = dId.deviceIdMethod;
@@ -69,9 +68,7 @@ namespace CountlySDK.Entities.EntityBase
                 }
 
                 return deviceId;
-            }
-            catch
-            {
+            } catch {
                 //todo log
                 return String.Empty;
             }
@@ -82,14 +79,11 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         internal async Task SetDeviceId(string providedDeviceId)
         {
-            try
-            {
+            try {
                 deviceId = providedDeviceId;
 
-                await SaveDeviceIDToStorage();                
-            }
-            catch(Exception ex)
-            {
+                await SaveDeviceIDToStorage();
+            } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("[SetDeviceId] thrown exception, " + ex.ToString());
             }
         }
@@ -103,15 +97,12 @@ namespace CountlySDK.Entities.EntityBase
         /// <returns></returns>
         internal async Task SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod, String suppliedDeviceId = null)
         {
-            if(suppliedDeviceId != null)
-            {
+            if (suppliedDeviceId != null) {
                 deviceId = suppliedDeviceId;
                 usedIdMethod = DeviceIdMethodInternal.developerSupplied;
                 preferredIdMethod = usedIdMethod;
                 await SaveDeviceIDToStorage();
-            }
-            else
-            {
+            } else {
                 preferredIdMethod = deviceIdMethod;
             }
         }
@@ -121,28 +112,24 @@ namespace CountlySDK.Entities.EntityBase
             DeviceId dId = await Storage.Instance.LoadFromFile<DeviceId>(deviceFilename);
             bool saveAfterLoading = false;
 
-            if (dId == null)
-            {
+            if (dId == null) {
                 // if it's null then either there is no device Id saved or it's saved 
                 // in the legacy format as just a string. Try deserializing that
                 String backupDeviceId = await Storage.Instance.LoadFromFile<string>(deviceFilename);
 
-                if (backupDeviceId != null)
-                {
+                if (backupDeviceId != null) {
                     //it was in the backup format, assume it's Guid
                     dId = new DeviceId(backupDeviceId, DeviceIdMethodInternal.windowsGUID);
                     saveAfterLoading = true;
                 }
             }
 
-            if (dId?.deviceId != null)
-            {
+            if (dId?.deviceId != null) {
                 deviceId = dId.deviceId;
                 usedIdMethod = dId.deviceIdMethod;
             }
 
-            if (saveAfterLoading)
-            {
+            if (saveAfterLoading) {
                 //it must have been in the legacy format, save it before continueing
                 await SaveDeviceIDToStorage();
             }
@@ -151,8 +138,7 @@ namespace CountlySDK.Entities.EntityBase
         protected async Task SaveDeviceIDToStorage()
         {
             //only try saving if the id is not null
-            if (deviceId != null)
-            {
+            if (deviceId != null) {
                 DeviceId dId = new DeviceId(deviceId, usedIdMethod);
 
                 await Storage.Instance.SaveToFile<DeviceId>(deviceFilename, dId);
@@ -174,8 +160,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string OS
         {
-            get
-            {
+            get {
                 return GetOS();
             }
         }
@@ -187,8 +172,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string OSVersion
         {
-            get
-            {
+            get {
                 return GetOSVersion();
             }
         }
@@ -200,8 +184,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string Manufacturer
         {
-            get
-            {
+            get {
                 return GetManufacturer();
             }
         }
@@ -215,24 +198,17 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string DeviceName
         {
-            get
-            {
-                lock (sync)
-                {
-                    if (string.IsNullOrEmpty(deviceName))
-                    {
+            get {
+                lock (sync) {
+                    if (string.IsNullOrEmpty(deviceName)) {
                         return GetDeviceName();
-                    }
-                    else
-                    {
+                    } else {
                         return deviceName;
                     }
                 }
             }
-            set
-            {
-                lock (sync)
-                {
+            set {
+                lock (sync) {
                     deviceName = value;
                 }
             }
@@ -245,8 +221,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string AppVersion
         {
-            get
-            {                
+            get {
                 return GetAppVersion();
             }
         }
@@ -258,8 +233,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string Resolution
         {
-            get
-            {
+            get {
                 return GetResolution();
             }
         }
@@ -272,8 +246,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string Carrier
         {
-            get
-            {
+            get {
                 return GetCarrier();
             }
         }
@@ -285,8 +258,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public string Orientation
         {
-            get
-            {
+            get {
                 return GetOrientation();
             }
         }
@@ -298,8 +270,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public long? RamCurrent
         {
-            get
-            {
+            get {
                 return GetRamCurrent();
             }
         }
@@ -311,8 +282,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public long? RamTotal
         {
-            get
-            {
+            get {
                 return GetRamTotal();
             }
         }
@@ -324,8 +294,7 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public bool? Online
         {
-            get
-            {
+            get {
                 return GetOnline();
             }
         }
@@ -337,15 +306,11 @@ namespace CountlySDK.Entities.EntityBase
         /// </summary>
         public String Locale
         {
-            get
-            {
-               try
-                {
+            get {
+                try {
                     CultureInfo ci = CultureInfo.CurrentUICulture;
                     return ci.Name;
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     UtilityHelper.CountlyLogging("DeviceBase:Locale, problem while getting culture information." + ex.ToString());
 
                     return null;
