@@ -25,7 +25,7 @@ namespace CountlySampleWPF
             Debug.WriteLine("Before init");
 
             Countly.IsLoggingEnabled = true;
-            
+
             CountlyConfig countlyConfig = new CountlyConfig();
             countlyConfig.serverUrl = serverURL;
             countlyConfig.appKey = appKey;
@@ -45,5 +45,5 @@ namespace CountlySampleWPF
             await Countly.Instance.SessionEnd();
         }
     }
-    
+
 }

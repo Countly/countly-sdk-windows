@@ -84,22 +84,20 @@ namespace CountlySDK.Entities
         [JsonProperty("segmentation")]
         public Dictionary<String, String> segmentation
         {
-            get
-            {
-                if (Segmentation == null) return null;
+            get {
+                if (Segmentation == null)
+                    return null;
 
                 return Segmentation.segmentation.ToDictionary(s => s.Key, s => s.Value);
             }
 
             //needed for deserialization
-            private set
-            {
+            private set {
                 Segmentation = new Segmentation();
-                foreach(var a in value)
-                {
+                foreach (var a in value) {
                     Segmentation.Add(a.Key, a.Value);
                 }
-                
+
             }
         }
 
@@ -119,13 +117,11 @@ namespace CountlySDK.Entities
         /// <param name="Segmentation">Segmentation parameter</param>
         public CountlyEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, long? timestamp)
         {
-            if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(Key))
-            {
+            if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(Key)) {
                 throw new ArgumentException("Event Key must be non-empty string");
             }
 
-            if (Count <= 0)
-            {
+            if (Count <= 0) {
                 throw new ArgumentException("Event Count must be positive number");
             }
 
@@ -139,50 +135,44 @@ namespace CountlySDK.Entities
 
         public int CompareTo(CountlyEvent other)
         {
-            if (!(Key == null && other.Key == null))
-            {
+            if (!(Key == null && other.Key == null)) {
                 if (Key == null) { return -1; }
                 if (other.Key == null) { return 1; }
                 if (!Key.Equals(other.Key)) { return Key.CompareTo(other.Key); }
             }
 
-            if (!Count.Equals(other.Count)) { return Count.CompareTo(other.Count); }            
+            if (!Count.Equals(other.Count)) { return Count.CompareTo(other.Count); }
 
-            if (!(Sum == null && other.Sum == null))
-            {
+            if (!(Sum == null && other.Sum == null)) {
                 if (Sum == null) { return -1; }
                 if (other.Sum == null) { return 1; }
                 if (!Sum.Equals(other.Sum)) { return Sum.Value.CompareTo(other.Sum.Value); }
             }
 
-            if (!(Duration == null && other.Duration == null))
-            {
+            if (!(Duration == null && other.Duration == null)) {
                 if (Duration == null) { return -1; }
                 if (other.Duration == null) { return 1; }
                 if (!Duration.Equals(other.Duration)) { return Duration.Value.CompareTo(other.Duration.Value); }
             }
 
-            if (!(segmentation == null && other.segmentation == null))
-            {
+            if (!(segmentation == null && other.segmentation == null)) {
                 if (segmentation == null) { return -1; }
                 if (other.segmentation == null) { return 1; }
                 if (!segmentation.Count.Equals(other.segmentation.Count)) { return segmentation.Count.CompareTo(other.segmentation.Count); }
 
-                foreach (var a in segmentation.Keys)
-                {
+                foreach (var a in segmentation.Keys) {
                     if (!other.segmentation.ContainsKey(a)) { return -1; }
                     if (!segmentation[a].Equals(other.segmentation[a])) { return segmentation[a].CompareTo(other.segmentation[a]); }
                 }
             }
 
-            if (!(Timestamp == null && other.Timestamp == null))
-            {
+            if (!(Timestamp == null && other.Timestamp == null)) {
                 if (Timestamp == null) { return -1; }
                 if (other.Timestamp == null) { return 1; }
                 if (!Timestamp.Equals(other.Timestamp)) { return Timestamp.Value.CompareTo(other.Timestamp.Value); }
             }
 
             return 0;
-        }       
+        }
     }
 }

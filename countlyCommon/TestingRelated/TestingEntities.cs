@@ -33,8 +33,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesSession()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 long ts = TimeHelper.UnixTimeNow();
                 BeginSession bs0 = TestHelper.CreateBeginSession(i, i, ts);
                 BeginSession bs1 = TestHelper.CreateBeginSession(i, i, ts);
@@ -68,7 +67,7 @@ namespace TestProject_common
             BeginSession bs0 = TestHelper.CreateBeginSession(0, 0, ts);
             BeginSession bs1 = TestHelper.CreateBeginSession(0, 0, ts);
             bs1.Content = bs0.Content;
-            
+
             Assert.Equal(bs0, bs1);
             bs0.Content = null;
             bs1.Content = null;
@@ -82,7 +81,7 @@ namespace TestProject_common
 
             EndSession es1 = TestHelper.CreateEndSession(0, ts);
             EndSession es2 = TestHelper.CreateEndSession(0, ts);
-            
+
             Assert.Equal(es1, es2);
             es1.Content = null;
             es2.Content = null;
@@ -109,11 +108,10 @@ namespace TestProject_common
             Assert.NotEqual(us2, us1);
         }
 
-        [Fact]        
+        [Fact]
         public void ComparingEntitiesCustomInfo()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 CustomInfoItem cii0 = TestHelper.CreateCustomInfoItem(i);
                 CustomInfoItem cii1 = TestHelper.CreateCustomInfoItem(i);
                 CustomInfoItem cii2 = TestHelper.CreateCustomInfoItem(i + 1);
@@ -152,7 +150,7 @@ namespace TestProject_common
         {
             CustomInfoItem cii0 = TestHelper.CreateCustomInfoItem(0);
             CustomInfoItem cii1 = TestHelper.CreateCustomInfoItem(0);
-            
+
             Assert.Equal(cii0, cii1);
             cii0.Name = null;
             cii1.Name = null;
@@ -175,7 +173,7 @@ namespace TestProject_common
 
         [Fact]
         public void ComparingEntitiesCustomInfoNull()
-        {         
+        {
             CustomInfo ci1 = TestHelper.CreateCustomInfo(0);
             CustomInfo ci2 = TestHelper.CreateCustomInfo(0);
 
@@ -195,8 +193,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesCountlyUserDetails()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 CountlyUserDetails cud0 = TestHelper.CreateCountlyUserDetails(i, i);
                 CountlyUserDetails cud1 = TestHelper.CreateCountlyUserDetails(i, i);
                 CountlyUserDetails cud2 = TestHelper.CreateCountlyUserDetails(i + 1, i);
@@ -213,7 +210,7 @@ namespace TestProject_common
         {
             CountlyUserDetails cud0 = TestHelper.CreateCountlyUserDetails(0, 0);
             CountlyUserDetails cud1 = TestHelper.CreateCountlyUserDetails(0, 0);
-            
+
             Assert.Equal(cud0, cud1);
             cud0.BirthYear = null;
             cud1.BirthYear = null;
@@ -293,8 +290,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesDeviceId()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 DeviceId did0 = TestHelper.CreateDeviceId(i, i);
                 DeviceId did1 = TestHelper.CreateDeviceId(i, i);
                 DeviceId did2 = TestHelper.CreateDeviceId(i + 1, i);
@@ -312,7 +308,7 @@ namespace TestProject_common
         public void ComparingEntitiesDeviceIdNull()
         {
             DeviceId did0 = TestHelper.CreateDeviceId(0, 0);
-            DeviceId did1 = TestHelper.CreateDeviceId(0, 0);           
+            DeviceId did1 = TestHelper.CreateDeviceId(0, 0);
 
             Assert.Equal(did0, did1);
             did0.deviceId = null;
@@ -330,8 +326,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesExceptionEvent()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 ExceptionEvent did0 = TestHelper.CreateExceptionEvent(i);
                 ExceptionEvent did1 = TestHelper.CreateExceptionEvent(i);
                 ExceptionEvent did2 = TestHelper.CreateExceptionEvent(i + 1);
@@ -386,12 +381,12 @@ namespace TestProject_common
             Assert.Equal(ee0, ee1);
             ee0.Resolution = null;
             ee1.Resolution = null;
-            Assert.Equal(ee0, ee1);            
+            Assert.Equal(ee0, ee1);
 
             ee0 = TestHelper.CreateExceptionEvent(0);
             ee1 = TestHelper.CreateExceptionEvent(0);
 
-            Assert.Equal(ee0, ee1);            
+            Assert.Equal(ee0, ee1);
             ee1.AppVersion = null;
             Assert.NotEqual(ee0, ee1);
             Assert.NotEqual(ee1, ee0);
@@ -462,15 +457,14 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesMetrics()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 Metrics m1 = TestHelper.CreateMetrics(i);
                 Metrics m2 = TestHelper.CreateMetrics(i);
                 Metrics m3 = TestHelper.CreateMetrics(i + 1);
 
                 Assert.Equal(m1, m2);
                 Assert.NotEqual(m1, m3);
-            }        
+            }
         }
 
         [Fact]
@@ -498,7 +492,7 @@ namespace TestProject_common
             m1.Resolution = null;
             m2.Resolution = null;
             Assert.Equal(m1, m2);
-            
+
             m1 = TestHelper.CreateMetrics(0);
             m2 = TestHelper.CreateMetrics(0);
 
@@ -535,8 +529,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesSegmentationItem()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 SegmentationItem si1 = TestHelper.CreateSegmentationItem(i);
                 SegmentationItem si2 = TestHelper.CreateSegmentationItem(i);
                 SegmentationItem si3 = TestHelper.CreateSegmentationItem(i + 1);
@@ -562,7 +555,7 @@ namespace TestProject_common
 
             si1 = TestHelper.CreateSegmentationItem(0);
             si2 = TestHelper.CreateSegmentationItem(0);
-            
+
             si2.Key = null;
             Assert.NotEqual(si1, si2);
             Assert.NotEqual(si2, si1);
@@ -570,14 +563,13 @@ namespace TestProject_common
             si2 = TestHelper.CreateSegmentationItem(0);
             si2.Value = null;
             Assert.NotEqual(si1, si2);
-            Assert.NotEqual(si2, si1);       
+            Assert.NotEqual(si2, si1);
         }
 
         [Fact]
         public void ComparingEntitiesSegmentation()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 Segmentation si1 = TestHelper.CreateSegmentation(i);
                 Segmentation si2 = TestHelper.CreateSegmentation(i);
                 Segmentation si3 = TestHelper.CreateSegmentation(i + 1);
@@ -597,7 +589,7 @@ namespace TestProject_common
             si1.segmentation = null;
             si2.segmentation = null;
             Assert.Equal(si1, si2);
-            
+
             si1 = TestHelper.CreateSegmentation(0);
             si2 = TestHelper.CreateSegmentation(0);
 
@@ -609,8 +601,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesCountlyEvent()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 CountlyEvent ce1 = TestHelper.CreateCountlyEvent(i);
                 CountlyEvent ce2 = TestHelper.CreateCountlyEvent(i);
                 CountlyEvent ce3 = TestHelper.CreateCountlyEvent(i + 1);
@@ -639,7 +630,7 @@ namespace TestProject_common
 
             ce1 = TestHelper.CreateCountlyEvent(0);
             ce2 = TestHelper.CreateCountlyEvent(0);
-           
+
             ce2.Key = null;
             Assert.NotEqual(ce1, ce2);
             Assert.NotEqual(ce2, ce1);
@@ -658,8 +649,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesStoredRequest()
         {
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 long ts = TimeHelper.UnixTimeNow();
                 StoredRequest sr1 = TestHelper.CreateStoredRequest(i);
                 StoredRequest sr2 = TestHelper.CreateStoredRequest(i);
@@ -765,7 +755,7 @@ namespace TestProject_common
             ExceptionEvent ee2 = JsonConvert.DeserializeObject<ExceptionEvent>(s);
 
             Assert.Equal(ee1, ee2);
-        }       
+        }
 
         [Fact]
         public void SerializingEntitiesMetrics()

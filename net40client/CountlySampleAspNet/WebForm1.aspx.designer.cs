@@ -7,11 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CountlySampleAspNet {
-    
-    
-    public partial class WebForm1 {
-        
+namespace CountlySampleAspNet
+{
+
+
+    public partial class WebForm1
+    {
+
         /// <summary>
         /// eventName control.
         /// </summary>
@@ -20,7 +22,7 @@ namespace CountlySampleAspNet {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlInputText eventName;
-        
+
         /// <summary>
         /// button1 control.
         /// </summary>
@@ -29,7 +31,7 @@ namespace CountlySampleAspNet {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlInputSubmit button1;
-        
+
         /// <summary>
         /// sample_output control.
         /// </summary>

@@ -13,12 +13,10 @@ namespace CountlySDK.Helpers
     {
         public TimerHelper(TimerCallback callback, object state, int dueTime, int period)
         {
-            Task.Delay(dueTime, Token).ContinueWith(async (t, s) =>
-            {
+            Task.Delay(dueTime, Token).ContinueWith(async (t, s) => {
                 var tuple = (Tuple<TimerCallback, object>)s;
 
-                while (true)
-                {
+                while (true) {
                     if (IsCancellationRequested)
                         break;
                     Task task = Task.Run(() => tuple.Item1(tuple.Item2, EventArgs.Empty));

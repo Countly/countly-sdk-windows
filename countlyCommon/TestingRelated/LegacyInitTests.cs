@@ -33,6 +33,6 @@ namespace TestProject_common
             //this is added only for compatability
             Countly.Instance.SessionEnd().Wait();
             TestHelper.ValidateDataPointUpload().Wait();
-        }        
+        }
     }
 }

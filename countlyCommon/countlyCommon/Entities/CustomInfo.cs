@@ -54,15 +54,12 @@ namespace CountlySDK.Entities
         /// <param name="Value">item value</param>
         public void Add(string Name, string Value)
         {
-            if (this[Name] != null)
-            {
+            if (this[Name] != null) {
                 Remove(Name);
             }
 
-            if (Value != null)
-            {
-                lock (sync)
-                {
+            if (Value != null) {
+                lock (sync) {
                     items.Add(new CustomInfoItem(Name, Value));
                 }
             }
@@ -77,17 +74,14 @@ namespace CountlySDK.Entities
         public void Remove(string Name)
         {
             CustomInfoItem customInfoItem;
-            lock (sync)
-            {
+            lock (sync) {
                 customInfoItem = items.FirstOrDefault(c => c.Name == Name);
-                if (customInfoItem != null)
-                {
+                if (customInfoItem != null) {
                     items.Remove(customInfoItem);
                 }
             }
 
-            if (customInfoItem != null)
-            {
+            if (customInfoItem != null) {
                 CollectionChanged?.Invoke();
             }
         }
@@ -97,8 +91,7 @@ namespace CountlySDK.Entities
         /// </summary>
         public void Clear()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 items.Clear();
             }
 
@@ -112,25 +105,19 @@ namespace CountlySDK.Entities
         /// <returns>item value</returns>
         public string this[string name]
         {
-            get
-            {
+            get {
                 CustomInfoItem customInfoItem;
-                lock (sync)
-                {
+                lock (sync) {
                     customInfoItem = items.FirstOrDefault(c => c.Name == name);
                 }
 
-                if (customInfoItem != null)
-                {
+                if (customInfoItem != null) {
                     return customInfoItem.Value;
-                }
-                else
-                {
+                } else {
                     return null;
                 }
             }
-            set
-            {
+            set {
                 Add(name, value);
             }
         }
@@ -140,8 +127,7 @@ namespace CountlySDK.Entities
         /// </summary>
         public CustomInfo()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 items = new List<CustomInfoItem>();
             }
         }
@@ -152,17 +138,15 @@ namespace CountlySDK.Entities
         /// <returns></returns>
         internal Dictionary<string, string> ToDictionary()
         {
-            lock (sync)
-            {
-                if (items.Count == 0) return null;
+            lock (sync) {
+                if (items.Count == 0)
+                    return null;
             }
 
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
 
-            lock (sync)
-            {
-                foreach (CustomInfoItem item in items)
-                {
+            lock (sync) {
+                foreach (CustomInfoItem item in items) {
                     dictionary[item.Name] = item.Value;
                 }
             }
@@ -171,27 +155,23 @@ namespace CountlySDK.Entities
         }
 
         public int CompareTo(CustomInfo other)
-        {       
-            if(items == null && other.items == null)
-            {
+        {
+            if (items == null && other.items == null) {
                 return 0;
             }
 
             if (items == null) { return -1; }
             if (other.items == null) { return 1; }
 
-            if (!items.Count.Equals(other.items.Count))
-            {
+            if (!items.Count.Equals(other.items.Count)) {
                 return items.Count.CompareTo(other.items.Count);
             }
-            
-            for(int a = 0; a < items.Count; a++)
-            {
+
+            for (int a = 0; a < items.Count; a++) {
                 CustomInfoItem cii1 = items[a];
                 CustomInfoItem cii2 = other.items[a];
 
-                if (!cii1.Equals(cii2))
-                {
+                if (!cii1.Equals(cii2)) {
                     return cii1.CompareTo(cii2);
                 }
             }

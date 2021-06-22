@@ -37,14 +37,12 @@ namespace CountlySDK.Entities
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
         public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null, long? duration = null)
         {
-            if (timestamp == null)
-            {
+            if (timestamp == null) {
                 timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             }
 
             String durationAddition = "";
-            if(duration != null && duration > 0)
-            {
+            if (duration != null && duration > 0) {
                 duration = Math.Min(duration.Value, 60);
                 durationAddition = String.Format("&session_duration={0}", duration.Value);
             }

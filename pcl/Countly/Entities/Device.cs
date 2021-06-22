@@ -99,5 +99,5 @@ namespace CountlySDK.Entities
         {
             return null;
         }
-    } 
+    }
 }

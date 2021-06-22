@@ -58,8 +58,7 @@ namespace CountlySampleWindowsForm
 
         private async void btnCrash_Click(object sender, EventArgs e)
         {
-            try
-            {
+            try {
                 throw new Exception("This is some bad exception 3");
             }
             catch (Exception ex)

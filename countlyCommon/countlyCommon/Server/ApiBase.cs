@@ -25,8 +25,7 @@ namespace CountlySDK.CountlyCommon.Server
         {
             string userDetailsJson = String.Empty;
 
-            if (userDetails != null)
-            {
+            if (userDetails != null) {
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
@@ -39,8 +38,7 @@ namespace CountlySDK.CountlyCommon.Server
 
             string userDetailsJson = String.Empty;
 
-            if (userDetails != null)
-            {
+            if (userDetails != null) {
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
@@ -58,8 +56,7 @@ namespace CountlySDK.CountlyCommon.Server
         {
             string userDetailsJson = String.Empty;
 
-            if (userDetails != null)
-            {
+            if (userDetails != null) {
                 userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
@@ -70,8 +67,7 @@ namespace CountlySDK.CountlyCommon.Server
         {
             string userDetailsJson = String.Empty;
 
-            if (userDetails != null)
-            {
+            if (userDetails != null) {
                 userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
@@ -105,12 +101,10 @@ namespace CountlySDK.CountlyCommon.Server
             Debug.Assert(address != null);
             TaskCompletionSource<RequestResult> tcs = new TaskCompletionSource<RequestResult>();
 
-            try
-            {
+            try {
                 String rData = null;
 
-                if (address.Length > maxLengthForDataInUrl)
-                {
+                if (address.Length > maxLengthForDataInUrl) {
                     //request url was too long, split off the data and pass it as form data
                     String[] splitData = address.Split('?');
                     address = splitData[0];
@@ -120,18 +114,13 @@ namespace CountlySDK.CountlyCommon.Server
                 RequestResult requestResult = await RequestAsync(address, rData, imageData);
                 tcs.SetResult(requestResult);
 
-                if (requestResult.responseText != null)
-                {
+                if (requestResult.responseText != null) {
                     UtilityHelper.CountlyLogging(requestResult.responseText);
                     requestResult.parsedResponse = JsonConvert.DeserializeObject<ResultResponse>(requestResult.responseText);
-                }
-                else
-                {
+                } else {
                     UtilityHelper.CountlyLogging("Received null response");
                 }
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 RequestResult requestResult = new RequestResult();
                 requestResult.responseText = "Encountered an exception while making a request, " + ex;
                 UtilityHelper.CountlyLogging(requestResult.responseText);

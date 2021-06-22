@@ -40,8 +40,7 @@ namespace CountlySDK.Server.Responses
         /// </summary>
         public bool IsSuccess
         {
-            get
-            {
+            get {
                 return Result != null && Result == "Success";
             }
         }

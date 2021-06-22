@@ -137,7 +137,7 @@ namespace TestProject_common
             File.Copy(sourceFolder + "userdetails.xml", targetPath + "userdetails.xml");
             File.Copy(sourceFolder + "events.xml", targetPath + "events.xml");
             File.Copy(sourceFolder + "exceptions.xml", targetPath + "exceptions.xml");
-            File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");        
+            File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");
 
             Countly.Instance.deferUpload = true;
             await CountlyImpl.StartLegacyCountlySession(ServerInfo.serverURL, ServerInfo.appKey, ServerInfo.appVersion);
@@ -195,7 +195,7 @@ namespace TestProject_common
 
         [Fact]
         public async void DeserializeDeviceIdString_18_1()
-        {            
+        {
             String targetPath = await Storage.Instance.GetFolderPath(Storage.Instance.folder) + "\\";
             String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\18_1\\";
 

@@ -16,7 +16,7 @@ namespace TestProject_common
     {
         public static void SetPCLStorageIfNeeded()
         {
-            
+
         }
 
         public static async Task StartLegacyCountlySession(string serverUrl, string appKey, string appVersion)

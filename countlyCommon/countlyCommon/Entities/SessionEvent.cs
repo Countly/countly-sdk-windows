@@ -14,8 +14,7 @@ namespace CountlySDK.Entities
 
         public int CompareTo(SessionEvent other)
         {
-            if(Content == null && other.Content == null)
-            {
+            if (Content == null && other.Content == null) {
                 return 0;
             }
 

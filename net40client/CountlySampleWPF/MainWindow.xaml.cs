@@ -30,11 +30,9 @@ namespace CountlySampleWPF
         private async void Button_Click_0(object sender, RoutedEventArgs e)
         {
             //Record Handled Crash
-            try
-            {
+            try {
                 throw new DivideByZeroException();
-            } catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 await Countly.RecordException(ex.Message, ex.StackTrace);
             }
         }
