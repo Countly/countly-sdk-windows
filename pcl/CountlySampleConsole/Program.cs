@@ -40,7 +40,16 @@ namespace CountlySample
             Countly.IsLoggingEnabled = true;
 
             //Countly.deferUpload = true;
-            await Countly.StartSession(serverURL, appKey, "1.234", FileSystem.Current);
+
+            CountlyConfig countlyConfig = new CountlyConfig
+            {
+                serverUrl = serverURL,
+                appKey = appKey,
+                appVersion = "123"
+            };
+
+            await Countly.Instance.Init(countlyConfig);
+            await Countly.Instance.SessionBegin();
 
             System.Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
 
@@ -115,7 +124,7 @@ namespace CountlySample
                 }
             };
 
-            await Countly.EndSession();
+            await Countly.Instance.SessionEnd();
         }
 
 
