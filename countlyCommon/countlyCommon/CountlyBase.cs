@@ -997,7 +997,14 @@ namespace CountlySDK.CountlyCommon
                 await SessionEnd();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 if (consentRequired) {
-                } 
+                    Dictionary<ConsentFeatures, bool> removedConsent = new Dictionary<ConsentFeatures, bool>();
+                    foreach (KeyValuePair<ConsentFeatures, bool> entry in givenConsent) {
+                        if (entry.Value) {
+                            removedConsent[entry.Key] = false;
+                        }
+                    }
+                    await SetConsentInternal(removedConsent, ConsentChangedAction.DeviceIDChangedNotMerged);
+                }
                 await SessionBegin();
             } else {
                 //need server merge, therefore send special request
@@ -1019,6 +1026,12 @@ namespace CountlySDK.CountlyCommon
         internal bool consentRequired = false;
         internal Dictionary<ConsentFeatures, bool> givenConsent = new Dictionary<ConsentFeatures, bool>();
 
+        internal enum ConsentChangedAction
+        {
+            Initialization,
+            ConsentUpdated,
+            DeviceIDChangedNotMerged,
+        }
         public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users, Views };
 
         internal bool IsConsentGiven(ConsentFeatures feature)
@@ -1040,10 +1053,10 @@ namespace CountlySDK.CountlyCommon
 
         public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
         {
-            await SetConsentInternal(consentChanges);
+            await SetConsentInternal(consentChanges, ConsentChangedAction.ConsentUpdated);
         }
 
-        internal async Task SetConsentInternal(Dictionary<ConsentFeatures, bool> consentChanges, bool sendRequest = true)
+        internal async Task SetConsentInternal(Dictionary<ConsentFeatures, bool> consentChanges, ConsentChangedAction action = ConsentChangedAction.ConsentUpdated)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetConsentInternal'");
             Debug.Assert(consentChanges != null);
@@ -1054,31 +1067,31 @@ namespace CountlySDK.CountlyCommon
             Dictionary<ConsentFeatures, bool> valuesToUpdate = new Dictionary<ConsentFeatures, bool>();
 
             //filter out those values that are changed
-            foreach (KeyValuePair<ConsentFeatures, bool> entry in consentChanges)
-            {
+            foreach (KeyValuePair<ConsentFeatures, bool> entry in consentChanges) {
                 bool oldV = IsConsentGiven(entry.Key);
                 bool containsOld = givenConsent.ContainsKey(entry.Key);
                 bool newV = entry.Value;
 
-                if (!containsOld || oldV != newV)
-                {
+                if (!containsOld || oldV != newV) {
                     //if there is no entry about this feature, of the consent has changed, update the value
                     valuesToUpdate[entry.Key] = newV;
                 }
             }
 
-            if (valuesToUpdate.Count > 0)
-            {
+            if (valuesToUpdate.Count > 0) {
                 //send request of the consent changes
-                await SendConsentChanges(valuesToUpdate);
-                await ActionsOnConsentChanges(valuesToUpdate);
+                if (action == ConsentChangedAction.ConsentUpdated) {
+                    await SendConsentChanges(valuesToUpdate);
+                }
+
+                await ActionsOnConsentChanges(valuesToUpdate, action);
             }
         }
 
-        private async Task ActionsOnConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsents) {
+        private async Task ActionsOnConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsents, ConsentChangedAction action)
+        {
             //react to consent changes locally
-            foreach (KeyValuePair<ConsentFeatures, bool> entryChanges in updatedConsents)
-            {
+            foreach (KeyValuePair<ConsentFeatures, bool> entryChanges in updatedConsents) {
                 bool isGiven = entryChanges.Value;
                 ConsentFeatures feature = entryChanges.Key;
 
@@ -1086,25 +1099,21 @@ namespace CountlySDK.CountlyCommon
                 givenConsent[feature] = isGiven;
 
                 //do special actions
-                switch (feature)
-                {
+                switch (feature) {
                     case ConsentFeatures.Crashes:
                         break;
                     case ConsentFeatures.Events:
                         break;
                     case ConsentFeatures.Location:
-                        if (!isGiven) { await DisableLocation(); }
+                        if (!isGiven && action == ConsentChangedAction.ConsentUpdated) { await DisableLocation(); }
                         break;
                     case ConsentFeatures.Sessions:
-                        if (isGiven)
-                        {
-                            if (!startTime.Equals(DateTime.MinValue))
-                            {
+                        if (isGiven && action == ConsentChangedAction.ConsentUpdated) {
+                            if (!startTime.Equals(DateTime.MinValue)) {
                                 //if it's not null then we had already tried tracking a session
                                 await SessionBegin();
                             }
-                        }
-                        else { await SessionEnd(); }
+                        } else { await SessionEnd(); }
                         break;
                     case ConsentFeatures.Users:
                         break;
