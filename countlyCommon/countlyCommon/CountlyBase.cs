@@ -996,6 +996,8 @@ namespace CountlySDK.CountlyCommon
                 //if no server side merge is needed, we just end the previous session and start a new session with the new id
                 await SessionEnd();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
+                if (consentRequired) {
+                } 
                 await SessionBegin();
             } else {
                 //need server merge, therefore send special request
@@ -1038,7 +1040,12 @@ namespace CountlySDK.CountlyCommon
 
         public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
         {
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetConsent'");
+            await SetConsentInternal(consentChanges);
+        }
+
+        internal async Task SetConsentInternal(Dictionary<ConsentFeatures, bool> consentChanges, bool sendRequest = true)
+        {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetConsentInternal'");
             Debug.Assert(consentChanges != null);
             if (consentChanges == null) { throw new ArgumentException("'consentChanges' cannot be null"); }
             //if we don't need consent, no need to track it
@@ -1047,49 +1054,60 @@ namespace CountlySDK.CountlyCommon
             Dictionary<ConsentFeatures, bool> valuesToUpdate = new Dictionary<ConsentFeatures, bool>();
 
             //filter out those values that are changed
-            foreach (KeyValuePair<ConsentFeatures, bool> entry in consentChanges) {
+            foreach (KeyValuePair<ConsentFeatures, bool> entry in consentChanges)
+            {
                 bool oldV = IsConsentGiven(entry.Key);
                 bool containsOld = givenConsent.ContainsKey(entry.Key);
                 bool newV = entry.Value;
 
-                if (!containsOld || oldV != newV) {
+                if (!containsOld || oldV != newV)
+                {
                     //if there is no entry about this feature, of the consent has changed, update the value
                     valuesToUpdate[entry.Key] = newV;
                 }
             }
 
-            if (valuesToUpdate.Count > 0) {
+            if (valuesToUpdate.Count > 0)
+            {
                 //send request of the consent changes
                 await SendConsentChanges(valuesToUpdate);
+                await ActionsOnConsentChanges(valuesToUpdate);
+            }
+        }
 
-                //react to consent changes locally
-                foreach (KeyValuePair<ConsentFeatures, bool> entryChanges in valuesToUpdate) {
-                    bool isGiven = entryChanges.Value;
-                    ConsentFeatures feature = entryChanges.Key;
+        private async Task ActionsOnConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsents) {
+            //react to consent changes locally
+            foreach (KeyValuePair<ConsentFeatures, bool> entryChanges in updatedConsents)
+            {
+                bool isGiven = entryChanges.Value;
+                ConsentFeatures feature = entryChanges.Key;
 
-                    //mark changes locally
-                    givenConsent[feature] = isGiven;
+                //mark changes locally
+                givenConsent[feature] = isGiven;
 
-                    //do special actions
-                    switch (feature) {
-                        case ConsentFeatures.Crashes:
-                            break;
-                        case ConsentFeatures.Events:
-                            break;
-                        case ConsentFeatures.Location:
-                            if (!isGiven) { await DisableLocation(); }
-                            break;
-                        case ConsentFeatures.Sessions:
-                            if (isGiven) {
-                                if (!startTime.Equals(DateTime.MinValue)) {
-                                    //if it's not null then we had already tried tracking a session
-                                    await SessionBegin();
-                                }
-                            } else { await SessionEnd(); }
-                            break;
-                        case ConsentFeatures.Users:
-                            break;
-                    }
+                //do special actions
+                switch (feature)
+                {
+                    case ConsentFeatures.Crashes:
+                        break;
+                    case ConsentFeatures.Events:
+                        break;
+                    case ConsentFeatures.Location:
+                        if (!isGiven) { await DisableLocation(); }
+                        break;
+                    case ConsentFeatures.Sessions:
+                        if (isGiven)
+                        {
+                            if (!startTime.Equals(DateTime.MinValue))
+                            {
+                                //if it's not null then we had already tried tracking a session
+                                await SessionBegin();
+                            }
+                        }
+                        else { await SessionEnd(); }
+                        break;
+                    case ConsentFeatures.Users:
+                        break;
                 }
             }
         }
