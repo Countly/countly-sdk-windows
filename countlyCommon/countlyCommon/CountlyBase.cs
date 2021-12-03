@@ -985,7 +985,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="newDeviceId">New Id that should be used</param>
         /// <param name="serverSideMerge">If set to true, old user id's data will be merged into new user</param>
         /// <returns></returns>
-        public async Task ChangeDeviceId(String newDeviceId, bool serverSideMerge = false)
+        public async Task ChangeDeviceId(string newDeviceId, bool serverSideMerge = false)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'ChangeDeviceId'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'ChangeDeviceId'"); }
@@ -1008,11 +1008,11 @@ namespace CountlySDK.CountlyCommon
                 await SessionBegin();
             } else {
                 //need server merge, therefore send special request
-                String oldId = await DeviceData.GetDeviceId();
+                string oldId = await DeviceData.GetDeviceId();
 
                 //create the required merge request
-                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion);
-                String dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
+                string br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion);
+                string dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
 
                 //change device ID
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
