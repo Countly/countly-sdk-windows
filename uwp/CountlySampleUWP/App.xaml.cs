@@ -87,8 +87,8 @@ namespace CountlySampleUWP
             var cc = new CountlyConfig
             {
                 serverUrl = "SERVER_URL",
-                appKey = "APP_KEY",                
-                appVersion = "1.2.3",                
+                appKey = "APP_KEY",
+                appVersion = "1.2.3",
             };
 
             //Countly.Instance.deferUpload = true;
@@ -122,7 +122,7 @@ namespace CountlySampleUWP
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             await Countly.Instance.SessionEnd();
-            
+
             deferral.Complete();
         }
 

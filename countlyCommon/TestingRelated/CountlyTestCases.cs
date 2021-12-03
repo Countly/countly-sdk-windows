@@ -143,10 +143,8 @@ namespace TestProject_common
         public async void SettingUserDetailsMultiple()
         {
             CountlyUserDetails cud = Countly.UserDetails;
-            for (int a = 0; a < 2; a++)
-            {
-                for (int b = 0; b < 2; b++)
-                {
+            for (int a = 0; a < 2; a++) {
+                for (int b = 0; b < 2; b++) {
                     TestHelper.PopulateCountlyUserDetails(cud, a, b);
                 }
             }
@@ -203,12 +201,9 @@ namespace TestProject_common
         {
             bool res;
 
-            try
-            {
+            try {
                 throw new Exception("This is some bad exception 3");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 Dictionary<string, string> customInfo = new Dictionary<string, string>();
                 customInfo.Add("customData", "importantStuff");
                 res = await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
@@ -216,12 +211,9 @@ namespace TestProject_common
             }
 
             Exception exToUse;
-            try
-            {
+            try {
                 throw new Exception("This is some bad exception 35454");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 exToUse = ex;
             }
 
@@ -265,8 +257,8 @@ namespace TestProject_common
 
             res = await Countly.RecordEvent("Some event5", 123, 456, 42.54, segm);
             Assert.True(res);
-        }        
-        
+        }
+
         [Fact]
         public async void VeryLargeEventName()
         {
@@ -274,12 +266,11 @@ namespace TestProject_common
             int steps = 10;
             String[] str = TestHelper.CreateLargeStrings(steps, 1000);
 
-            for(int a = 0; a < steps; a++)
-            {
+            for (int a = 0; a < steps; a++) {
                 String pre = "" + (a + 1) + "/" + steps + " | ";
                 res = await Countly.RecordEvent(pre + str[a]);
                 Thread.Sleep(5);
-                Assert.True(res);                
+                Assert.True(res);
             }
         }
 
@@ -290,14 +281,13 @@ namespace TestProject_common
             int steps = 10;
             String[] str = TestHelper.CreateLargeStrings(steps, 1000);
 
-            for (int a = 0; a < steps; a++)
-            {
+            for (int a = 0; a < steps; a++) {
                 String pre = "" + (a + 1) + "/" + steps + " | ";
                 String msg = pre + str[a];
 
                 res = await Countly.RecordException("" + (a + 1) + "SASAS", msg);
                 Thread.Sleep(200);
-                Assert.True(res);                
+                Assert.True(res);
             }
         }
     }

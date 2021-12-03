@@ -24,6 +24,7 @@ using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -33,34 +34,24 @@ namespace CountlySDK.Entities
     /// This class provides several static methods to retrieve information about the current device and operating environment.
     /// </summary>
     internal class Device : DeviceBase
-    {        
+    {
         protected override DeviceId ComputeDeviceID()
         {
             DeviceId dId;
 
-            if (preferredIdMethod == DeviceIdMethodInternal.cpuId)
-            {
+            if (preferredIdMethod == DeviceIdMethodInternal.cpuId) {
                 String cpuIDValue = OpenUDID.value;
-                if (cpuIDValue != null)
-                {
+                if (cpuIDValue != null) {
                     dId = new DeviceId(cpuIDValue, DeviceIdMethodInternal.cpuId);
-                }
-                else
-                {
+                } else {
                     //fallback
                     dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
                 }
-            }
-            else if (preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields)
-            {
+            } else if (preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields) {
                 dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
-            }
-            else if (preferredIdMethod == DeviceIdMethodInternal.windowsGUID)
-            {
+            } else if (preferredIdMethod == DeviceIdMethodInternal.windowsGUID) {
                 dId = CreateGUIDDeviceId();
-            }
-            else
-            {
+            } else {
                 dId = CreateGUIDDeviceId();
             }
 
@@ -69,13 +60,23 @@ namespace CountlySDK.Entities
 
         protected override string GetOS()
         {
-            return OSInfo.OsName;
+            try {
+                return OSInfo.OsName;
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetOS, problem while getting OS" + ex.ToString());
+                return null;
+            }
         }
 
         protected override string GetOSVersion()
         {
-            return OSInfo.OSVersion;
-        }       
+            try {
+                return OSInfo.OSVersion;
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetOSVersion, problem while getting OS version" + ex.ToString());
+                return null;
+            }
+        }
 
         protected override string GetManufacturer()
         {
@@ -94,7 +95,13 @@ namespace CountlySDK.Entities
 
         protected override string GetResolution()
         {
-            return String.Format("{0}x{1}", SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
+            try {
+                return String.Format("{0}x{1}", SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetResolution, problem while getting resolution" + ex.ToString());
+
+                return null;
+            }
         }
 
         protected override string GetCarrier()
@@ -107,16 +114,34 @@ namespace CountlySDK.Entities
         }
         protected override long? GetRamCurrent()
         {
-            return (long)(new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory - new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory);
+            try {
+                return (long)(new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory - new Microsoft.VisualBasic.Devices.ComputerInfo().AvailablePhysicalMemory);
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetRamCurrent, problem while getting physical memory information." + ex.ToString());
+
+                return null;
+            }
         }
         protected override long? GetRamTotal()
         {
-            return (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
-        }       
+            try {
+                return (long)new Microsoft.VisualBasic.Devices.ComputerInfo().TotalPhysicalMemory;
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetRamTotal, problem while getting physical memory information." + ex.ToString());
 
-        protected override bool GetOnline()
+                return null;
+            }
+        }
+
+        protected override bool? GetOnline()
         {
-            return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
+            try {
+                return System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable();
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetIsNetworkAvailable, problem while getting network information." + ex.ToString());
+
+                return null;
+            }
         }
     }
 }

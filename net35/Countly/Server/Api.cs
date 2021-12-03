@@ -34,8 +34,7 @@ namespace CountlySDK
         /// <returns></returns>
         protected override async Task<RequestResult> Call(string address, Stream data = null)
         {
-            return await TaskEx.Run(async () =>
-            {
+            return await TaskEx.Run(async () => {
                 return await CallJob(address, data);
             }).ConfigureAwait(false);
         }
@@ -48,55 +47,45 @@ namespace CountlySDK
         /// <param name="imageData"></param>
         /// <returns></returns>
         protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null)
-        {            
+        {
             Stream dataStream = null;
             RequestResult requestResult = new RequestResult();
-            try
-            {
+            try {
                 UtilityHelper.CountlyLogging("POST " + address);
 
                 //make sure stream is at start
                 imageData?.Seek(0, SeekOrigin.Begin);
 
-                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(address);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
                 request.Method = "POST";
                 request.ContentType = "application/json";
 
-                if (imageData != null)
-                {
+                if (imageData != null) {
                     dataStream = imageData;
                 }
 
-                if (requestData != null)
-                {
+                if (requestData != null) {
                     request.ContentType = "application/x-www-form-urlencoded";
                     dataStream = UtilityHelper.GenerateStreamFromString(requestData);
                 }
 
-                if (dataStream != null)
-                {
-                    using (var stream = request.GetRequestStream())
-                    {
+                if (dataStream != null) {
+                    using (var stream = request.GetRequestStream()) {
                         CopyStream(dataStream, stream);
                         stream.Flush();
                     }
                 }
 
-                var response = (HttpWebResponse) request.GetResponse();
+                var response = (HttpWebResponse)request.GetResponse();
                 requestResult.responseCode = (int)response.StatusCode;
                 requestResult.responseText = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
                 return requestResult;
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
                 return requestResult;
-            }
-            finally
-            {
-                if(dataStream != null)
-                {
+            } finally {
+                if (dataStream != null) {
                     dataStream.Close();
                     dataStream.Dispose();
                 }
@@ -107,8 +96,9 @@ namespace CountlySDK
         {
             byte[] buffer = new byte[0x10000];
             int n;
-            while ((n = sourceStream.Read(buffer, 0, buffer.Length)) != 0)
+            while ((n = sourceStream.Read(buffer, 0, buffer.Length)) != 0) {
                 targetStream.Write(buffer, 0, n);
+            }
         }
 
         protected override async Task DoSleep(int sleepTime)

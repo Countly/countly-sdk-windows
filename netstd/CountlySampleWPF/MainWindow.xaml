@@ -7,10 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <Button Content="Button 0" HorizontalAlignment="Left" Margin="17,17,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_0"/>
-        <Button Content="Button 1" HorizontalAlignment="Left" Margin="17,49,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
-        <Button Content="Button 2" HorizontalAlignment="Left" Margin="17,81,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
-        <Button Content="Button 3" HorizontalAlignment="Left" Margin="17,115,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_3"/>
+        <Button Content="Handled exception" HorizontalAlignment="Left" Margin="17,17,0,0" VerticalAlignment="Top" Width="121" Click="Button_Click_0"/>
+        <Button Content="Record view" HorizontalAlignment="Left" Margin="17,49,0,0" VerticalAlignment="Top" Width="121" Click="Button_Click_1"/>
+        <Button Content="Unhandled Exception" HorizontalAlignment="Left" Margin="17,81,0,0" VerticalAlignment="Top" Width="121" Click="Button_Click_2"/>
+        <Button Content="Set consent" HorizontalAlignment="Left" Margin="17,115,0,0" VerticalAlignment="Top" Width="121" Click="Button_Click_3"/>
 
 
     </Grid>

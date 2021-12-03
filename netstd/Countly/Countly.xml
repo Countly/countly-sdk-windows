@@ -15,16 +15,6 @@
             </summary>
             <returns>True if success, otherwise - False</returns>
         </member>
-        <member name="M:CountlySDK.Countly.StartSession(System.String,System.String,System.String)">
-            <summary>
-            Starts Countly tracking session.
-            Call from your App.xaml.cs Application_Launching and Application_Activated events.
-            Must be called before other SDK methods can be used.
-            </summary>
-            <param name="serverUrl">URL of the Countly server to submit data to; use "https://cloud.count.ly" for Countly Cloud</param>
-            <param name="appKey">app key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
-            <param name="appVersion">Application version</param>
-        </member>
         <!-- Badly formed XML comment ignored for member "M:CountlySDK.Countly.UpdateSession(System.Object,System.Object)" -->
         <member name="F:CountlySDK.Entities.CountlyConfig.deviceIdMethod">
             <summary>
@@ -426,14 +416,6 @@
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.SaveUserDetails">
             <summary>
             Saves user details info to the storage
-            </summary>
-        </member>
-        <member name="M:CountlySDK.CountlyCommon.CountlyBase.EndSession">
-            <summary>
-            End Countly tracking session.
-            Call from one of these places:
-            * your closing event
-            * your App.xaml.cs Application_Deactivated and Application_Closing events.
             </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddSessionEvent(CountlySDK.Entities.SessionEvent,System.Boolean)">

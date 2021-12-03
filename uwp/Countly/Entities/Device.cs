@@ -24,6 +24,7 @@ using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Networking.Connectivity;
@@ -35,7 +36,7 @@ namespace CountlySDK.Entities
     /// This class provides static methods to retrieve information about the current device.
     /// </summary>
     internal class Device : DeviceBase
-    {   
+    {
         protected override DeviceId ComputeDeviceID()
         {
             DeviceId dId;
@@ -46,7 +47,7 @@ namespace CountlySDK.Entities
             dId = CreateGUIDDeviceId();
 
             return dId;
-        }        
+        }
 
         protected override string GetOS()
         {
@@ -60,21 +61,36 @@ namespace CountlySDK.Entities
 
         protected override string GetManufacturer()
         {
-            EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
-            return easClientDeviceInformation.SystemManufacturer;
+            try {
+                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
+                return easClientDeviceInformation.SystemManufacturer;
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetManufacturer, problem." + ex.ToString());
+                return null;
+            }
         }
 
         protected override string GetDeviceName()
         {
-            EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();        
-            return PhoneNameHelper.Resolve(easClientDeviceInformation.SystemManufacturer, easClientDeviceInformation.SystemProductName).FullCanonicalName;
+            try {
+                EasClientDeviceInformation easClientDeviceInformation = new EasClientDeviceInformation();
+                return PhoneNameHelper.Resolve(easClientDeviceInformation.SystemManufacturer, easClientDeviceInformation.SystemProductName).FullCanonicalName;
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetDeviceName, issue." + ex.ToString());
+                return null;
+            }
         }
 
         protected override string GetAppVersion()
         {
-            PackageVersion packageVersion = Package.Current.Id.Version;
-            Version version = new Version(packageVersion.Major, packageVersion.Minor, packageVersion.Build, packageVersion.Revision);        
-            return version.ToString();
+            try {
+                PackageVersion packageVersion = Package.Current.Id.Version;
+                Version version = new Version(packageVersion.Major, packageVersion.Minor, packageVersion.Build, packageVersion.Revision);
+                return version.ToString();
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetAppVersion, issue." + ex.ToString());
+                return null;
+            }
         }
 
         protected override string GetResolution()
@@ -101,11 +117,16 @@ namespace CountlySDK.Entities
             return null;
         }
 
-        protected override bool GetOnline()
+        protected override bool? GetOnline()
         {
-            ConnectionProfile connections = NetworkInformation.GetInternetConnectionProfile();
+            try {
+                ConnectionProfile connections = NetworkInformation.GetInternetConnectionProfile();
 
-            return connections != null && connections.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess;
+                return connections != null && connections.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.InternetAccess;
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetOnline, issue." + ex.ToString());
+                return null;
+            }
         }
     }
 }

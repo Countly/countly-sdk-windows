@@ -24,6 +24,7 @@ using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 
@@ -33,7 +34,7 @@ namespace CountlySDK.Entities
     /// This class provides static methods to retrieve information about the current device.
     /// </summary>
     internal class Device : DeviceBase
-    {   
+    {
         protected override DeviceId ComputeDeviceID()
         {
             DeviceId dId;
@@ -44,25 +45,35 @@ namespace CountlySDK.Entities
             dId = CreateGUIDDeviceId();
 
             return dId;
-        }        
+        }
 
         protected override string GetOS()
         {
-            return getOSInfo();
+            try {
+                return getOSInfo();
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetOS, issue." + ex.ToString());
+                return null;
+            }
         }
 
         protected override string GetOSVersion()
         {
-            return Environment.OSVersion.Version.ToString();
+            try {
+                return Environment.OSVersion.Version.ToString();
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetOSVersion, issue." + ex.ToString());
+                return null;
+            }
         }
 
         protected override string GetManufacturer()
-        {            
+        {
             return null;
         }
 
         protected override string GetDeviceName()
-        {            
+        {
             return null;
         }
 
@@ -95,9 +106,14 @@ namespace CountlySDK.Entities
             return null;
         }
 
-        protected override bool GetOnline()
+        protected override bool? GetOnline()
         {
-            return IsNetworkAvailable();
+            try {
+                return IsNetworkAvailable();
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] GetOnline, issue." + ex.ToString());
+                return null;
+            }
         }
 
         //https://stackoverflow.com/questions/2819934/detect-windows-version-in-net/2819974#2819974
@@ -111,11 +127,9 @@ namespace CountlySDK.Entities
             //Variable to hold our return value
             string operatingSystem = "";
 
-            if (os.Platform == PlatformID.Win32Windows)
-            {
+            if (os.Platform == PlatformID.Win32Windows) {
                 //This is a pre-NT version of Windows
-                switch (vs.Minor)
-                {
+                switch (vs.Minor) {
                     case 0:
                         operatingSystem = "95";
                         break;
@@ -131,11 +145,8 @@ namespace CountlySDK.Entities
                     default:
                         break;
                 }
-            }
-            else if (os.Platform == PlatformID.Win32NT)
-            {
-                switch (vs.Major)
-                {
+            } else if (os.Platform == PlatformID.Win32NT) {
+                switch (vs.Major) {
                     case 3:
                         operatingSystem = "NT 3.51";
                         break;
@@ -168,13 +179,11 @@ namespace CountlySDK.Entities
             //Make sure we actually got something in our OS check
             //We don't want to just return " Service Pack 2" or " 32-bit"
             //That information is useless without the OS version.
-            if (operatingSystem != "")
-            {
+            if (operatingSystem != "") {
                 //Got something.  Let's prepend "Windows" and get more info.
                 operatingSystem = "Windows " + operatingSystem;
                 //See if there's a service pack installed.
-                if (os.ServicePack != "")
-                {
+                if (os.ServicePack != "") {
                     //Append it to the OS name.  i.e. "Windows XP Service Pack 3"
                     operatingSystem += " " + os.ServicePack;
                 }
@@ -209,30 +218,34 @@ namespace CountlySDK.Entities
         /// </returns>
         private static bool IsNetworkAvailable(long minimumSpeed)
         {
-            if (!NetworkInterface.GetIsNetworkAvailable())
+            if (!NetworkInterface.GetIsNetworkAvailable()) {
                 return false;
+            }
 
-            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
-            {
+            foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces()) {
                 // discard because of standard reasons
                 if ((ni.OperationalStatus != OperationalStatus.Up) ||
                     (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback) ||
-                    (ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel))
+                    (ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel)) {
                     continue;
+                }
 
                 // this allow to filter modems, serial, etc.
                 // I use 10000000 as a minimum speed for most cases
-                if (ni.Speed < minimumSpeed)
+                if (ni.Speed < minimumSpeed) {
                     continue;
+                }
 
                 // discard virtual cards (virtual box, virtual pc, etc.)
                 if ((ni.Description.IndexOf("virtual", StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (ni.Name.IndexOf("virtual", StringComparison.OrdinalIgnoreCase) >= 0))
+                    (ni.Name.IndexOf("virtual", StringComparison.OrdinalIgnoreCase) >= 0)) {
                     continue;
+                }
 
                 // discard "Microsoft Loopback Adapter", it will not show as NetworkInterfaceType.Loopback but as Ethernet Card.
-                if (ni.Description.Equals("Microsoft Loopback Adapter", StringComparison.OrdinalIgnoreCase))
+                if (ni.Description.Equals("Microsoft Loopback Adapter", StringComparison.OrdinalIgnoreCase)) {
                     continue;
+                }
 
                 return true;
             }

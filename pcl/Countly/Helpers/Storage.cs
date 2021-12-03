@@ -51,14 +51,14 @@ namespace CountlySDK.Helpers
         internal override string folder { get { return "countly"; } }
 
         private Dictionary<string, bool> filesInUse = new Dictionary<string, bool>();
-        
+
         public override async Task<bool> SaveToFile<T>(string filename, object objForSave)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'SaveToFile'");
             Debug.Assert(filename != null, "Provided filename can't be null");
             Debug.Assert(objForSave != null, "Provided object can't be null");
 
-            if (filesInUse.ContainsKey(filename))
-            {
+            if (filesInUse.ContainsKey(filename)) {
                 return false;
             }
 
@@ -66,21 +66,17 @@ namespace CountlySDK.Helpers
 
             bool success = true;
 
-            try
-            {
+            try {
                 var sessionSerializer = new DataContractSerializer(typeof(T));
                 MemoryStream sessionData = new MemoryStream();
                 sessionSerializer.WriteObject(sessionData, objForSave);
                 sessionData.Seek(0, SeekOrigin.Begin);
 
                 await SaveStream(sessionData, filename);
-            }
-            catch
-            {
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Storage] SaveToFile. " + ex.ToString());
                 success = false;
-            }
-            finally
-            {
+            } finally {
                 filesInUse.Remove(filename);
             }
 
@@ -94,58 +90,47 @@ namespace CountlySDK.Helpers
         /// <param name="file">filename</param>
         private async Task SaveStream(Stream stream, string file)
         {
-            try
-            {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'SaveStream'");
+            try {
                 IFolder storageFolder = await GetFolder(folder);
 
                 IFile storageFile = await storageFolder.CreateFileAsync(file, CreationCollisionOption.ReplaceExisting);
 
-                using (Stream fileStream = await storageFile.OpenAsync(PCLStorage.FileAccess.ReadAndWrite))
-                {
+                using (Stream fileStream = await storageFile.OpenAsync(PCLStorage.FileAccess.ReadAndWrite)) {
                     await stream.CopyToAsync(fileStream);
                     await fileStream.FlushAsync();
                     fileStream.Dispose();
                 }
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Storage] SaveStream. " + ex.ToString());
             }
-            catch
-            { }
         }
 
         public override async Task<T> LoadFromFile<T>(string filename)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'LoadFromFile'");
             Debug.Assert(filename != null, "Provided filename can't be null");
 
             T t = null;
 
-            try
-            {
+            try {
                 Stream stream = await LoadStream(filename);
 
-                if (stream != null)
-                {
-                    using (StreamReader reader = new StreamReader(stream))
-                    {
+                if (stream != null) {
+                    using (StreamReader reader = new StreamReader(stream)) {
                         var sessionSerializer = new DataContractSerializer(typeof(T));
                         T obj = (T)sessionSerializer.ReadObject(reader.BaseStream);
 
                         t = obj;
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("Problem while deserializing [" + filename + "] ex:[" + ex.ToString() + "]");
-                }
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Storage] LoadFromFile, Problem while deserializing [" + filename + "] ex:[" + ex.ToString() + "]");
             }
 
-            if (t != null)
-            {
+            if (t != null) {
                 return t;
-            }
-            else
-            {
+            } else {
                 return null;
             }
         }
@@ -157,23 +142,23 @@ namespace CountlySDK.Helpers
         /// <returns>stream</returns>
         private async Task<Stream> LoadStream(string path)
         {
-            try
-            {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'LoadStream'");
+            try {
                 bool isFileExists = await FileExists(path);
 
-                if (!isFileExists) return null;
+                if (!isFileExists) {
+                    return null;
+                }
 
                 IFolder storageFolder = await GetFolder(folder);
-                
+
                 IFile storageFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
 
-                if (storageFile == null)
-                {
+                if (storageFile == null) {
                     throw new Exception();
                 }
 
-                using (StreamReader reader = new StreamReader(await storageFile.OpenAsync(PCLStorage.FileAccess.Read)))
-                {
+                using (StreamReader reader = new StreamReader(await storageFile.OpenAsync(PCLStorage.FileAccess.Read))) {
                     MemoryStream memoryStream = new MemoryStream();
 
                     reader.BaseStream.CopyTo(memoryStream);
@@ -182,9 +167,8 @@ namespace CountlySDK.Helpers
 
                     return memoryStream;
                 }
-            }
-            catch
-            {
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Storage] LoadStream. " + ex.ToString());
                 return null;
             }
         }
@@ -196,14 +180,13 @@ namespace CountlySDK.Helpers
         /// <returns>true if file exists, false otherwise</returns>
         private async Task<bool> FileExists(string path)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'FileExists'");
             IFolder storageFolder = await GetFolder(folder);
-            
+
             IList<IFile> files = await storageFolder.GetFilesAsync();
 
-            foreach (IFile file in files)
-            {
-                if (file.Name == path)
-                {
+            foreach (IFile file in files) {
+                if (file.Name == path) {
                     return true;
                 }
             }
@@ -218,6 +201,7 @@ namespace CountlySDK.Helpers
         /// <returns>StorageFile object</returns>
         private async Task<IFile> GetFile(string path)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'GetFile'");
             IFolder storageFolder = await GetFolder(folder);
 
             IFile storageFile = await storageFolder.CreateFileAsync(path, CreationCollisionOption.OpenIfExists);
@@ -231,12 +215,12 @@ namespace CountlySDK.Helpers
         /// <param name="filename">Filename to delete</param>
         public override async Task DeleteFile(string filename)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'DeleteFile'");
             IFolder storageFolder = await GetFolder(folder);
 
             IFile sessionFile = await storageFolder.CreateFileAsync(filename, CreationCollisionOption.OpenIfExists);
 
-            if (sessionFile != null)
-            {
+            if (sessionFile != null) {
                 await sessionFile.DeleteAsync();
             }
         }
@@ -248,16 +232,15 @@ namespace CountlySDK.Helpers
         /// <returns>true if folder exists, false otherwise</returns>
         private async Task<bool> FolderExists(string folder)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'FolderExists'");
             IList<IFolder> folders = await fileSystem.LocalStorage.GetFoldersAsync();
 
-            foreach (IFolder folder_ in folders)
-            {
-                if (folder_.Name == folder)
-                {
+            foreach (IFolder folder_ in folders) {
+                if (folder_.Name == folder) {
                     return true;
                 }
             }
-            
+
             return false;
         }
 
@@ -267,11 +250,11 @@ namespace CountlySDK.Helpers
         /// <param name="folder">folder path</param>
         /// <returns>StorageFolder object</returns>
         internal async Task<IFolder> GetFolder(string folder)
-        {            
+        {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'GetFolder'");
             IFolder storageFolder;
-                
-            if (!await FolderExists(folder))
-            {
+
+            if (!await FolderExists(folder)) {
                 await CreateFolder(folder);
             }
 
@@ -286,21 +269,21 @@ namespace CountlySDK.Helpers
         /// <param name="folder">folder name</param>
         private async Task CreateFolder(string folder)
         {
-            try
-            {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'CreateFolder'");
+            try {
                 bool isFolderExists = await FolderExists(folder);
 
-                if (!isFolderExists)
-                {
+                if (!isFolderExists) {
                     await fileSystem.LocalStorage.CreateFolderAsync(folder, CreationCollisionOption.OpenIfExists);
                 }
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Storage] CreateFolder. " + ex.ToString());
             }
-            catch
-            { }
         }
 
         internal async override Task<string> GetFolderPath(string folderName)
         {
+            UtilityHelper.CountlyLogging("[Storage] Calling 'GetFolderPath'");
             IFolder folder = await Storage.Instance.GetFolder(Storage.Instance.folder);
             return folder.Path;
         }

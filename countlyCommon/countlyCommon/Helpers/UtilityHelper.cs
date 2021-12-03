@@ -20,6 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+//#define TRACE
+//#define DEBUG
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,17 +39,14 @@ namespace CountlySDK.Helpers
         /// <returns></returns>
         public static bool IsNullOrEmptyOrWhiteSpace(String value)
         {
-            if (String.IsNullOrEmpty(value))
-            {
+            if (String.IsNullOrEmpty(value)) {
                 return true;
             }
 
             bool containsOnlyWhitespace = true;
 
-            foreach(char c in value)
-            {
-                if (!char.IsWhiteSpace(c))
-                {
+            foreach (char c in value) {
+                if (!char.IsWhiteSpace(c)) {
                     containsOnlyWhitespace = false;
                 }
             }
@@ -68,15 +68,16 @@ namespace CountlySDK.Helpers
 
         public static void CountlyLogging(String msg)
         {
-            if (Countly.IsLoggingEnabled)
-            {
-                Debug.WriteLine(msg);
+            if (Countly.IsLoggingEnabled) {
+                System.Diagnostics.Debug.WriteLine(msg);
             }
         }
 
         public static int CompareQueues<T>(Queue<T> first, Queue<T> second) where T : IComparable<T>
         {
-            if (first == null && second == null) return 0;
+            if (first == null && second == null) {
+                return 0;
+            }
             if (first == null) { return -1; }
             if (second == null) { return 1; }
 
@@ -87,17 +88,16 @@ namespace CountlySDK.Helpers
 
         public static int CompareLists<T>(List<T> first, List<T> second) where T : IComparable<T>
         {
-            if (first == null && second == null) return 0;
+            if (first == null && second == null)
+                return 0;
             if (first == null) { return -1; }
             if (second == null) { return 1; }
 
             if (first.Count > second.Count) { return 1; }
             if (first.Count < second.Count) { return -1; }
 
-            for (int a = 0; a < first.Count; a++)
-            {
-                if (!first[a].Equals(second[a]))
-                {
+            for (int a = 0; a < first.Count; a++) {
+                if (!first[a].Equals(second[a])) {
                     return first[a].CompareTo(second[a]);
                 }
             }

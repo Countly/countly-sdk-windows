@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CountlySDK.CountlyCommon.Helpers
 {
     abstract internal class StorageBase
-    {       
+    {
         protected object locker = new Object();
 
         /// <summary>
@@ -43,6 +43,6 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// <summary>
         /// Retrive storage folder name
         /// </summary>
-        internal abstract String folder { get; }        
+        internal abstract String folder { get; }
     }
 }

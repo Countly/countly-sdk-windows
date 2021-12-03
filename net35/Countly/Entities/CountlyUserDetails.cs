@@ -33,12 +33,10 @@ namespace CountlySDK.Entities
     {
         protected async override void NotifyDetailsChanged()
         {
-            if (IsSetUserDetailsChanged())
-            {
+            if (IsSetUserDetailsChanged()) {
                 isNotified = false;
 
-                if (!isNotified)
-                {
+                if (!isNotified) {
                     isNotified = true;
 
                     CallUserDetailsChanged();

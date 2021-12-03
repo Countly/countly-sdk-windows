@@ -26,61 +26,57 @@ namespace CountlySDK.Helpers
             byte[] bs = sha.ComputeHash(Encoding.ASCII.GetBytes(combinedId));
 
             StringBuilder s = new StringBuilder();
-            foreach (byte b in bs)
-            {
+            foreach (byte b in bs) {
                 s.Append(b.ToString("x2").ToLower());
-            }            
+            }
 
             return s.ToString();
         }
 
         private static string GetCPUId()
         {
-            StringBuilder s = new StringBuilder();
-            ManagementObjectSearcher _searcher = new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
-            foreach (ManagementObject mo in _searcher.Get())
-            {
-                String appendValue = "";
-                if (mo != null && mo["ProcessorId"] != null)
-                {
-                    appendValue = mo["ProcessorId"].ToString();
+
+            try {
+                StringBuilder s = new StringBuilder();
+                ManagementObjectSearcher _searcher = new ManagementObjectSearcher("SELECT ProcessorId FROM Win32_Processor");
+                foreach (ManagementObject mo in _searcher.Get()) {
+                    String appendValue = "";
+                    if (mo != null && mo["ProcessorId"] != null) {
+                        appendValue = mo["ProcessorId"].ToString();
+                    }
+
+                    s.Append(appendValue);
                 }
 
-                s.Append(appendValue);
-            }
+                return s.ToString();
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting cpu id." + ex.ToString());
 
-            return s.ToString();
+                return null;
+            }
         }
 
         private static string GetDiskSerialNumber()
         {
-            try
-            {
+            try {
                 string driveLetter = "";
 
                 //Choose the letter of the first available drive
-                foreach (var availableDrives in DriveInfo.GetDrives())
-                {
-                    if (availableDrives.IsReady)
-                    {
+                foreach (var availableDrives in DriveInfo.GetDrives()) {
+                    if (availableDrives.IsReady) {
                         driveLetter = availableDrives.RootDirectory.ToString();
                         break;
                     }
                 }
 
-                if (string.IsNullOrEmpty(driveLetter))
-                {
+                if (string.IsNullOrEmpty(driveLetter)) {
                     //could not determine valid drive letter
-                    if (Countly.IsLoggingEnabled)
-                    {
-                        Debug.WriteLine("Could not determine valid drive letter while trying to generate device Id");
-                    }
+                    UtilityHelper.CountlyLogging("Could not determine valid drive letter while trying to generate device Id");
                     return "";
                 }
 
                 //remove ":\" after the drive letter, "C:\" -> "C"
-                if (!string.IsNullOrEmpty(driveLetter) && driveLetter.EndsWith(":\\"))
-                {
+                if (!string.IsNullOrEmpty(driveLetter) && driveLetter.EndsWith(":\\")) {
                     driveLetter = driveLetter.Substring(0, driveLetter.Length - 2);
                 }
                 ManagementObject disk = new ManagementObject(@"win32_logicaldisk.deviceid=""" + driveLetter + @":""");
@@ -88,63 +84,59 @@ namespace CountlySDK.Helpers
 
                 string volumeSerialNumber = "";
 
-                if (disk["VolumeSerialNumber"] != null)
-                {
+                if (disk["VolumeSerialNumber"] != null) {
                     volumeSerialNumber = disk["VolumeSerialNumber"].ToString();
                     disk.Dispose();
                 }
 
                 return volumeSerialNumber;
-            } catch (Exception ex)
-            {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("DeviceIdHelper, problem while getting disk serial number." + ex.ToString());
-                }
-                return "";
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting disk serial number." + ex.ToString());
+                return null;
             }
         }
 
         public static string GetWindowsSerialNumber()
-        {        
-            var serialNumber = "";
-            try
-            {
+        {
+            string serialNumber = null;
+            try {
                 ManagementObject mo = new ManagementObject("Win32_OperatingSystem=@");
-                if (mo["SerialNumber"] != null)
-                {
-                    serialNumber = (string) mo["SerialNumber"];
+                if (mo["SerialNumber"] != null) {
+                    serialNumber = (string)mo["SerialNumber"];
                 }
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting serial number." + ex.ToString());
             }
-            catch (Exception ex) {
-                if (Countly.IsLoggingEnabled)
-                {
-                    Debug.WriteLine("DeviceIdHelper, problem while getting serial number." + ex.ToString());
-                }
-            }
-            
+
             return serialNumber;
         }
 
         public static string GetWindowsUsername()
         {
-            return Environment.UserName;
+            try {
+                return Environment.UserName;
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting windows username." + ex.ToString());
+
+                return null;
+            }
         }
 
         public static string GetMacAddress()
         {
             const int MIN_ADDR_LENGTH = 12;
-            string chosenMacAddress = string.Empty;
+            string chosenMacAddress = null;
             long fastestFoundSpeed = -1;
-
-            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                string potentialMacAddress = nic.GetPhysicalAddress().ToString();
-                if (nic.Speed > fastestFoundSpeed && !string.IsNullOrEmpty(potentialMacAddress) && potentialMacAddress.Length >= MIN_ADDR_LENGTH)
-                {
-                    chosenMacAddress = potentialMacAddress;
-                    fastestFoundSpeed = nic.Speed;
+            try {
+                foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces()) {
+                    string potentialMacAddress = nic.GetPhysicalAddress().ToString();
+                    if (nic.Speed > fastestFoundSpeed && !string.IsNullOrEmpty(potentialMacAddress) && potentialMacAddress.Length >= MIN_ADDR_LENGTH) {
+                        chosenMacAddress = potentialMacAddress;
+                        fastestFoundSpeed = nic.Speed;
+                    }
                 }
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("DeviceIdHelper, problem while getting mac adress." + ex.ToString());
             }
 
             return chosenMacAddress;

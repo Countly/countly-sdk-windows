@@ -78,7 +78,7 @@ namespace CountlySDK.Entities
 
         [DataMemberAttribute]
         [JsonProperty("_online")]
-        public bool Online { get; set; }
+        public bool? Online { get; set; }
 
         //error info
 
@@ -134,8 +134,7 @@ namespace CountlySDK.Entities
             //error info
             this.Name = Error;
             this.Error = StackTrace;
-            if (string.IsNullOrEmpty(this.Error))
-            {
+            if (string.IsNullOrEmpty(this.Error)) {
                 //in case stacktrace is empty, replace it with the error name
                 this.Error = this.Name;
             }
@@ -148,111 +147,100 @@ namespace CountlySDK.Entities
 
         public int CompareTo(ExceptionEvent other)
         {
-            if (!(OS == null && other.OS == null))
-            {
+            if (!(OS == null && other.OS == null)) {
                 if (OS == null) { return -1; }
                 if (other.OS == null) { return 1; }
                 if (!OS.Equals(other.OS)) { return OS.CompareTo(other.OS); }
             }
 
-            if (!(OSVersion == null && other.OSVersion == null))
-            {
+            if (!(OSVersion == null && other.OSVersion == null)) {
                 if (OSVersion == null) { return -1; }
                 if (other.OSVersion == null) { return 1; }
                 if (!OSVersion.Equals(other.OSVersion)) { return OSVersion.CompareTo(other.OSVersion); }
             }
 
-            if (!(Manufacture == null && other.Manufacture == null))
-            {
+            if (!(Manufacture == null && other.Manufacture == null)) {
                 if (Manufacture == null) { return -1; }
                 if (other.Manufacture == null) { return 1; }
                 if (!Manufacture.Equals(other.Manufacture)) { return Manufacture.CompareTo(other.Manufacture); }
             }
 
-            if (!(Device == null && other.Device == null))
-            {
+            if (!(Device == null && other.Device == null)) {
                 if (Device == null) { return -1; }
                 if (other.Device == null) { return 1; }
                 if (!Device.Equals(other.Device)) { return Device.CompareTo(other.Device); }
             }
 
-            if (!(Resolution == null && other.Resolution == null))
-            {
+            if (!(Resolution == null && other.Resolution == null)) {
                 if (Resolution == null) { return -1; }
                 if (other.Resolution == null) { return 1; }
                 if (!Resolution.Equals(other.Resolution)) { return Resolution.CompareTo(other.Resolution); }
             }
 
-            if (!(AppVersion == null && other.AppVersion == null))
-            {
+            if (!(AppVersion == null && other.AppVersion == null)) {
                 if (AppVersion == null) { return -1; }
                 if (other.AppVersion == null) { return 1; }
                 if (!AppVersion.Equals(other.AppVersion)) { return AppVersion.CompareTo(other.AppVersion); }
             }
 
-            if (!(Orientation == null && other.Orientation == null))
-            {
+            if (!(Orientation == null && other.Orientation == null)) {
                 if (Orientation == null) { return -1; }
                 if (other.Orientation == null) { return 1; }
                 if (!Orientation.Equals(other.Orientation)) { return Orientation.CompareTo(other.Orientation); }
             }
 
-            if (!(RamCurrent == null && other.RamCurrent == null))
-            {
+            if (!(RamCurrent == null && other.RamCurrent == null)) {
                 if (RamCurrent == null) { return -1; }
                 if (other.RamCurrent == null) { return 1; }
                 if (!RamCurrent.Equals(other.RamCurrent)) { return RamCurrent.Value.CompareTo(other.RamCurrent.Value); }
             }
 
-            if (!(RamTotal == null && other.RamTotal == null))
-            {
+            if (!(RamTotal == null && other.RamTotal == null)) {
                 if (RamTotal == null) { return -1; }
                 if (other.RamTotal == null) { return 1; }
                 if (!RamTotal.Equals(other.RamTotal)) { return RamTotal.Value.CompareTo(other.RamTotal.Value); }
             }
 
-            if (!Online.Equals(other.Online)) { return Online.CompareTo(other.Online); }            
+            if (!(Online == null && other.Online == null)) {
+                if (Online == null) { return -1; }
+                if (other.Online == null) { return 1; }
+                if (!Online.Equals(other.Online)) { return Online.Value.CompareTo(other.Online.Value); }
+            }
 
-            if (!(Name == null && other.Name == null))
-            {
+            if (!(Name == null && other.Name == null)) {
                 if (Name == null) { return -1; }
                 if (other.Name == null) { return 1; }
                 if (!Name.Equals(other.Name)) { return Name.CompareTo(other.Name); }
             }
 
-            if (!(Error == null && other.Error == null))
-            {
+            if (!(Error == null && other.Error == null)) {
                 if (Error == null) { return -1; }
                 if (other.Error == null) { return 1; }
                 if (!Error.Equals(other.Error)) { return Error.CompareTo(other.Error); }
             }
-            
+
             if (!NonFatal.Equals(other.NonFatal)) { return NonFatal.CompareTo(other.NonFatal); }
 
-            if (!(Logs == null && other.Logs == null))
-            {
+            if (!(Logs == null && other.Logs == null)) {
                 if (Logs == null) { return -1; }
                 if (other.Logs == null) { return 1; }
                 if (!Logs.Equals(other.Logs)) { return Logs.CompareTo(other.Logs); }
             }
 
-            if (!Run.Equals(other.Run)) { return Run.CompareTo(other.Run); }            
+            if (!Run.Equals(other.Run)) { return Run.CompareTo(other.Run); }
 
-            if (!(OS == null && other.OS == null))
-            {
+            if (!(OS == null && other.OS == null)) {
                 if (OS == null) { return -1; }
                 if (other.OS == null) { return 1; }
                 if (!OS.Equals(other.OS)) { return OS.CompareTo(other.OS); }
             }
 
-            if (!(Custom == null && other.Custom == null))
-            {
+            if (!(Custom == null && other.Custom == null)) {
                 if (Custom == null) { return -1; }
-                if (other.Custom == null) { return 1; }            
+                if (other.Custom == null) { return 1; }
                 if (!Custom.Count.Equals(other.Custom.Count)) { return Custom.Count.CompareTo(other.Custom.Count); }
 
-                foreach(var a in Custom.Keys)
-                {
+                foreach (var a in Custom.Keys) {
                     if (!other.Custom.ContainsKey(a)) { return -1; }
                     if (!Custom[a].Equals(other.Custom[a])) { return Custom[a].CompareTo(other.Custom[a]); }
                 }

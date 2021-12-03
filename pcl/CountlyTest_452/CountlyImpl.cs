@@ -23,7 +23,10 @@ namespace TestProject_common
 
         public static async Task StartLegacyCountlySession(string serverUrl, string appKey, string appVersion)
         {
-            await Countly.StartSession(serverUrl, appKey, appVersion, FileSystem.Current);
+            //reworked after removal of the deprecated function
+            CountlyConfig cc = new CountlyConfig() { serverUrl = serverUrl, appKey = appKey, appVersion = appVersion, fileSystem = FileSystem.Current };
+            await Countly.Instance.Init(cc);
+            await Countly.Instance.SessionBegin();
         }
 
         public static CountlyConfig CreateCountlyConfig()

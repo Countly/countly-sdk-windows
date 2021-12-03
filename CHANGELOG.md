@@ -1,3 +1,10 @@
+20.11.0
+* Fixed bug that occurred while getting device and system information on restricted machines.
+* Removed deprecated function "EndSession"
+* Removed deprecated function "StartSession"
+* [net35, net40] Removed deprecated function "SetCustomDataPath"
+* PLC flavour (.NETPortable4.5-Profile259) is deprecated and will be removed on next major release
+
 20.05.1
 * Fixed bug that occured when no cpu_id was got returned from OS
 * Fixed bug with API requests, which failed if the request data contained '&'

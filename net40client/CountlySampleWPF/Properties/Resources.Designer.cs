@@ -40,10 +40,8 @@ namespace CountlySampleWPF.Properties
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static global::System.Resources.ResourceManager ResourceManager
         {
-            get
-            {
-                if ((resourceMan == null))
-                {
+            get {
+                if ((resourceMan == null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("CountlySampleWPF.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
@@ -58,12 +56,10 @@ namespace CountlySampleWPF.Properties
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static global::System.Globalization.CultureInfo Culture
         {
-            get
-            {
+            get {
                 return resourceCulture;
             }
-            set
-            {
+            set {
                 resourceCulture = value;
             }
         }

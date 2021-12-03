@@ -18,7 +18,7 @@ namespace CountlySDK.CountlyCommon
     abstract public class CountlyBase
     {
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "20.05.1";
+        protected const string sdkVersion = "20.11.0";
 
         public abstract string sdkName();
 
@@ -68,12 +68,9 @@ namespace CountlySDK.CountlyCommon
         // User details info
         public static CountlyUserDetails UserDetails
         {
-            get
-            {
-                lock (Countly.Instance.sync)
-                {
-                    if (userDetails == null)
-                    {
+            get {
+                lock (Countly.Instance.sync) {
+                    if (userDetails == null) {
                         userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename).Result;
                         if (userDetails == null) { userDetails = new CountlyUserDetails(); }
                         userDetails.UserDetailsChanged += Countly.Instance.OnUserDetailsChanged;
@@ -134,40 +131,24 @@ namespace CountlySDK.CountlyCommon
 
         internal async Task<bool> SaveStoredRequests()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 return Storage.Instance.SaveToFile<Queue<StoredRequest>>(storedRequestsFilename, StoredRequests).Result;
             }
         }
 
         protected async Task UpdateSessionInternal(int? elapsedTime = null)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("Session Update happening"); }
-            if (elapsedTime == null)
-            {
+            UtilityHelper.CountlyLogging("[CountlyBase] Session Update happening'");
+            if (elapsedTime == null) {
                 //calculate elapsed time from the last time update was sent (includes manual calls)
                 elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
             }
-            if (IsLoggingEnabled) { Debug.WriteLine("Session Update elapsed time: [" + elapsedTime + "]"); }
+            UtilityHelper.CountlyLogging("Session Update elapsed time: [" + elapsedTime + "]");
 
             Debug.Assert(elapsedTime != null);
             lastSessionUpdateTime = DateTime.Now;
 
             await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName()));
-        }
-
-        /// <summary>
-        /// End Countly tracking session.
-        /// Call from one of these places:
-        /// * your closing event
-        /// * your App.xaml.cs Application_Deactivated and Application_Closing events.
-        /// </summary>
-        [Obsolete("static 'EndSession' is deprecated, please use 'Countly.Instance.SessionEnd' in place of this call")]
-        public static async Task EndSession()
-        {
-            if (IsLoggingEnabled) { Debug.WriteLine("Calling 'EndSession'"); }
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'EndSession'"); }
-            await Countly.Instance.EndSessionInternal();
         }
 
         protected async Task EndSessionInternal()
@@ -187,29 +168,23 @@ namespace CountlySDK.CountlyCommon
         /// <param name="uploadImmediately">indicates when start to upload, by default - immediately after event was added</param>
         internal async Task AddSessionEvent(SessionEvent sessionEvent, bool uploadImmediately = true)
         {
-            try
-            {
+            try {
                 if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return; }
 
-                if(!IsConsentGiven(ConsentFeatures.Sessions)) { return; }
+                if (!IsConsentGiven(ConsentFeatures.Sessions)) { return; }
 
-                lock (sync)
-                {
+                lock (sync) {
                     Sessions.Add(sessionEvent);
                 }
 
                 bool success = SaveSessions();
 
-                if (uploadImmediately && success)
-                {
+                if (uploadImmediately && success) {
                     await Upload();
                 }
-            }
-            catch (Exception ex)
-            {
-                if (IsLoggingEnabled)
-                {
-                    Debug.WriteLine(ex.Message);
+            } catch (Exception ex) {
+                if (IsLoggingEnabled) {
+                    UtilityHelper.CountlyLogging(ex.Message);
                 }
             }
         }
@@ -220,54 +195,53 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if success</returns>
         internal async Task<bool> Upload()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'Upload'");
             bool success = false;
             bool shouldContinue = false;
 
-            do
-            {
-                if (deferUpload) return true;
+            do {
+                if (deferUpload) {
+                    return true;
+                }
 
                 success = await UploadSessions();
 
-                if (success)
-                {
+                if (success) {
                     success = await UploadEvents();
                 }
 
-                if (success)
-                {
+                if (success) {
                     success = await UploadExceptions();
                 }
 
-                if (success)
-                {
+                if (success) {
                     success = await UploadUserDetails();
                 }
 
-                if (success)
-                {
+                if (success) {
                     success = await UploadStoredRequests();
                 }
 
-                if (success && !uploadInProgress)
-                {
+                if (success && !uploadInProgress) {
                     int sC, exC, evC, rC;
                     bool isChanged;
 
-                    lock (sync)
-                    {
+                    lock (sync) {
                         sC = Sessions.Count;
                         exC = Exceptions.Count;
                         evC = Events.Count;
                         rC = StoredRequests.Count;
                         isChanged = UserDetails.isChanged;
-                    }                
+                    }
 
-                    if (sC > 0 || exC > 0 || evC > 0 || isChanged)
-                    {
+                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
+
+                    if (sC > 0 || exC > 0 || evC > 0 || isChanged) {
                         //work still needs to be done
                         return await Upload();
                     }
+                } else {
+                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, in progress");
                 }
             } while (success && shouldContinue);
 
@@ -277,29 +251,27 @@ namespace CountlySDK.CountlyCommon
 
         private async Task<bool> UploadStoredRequests()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadStoredRequests'");
             StoredRequest sr = null;
 
-            lock (sync)
-            {
-                if (uploadInProgress) return true;
+            lock (sync) {
+                if (uploadInProgress) {
+                    return true;
+                }
                 uploadInProgress = true;
 
-                if (StoredRequests.Count > 0)
-                {
+                if (StoredRequests.Count > 0) {
                     sr = StoredRequests.Peek();
                     Debug.Assert(sr != null);
                 }
             }
 
-            if(sr != null)
-            {
+            if (sr != null) {
                 RequestResult requestResult = await Api.Instance.SendStoredRequest(ServerUrl, sr);
 
-                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
-                {
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest())) {
                     //if it's a successful or bad request, remove it from the queue
-                    lock (sync)
-                    {
+                    lock (sync) {
                         uploadInProgress = false;
 
                         //remove the executed request
@@ -311,18 +283,14 @@ namespace CountlySDK.CountlyCommon
                         bool success = SaveStoredRequests().Result;//todo, handle this in the future                        
                     }
                     return true;
-                }
-                else
-                {
+                } else {
                     lock (sync) { uploadInProgress = false; }
                     return false;
                 }
-            }
-            else
-            {
-                lock (sync) { uploadInProgress = false; } 
+            } else {
+                lock (sync) { uploadInProgress = false; }
                 return true;
-            }            
+            }
         }
 
         /// <summary>
@@ -331,68 +299,57 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         private async Task<bool> UploadSessions()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadSessions'");
             SessionEvent sessionEvent = null;
 
-            lock (sync)
-            {
-                if (uploadInProgress) return true;
+            lock (sync) {
+                if (uploadInProgress) {
+                    return true;
+                }
                 uploadInProgress = true;
-            
-                if (Sessions.Count > 0)
-                {
+
+                if (Sessions.Count > 0) {
                     sessionEvent = Sessions[0];
                 }
             }
 
-            if (sessionEvent != null)
-            {
+            if (sessionEvent != null) {
                 RequestResult requestResult = await Api.Instance.SendSession(ServerUrl, sessionEvent, (UserDetails.isChanged) ? UserDetails : null);
 
-                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
-                {
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest())) {
                     //if it's a successful or bad request, remove it from the queue
-                    lock (sync)
-                    {
+                    lock (sync) {
                         UserDetails.isChanged = false;
                     }
 
                     SaveUserDetails();
 
-                    lock (sync)
-                    {
+                    lock (sync) {
                         uploadInProgress = false;
 
-                        try
-                        {
+                        try {
                             Sessions.RemoveAt(0);
+                        } catch (Exception ex) {
+                            UtilityHelper.CountlyLogging("[UploadSessions] Failed at removing session." + ex.ToString());
                         }
-                        catch { }
                         bool success = SaveSessions();//todo, handle this in the future
                     }
 
                     int sessionCount = 0;
-                    lock (sync)
-                    {
+                    lock (sync) {
                         sessionCount = Sessions.Count;
                     }
 
-                    if (sessionCount > 0)
-                    {
+                    if (sessionCount > 0) {
                         return await UploadSessions();
-                    }
-                    else
-                    {
+                    } else {
                         return true;
                     }
-                }
-                else
-                {
+                } else {
                     uploadInProgress = false;
                     return false;
                 }
-            }
-            else
-            {
+            } else {
                 uploadInProgress = false;
                 return true;
             }
@@ -487,7 +444,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, bool consentOverride)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'RecordEvent'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEvent'");
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
@@ -495,14 +452,12 @@ namespace CountlySDK.CountlyCommon
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timestamp);
 
             bool saveSuccess = false;
-            lock (sync)
-            {
+            lock (sync) {
                 Events.Add(cEvent);
                 saveSuccess = SaveEvents();
             }
 
-            if (saveSuccess)
-            {
+            if (saveSuccess) {
                 saveSuccess = await Upload();
             }
 
@@ -515,32 +470,30 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if success</returns>
         private async Task<bool> UploadEvents()
         {
-            lock (sync)
-            {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadEvents'");
+            lock (sync) {
                 // Allow uploading in one thread only
-                if (uploadInProgress) return true;
+                if (uploadInProgress) {
+                    return true;
+                }
 
                 uploadInProgress = true;
             }
 
             int eventsCount;
 
-            lock (sync)
-            {
+            lock (sync) {
                 eventsCount = Math.Min(15, Events.Count);
             }
 
-            if (eventsCount > 0)
-            {
+            if (eventsCount > 0) {
                 List<CountlyEvent> eventsToSend = null;
-                lock (sync)
-                {
+                lock (sync) {
                     eventsToSend = Events.Take(eventsCount).ToList();
                 }
                 RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
-                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
-                {
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest())) {
                     //if it's a successful or bad request, remove it from the queue
                     int eventsCountToUploadAgain = 0;
 
@@ -548,41 +501,32 @@ namespace CountlySDK.CountlyCommon
 
                     SaveUserDetails();
 
-                    lock (sync)
-                    {
+                    lock (sync) {
                         uploadInProgress = false;
 
-                        try
-                        {
-                            for (int i = eventsCount - 1; i >= 0; i--)
-                            {
+                        try {
+                            for (int i = eventsCount - 1; i >= 0; i--) {
                                 Events.RemoveAt(i);
                             }
+                        } catch (Exception ex) {
+                            UtilityHelper.CountlyLogging("[UploadEvents] Failed at removing events." + ex.ToString());
                         }
-                        catch { }
 
                         bool success = SaveEvents();//todo, react to this in the future
                         eventsCountToUploadAgain = Events.Count;
                     }
 
-                    if (eventsCountToUploadAgain > 0)
-                    {
+                    if (eventsCountToUploadAgain > 0) {
                         // Upload events added during sync
                         return await UploadEvents();
-                    }
-                    else
-                    {
+                    } else {
                         return true;
                     }
-                }
-                else
-                {
+                } else {
                     uploadInProgress = false;
                     return false;
                 }
-            }
-            else
-            {
+            } else {
                 uploadInProgress = false;
                 return true;
             }
@@ -659,7 +603,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         internal async Task<bool> RecordExceptionInternal(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'RecordException'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordException'");
             if (!IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Crashes)) { return true; }
 
@@ -667,24 +611,19 @@ namespace CountlySDK.CountlyCommon
 
             ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, AppVersion, customInfo, DeviceData);
 
-            if (!unhandled)
-            {
+            if (!unhandled) {
                 bool saveSuccess = false;
-                lock (sync)
-                {
+                lock (sync) {
                     Exceptions.Add(eEvent);
                     saveSuccess = SaveExceptions();
                 }
 
-                if (saveSuccess)
-                {
+                if (saveSuccess) {
                     return await Upload();
                 }
 
                 return false;
-            }
-            else
-            {
+            } else {
                 //since it's unhandled, we assume that the app is gonna crash soon
                 //only save the exception and upload it later
                 SaveUnhandledException(eEvent);
@@ -698,27 +637,26 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if success</returns>
         protected async Task<bool> UploadExceptions()
         {
-            lock (sync)
-            {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadExceptions'");
+            lock (sync) {
                 // Allow uploading in one thread only
-                if (uploadInProgress) return true;
+                if (uploadInProgress) {
+                    return true;
+                }
 
                 uploadInProgress = true;
             }
 
             int exceptionsCount;//how many exceptions are stored
 
-            lock (sync)
-            {
+            lock (sync) {
                 exceptionsCount = Exceptions.Count;
             }
 
             //if there is at least one exception stored, do the upload
-            if (exceptionsCount > 0)
-            {
+            if (exceptionsCount > 0) {
                 ExceptionEvent exEvent;//the exception event that will be uploaded
-                lock (sync)
-                {
+                lock (sync) {
                     exEvent = Exceptions[0];
                 }
 
@@ -726,51 +664,36 @@ namespace CountlySDK.CountlyCommon
                 RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent);
 
                 //check if we got a response and that it was a success
-                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
-                {
+                if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest())) {
                     //if it's a successful or bad request, remove it from the queue
                     int exceptionsCountToUploadAgain = 0;
 
-                    lock (sync)
-                    {
-                        try
-                        {
+                    lock (sync) {
+                        try {
                             Exceptions.RemoveAt(0);
-                        }
-                        catch (Exception ex)
-                        {
-                            if (Countly.IsLoggingEnabled)
-                            {
-                                Debug.WriteLine("[UploadExceptions] thrown exception, " + ex.ToString());
-                            }
+                        } catch (Exception ex) {
+                            UtilityHelper.CountlyLogging("[UploadExceptions] thrown exception when removing entry, " + ex.ToString());
                         }
 
-                        var res = SaveExceptions();//todo, in the future, react to this failing
+                        SaveExceptions();//todo, in the future, react to this failing
 
                         exceptionsCountToUploadAgain = Exceptions.Count;
                         uploadInProgress = false;//mark that we have stoped upload
                     }
 
-                    if (exceptionsCountToUploadAgain > 0)
-                    {
+                    if (exceptionsCountToUploadAgain > 0) {
                         // Upload next exception
                         return await UploadExceptions();
-                    }
-                    else
-                    {
+                    } else {
                         //no exceptions left to upload
                         return true;
                     }
-                }
-                else
-                {
+                } else {
                     //if the received response was not a success
                     uploadInProgress = false;
                     return false;
                 }
-            }
-            else
-            {
+            } else {
                 //if there are no exceptions to upload
                 uploadInProgress = false;
                 return true;
@@ -783,38 +706,38 @@ namespace CountlySDK.CountlyCommon
         /// <returns>true if details are successfully uploaded, false otherwise</returns>
         internal async Task<bool> UploadUserDetails()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'UploadUserDetails'");
             if (!IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Users)) { return true; }
 
-            lock (sync)
-            {
+            lock (sync) {
                 //upload only when needed
-                if (!UserDetails.isChanged) return true;
+                if (!UserDetails.isChanged) {
+                    return true;
+                }
 
                 // Allow uploading in one thread only
-                if (uploadInProgress) return true;
+                if (uploadInProgress) {
+                    return true;
+                }
 
                 uploadInProgress = true;
             }
 
             RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), UserDetails);
 
-            lock (sync)
-            {
+            lock (sync) {
                 uploadInProgress = false;
             }
 
-            if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest()))
-            {
+            if (requestResult != null && (requestResult.IsSuccess() || requestResult.IsBadRequest())) {
                 //if it's a successful or bad request, remove it from the queue              
                 UserDetails.isChanged = false;
 
                 SaveUserDetails();
 
                 return true;
-            }
-            else
-            {                
+            } else {
                 return false;
             }
         }
@@ -838,8 +761,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>true if image is successfully uploaded, false otherwise</returns>
         internal async Task<bool> UploadUserPicture(Stream imageStream)
         {
-            if (!IsServerURLCorrect(ServerUrl))
-            {
+            if (!IsServerURLCorrect(ServerUrl)) {
                 return false;
             }
 
@@ -855,14 +777,13 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         public static async void Halt()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'Halt'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'Halt'");
             await Countly.Instance.HaltInternal();
         }
 
         protected async Task HaltInternal()
         {
-            lock (sync)
-            {
+            lock (sync) {
                 ServerUrl = null;
                 AppKey = null;
 
@@ -875,8 +796,7 @@ namespace CountlySDK.CountlyCommon
                 DeviceData = new Device();
                 StoredRequests?.Clear();
 
-                if (UserDetails != null)
-                {
+                if (UserDetails != null) {
                     UserDetails.UserDetailsChanged -= OnUserDetailsChanged;
                 }
                 userDetails = null;//set it null so that it can be loaded from the file system (if needed)
@@ -898,7 +818,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="log">log string</param>
         public static void AddBreadCrumb(string log)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'AddBreadCrumb'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
             Debug.Assert(log != null);
             Countly.Instance.breadcrumb += log + "\r\n";
@@ -906,7 +826,7 @@ namespace CountlySDK.CountlyCommon
 
         public static async Task<String> GetDeviceId()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'GetDeviceId'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'GetDeviceId'");
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'GetDeviceId'"); }
 
             return await Countly.Instance.DeviceData.GetDeviceId();
@@ -935,12 +855,11 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> SetLocation(String gpsLocation, String ipAddress = null, String country_code = null, String city = null)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SetLocation'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetLocation'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SetLocation'"); }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
-            if (gpsLocation == null && ipAddress == null && country_code == null && city == null)
-            {
+            if (gpsLocation == null && ipAddress == null && country_code == null && city == null) {
                 return false;
             }
 
@@ -955,7 +874,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> DisableLocation()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'DisableLocation'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'DisableLocation'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'DisableLocation'"); }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
@@ -964,8 +883,7 @@ namespace CountlySDK.CountlyCommon
 
         internal bool IsInitialized()
         {
-            if(ServerUrl != null && AppKey != null)
-            {
+            if (ServerUrl != null && AppKey != null) {
                 return true;
             }
             return false;
@@ -975,10 +893,9 @@ namespace CountlySDK.CountlyCommon
         {
             Debug.Assert(networkRequest != null);
 
-            if(networkRequest == null) { return; }
+            if (networkRequest == null) { return; }
 
-            lock (sync)
-            {
+            lock (sync) {
                 StoredRequest sr = new StoredRequest(networkRequest, isIdMerge);
                 StoredRequests.Enqueue(sr);
                 SaveStoredRequests();
@@ -989,28 +906,26 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'InitBase'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase'");
             if (!IsServerURLCorrect(config.serverUrl)) { throw new ArgumentException("invalid server url"); }
             if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
             if (config.sessionUpdateInterval <= 0) { throw new ArgumentException("session update interval can't be less than 1 second"); }
 
             //remove last backslash
-            if (config.serverUrl.EndsWith("/"))
-            {
+            if (config.serverUrl.EndsWith("/")) {
                 config.serverUrl = config.serverUrl.Substring(0, config.serverUrl.Length - 1);
             }
-            
+
 
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
             AppVersion = config.appVersion;
             sessionUpdateInterval = config.sessionUpdateInterval;
 
-            if(config.developerProvidedDeviceId?.Length == 0) { throw new ArgumentException("'developerProvidedDeviceId' cannot be empty string"); }
+            if (config.developerProvidedDeviceId?.Length == 0) { throw new ArgumentException("'developerProvidedDeviceId' cannot be empty string"); }
             await DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
 
-            lock (sync)
-            {
+            lock (sync) {
                 StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(storedRequestsFilename).Result ?? new Queue<StoredRequest>();
                 Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
                 Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
@@ -1020,6 +935,7 @@ namespace CountlySDK.CountlyCommon
             //consent related
             consentRequired = config.consentRequired;
             if (config.givenConsent != null) { await SetConsent(config.givenConsent); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
         }
 
         protected abstract Task SessionBeginInternal();
@@ -1031,7 +947,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionBegin()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SessionBegin'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionBegin'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
 
             await SessionBeginInternal();
@@ -1043,7 +959,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionUpdate(int elapsedTimeSeconds)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SessionUpdate'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionUpdate'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionUpdate'"); }
             if (elapsedTimeSeconds < 0) { throw new ArgumentException("Elapsed time can not be negative"); }
 
@@ -1056,7 +972,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionEnd()
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'SessionEnd'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionEnd'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionEnd'"); }
 
             await Countly.Instance.EndSessionInternal();
@@ -1071,20 +987,17 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task ChangeDeviceId(String newDeviceId, bool serverSideMerge = false)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'ChangeDeviceId'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'ChangeDeviceId'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'ChangeDeviceId'"); }
             if (newDeviceId == null) { throw new ArgumentException("New device id cannot be null"); }
             if (newDeviceId.Length == 0) { throw new ArgumentException("New device id cannot be empty string"); }
 
-            if (!serverSideMerge)
-            {
+            if (!serverSideMerge) {
                 //if no server side merge is needed, we just end the previous session and start a new session with the new id
                 await SessionEnd();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 await SessionBegin();
-            }
-            else
-            {
+            } else {
                 //need server merge, therefore send special request
                 String oldId = await DeviceData.GetDeviceId();
 
@@ -1114,7 +1027,7 @@ namespace CountlySDK.CountlyCommon
 
             //if it's required
             //check if it's given
-            if(givenConsent == null) { return false; }
+            if (givenConsent == null) { return false; }
 
             //nothing set for a feature, pressume that it's denied
             if (!givenConsent.ContainsKey(feature)) { return false; }
@@ -1125,6 +1038,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetConsent'");
             Debug.Assert(consentChanges != null);
             if (consentChanges == null) { throw new ArgumentException("'consentChanges' cannot be null"); }
             //if we don't need consent, no need to track it
@@ -1133,27 +1047,23 @@ namespace CountlySDK.CountlyCommon
             Dictionary<ConsentFeatures, bool> valuesToUpdate = new Dictionary<ConsentFeatures, bool>();
 
             //filter out those values that are changed
-            foreach (KeyValuePair<ConsentFeatures, bool> entry in consentChanges)
-            {
+            foreach (KeyValuePair<ConsentFeatures, bool> entry in consentChanges) {
                 bool oldV = IsConsentGiven(entry.Key);
                 bool containsOld = givenConsent.ContainsKey(entry.Key);
                 bool newV = entry.Value;
 
-                if(!containsOld || oldV != newV)
-                {                 
+                if (!containsOld || oldV != newV) {
                     //if there is no entry about this feature, of the consent has changed, update the value
                     valuesToUpdate[entry.Key] = newV;
                 }
             }
 
-            if(valuesToUpdate.Count > 0)
-            {
+            if (valuesToUpdate.Count > 0) {
                 //send request of the consent changes
                 await SendConsentChanges(valuesToUpdate);
 
                 //react to consent changes locally
-                foreach (KeyValuePair<ConsentFeatures, bool> entryChanges in valuesToUpdate)
-                {
+                foreach (KeyValuePair<ConsentFeatures, bool> entryChanges in valuesToUpdate) {
                     bool isGiven = entryChanges.Value;
                     ConsentFeatures feature = entryChanges.Key;
 
@@ -1161,8 +1071,7 @@ namespace CountlySDK.CountlyCommon
                     givenConsent[feature] = isGiven;
 
                     //do special actions
-                    switch (feature)
-                    {
+                    switch (feature) {
                         case ConsentFeatures.Crashes:
                             break;
                         case ConsentFeatures.Events:
@@ -1171,15 +1080,12 @@ namespace CountlySDK.CountlyCommon
                             if (!isGiven) { await DisableLocation(); }
                             break;
                         case ConsentFeatures.Sessions:
-                            if (isGiven)
-                            {
-                                if(!startTime.Equals(DateTime.MinValue))
-                                {
+                            if (isGiven) {
+                                if (!startTime.Equals(DateTime.MinValue)) {
                                     //if it's not null then we had already tried tracking a session
                                     await SessionBegin();
-                                }                                
-                            }
-                            else { await SessionEnd(); }
+                                }
+                            } else { await SessionEnd(); }
                             break;
                         case ConsentFeatures.Users:
                             break;
@@ -1199,7 +1105,7 @@ namespace CountlySDK.CountlyCommon
             await Upload();
         }
 
-        
+
         //track views
         private String lastView = null;
         private long lastViewStart = 0;
@@ -1212,13 +1118,12 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task<bool> RecordView(String viewName)
         {
-            if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Calling 'RecordView'"); }
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordView'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
             if (viewName == null) { throw new ArgumentException("'viewName' cannot be null"); }
             if (viewName.Length == 0) { throw new ArgumentException("'viewName' cannot be a empty string"); }
 
-            if (!IsConsentGiven(ConsentFeatures.Views))
-            {
+            if (!IsConsentGiven(ConsentFeatures.Views)) {
                 //if we don't have consent, do nothing
                 return false;
             }
@@ -1226,15 +1131,14 @@ namespace CountlySDK.CountlyCommon
 
             reportViewDuration();
             lastView = viewName;
-            
+
             lastViewStart = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             Segmentation segm = new Segmentation();
             segm.Add("name", viewName);
             segm.Add("visit", "1");
             segm.Add("segment", "Windows");
 
-            if (firstView)
-            {
+            if (firstView) {
                 firstView = false;
                 segm.Add("start", "1");
             }
@@ -1246,13 +1150,11 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         private async void reportViewDuration()
         {
-            if (lastView != null && lastViewStart <= 0)
-            {
-                if (IsLoggingEnabled) { Debug.WriteLine("[CountlyBase] Last view start value is not normal: [" + lastViewStart + "]"); }
+            if (lastView != null && lastViewStart <= 0) {
+                UtilityHelper.CountlyLogging("[CountlyBase] Last view start value is not normal: [" + lastViewStart + "]");
             }
 
-            if (!IsConsentGiven(ConsentFeatures.Views))
-            {
+            if (!IsConsentGiven(ConsentFeatures.Views)) {
                 //if we don't have consent, do nothing
                 return;
             }
@@ -1260,8 +1162,7 @@ namespace CountlySDK.CountlyCommon
             //only record view if the view name is not null and if it has a reasonable duration
             //if the lastViewStart is equal to 0, the duration would be set to the current timestamp
             //and therefore will be ignored
-            if (lastView != null && lastViewStart > 0)
-            {
+            if (lastView != null && lastViewStart > 0) {
                 long timestampSeconds = (TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()) - lastViewStart) / 1000;
                 Segmentation segm = new Segmentation();
                 segm.Add("name", lastView);
@@ -1274,6 +1175,6 @@ namespace CountlySDK.CountlyCommon
                 lastViewStart = 0;
             }
         }
-        
+
     }
 }

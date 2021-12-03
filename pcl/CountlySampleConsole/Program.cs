@@ -30,8 +30,7 @@ namespace CountlySample
             Console.WriteLine("Hello to the Countly sample console program");
             Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
 
-            if (serverURL == null || appKey == null)
-            {
+            if (serverURL == null || appKey == null) {
                 Console.WriteLine("");
                 Console.WriteLine("Problem encountered, you have not set up either the serverURL or the appKey");
                 Console.ReadKey();
@@ -41,12 +40,20 @@ namespace CountlySample
             Countly.IsLoggingEnabled = true;
 
             //Countly.deferUpload = true;
-            await Countly.StartSession(serverURL, appKey, "1.234", FileSystem.Current);
+
+            CountlyConfig countlyConfig = new CountlyConfig
+            {
+                serverUrl = serverURL,
+                appKey = appKey,
+                appVersion = "123"
+            };
+
+            await Countly.Instance.Init(countlyConfig);
+            await Countly.Instance.SessionBegin();
 
             System.Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
 
-            while (true)
-            {
+            while (true) {
                 Console.WriteLine("");
                 Console.WriteLine("Choose your option:");
                 Console.WriteLine("1) Sample event");
@@ -57,8 +64,7 @@ namespace CountlySample
                 Console.WriteLine("6) Another caught Exception");
                 Console.WriteLine("7) Sample event without await");
 
-                if (enableDebugOpptions)
-                {
+                if (enableDebugOpptions) {
                     Console.WriteLine("8) (debug) Threading test");
                 }
 
@@ -66,33 +72,24 @@ namespace CountlySample
                 ConsoleKeyInfo cki = System.Console.ReadKey();
                 Console.WriteLine("");
 
-                if (cki.Key == ConsoleKey.D1)
-                {
+                if (cki.Key == ConsoleKey.D1) {
                     System.Console.WriteLine("1");
                     await Countly.RecordEvent("Some event");
-                }
-                else if (cki.Key == ConsoleKey.D2)
-                {
+                } else if (cki.Key == ConsoleKey.D2) {
                     Console.WriteLine("2");
 
-                    try
-                    {
+                    try {
                         throw new Exception("This is some bad exception 3");
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         Dictionary<string, string> customInfo = new Dictionary<string, string>();
                         customInfo.Add("customData", "importantStuff");
                         await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
                     }
-               
+
                     Exception exToUse;
-                    try
-                    {
+                    try {
                         throw new Exception("This is some bad exception 35454");
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         exToUse = ex;
                     }
 
@@ -102,46 +99,32 @@ namespace CountlySample
                     await Countly.RecordException("Big error 1");
                     await Countly.RecordException(exToUse.Message, exToUse.StackTrace);
                     await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict);
-                    await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict, false);                
-                }
-                else if (cki.Key == ConsoleKey.D3)
-                {
+                    await Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict, false);
+                } else if (cki.Key == ConsoleKey.D3) {
                     Console.WriteLine("3");
                     //await Device.SetDeviceId("ID-" + (new Random()).Next());
-                }
-                else if (cki.Key == ConsoleKey.D4)
-                {
+                } else if (cki.Key == ConsoleKey.D4) {
                     Console.WriteLine("4");
                     Countly.UserDetails.Name = "Some Username " + (new Random()).Next();
-                }
-                else if (cki.Key == ConsoleKey.D5)
-                {
+                } else if (cki.Key == ConsoleKey.D5) {
                     Console.WriteLine("5");
                     break;
-                }
-                else if (cki.Key == ConsoleKey.D6)
-                {
+                } else if (cki.Key == ConsoleKey.D6) {
                     Console.WriteLine("6");
                     await Countly.RecordException("What is here", "");
-                }
-                else if (cki.Key == ConsoleKey.D7)
-                {
+                } else if (cki.Key == ConsoleKey.D7) {
                     Console.WriteLine("7");
                     Countly.RecordEvent("Some event");
-                }
-                else if (enableDebugOpptions && cki.Key == ConsoleKey.D8)
-                {
+                } else if (enableDebugOpptions && cki.Key == ConsoleKey.D8) {
                     Console.WriteLine("8");
                     Console.WriteLine("Running threaded debug test");
                     ThreadTest();
-                }
-                else
-                {
+                } else {
                     Console.WriteLine("Wrong input, please try again.");
                 }
             };
 
-            await Countly.EndSession();
+            await Countly.Instance.SessionEnd();
         }
 
 
@@ -150,20 +133,17 @@ namespace CountlySample
         {
             List<Thread> threads = new List<Thread>();
 
-            for(int a = 0; a< threadCount; a++)
-            {
+            for (int a = 0; a < threadCount; a++) {
                 threads.Add(new Thread(new ThreadStart(ThreadWorkEvents)));
                 threads.Add(new Thread(new ThreadStart(ThreadWorkExceptions)));
             }
 
-           
-            for(int a = 0; a < threads.Count; a++)
-            {
+
+            for (int a = 0; a < threads.Count; a++) {
                 threads[a].Start();
             }
 
-            for (int a = 0; a < threads.Count; a++)
-            {
+            for (int a = 0; a < threads.Count; a++) {
                 threads[a].Join();
             }
 
@@ -174,12 +154,10 @@ namespace CountlySample
         {
             String[] eventKeys = new string[] { "key_1", "key_2", "key_3", "key_4", "key_5", "key_6" };
 
-            for(int a = 0; a < threadIterations; a++)
-            {
+            for (int a = 0; a < threadIterations; a++) {
                 int choice = a % 5;
 
-                switch (choice)
-                {
+                switch (choice) {
                     case 0:
                         Countly.RecordEvent(eventKeys[0]);
                         break;
@@ -208,17 +186,14 @@ namespace CountlySample
 
                 Thread.Sleep((new Random()).Next(threadWaitStart, threadWaitEnd));
             }
-        }      
+        }
 
         void ThreadWorkExceptions()
         {
             Exception exToUse;
-            try
-            {
+            try {
                 throw new Exception("This is some bad exception 35454");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 exToUse = ex;
             }
 
@@ -226,17 +201,15 @@ namespace CountlySample
             dict.Add("booh", "waah");
 
 
-            for (int a = 0; a < threadIterations; a++)
-            {
+            for (int a = 0; a < threadIterations; a++) {
                 int choice = a % 4;
 
-                switch (choice)
-                {
+                switch (choice) {
                     case 0:
                         Countly.RecordException("Big error 1");
                         break;
-                    case 1:                       
-                        Countly.RecordException(exToUse.Message, exToUse.StackTrace);                   
+                    case 1:
+                        Countly.RecordException(exToUse.Message, exToUse.StackTrace);
                         break;
                     case 2:
                         Countly.RecordException(exToUse.Message, exToUse.StackTrace, dict);
@@ -249,7 +222,7 @@ namespace CountlySample
                 }
 
                 Thread.Sleep((new Random()).Next(threadWaitStart, threadWaitEnd));
-            }         
+            }
         }
     }
 }

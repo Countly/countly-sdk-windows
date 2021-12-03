@@ -13,12 +13,19 @@ namespace TestProject_common
     {
         public static void SetPCLStorageIfNeeded()
         {
-            
+
         }
 
         public static async Task StartLegacyCountlySession(string serverUrl, string appKey, string appVersion)
         {
-            await Countly.StartSession(serverUrl, appKey, appVersion);
+            CountlyConfig config = new CountlyConfig {
+                serverUrl = serverUrl,
+                appKey = appKey,
+                appVersion = appVersion
+            };
+
+            await Countly.Instance.Init(config);
+            await Countly.Instance.SessionBegin();
         }
 
         public static CountlyConfig CreateCountlyConfig()
