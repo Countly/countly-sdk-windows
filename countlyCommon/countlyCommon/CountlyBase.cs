@@ -20,6 +20,8 @@ namespace CountlySDK.CountlyCommon
         // Current version of the Count.ly SDK as a displayable string.
         protected const string sdkVersion = "20.11.0";
 
+        internal readonly CountlyConfig Configuration;
+
         public abstract string sdkName();
 
         // How often update session is sent
@@ -442,14 +444,21 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
         /// <param name="consentOverride">set by views or other features which record their values by events</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, bool consentOverride)
+        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation segmentation, bool consentOverride)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEvent'");
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
+            if (Key.Length > Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Configuration.MaxKeyLength);
+            }
+
+            Segmentation segments = FixSegmentKeysAndValues(segmentation);
+
             long timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
-            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timestamp);
+            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, segments, timestamp);
 
             bool saveSuccess = false;
             lock (sync) {
@@ -1116,7 +1125,7 @@ namespace CountlySDK.CountlyCommon
         /// Records view
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> RecordView(String viewName)
+        public async Task<bool> RecordView(string viewName)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordView'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
@@ -1128,6 +1137,10 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            if (viewName.Length > Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength);
+                viewName = viewName.Substring(0, Configuration.MaxKeyLength);
+            }
 
             reportViewDuration();
             lastView = viewName;
@@ -1174,6 +1187,103 @@ namespace CountlySDK.CountlyCommon
                 lastView = null;
                 lastViewStart = 0;
             }
+        }
+
+        internal string TrimKey(string k)
+        {
+            if (k.Length > Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimKey : Max allowed key length is " + Configuration.MaxKeyLength + ". " + k + " will be truncated.");
+                k = k.Substring(0, Configuration.MaxKeyLength);
+            }
+
+            return k;
+        }
+
+        internal string[] TrimValues(string[] values)
+        {
+            for (int i = 0; i < values.Length; ++i) {
+                if (values[i].Length > Configuration.MaxValueSize) {
+                    UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimValues : Max allowed value length is " + Configuration.MaxKeyLength + ". " + values[i] + " will be truncated.");
+                    values[i] = values[i].Substring(0, Configuration.MaxValueSize);
+                }
+            }
+
+
+            return values;
+        }
+
+        internal string TrimValue(string fieldName, string v)
+        {
+            if (v != null && v.Length > Configuration.MaxValueSize) {
+                UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimValue : Max allowed '" + fieldName + "' length is " + Configuration.MaxValueSize + ". " + v + " will be truncated.");
+                v = v.Substring(0, Configuration.MaxValueSize);
+            }
+
+            return v;
+        }
+
+        protected IDictionary<string, object> RemoveSegmentInvalidDataTypes(IDictionary<string, object> segments)
+        {
+
+            if (segments == null || segments.Count == 0) {
+                return segments;
+            }
+
+            string moduleName = GetType().Name;
+            int i = 0;
+            List<string> toRemove = new List<string>();
+            foreach (KeyValuePair<string, object> item in segments) {
+                if (++i > Configuration.MaxSegmentationValues) {
+                    toRemove.Add(item.Key);
+                    continue;
+                }
+                Type type = item.Value?.GetType();
+                bool isValidDataType = item.Value != null
+                    && (type == typeof(int)
+                    || type == typeof(bool)
+                    || type == typeof(float)
+                    || type == typeof(double)
+                    || type == typeof(string));
+
+
+                if (!isValidDataType) {
+                    toRemove.Add(item.Key);
+                    UtilityHelper.CountlyLogging("[" + moduleName + "] RemoveSegmentInvalidDataTypes: In segmentation Data type '" + type + "' of item '" + item.Key + "' isn't valid.");
+                }
+            }
+
+            foreach (string k in toRemove) {
+                segments.Remove(k);
+            }
+
+            return segments;
+        }
+
+        internal Segmentation FixSegmentKeysAndValues(Segmentation segments)
+        {
+            if (segments == null || segments.segmentation.Count == 0) {
+                return segments;
+            }
+
+            Segmentation segmentation = new Segmentation();
+            foreach (SegmentationItem item in segments.segmentation) {
+                string k = item.Key;
+                string v = item.Value;
+
+                if (item.Key == null || item.Value == null) {
+                    continue;
+                }
+
+                k = TrimKey(k);
+
+                if (v.GetType() == typeof(string)) {
+                    v = TrimValue(k, v);
+                }
+
+                segmentation.Add(k, v);
+            }
+
+            return segmentation;
         }
 
     }
