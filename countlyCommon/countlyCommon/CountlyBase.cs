@@ -446,16 +446,17 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation segmentation, bool consentOverride)
         {
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEvent'");
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
             if (Key.Length > Configuration.MaxKeyLength) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength);
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal : Max allowed key length is " + Configuration.MaxKeyLength);
                 Key = Key.Substring(0, Configuration.MaxKeyLength);
             }
 
-            Segmentation segments = FixSegmentKeysAndValues(segmentation);
+            Segmentation segments = RemoveExtraSegments(segmentation);
+            segments = FixSegmentKeysAndValues(segments);
 
             long timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, segments, timestamp);
@@ -618,7 +619,11 @@ namespace CountlySDK.CountlyCommon
 
             TimeSpan run = DateTime.Now.Subtract(startTime);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, AppVersion, customInfo, DeviceData);
+            IDictionary<string, string> segmentation = RemoveExtraSegments(customInfo);
+
+            segmentation = FixSegmentKeysAndValues(segmentation);
+
+            ExceptionEvent eEvent = new ExceptionEvent(error, ManipulateStackTrace(stackTrace) ?? string.Empty, unhandled, breadcrumb, run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -640,6 +645,36 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
+
+        private string ManipulateStackTrace(string stackTrace)
+        {
+            string result = null;
+            if (!string.IsNullOrEmpty(stackTrace)) {
+                string[] lines = stackTrace.Split('\n');
+
+                int limit = lines.Length;
+
+                if (limit > Configuration.MaxStackTraceLinesPerThread) {
+                    limit = Configuration.MaxStackTraceLinesPerThread;
+                }
+
+                for (int i = 0; i < limit; ++i) {
+                    string line = lines[i];
+
+                    if (line.Length > Configuration.MaxStackTraceLineLength) {
+                        line = line.Substring(0, Configuration.MaxStackTraceLineLength);
+                    }
+
+                    if (i + 1 != limit) {
+                        line += '\n';
+                    }
+
+                    result += line;
+                }
+            }
+
+            return result;
+        }
         /// <summary>
         /// Uploads exceptions queue to Countly server
         /// </summary>
@@ -830,6 +865,7 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
             Debug.Assert(log != null);
+            string validLog = log.Length > Countly.Instance.Configuration.MaxValueSize ? log.Substring(0, Countly.Instance.Configuration.MaxValueSize) : log;
             Countly.Instance.breadcrumb += log + "\r\n";
         }
 
@@ -1222,39 +1258,39 @@ namespace CountlySDK.CountlyCommon
             return v;
         }
 
-        protected IDictionary<string, object> RemoveSegmentInvalidDataTypes(IDictionary<string, object> segments)
+        protected IDictionary<string, string> RemoveExtraSegments(IDictionary<string, string> segments)
         {
 
-            if (segments == null || segments.Count == 0) {
+            if (segments == null || segments.Count <= Configuration.MaxSegmentationValues) {
                 return segments;
             }
 
-            string moduleName = GetType().Name;
             int i = 0;
             List<string> toRemove = new List<string>();
-            foreach (KeyValuePair<string, object> item in segments) {
+            foreach (KeyValuePair<string, string> item in segments) {
                 if (++i > Configuration.MaxSegmentationValues) {
                     toRemove.Add(item.Key);
-                    continue;
-                }
-                Type type = item.Value?.GetType();
-                bool isValidDataType = item.Value != null
-                    && (type == typeof(int)
-                    || type == typeof(bool)
-                    || type == typeof(float)
-                    || type == typeof(double)
-                    || type == typeof(string));
-
-
-                if (!isValidDataType) {
-                    toRemove.Add(item.Key);
-                    UtilityHelper.CountlyLogging("[" + moduleName + "] RemoveSegmentInvalidDataTypes: In segmentation Data type '" + type + "' of item '" + item.Key + "' isn't valid.");
                 }
             }
 
             foreach (string k in toRemove) {
                 segments.Remove(k);
             }
+
+            return segments;
+        }
+
+        protected Segmentation RemoveExtraSegments(Segmentation segments)
+        {
+
+            if (segments == null || segments.segmentation.Count <= Configuration.MaxSegmentationValues) {
+                return segments;
+            }
+
+            while (segments.segmentation.Count > Configuration.MaxSegmentationValues) {
+                segments.segmentation.RemoveAt(Configuration.MaxSegmentationValues);
+            }
+
 
             return segments;
         }
@@ -1279,6 +1315,30 @@ namespace CountlySDK.CountlyCommon
                 if (v.GetType() == typeof(string)) {
                     v = TrimValue(k, v);
                 }
+
+                segmentation.Add(k, v);
+            }
+
+            return segmentation;
+        }
+
+        protected IDictionary<string, string> FixSegmentKeysAndValues(IDictionary<string, string> segments)
+        {
+            if (segments == null || segments.Count == 0) {
+                return segments;
+            }
+
+            IDictionary<string, string> segmentation = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, string> item in segments) {
+                string k = item.Key;
+                string v = item.Value;
+
+                if (k == null || v == null) {
+                    continue;
+                }
+
+                k = TrimKey(k);
+                v = TrimValue(k, v);
 
                 segmentation.Add(k, v);
             }
