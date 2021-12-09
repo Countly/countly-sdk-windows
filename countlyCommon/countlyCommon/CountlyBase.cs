@@ -619,7 +619,7 @@ namespace CountlySDK.CountlyCommon
 
             TimeSpan run = DateTime.Now.Subtract(startTime);
 
-            IDictionary<string, string> segmentation = RemoveExtraSegments(customInfo);
+            Dictionary<string, string> segmentation = RemoveExtraSegments(customInfo);
 
             segmentation = FixSegmentKeysAndValues(segmentation);
 
@@ -1248,6 +1248,16 @@ namespace CountlySDK.CountlyCommon
             return values;
         }
 
+        internal string TrimUrl(string v)
+        {
+            if (v.Length > 4096) {
+                UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimUrl : Max allowed length of 'PictureUrl' is " + Configuration.MaxValueSize);
+                v = v.Substring(0, 4096);
+            }
+
+            return v;
+        }
+
         internal string TrimValue(string fieldName, string v)
         {
             if (v != null && v.Length > Configuration.MaxValueSize) {
@@ -1258,7 +1268,7 @@ namespace CountlySDK.CountlyCommon
             return v;
         }
 
-        protected IDictionary<string, string> RemoveExtraSegments(IDictionary<string, string> segments)
+        protected Dictionary<string, string> RemoveExtraSegments(Dictionary<string, string> segments)
         {
 
             if (segments == null || segments.Count <= Configuration.MaxSegmentationValues) {
@@ -1322,13 +1332,13 @@ namespace CountlySDK.CountlyCommon
             return segmentation;
         }
 
-        protected IDictionary<string, string> FixSegmentKeysAndValues(IDictionary<string, string> segments)
+        internal Dictionary<string, string> FixSegmentKeysAndValues(Dictionary<string, string> segments)
         {
             if (segments == null || segments.Count == 0) {
                 return segments;
             }
 
-            IDictionary<string, string> segmentation = new Dictionary<string, string>();
+            Dictionary<string, string> segmentation = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> item in segments) {
                 string k = item.Key;
                 string v = item.Value;
