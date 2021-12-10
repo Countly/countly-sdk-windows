@@ -1,3 +1,6 @@
+21.11.0
+* Adding additional time and timezone related information to all requests
+
 20.11.0
 * Fixed bug that occurred while getting device and system information on restricted machines.
 * Removed deprecated function "EndSession"
