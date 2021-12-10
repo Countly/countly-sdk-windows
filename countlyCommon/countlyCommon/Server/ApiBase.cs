@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Server.Responses;
+using System.Globalization;
 
 namespace CountlySDK.CountlyCommon.Server
 {
@@ -42,14 +43,26 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}&sdk_version={4}&sdk_name={5}{6}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), sdkVersion, sdkName, userDetailsJson));
+
+            DateTime dateTime = DateTime.Now;
+
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&events={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}{9}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), sdkVersion, sdkName, hour, dayOfWeek, timezone, userDetailsJson));
         }
 
         public async Task<RequestResult> SendException(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, ExceptionEvent exception)
         {
             string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}&sdk_version={4}&sdk_name={5}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson), sdkVersion, sdkName));
+            DateTime dateTime = DateTime.Now;
+
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&crash={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson), sdkVersion, sdkName, hour, dayOfWeek, timezone));
         }
 
         public async Task<RequestResult> UploadUserDetails(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, CountlyUserDetails userDetails = null)
@@ -60,7 +73,12 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}&sdk_version={4}&sdk_name={5}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName));
+            DateTime dateTime = DateTime.Now;
+
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName, hour, dayOfWeek, timezone));
         }
 
         public async Task<RequestResult> UploadUserPicture(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, Stream imageStream, CountlyUserDetails userDetails = null)
@@ -71,7 +89,12 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
-            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName), imageStream);
+            DateTime dateTime = DateTime.Now;
+
+            int hour = dateTime.TimeOfDay.Hours;
+            int dayOfWeek = (int)dateTime.DayOfWeek;
+            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+            return await Call(String.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName, hour, dayOfWeek, timezone), imageStream);
         }
 
         public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request)
