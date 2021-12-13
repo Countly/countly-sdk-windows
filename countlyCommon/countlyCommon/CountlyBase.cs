@@ -20,7 +20,7 @@ namespace CountlySDK.CountlyCommon
         // Current version of the Count.ly SDK as a displayable string.
         protected const string sdkVersion = "20.11.0";
 
-        internal readonly CountlyConfig Configuration;
+        internal CountlyConfig Configuration;
 
         public abstract string sdkName();
 
@@ -793,6 +793,14 @@ namespace CountlySDK.CountlyCommon
         {
             UserDetails.isChanged = true;
 
+            UserDetails.Picture = Countly.Instance.TrimUrl("UserDetails.Picture");
+            UserDetails.Name = Countly.Instance.TrimValue("Name", UserDetails.Name);
+            UserDetails.Email = Countly.Instance.TrimValue("Email", UserDetails.Email);
+            UserDetails.Phone = Countly.Instance.TrimValue("Phone", UserDetails.Phone);
+            UserDetails.Gender = Countly.Instance.TrimValue("Gender", UserDetails.Gender);
+            UserDetails.Username = Countly.Instance.TrimValue("Username", UserDetails.Username);
+            UserDetails.Organization = Countly.Instance.TrimValue("Organization", UserDetails.Organization);
+            
             SaveUserDetails();
 
             await Upload();
@@ -961,6 +969,8 @@ namespace CountlySDK.CountlyCommon
                 config.serverUrl = config.serverUrl.Substring(0, config.serverUrl.Length - 1);
             }
 
+
+            Configuration = config;
 
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;

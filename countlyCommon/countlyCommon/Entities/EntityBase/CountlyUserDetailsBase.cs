@@ -66,8 +66,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             }
             set {
                 if (name != value) {
-                    name = Countly.Instance.TrimValue("Name", value);
-
+                    name = value;
                     NotifyDetailsChanged();
                 }
             }
@@ -86,8 +85,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             }
             set {
                 if (username != value) {
-                    username = Countly.Instance.TrimValue("Username", value);
-
+                    username = value;
                     NotifyDetailsChanged();
                 }
             }
@@ -106,8 +104,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             }
             set {
                 if (email != value) {
-                    email = Countly.Instance.TrimValue("Email", value);
-
+                    email = value;
                     NotifyDetailsChanged();
                 }
             }
@@ -126,8 +123,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             }
             set {
                 if (organization != value) {
-                    organization = Countly.Instance.TrimValue("Organization", value);
-
+                    organization = value;
                     NotifyDetailsChanged();
                 }
             }
@@ -146,8 +142,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             }
             set {
                 if (phone != value) {
-                    phone = Countly.Instance.TrimValue("Phone", value);
-
+                    phone = value;
                     NotifyDetailsChanged();
                 }
             }
@@ -166,8 +161,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             }
             set {
                 if (picture != value) {
-                    picture = Countly.Instance.TrimUrl(value);
-
+                    picture = value;
                     NotifyDetailsChanged();
                 }
             }
@@ -186,7 +180,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             }
             set {
                 if (gender != value) {
-                    gender = Countly.Instance.TrimValue("Gender", value);
+                    gender = value;
                     NotifyDetailsChanged();
                 }
             }
