@@ -47,7 +47,7 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
 
-
+            Countly.Instance.deferUpload = true;
 
             Dictionary<string, object> segments = new Dictionary<string, object>{
             { "key1", "value1"},
@@ -68,7 +68,7 @@ namespace TestProject_common
             Assert.Equal(23, model.Sum);
             Assert.Equal(1, model.Count);
             Assert.Equal(5, model.Duration);
-            Assert.Equal(5, model.Segmentation.segmentation.Count);
+            Assert.Equal(2, model.Segmentation.segmentation.Count);
 
             SegmentationItem item = model.Segmentation.segmentation[0];
             Assert.Equal("key1", item.Key);
