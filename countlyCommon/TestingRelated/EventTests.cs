@@ -49,12 +49,6 @@ namespace TestProject_common
 
             Countly.Instance.deferUpload = true;
 
-            Dictionary<string, object> segments = new Dictionary<string, object>{
-            { "key1", "value1"},
-            { "key2_00", "value2_00"},
-            { "key3_00", "value3"}
-            };
-
             Segmentation segm = new Segmentation();
             segm.Add("key1", "value1");
             segm.Add("key2_00", "value2_00");

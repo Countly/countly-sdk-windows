@@ -88,7 +88,7 @@ namespace CountlySDK.CountlyCommon
         // Used for thread-safe operations
         protected object sync = new object();
 
-        protected String breadcrumb = String.Empty;
+        internal readonly Queue<string> CrashBreadcrumbs = new Queue<string>();
 
         // Start session timestamp
         protected DateTime startTime;
@@ -663,7 +663,7 @@ namespace CountlySDK.CountlyCommon
 
             segmentation = FixSegmentKeysAndValues(segmentation);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, ManipulateStackTrace(stackTrace) ?? string.Empty, unhandled, breadcrumb, run, AppVersion, segmentation, DeviceData);
+            ExceptionEvent eEvent = new ExceptionEvent(error, ManipulateStackTrace(stackTrace) ?? string.Empty, unhandled, string.Join("\r\n", CrashBreadcrumbs), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -840,7 +840,7 @@ namespace CountlySDK.CountlyCommon
             UserDetails.Gender = Countly.Instance.TrimValue("Gender", UserDetails.Gender);
             UserDetails.Username = Countly.Instance.TrimValue("Username", UserDetails.Username);
             UserDetails.Organization = Countly.Instance.TrimValue("Organization", UserDetails.Organization);
-            
+
             SaveUserDetails();
 
             await Upload();
@@ -884,7 +884,7 @@ namespace CountlySDK.CountlyCommon
                 Events?.Clear();
                 Sessions?.Clear();
                 Exceptions?.Clear();
-                breadcrumb = String.Empty;
+                CrashBreadcrumbs.Clear();
                 DeviceData = new Device();
                 StoredRequests?.Clear();
 
@@ -914,7 +914,13 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
             Debug.Assert(log != null);
             string validLog = log.Length > Countly.Instance.Configuration.MaxValueSize ? log.Substring(0, Countly.Instance.Configuration.MaxValueSize) : log;
-            Countly.Instance.breadcrumb += log + "\r\n";
+
+
+            if (Countly.Instance.CrashBreadcrumbs.Count == Countly.Instance.Configuration.MaxBreadcrumbCount) {
+                Countly.Instance.CrashBreadcrumbs.Dequeue();
+            }
+
+            Countly.Instance.CrashBreadcrumbs.Enqueue(validLog);
         }
 
         public static async Task<String> GetDeviceId()

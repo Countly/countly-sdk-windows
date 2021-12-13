@@ -78,6 +78,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\CountlyTestCases.cs">
       <Link>CountlyTestCases.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\CrashTests.cs">
+      <Link>CrashTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\DataStructureSerializationTests.cs">
       <Link>DataStructureSerializationTests.cs</Link>
     </Compile>
