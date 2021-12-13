@@ -365,6 +365,13 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
+
+
+            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            }
+
             return Countly.Instance.RecordEventInternal(Key, 1, null, null, null, false);
         }
 
@@ -377,6 +384,12 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
+
+            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            }
+
             return Countly.Instance.RecordEventInternal(Key, Count, null, null, null, false);
         }
 
@@ -390,6 +403,12 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
+
+            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            }
+
             return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null, false);
         }
 
@@ -403,7 +422,17 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation, false);
+
+
+            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            }
+
+            Segmentation segments = Countly.Instance.RemoveExtraSegments(Segmentation);
+            segments = Countly.Instance.FixSegmentKeysAndValues(segments);
+
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, segments, false);
         }
 
         /// <summary>
@@ -417,7 +446,17 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation, false);
+
+
+            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            }
+
+            Segmentation segments = Countly.Instance.RemoveExtraSegments(Segmentation);
+            segments = Countly.Instance.FixSegmentKeysAndValues(segments);
+
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, segments, false);
         }
 
         /// <summary>
@@ -432,7 +471,16 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation, false);
+
+            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            }
+
+            Segmentation segments = Countly.Instance.RemoveExtraSegments(Segmentation);
+            segments = Countly.Instance.FixSegmentKeysAndValues(segments);
+
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, segments, false);
         }
 
         /// <summary>
@@ -450,16 +498,8 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
-            if (Key.Length > Configuration.MaxKeyLength) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal : Max allowed key length is " + Configuration.MaxKeyLength);
-                Key = Key.Substring(0, Configuration.MaxKeyLength);
-            }
-
-            Segmentation segments = RemoveExtraSegments(segmentation);
-            segments = FixSegmentKeysAndValues(segments);
-
             long timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
-            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, segments, timestamp);
+            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, segmentation, timestamp);
 
             bool saveSuccess = false;
             lock (sync) {

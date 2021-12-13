@@ -81,6 +81,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\DataStructureSerializationTests.cs">
       <Link>DataStructureSerializationTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\EventTests.cs">
+      <Link>EventTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\FlowControlTestCases.cs">
       <Link>FlowControlTestCases.cs</Link>
     </Compile>
@@ -95,6 +98,9 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\ThreadingTestCases.cs">
       <Link>ThreadingTestCases.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
+      <Link>ViewsTests.cs</Link>
     </Compile>
     <Compile Include="CountlyImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

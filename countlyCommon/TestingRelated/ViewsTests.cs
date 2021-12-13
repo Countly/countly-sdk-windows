@@ -12,12 +12,12 @@ using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace TestProject_common
 {
-    public class EventTests : IDisposable
+    public class ViewsTests : IDisposable
     {
         /// <summary>
         /// Test setup
         /// </summary>
-        public EventTests()
+        public ViewsTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
@@ -35,48 +35,39 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// It validates the limits key, value and segmentation of an event.
+        /// It validates the limit of the view's name size.
         /// </summary>
         public async void TestEventLimits()
         {
             CountlyConfig cc = TestHelper.CreateConfig();
-            cc.MaxKeyLength = 4;
-            cc.MaxValueSize = 6;
-            cc.MaxSegmentationValues = 2;
+            cc.MaxKeyLength = 5;
+
 
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
 
             Countly.Instance.deferUpload = true;
 
-            Dictionary<string, object> segments = new Dictionary<string, object>{
-            { "key1", "value1"},
-            { "key2_00", "value2_00"},
-            { "key3_00", "value3"}
-            };
-
-            Segmentation segm = new Segmentation();
-            segm.Add("key1", "value1");
-            segm.Add("key2_00", "value2_00");
-            segm.Add("key3_00", "value3");
-
-            bool res = await Countly.RecordEvent("test_event", 1, 23, 5.0, Segmentation: segm);
+            bool res = await Countly.Instance.RecordView("open_view");
             Assert.True(res);
 
             CountlyEvent model = Countly.Instance.Events[0];
-            Assert.Equal("test", model.Key);
-            Assert.Equal(23, model.Sum);
-            Assert.Equal(1, model.Count);
-            Assert.Equal(5, model.Duration);
-            Assert.Equal(2, model.Segmentation.segmentation.Count);
 
             SegmentationItem item = model.Segmentation.segmentation[0];
-            Assert.Equal("key1", item.Key);
-            Assert.Equal("value1", item.Value);
+            Assert.Equal("name", item.Key);
+            Assert.Equal("open_", item.Value);
 
             item = model.Segmentation.segmentation[1];
-            Assert.Equal("key2", item.Key);
-            Assert.Equal("value2", item.Value);
+            Assert.Equal("visit", item.Key);
+            Assert.Equal("1", item.Value);
+
+            item = model.Segmentation.segmentation[2];
+            Assert.Equal("segment", item.Key);
+            Assert.Equal("Windows", item.Value);
+
+            item = model.Segmentation.segmentation[3];
+            Assert.Equal("start", item.Key);
+            Assert.Equal("1", item.Value);
 
             Countly.Instance.SessionEnd().Wait();
 
