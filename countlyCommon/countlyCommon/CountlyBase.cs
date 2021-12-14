@@ -832,14 +832,19 @@ namespace CountlySDK.CountlyCommon
         protected async void OnUserDetailsChanged()
         {
             UserDetails.isChanged = true;
+            UserDetails.isNotificationEnabled = false;
 
-            UserDetails.Picture = Countly.Instance.TrimUrl("UserDetails.Picture");
+            UserDetails.Picture = Countly.Instance.TrimUrl(UserDetails.Picture);
             UserDetails.Name = Countly.Instance.TrimValue("Name", UserDetails.Name);
             UserDetails.Email = Countly.Instance.TrimValue("Email", UserDetails.Email);
             UserDetails.Phone = Countly.Instance.TrimValue("Phone", UserDetails.Phone);
             UserDetails.Gender = Countly.Instance.TrimValue("Gender", UserDetails.Gender);
             UserDetails.Username = Countly.Instance.TrimValue("Username", UserDetails.Username);
             UserDetails.Organization = Countly.Instance.TrimValue("Organization", UserDetails.Organization);
+
+            UserDetails._custom = Countly.Instance.FixSegmentKeysAndValues(UserDetails._custom);
+
+            UserDetails.isNotificationEnabled = true;
 
             SaveUserDetails();
 
@@ -1306,7 +1311,7 @@ namespace CountlySDK.CountlyCommon
 
         internal string TrimUrl(string v)
         {
-            if (v.Length > 4096) {
+            if (v != null && v.Length > 4096) {
                 UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimUrl : Max allowed length of 'PictureUrl' is " + Configuration.MaxValueSize);
                 v = v.Substring(0, 4096);
             }

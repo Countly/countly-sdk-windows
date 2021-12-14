@@ -35,11 +35,12 @@ namespace TestProject_common
 
         [Fact]
          /// <summary>
-        /// It validates the limit of total allowed bread crumbs.
+        /// It validates the limits of total allowed bread crumbs and size of a breadcrumb.
         /// </summary>
         public void TestLimitOfAllowedBreadCrumbs()
         {
             CountlyConfig cc = TestHelper.CreateConfig();
+            cc.MaxValueSize = 14;
             cc.MaxBreadcrumbCount = 5;
 
 
@@ -48,10 +49,10 @@ namespace TestProject_common
 
             Countly.AddBreadCrumb("bread_crumbs_1");
             Countly.AddBreadCrumb("bread_crumbs_2");
-            Countly.AddBreadCrumb("bread_crumbs_3");
+            Countly.AddBreadCrumb("bread_crumbs_3_");
             Countly.AddBreadCrumb("bread_crumbs_4");
             Countly.AddBreadCrumb("bread_crumbs_5");
-            Countly.AddBreadCrumb("bread_crumbs_6");
+            Countly.AddBreadCrumb("bread_crumbs_6_");
 
             Assert.Equal(5, Countly.Instance.CrashBreadcrumbs.Count);
 

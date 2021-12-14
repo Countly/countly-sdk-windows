@@ -50,7 +50,9 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
 
         protected void CallUserDetailsChanged()
         {
-            UserDetailsChanged?.Invoke();
+            if (isNotificationEnabled) {
+                UserDetailsChanged?.Invoke();
+            }
         }
 
         private string name;
@@ -240,11 +242,10 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         /// </summary>
         [JsonProperty("custom")]
         [DataMemberAttribute]
-        private Dictionary<string, string> _custom
+        internal Dictionary<string, string> _custom
         {
             get {
-                Dictionary<string, string> custom = Custom?.ToDictionary();
-                return Countly.Instance.FixSegmentKeysAndValues(custom);
+                return Custom?.ToDictionary();
             }
             set {
                 Custom = new CustomInfo();
@@ -265,6 +266,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
 
         [JsonIgnore]
         internal bool isNotified { get; set; }
+        internal bool isNotificationEnabled { get; set; }
 
         /// <summary>
         /// Needed for JSON deserialization
@@ -272,6 +274,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         public CountlyUserDetailsBase()
         {
             Custom = new CustomInfo();
+            isNotificationEnabled = true;
         }
 
         /// <summary>
