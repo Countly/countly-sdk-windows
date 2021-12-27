@@ -9,15 +9,12 @@ namespace CountlySDK.CountlyCommon.Server.Responses
     internal class RequestResult
     {
         public ResultResponse parsedResponse = null;
-        public String responseText = null;
+        public string responseText = null;
         public int responseCode = -1;
 
         public bool IsSuccess()
         {
-            if (parsedResponse != null) {
-                return parsedResponse.IsSuccess;
-            }
-            return false;
+            return responseText != null && responseText.Contains("result") && responseCode >= 200 && responseCode < 300;
         }
 
         public bool IsBadRequest()
