@@ -26,6 +26,10 @@ namespace CountlySDK.Helpers
 {
     internal class TimeHelper
     {
+
+        //variable to hold last used timestamp
+        private static long _lastMilliSecTimeStamp = 0;
+
         /// <summary>
         /// Converts DateTime to Unix time format
         /// </summary>
@@ -34,7 +38,15 @@ namespace CountlySDK.Helpers
         public static long ToUnixTime(DateTime date)
         {
             TimeSpan ts = date.Subtract(new DateTime(1970, 1, 1));
-            return (long)ts.TotalMilliseconds;
+            long calculatedMillis = (long)ts.TotalMilliseconds;
+
+            if (_lastMilliSecTimeStamp >= calculatedMillis) {
+                ++_lastMilliSecTimeStamp;
+            } else {
+                _lastMilliSecTimeStamp = calculatedMillis;
+            }
+            
+            return _lastMilliSecTimeStamp;
         }
 
         public static long UnixTimeNow()
