@@ -363,7 +363,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null, false);
+            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null);
         }
 
         /// <summary>
@@ -375,7 +375,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null);
         }
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null);
         }
 
         /// <summary>
@@ -401,7 +401,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation);
         }
 
         /// <summary>
@@ -415,7 +415,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation);
         }
 
         /// <summary>
@@ -430,7 +430,7 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation);
         }
 
         /// <summary>
@@ -440,13 +440,12 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Count">Count to associate with the event, should be more than zero</param>
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
-        /// <param name="consentOverride">set by views or other features which record their values by events</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, bool consentOverride)
+        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEvent'");
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
-            if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
+            if (!CheckConsentOnKey(Key)) { return true; }
 
             long timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timestamp);
@@ -462,6 +461,14 @@ namespace CountlySDK.CountlyCommon
             }
 
             return saveSuccess;
+        }
+
+        private bool CheckConsentOnKey(string key)
+        {
+            if (key.Equals(VIEW_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Views);
+            } else { return IsConsentGiven(ConsentFeatures.Events); }
+
         }
 
         /// <summary>
@@ -1142,7 +1149,7 @@ namespace CountlySDK.CountlyCommon
                 firstView = false;
                 segm.Add("start", "1");
             }
-            return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm, true);
+            return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
         }
 
         /// <summary>
@@ -1169,7 +1176,7 @@ namespace CountlySDK.CountlyCommon
                 segm.Add("dur", "" + timestampSeconds);
                 segm.Add("segment", "Windows");
 
-                await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm, true);
+                await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
 
                 lastView = null;
                 lastViewStart = 0;
