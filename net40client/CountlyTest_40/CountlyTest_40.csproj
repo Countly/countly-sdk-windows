@@ -102,6 +102,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ThreadingTestCases.cs">
       <Link>ThreadingTestCases.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\UserDetailTests .cs">
+      <Link>UserDetailTests .cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
       <Link>ViewsTests.cs</Link>
     </Compile>

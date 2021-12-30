@@ -663,7 +663,7 @@ namespace CountlySDK.CountlyCommon
 
             segmentation = FixSegmentKeysAndValues(segmentation);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, ManipulateStackTrace(stackTrace) ?? string.Empty, unhandled, string.Join("\r\n", CrashBreadcrumbs), run, AppVersion, segmentation, DeviceData);
+            ExceptionEvent eEvent = new ExceptionEvent(error, ManipulateStackTrace(stackTrace) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
