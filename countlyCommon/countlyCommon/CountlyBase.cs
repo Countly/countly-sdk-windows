@@ -467,7 +467,19 @@ namespace CountlySDK.CountlyCommon
         {
             if (key.Equals(VIEW_EVENT_KEY)) {
                 return IsConsentGiven(ConsentFeatures.Views);
-            } else { return IsConsentGiven(ConsentFeatures.Events); }
+            } else if (key.Equals(NPS_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Feedback);
+            } else if (key.Equals(SURVEY_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Feedback);
+            } else if (key.Equals(STAR_RATING_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.StarRating);
+            } else if (key.Equals(PUSH_ACTION_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Push);
+            } else if (key.Equals(ORIENTATION_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Users);
+            } else {
+                return IsConsentGiven(ConsentFeatures.Events);
+            }
 
         }
 
@@ -1024,8 +1036,11 @@ namespace CountlySDK.CountlyCommon
         internal bool consentRequired = false;
         internal Dictionary<ConsentFeatures, bool> givenConsent = new Dictionary<ConsentFeatures, bool>();
 
-        public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users, Views };
-
+        public enum ConsentFeatures
+        {
+            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback,
+            StarRating, RemoteConfig
+        };
         internal bool IsConsentGiven(ConsentFeatures feature)
         {
             Debug.Assert(givenConsent != null);
@@ -1114,10 +1129,15 @@ namespace CountlySDK.CountlyCommon
 
 
         //track views
-        private String lastView = null;
+        private string lastView = null;
         private long lastViewStart = 0;
         private bool firstView = true;
-        private const String VIEW_EVENT_KEY = "[CLY]_view";
+        private const string NPS_EVENT_KEY = "[CLY]_nps";
+        private const string VIEW_EVENT_KEY = "[CLY]_view";
+        private const string SURVEY_EVENT_KEY = "[CLY]_survey";
+        private const string STAR_RATING_EVENT_KEY = "[CLY]_star_rating";
+        private const string PUSH_ACTION_EVENT_KEY = "[CLY]_push_action";
+        private const string ORIENTATION_EVENT_KEY = "[CLY]_orientation";
 
         /// <summary>
         /// Records view
