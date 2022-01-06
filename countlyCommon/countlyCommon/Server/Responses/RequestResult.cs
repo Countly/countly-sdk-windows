@@ -1,21 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CountlySDK.Server.Responses;
 using Newtonsoft.Json.Linq;
 
 namespace CountlySDK.CountlyCommon.Server.Responses
 {
     internal class RequestResult
     {
-        public ResultResponse parsedResponse = null;
         public string responseText = null;
         public int responseCode = -1;
 
         public bool IsSuccess()
         {
-            return responseCode >= 200 && responseCode < 300 && responseText != null && JObject.Parse(responseText).ContainsKey("result");
+            if (!(responseCode >= 200 && responseCode < 300)) {
+                return false;
+            }
+
+            if (responseText == null || responseText.Length == 0) {
+                return false;
+            }
+
+            try {
+                return JObject.Parse(responseText).ContainsKey("result");
+            } catch (Exception e) { }
+
+            return false;
         }
 
         public bool IsBadRequest()
