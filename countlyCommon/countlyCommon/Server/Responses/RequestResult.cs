@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CountlySDK.Server.Responses;
+using Newtonsoft.Json.Linq;
 
 namespace CountlySDK.CountlyCommon.Server.Responses
 {
@@ -14,7 +15,7 @@ namespace CountlySDK.CountlyCommon.Server.Responses
 
         public bool IsSuccess()
         {
-            return responseText != null && responseText.Contains("result") && responseCode >= 200 && responseCode < 300;
+            return responseCode >= 200 && responseCode < 300 && responseText != null && JObject.Parse(responseText).ContainsKey("result");
         }
 
         public bool IsBadRequest()
