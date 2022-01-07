@@ -27,7 +27,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
-using CountlySDK.Server.Responses;
 using System.IO;
 using PCLStorage;
 using CountlySDK.CountlyCommon;
