@@ -36,13 +36,10 @@ namespace CountlySDK.Entities
         /// </summary>
         /// <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
-        public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null, long? duration = null)
+        public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long timestamp, long? duration = null)
         {
             DateTime dateTime = DateTime.Now;
-            if (timestamp == null) {
-                timestamp = TimeHelper.ToUnixTime(dateTime.ToUniversalTime());
-            }
-
+            
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;
             string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);

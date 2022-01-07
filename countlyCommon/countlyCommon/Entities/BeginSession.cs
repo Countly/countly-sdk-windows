@@ -38,14 +38,9 @@ namespace CountlySDK.Entities
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
         /// <param name="sdkVersion">SDK version string</param>
         /// <param name="metrics">Metrics parameters</param>
-        public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics, string sdkName, long? timestamp = null)
+        public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics, string sdkName, long timestamp)
         {
             DateTime dateTime = DateTime.Now;
-
-            if (timestamp == null) {
-                timestamp = TimeHelper.ToUnixTime(dateTime.ToUniversalTime());
-            }
-
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;
             string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);

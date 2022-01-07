@@ -93,13 +93,9 @@ namespace CountlySDK.CountlyCommon.Helpers
             return res;
         }
 
-        internal static string CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, long? timestamp = null)
+        internal static string CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, long timestamp)
         {
             DateTime dateTime = DateTime.Now;
-            ;
-            if (timestamp == null) {
-                timestamp = TimeHelper.ToUnixTime(dateTime.ToUniversalTime());
-            }
 
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;

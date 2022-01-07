@@ -37,12 +37,9 @@ namespace CountlySDK.Entities
         /// <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
         /// <param name="duration">Session duration in seconds</param>
-        public UpdateSession(string appKey, string deviceId, int duration, string sdkVersion, string sdkName, long? timestamp = null)
+        public UpdateSession(string appKey, string deviceId, int duration, string sdkVersion, string sdkName, long timestamp)
         {
             DateTime dateTime = DateTime.Now;
-            if (timestamp == null) {
-                timestamp = TimeHelper.ToUnixTime(dateTime.ToUniversalTime());
-            }
 
             int hour = dateTime.TimeOfDay.Hours;
             int dayOfWeek = (int)dateTime.DayOfWeek;

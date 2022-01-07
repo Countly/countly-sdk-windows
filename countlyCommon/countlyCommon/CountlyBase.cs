@@ -37,6 +37,8 @@ namespace CountlySDK.CountlyCommon
         // Indicates sync process with a server
         internal bool uploadInProgress;
 
+        internal TimeHelper timeHelper;
+
         //if stored event/sesstion/exception upload should be defered to a later time
         //if set to true, upload will not happen, but will just return "true"
         //data will still be saved in their respective files
@@ -146,9 +148,13 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("Session Update elapsed time: [" + elapsedTime + "]");
 
             Debug.Assert(elapsedTime != null);
-            lastSessionUpdateTime = DateTime.Now;
 
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName()));
+            DateTime dateTime = DateTime.Now;
+            lastSessionUpdateTime = dateTime;
+
+            long timestamp = timeHelper.ToUnixTime(dateTime.ToUniversalTime());
+
+            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName(), timestamp));
         }
 
         protected async Task EndSessionInternal()
@@ -157,8 +163,10 @@ namespace CountlySDK.CountlyCommon
             reportViewDuration();
 
             SessionTimerStop();
-            int elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), null, elapsedTime), true);
+            DateTime dateTime = DateTime.Now;
+            int elapsedTime = (int)dateTime.Subtract(lastSessionUpdateTime).TotalSeconds;
+            long timestamp = timeHelper.ToUnixTime(dateTime.ToUniversalTime());
+            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timestamp, elapsedTime), true);
         }
 
         /// <summary>
@@ -448,7 +456,7 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
-            long timestamp = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timestamp);
 
             bool saveSuccess = false;
@@ -863,8 +871,9 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             //create the required request
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion);
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timestamp);
             String lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
 
             //add the request to queue and upload it
@@ -910,6 +919,9 @@ namespace CountlySDK.CountlyCommon
             if (!IsServerURLCorrect(config.serverUrl)) { throw new ArgumentException("invalid server url"); }
             if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
             if (config.sessionUpdateInterval <= 0) { throw new ArgumentException("session update interval can't be less than 1 second"); }
+
+
+            timeHelper = new TimeHelper();
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {
@@ -1001,8 +1013,9 @@ namespace CountlySDK.CountlyCommon
                 //need server merge, therefore send special request
                 String oldId = await DeviceData.GetDeviceId();
 
+                long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
                 //create the required merge request
-                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion);
+                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion, timestamp);
                 String dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
 
                 //change device ID
@@ -1097,7 +1110,8 @@ namespace CountlySDK.CountlyCommon
         internal async Task SendConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsentChanges)
         {
             //create the required merge request
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion);
+            long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timestamp);
             String cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
 
             //add the request to queue and upload it
@@ -1132,7 +1146,7 @@ namespace CountlySDK.CountlyCommon
             reportViewDuration();
             lastView = viewName;
 
-            lastViewStart = TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            lastViewStart = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
             Segmentation segm = new Segmentation();
             segm.Add("name", viewName);
             segm.Add("visit", "1");
@@ -1163,7 +1177,7 @@ namespace CountlySDK.CountlyCommon
             //if the lastViewStart is equal to 0, the duration would be set to the current timestamp
             //and therefore will be ignored
             if (lastView != null && lastViewStart > 0) {
-                long timestampSeconds = (TimeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()) - lastViewStart) / 1000;
+                long timestampSeconds = (timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()) - lastViewStart) / 1000;
                 Segmentation segm = new Segmentation();
                 segm.Add("name", lastView);
                 segm.Add("dur", "" + timestampSeconds);

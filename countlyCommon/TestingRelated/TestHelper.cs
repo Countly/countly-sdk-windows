@@ -29,20 +29,20 @@ namespace TestProject_common
 
         public static string[] locales = new string[] { "pt-BR", "en-US", "nl-NL", "fr-CA", "de-DE", "th-TH", "ja-JP" };
 
-        public static BeginSession CreateBeginSession(int indexData, int indexMetrics, long? timestamp = null)
+        public static BeginSession CreateBeginSession(int indexData, int indexMetrics, long timestamp)
         {
             Metrics m = CreateMetrics(indexMetrics);
             BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m, v[indexData + 3], timestamp);
             return bs;
         }
 
-        public static EndSession CreateEndSession(int index, long? timestamp = null)
+        public static EndSession CreateEndSession(int index, long timestamp)
         {
             EndSession es = new EndSession(v[index + 0], v[index + 1], v[index + 2], v[index + 3], timestamp);
             return es;
         }
 
-        public static UpdateSession CreateUpdateSession(int indexData, int indexDuration, long? timestamp = null)
+        public static UpdateSession CreateUpdateSession(int indexData, int indexDuration, long timestamp)
         {
             UpdateSession us = new UpdateSession(v[indexData + 0], v[indexData + 1], iv[indexDuration], v[indexData + 2], v[indexData + 3], timestamp);
             return us;
@@ -214,20 +214,21 @@ namespace TestProject_common
 
         public static List<SessionEvent> CreateListSessions(int count)
         {
+            TimeHelper timeHelper = new TimeHelper();
             List<SessionEvent> sessionList = new List<SessionEvent>();
 
             for (int a = 0; a < count; a++) {
                 SessionEvent se;
                 switch (a % 3) {
                     case 0:
-                        se = TestHelper.CreateBeginSession(a % 5, a % 4);
+                        se = TestHelper.CreateBeginSession(a % 5, a % 4, timeHelper.UnixTimeNow());
                         break;
                     case 1:
-                        se = TestHelper.CreateEndSession(a % 5);
+                        se = TestHelper.CreateEndSession(a % 5, timeHelper.UnixTimeNow());
                         break;
                     case 2:
                     default:
-                        se = TestHelper.CreateUpdateSession(a % 5, a % 6);
+                        se = TestHelper.CreateUpdateSession(a % 5, a % 6, timeHelper.UnixTimeNow());
                         break;
                 }
 
