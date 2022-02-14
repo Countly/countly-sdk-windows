@@ -28,8 +28,8 @@ namespace TestProject_common
         [Fact]
         public void BaseRequestBasic()
         {
-            String req = RequestHelper.CreateBaseRequest("a", "b", "c", "d", 123);
-            Assert.Equal("/i?app_key=a&device_id=b&timestamp=123&sdk_version=c&sdk_name=d&hour=15&dow=4&tz=300", req);
+            String req = RequestHelper.CreateBaseRequest("a", "b", "c", "d", 1644833933262);
+            Assert.Equal("/i?app_key=a&device_id=b&timestamp=1644833933262&sdk_version=c&sdk_name=d&hour=15&dow=1&tz=300", req);
         }
 
         [Fact]

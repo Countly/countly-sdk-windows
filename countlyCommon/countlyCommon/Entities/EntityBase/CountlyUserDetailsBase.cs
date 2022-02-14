@@ -266,6 +266,8 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
 
         [JsonIgnore]
         internal bool isNotified { get; set; }
+
+        [JsonIgnore]
         internal bool isNotificationEnabled { get; set; }
 
         /// <summary>
