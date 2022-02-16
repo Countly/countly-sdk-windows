@@ -152,7 +152,7 @@ namespace CountlySDK.CountlyCommon
             DateTime dateTime = DateTime.Now;
             lastSessionUpdateTime = dateTime;
 
-            long timestamp = timeHelper.ToUnixTime(dateTime.ToUniversalTime());
+            long timestamp = timeHelper.GetUniqueUnixTime();
 
             await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName(), timestamp));
         }
@@ -165,7 +165,7 @@ namespace CountlySDK.CountlyCommon
             SessionTimerStop();
             DateTime dateTime = DateTime.Now;
             int elapsedTime = (int)dateTime.Subtract(lastSessionUpdateTime).TotalSeconds;
-            long timestamp = timeHelper.ToUnixTime(dateTime.ToUniversalTime());
+            long timestamp = timeHelper.GetUniqueUnixTime();
             await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timestamp, elapsedTime), true);
         }
 
@@ -456,7 +456,7 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
-            long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            long timestamp = timeHelper.GetUniqueUnixTime();
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timestamp);
 
             bool saveSuccess = false;
@@ -871,7 +871,7 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
-            long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            long timestamp = timeHelper.GetUniqueUnixTime();
             //create the required request
             String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timestamp);
             String lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
@@ -1013,7 +1013,7 @@ namespace CountlySDK.CountlyCommon
                 //need server merge, therefore send special request
                 String oldId = await DeviceData.GetDeviceId();
 
-                long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+                long timestamp = timeHelper.GetUniqueUnixTime();
                 //create the required merge request
                 String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion, timestamp);
                 String dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
@@ -1109,7 +1109,7 @@ namespace CountlySDK.CountlyCommon
         internal async Task SendConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsentChanges)
         {
             //create the required merge request
-            long timestamp = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            long timestamp = timeHelper.GetUniqueUnixTime();
             String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timestamp);
             String cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
 
@@ -1145,7 +1145,7 @@ namespace CountlySDK.CountlyCommon
             reportViewDuration();
             lastView = viewName;
 
-            lastViewStart = timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime());
+            lastViewStart = timeHelper.GetUniqueUnixTime();
             Segmentation segm = new Segmentation();
             segm.Add("name", viewName);
             segm.Add("visit", "1");
@@ -1176,7 +1176,7 @@ namespace CountlySDK.CountlyCommon
             //if the lastViewStart is equal to 0, the duration would be set to the current timestamp
             //and therefore will be ignored
             if (lastView != null && lastViewStart > 0) {
-                long timestampSeconds = (timeHelper.ToUnixTime(DateTime.Now.ToUniversalTime()) - lastViewStart) / 1000;
+                long timestampSeconds = (timeHelper.GetUniqueUnixTime() - lastViewStart) / 1000;
                 Segmentation segm = new Segmentation();
                 segm.Add("name", lastView);
                 segm.Add("dur", "" + timestampSeconds);

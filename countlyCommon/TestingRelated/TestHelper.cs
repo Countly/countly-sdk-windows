@@ -221,14 +221,14 @@ namespace TestProject_common
                 SessionEvent se;
                 switch (a % 3) {
                     case 0:
-                        se = TestHelper.CreateBeginSession(a % 5, a % 4, timeHelper.UnixTimeNow());
+                        se = TestHelper.CreateBeginSession(a % 5, a % 4, timeHelper.GetUniqueUnixTime());
                         break;
                     case 1:
-                        se = TestHelper.CreateEndSession(a % 5, timeHelper.UnixTimeNow());
+                        se = TestHelper.CreateEndSession(a % 5, timeHelper.GetUniqueUnixTime());
                         break;
                     case 2:
                     default:
-                        se = TestHelper.CreateUpdateSession(a % 5, a % 6, timeHelper.UnixTimeNow());
+                        se = TestHelper.CreateUpdateSession(a % 5, a % 6, timeHelper.GetUniqueUnixTime());
                         break;
                 }
 

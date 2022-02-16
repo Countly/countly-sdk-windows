@@ -123,13 +123,12 @@ namespace CountlySDK
 
         protected override async Task SessionBeginInternal()
         {
-            DateTime dateTime = DateTime.Now;
-            startTime = dateTime;
+            startTime = DateTime.Now;
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
 
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
-            long timestamp = timeHelper.ToUnixTime(dateTime.ToUniversalTime());
+            long timestamp = timeHelper.GetUniqueUnixTime();
             await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timestamp));
         }
 

@@ -42,18 +42,20 @@ namespace CountlySDK.Helpers
             TimeSpan ts = date.Subtract(new DateTime(1970, 1, 1));
             long calculatedMillis = (long)ts.TotalMilliseconds;
 
+            return calculatedMillis;
+        }
+
+        public long GetUniqueUnixTime()
+        {
+            long calculatedMillis =  ToUnixTime(DateTime.Now.ToUniversalTime());
+
             if (_lastMilliSecTimeStamp >= calculatedMillis) {
                 ++_lastMilliSecTimeStamp;
             } else {
                 _lastMilliSecTimeStamp = calculatedMillis;
             }
-            
-            return _lastMilliSecTimeStamp;
-        }
 
-        public long UnixTimeNow()
-        {
-            return ToUnixTime(DateTime.Now.ToUniversalTime());
+            return _lastMilliSecTimeStamp;
         }
     }
 }

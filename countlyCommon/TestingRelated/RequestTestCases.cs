@@ -30,6 +30,10 @@ namespace TestProject_common
         {
             String req = RequestHelper.CreateBaseRequest("a", "b", "c", "d", 123);
             Assert.Contains("/i?app_key=a&device_id=b&timestamp=123", req);
+
+            String req2 = RequestHelper.CreateBaseRequest("a", "b", "c", "d", 123);
+            Assert.Contains("/i?app_key=a&device_id=b&timestamp=", req2);
+            Assert.Contains("&sdk_version=c&sdk_name=d", req2);
         }
 
         [Fact]
