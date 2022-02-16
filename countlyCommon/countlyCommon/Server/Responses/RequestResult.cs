@@ -24,13 +24,5 @@ namespace CountlySDK.CountlyCommon.Server.Responses
 
             return false;
         }
-
-        public bool IsBadRequest()
-        {
-            if (responseCode == 400 || responseCode == 404) {
-                return true;
-            }
-            return false;
-        }
     }
 }
