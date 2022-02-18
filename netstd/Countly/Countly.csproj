@@ -47,7 +47,6 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs" Link="Helpers\UtilityHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\ApiBase.cs" Link="Server\ApiBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\RequestResult.cs" Link="Server\Responses\RequestResult.cs" />
-    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs" Link="Server\Responses\ResultResponse.cs" />
     <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs" Link="Entities\CountlyUserDetails.cs" />
     <Compile Include="..\..\pcl\Countly\Helpers\TimerHelper.cs" Link="Helpers\TimerHelper.cs" />
     <Compile Include="..\..\pcl\Countly\Server\Api.cs" Link="Server\Api.cs" />

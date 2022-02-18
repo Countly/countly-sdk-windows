@@ -2,7 +2,6 @@
 using CountlySDK.CountlyCommon.Server;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
-using CountlySDK.Server.Responses;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -139,7 +138,6 @@ namespace CountlySDK.CountlyCommon.Server
 
                 if (requestResult.responseText != null) {
                     UtilityHelper.CountlyLogging(requestResult.responseText);
-                    requestResult.parsedResponse = JsonConvert.DeserializeObject<ResultResponse>(requestResult.responseText);
                 } else {
                     UtilityHelper.CountlyLogging("Received null response");
                 }
