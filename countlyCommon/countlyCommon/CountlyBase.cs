@@ -424,13 +424,15 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
 
 
-            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+            CountlyConfig config = Countly.Instance.Configuration;
+            if (Key.Length > config.MaxKeyLength) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
                 Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
             }
 
-            Segmentation segments = Countly.Instance.RemoveExtraSegments(Segmentation);
-            segments = Countly.Instance.FixSegmentKeysAndValues(segments);
+            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
+            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
+            ;
 
             return Countly.Instance.RecordEventInternal(Key, Count, null, null, segments, false);
         }
@@ -447,14 +449,14 @@ namespace CountlySDK.CountlyCommon
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
 
-
+            CountlyConfig config = Countly.Instance.Configuration;
             if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
                 Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
             }
 
-            Segmentation segments = Countly.Instance.RemoveExtraSegments(Segmentation);
-            segments = Countly.Instance.FixSegmentKeysAndValues(segments);
+            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
+            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
 
             return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, segments, false);
         }
@@ -472,13 +474,14 @@ namespace CountlySDK.CountlyCommon
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
 
-            if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
+            CountlyConfig config = Countly.Instance.Configuration;
+            if (Key.Length > config.MaxKeyLength) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
                 Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
             }
 
-            Segmentation segments = Countly.Instance.RemoveExtraSegments(Segmentation);
-            segments = Countly.Instance.FixSegmentKeysAndValues(segments);
+            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
+            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
 
             return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, segments, false);
         }
@@ -659,9 +662,9 @@ namespace CountlySDK.CountlyCommon
 
             TimeSpan run = DateTime.Now.Subtract(startTime);
 
-            Dictionary<string, string> segmentation = RemoveExtraSegments(customInfo);
-
-            segmentation = FixSegmentKeysAndValues(segmentation);
+            CountlyConfig config = Countly.Instance.Configuration;
+            Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues);
+            segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize);
 
             ExceptionEvent eEvent = new ExceptionEvent(error, ManipulateStackTrace(stackTrace) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
 
@@ -834,15 +837,16 @@ namespace CountlySDK.CountlyCommon
             UserDetails.isChanged = true;
             UserDetails.isNotificationEnabled = false;
 
-            UserDetails.Picture = Countly.Instance.TrimUrl(UserDetails.Picture);
-            UserDetails.Name = Countly.Instance.TrimValue("Name", UserDetails.Name);
-            UserDetails.Email = Countly.Instance.TrimValue("Email", UserDetails.Email);
-            UserDetails.Phone = Countly.Instance.TrimValue("Phone", UserDetails.Phone);
-            UserDetails.Gender = Countly.Instance.TrimValue("Gender", UserDetails.Gender);
-            UserDetails.Username = Countly.Instance.TrimValue("Username", UserDetails.Username);
-            UserDetails.Organization = Countly.Instance.TrimValue("Organization", UserDetails.Organization);
 
-            UserDetails._custom = Countly.Instance.FixSegmentKeysAndValues(UserDetails._custom);
+            UserDetails.Picture = UtilityHelper.TrimUrl(UserDetails.Picture);
+            UserDetails.Name = UtilityHelper.TrimValue("Name", UserDetails.Name, Configuration.MaxValueSize);
+            UserDetails.Email = UtilityHelper.TrimValue("Email", UserDetails.Email, Configuration.MaxValueSize);
+            UserDetails.Phone = UtilityHelper.TrimValue("Phone", UserDetails.Phone, Configuration.MaxValueSize);
+            UserDetails.Gender = UtilityHelper.TrimValue("Gender", UserDetails.Gender, Configuration.MaxValueSize);
+            UserDetails.Username = UtilityHelper.TrimValue("Username", UserDetails.Username, Configuration.MaxValueSize);
+            UserDetails.Organization = UtilityHelper.TrimValue("Organization", UserDetails.Organization, Configuration.MaxValueSize);
+
+            UserDetails._custom = UtilityHelper.FixSegmentKeysAndValues(UserDetails._custom, Configuration.MaxKeyLength, Configuration.MaxValueSize);
 
             UserDetails.isNotificationEnabled = true;
 
@@ -1285,137 +1289,5 @@ namespace CountlySDK.CountlyCommon
                 lastViewStart = 0;
             }
         }
-
-        internal string TrimKey(string k)
-        {
-            if (k.Length > Configuration.MaxKeyLength) {
-                UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimKey : Max allowed key length is " + Configuration.MaxKeyLength + ". " + k + " will be truncated.");
-                k = k.Substring(0, Configuration.MaxKeyLength);
-            }
-
-            return k;
-        }
-
-        internal string[] TrimValues(string[] values)
-        {
-            for (int i = 0; i < values.Length; ++i) {
-                if (values[i].Length > Configuration.MaxValueSize) {
-                    UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimValues : Max allowed value length is " + Configuration.MaxKeyLength + ". " + values[i] + " will be truncated.");
-                    values[i] = values[i].Substring(0, Configuration.MaxValueSize);
-                }
-            }
-
-
-            return values;
-        }
-
-        internal string TrimUrl(string v)
-        {
-            if (v != null && v.Length > 4096) {
-                UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimUrl : Max allowed length of 'PictureUrl' is " + Configuration.MaxValueSize);
-                v = v.Substring(0, 4096);
-            }
-
-            return v;
-        }
-
-        internal string TrimValue(string fieldName, string v)
-        {
-            if (v != null && v.Length > Configuration.MaxValueSize) {
-                UtilityHelper.CountlyLogging("[" + GetType().Name + "] TrimValue : Max allowed '" + fieldName + "' length is " + Configuration.MaxValueSize + ". " + v + " will be truncated.");
-                v = v.Substring(0, Configuration.MaxValueSize);
-            }
-
-            return v;
-        }
-
-        protected Dictionary<string, string> RemoveExtraSegments(Dictionary<string, string> segments)
-        {
-
-            if (segments == null || segments.Count <= Configuration.MaxSegmentationValues) {
-                return segments;
-            }
-
-            int i = 0;
-            List<string> toRemove = new List<string>();
-            foreach (KeyValuePair<string, string> item in segments) {
-                if (++i > Configuration.MaxSegmentationValues) {
-                    toRemove.Add(item.Key);
-                }
-            }
-
-            foreach (string k in toRemove) {
-                segments.Remove(k);
-            }
-
-            return segments;
-        }
-
-        protected Segmentation RemoveExtraSegments(Segmentation segments)
-        {
-
-            if (segments == null || segments.segmentation.Count <= Configuration.MaxSegmentationValues) {
-                return segments;
-            }
-
-            while (segments.segmentation.Count > Configuration.MaxSegmentationValues) {
-                segments.segmentation.RemoveAt(Configuration.MaxSegmentationValues);
-            }
-
-
-            return segments;
-        }
-
-        internal Segmentation FixSegmentKeysAndValues(Segmentation segments)
-        {
-            if (segments == null || segments.segmentation.Count == 0) {
-                return segments;
-            }
-
-            Segmentation segmentation = new Segmentation();
-            foreach (SegmentationItem item in segments.segmentation) {
-                string k = item.Key;
-                string v = item.Value;
-
-                if (item.Key == null || item.Value == null) {
-                    continue;
-                }
-
-                k = TrimKey(k);
-
-                if (v.GetType() == typeof(string)) {
-                    v = TrimValue(k, v);
-                }
-
-                segmentation.Add(k, v);
-            }
-
-            return segmentation;
-        }
-
-        internal Dictionary<string, string> FixSegmentKeysAndValues(Dictionary<string, string> segments)
-        {
-            if (segments == null || segments.Count == 0) {
-                return segments;
-            }
-
-            Dictionary<string, string> segmentation = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> item in segments) {
-                string k = item.Key;
-                string v = item.Value;
-
-                if (k == null || v == null) {
-                    continue;
-                }
-
-                k = TrimKey(k);
-                v = TrimValue(k, v);
-
-                segmentation.Add(k, v);
-            }
-
-            return segmentation;
-        }
-
     }
 }

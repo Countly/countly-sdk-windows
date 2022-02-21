@@ -121,5 +121,135 @@ namespace CountlySDK.Helpers
             stream.Position = 0;
             return stream;
         }
+
+        internal static string TrimKey(string k, int maxKeyLength)
+        {
+            if (k.Length > maxKeyLength) {
+                UtilityHelper.CountlyLogging("[UtilityHelper] TrimKey : Max allowed key length is " + maxKeyLength + ". " + k + " will be truncated.");
+                k = k.Substring(0, maxKeyLength);
+            }
+
+            return k;
+        }
+
+        internal static string[] TrimValues(string[] values, int maxValueSize)
+        {
+            for (int i = 0; i < values.Length; ++i) {
+                if (values[i].Length > maxValueSize) {
+                    UtilityHelper.CountlyLogging("[UtilityHelper] TrimValues : Max allowed value length is " + maxValueSize + ". " + values[i] + " will be truncated.");
+                    values[i] = values[i].Substring(0, maxValueSize);
+                }
+            }
+
+
+            return values;
+        }
+
+        internal static string TrimUrl(string v)
+        {
+            if (v != null && v.Length > 4096) {
+                UtilityHelper.CountlyLogging("[UtilityHelper] TrimUrl : Max allowed length of 'PictureUrl' is 4096.");
+                v = v.Substring(0, 4096);
+            }
+
+            return v;
+        }
+
+        internal static string TrimValue(string fieldName, string v, int maxValueSize)
+        {
+            if (v != null && v.Length > maxValueSize) {
+                UtilityHelper.CountlyLogging("[UtilityHelper] TrimValue : Max allowed '" + fieldName + "' length is " + maxValueSize + ". " + v + " will be truncated.");
+                v = v.Substring(0, maxValueSize);
+            }
+
+            return v;
+        }
+
+        internal static Dictionary<string, string> RemoveExtraSegments(Dictionary<string, string> segments, int maxSegmentationValues)
+        {
+
+            if (segments == null || segments.Count <= maxSegmentationValues) {
+                return segments;
+            }
+
+            int i = 0;
+            List<string> toRemove = new List<string>();
+            foreach (KeyValuePair<string, string> item in segments) {
+                if (++i > maxSegmentationValues) {
+                    toRemove.Add(item.Key);
+                }
+            }
+
+            foreach (string k in toRemove) {
+                segments.Remove(k);
+            }
+
+            return segments;
+        }
+
+        internal static Segmentation RemoveExtraSegments(Segmentation segments, int maxSegmentationValues)
+        {
+
+            if (segments == null || segments.segmentation.Count <= maxSegmentationValues) {
+                return segments;
+            }
+
+            while (segments.segmentation.Count > maxSegmentationValues) {
+                segments.segmentation.RemoveAt(maxSegmentationValues);
+            }
+
+            return segments;
+        }
+
+        internal static Segmentation FixSegmentKeysAndValues(Segmentation segments, int maxKeyLength, int maxValueSize)
+        {
+            if (segments == null || segments.segmentation.Count == 0) {
+                return segments;
+            }
+
+            Segmentation segmentation = new Segmentation();
+            foreach (SegmentationItem item in segments.segmentation) {
+                string k = item.Key;
+                string v = item.Value;
+
+                if (item.Key == null || item.Value == null) {
+                    continue;
+                }
+
+                k = TrimKey(k, maxKeyLength);
+
+                if (v.GetType() == typeof(string)) {
+                    v = TrimValue(k, v, maxValueSize);
+                }
+
+                segmentation.Add(k, v);
+            }
+
+            return segmentation;
+        }
+
+        internal static Dictionary<string, string> FixSegmentKeysAndValues(Dictionary<string, string> segments, int maxKeyLength, int maxValueSize)
+        {
+            if (segments == null || segments.Count == 0) {
+                return segments;
+            }
+
+            Dictionary<string, string> segmentation = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, string> item in segments) {
+                string k = item.Key;
+                string v = item.Value;
+
+                if (k == null || v == null) {
+                    continue;
+                }
+
+                k = TrimKey(k, maxKeyLength);
+                v = TrimValue(k, v, maxValueSize);
+
+                segmentation.Add(k, v);
+            }
+
+            return segmentation;
+        }
     }
 }
