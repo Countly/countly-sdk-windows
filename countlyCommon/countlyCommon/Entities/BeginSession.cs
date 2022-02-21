@@ -40,12 +40,11 @@ namespace CountlySDK.Entities
         /// <param name="metrics">Metrics parameters</param>
         public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics, string sdkName, long timestamp)
         {
-            DateTime dateTime = DateTime.Now;
-            int hour = dateTime.TimeOfDay.Hours;
-            int dayOfWeek = (int)dateTime.DayOfWeek;
-            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+            TimeHelper.TimeInstant instant = TimeHelper.TimeInstant.Get(timestamp);
+            string timezone = instant.Timezone.ToString(CultureInfo.InvariantCulture);
+
             string metricsString = UtilityHelper.EncodeDataForURL(metrics.ToString());
-            Content = string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, sdkVersion, metricsString, timestamp, sdkName, hour, dayOfWeek, timezone);
+            Content = string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, sdkVersion, metricsString, timestamp, sdkName, instant.Hour, instant.Dow, timezone);
         }
 
         /// <summary>

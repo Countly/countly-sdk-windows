@@ -21,11 +21,58 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Globalization;
 
 namespace CountlySDK.Helpers
 {
     internal class TimeHelper
     {
+
+        internal class TimeInstant
+        {
+            public int Dow { get; private set; }
+            public int Hour { get; private set; }
+            public int Timezone { get; private set; }
+            public long Timestamp { get; private set; }
+
+            
+
+            internal TimeInstant()
+            {
+                DateTime dateTime = DateTime.Now;
+
+                Dow = (int)dateTime.DayOfWeek;
+                Hour = dateTime.TimeOfDay.Hours;
+
+                TimeSpan ts = dateTime.Subtract(new DateTime(1970, 1, 1));
+                Timestamp = (long)ts.TotalMilliseconds;
+
+                Timezone = (int)TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes;
+            }
+
+            internal TimeInstant(long timestampInMillis, int hour, int dow)
+            {
+                Dow = dow;
+                Hour = hour;
+                Timestamp = timestampInMillis;
+            }
+
+            internal static TimeInstant Get(long timestampInMillis)
+            {
+                if (timestampInMillis < 0L) {
+                    throw new ArgumentException("timestampInMillis must be greater than or equal to zero");
+                }
+
+                TimeSpan time = TimeSpan.FromMilliseconds(timestampInMillis);
+                DateTime dateTime = new DateTime(1970, 1, 1) + time;
+
+                long timestamp = timestampInMillis;
+                int dow = (int)dateTime.DayOfWeek;
+                int hour = dateTime.TimeOfDay.Hours;
+
+                return new TimeInstant(timestamp, hour, dow);
+            }
+        }
 
         //variable to hold last used timestamp
         private long _lastMilliSecTimeStamp = 0;

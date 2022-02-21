@@ -39,12 +39,10 @@ namespace CountlySDK.Entities
         /// <param name="duration">Session duration in seconds</param>
         public UpdateSession(string appKey, string deviceId, int duration, string sdkVersion, string sdkName, long timestamp)
         {
-            DateTime dateTime = DateTime.Now;
+            TimeHelper.TimeInstant instant = TimeHelper.TimeInstant.Get(timestamp);
+            string timezone = instant.Timezone.ToString(CultureInfo.InvariantCulture);
 
-            int hour = dateTime.TimeOfDay.Hours;
-            int dayOfWeek = (int)dateTime.DayOfWeek;
-            string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
-            Content = string.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, duration, timestamp, sdkVersion, sdkName, hour, dayOfWeek, timezone);
+            Content = string.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, duration, timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, timezone);
         }
 
         [JsonConstructor]
