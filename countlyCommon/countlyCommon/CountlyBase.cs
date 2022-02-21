@@ -802,7 +802,7 @@ namespace CountlySDK.CountlyCommon
                 userDetails = null;//set it null so that it can be loaded from the file system (if needed)
 
                 consentRequired = false;
-                givenConsent = new Dictionary<ConsentFeatures, bool>();
+                givenConsent.Clear();
             }
             await Storage.Instance.DeleteFile(eventsFilename);
             await Storage.Instance.DeleteFile(sessionsFilename);
@@ -1075,6 +1075,8 @@ namespace CountlySDK.CountlyCommon
                 if (!containsOld || oldV != newV) {
                     //if there is no entry about this feature, of the consent has changed, update the value
                     valuesToUpdate[entry.Key] = newV;
+                    //mark changes locally
+                    givenConsent[entry.Key] = newV;
                 }
             }
 
