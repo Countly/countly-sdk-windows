@@ -81,6 +81,18 @@ namespace CountlySDK.CountlyCommon.Helpers
                     case ConsentFeatures.Views:
                         consentChanges += "\"views\":" + (feature.Value ? "true" : "false");
                         break;
+                    case ConsentFeatures.Feedback:
+                        consentChanges += "\"feedback\":" + (feature.Value ? "true" : "false");
+                        break;
+                    case ConsentFeatures.StarRating:
+                        consentChanges += "\"star-rating\":" + (feature.Value ? "true" : "false");
+                        break;
+                    case ConsentFeatures.Push:
+                        consentChanges += "\"push\":" + (feature.Value ? "true" : "false");
+                        break;
+                    case ConsentFeatures.RemoteConfig:
+                        consentChanges += "\"remote-config\":" + (feature.Value ? "true" : "false");
+                        break;
                     default:
                         consentChanges += "\"unknown\":false";
                         break;
