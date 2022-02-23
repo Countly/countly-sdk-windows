@@ -1038,8 +1038,7 @@ namespace CountlySDK.CountlyCommon
 
         public enum ConsentFeatures
         {
-            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback,
-            StarRating, RemoteConfig
+            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig
         };
         internal bool IsConsentGiven(ConsentFeatures feature)
         {
