@@ -423,7 +423,6 @@ namespace CountlySDK.CountlyCommon
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
 
-
             CountlyConfig config = Countly.Instance.Configuration;
             if (Key.Length > config.MaxKeyLength) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
@@ -432,7 +431,6 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-            ;
 
             return Countly.Instance.RecordEventInternal(Key, Count, null, null, segments, false);
         }
@@ -666,7 +664,7 @@ namespace CountlySDK.CountlyCommon
             Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues);
             segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, ManipulateStackTrace(stackTrace) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
+            ExceptionEvent eEvent = new ExceptionEvent(error, UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -688,36 +686,6 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-
-        private string ManipulateStackTrace(string stackTrace)
-        {
-            string result = null;
-            if (!string.IsNullOrEmpty(stackTrace)) {
-                string[] lines = stackTrace.Split('\n');
-
-                int limit = lines.Length;
-
-                if (limit > Configuration.MaxStackTraceLinesPerThread) {
-                    limit = Configuration.MaxStackTraceLinesPerThread;
-                }
-
-                for (int i = 0; i < limit; ++i) {
-                    string line = lines[i];
-
-                    if (line.Length > Configuration.MaxStackTraceLineLength) {
-                        line = line.Substring(0, Configuration.MaxStackTraceLineLength);
-                    }
-
-                    if (i + 1 != limit) {
-                        line += '\n';
-                    }
-
-                    result += line;
-                }
-            }
-
-            return result;
-        }
         /// <summary>
         /// Uploads exceptions queue to Countly server
         /// </summary>
@@ -837,7 +805,6 @@ namespace CountlySDK.CountlyCommon
             UserDetails.isChanged = true;
             UserDetails.isNotificationEnabled = false;
 
-
             UserDetails.Picture = UtilityHelper.TrimUrl(UserDetails.Picture);
             UserDetails.Name = UtilityHelper.TrimValue("Name", UserDetails.Name, Configuration.MaxValueSize);
             UserDetails.Email = UtilityHelper.TrimValue("Email", UserDetails.Email, Configuration.MaxValueSize);
@@ -923,7 +890,6 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
             Debug.Assert(log != null);
             string validLog = log.Length > Countly.Instance.Configuration.MaxValueSize ? log.Substring(0, Countly.Instance.Configuration.MaxValueSize) : log;
-
 
             if (Countly.Instance.CrashBreadcrumbs.Count == Countly.Instance.Configuration.MaxBreadcrumbCount) {
                 Countly.Instance.CrashBreadcrumbs.Dequeue();
@@ -1024,9 +990,7 @@ namespace CountlySDK.CountlyCommon
                 config.serverUrl = config.serverUrl.Substring(0, config.serverUrl.Length - 1);
             }
 
-
             Configuration = config;
-
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
             AppVersion = config.appVersion;

@@ -12,12 +12,12 @@ using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace TestProject_common
 {
-    public class UserDetailTests  : IDisposable
+    public class UserDetailsTests : IDisposable
     {
         /// <summary>
         /// Test setup
         /// </summary>
-        public UserDetailTests ()
+        public UserDetailsTests ()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();

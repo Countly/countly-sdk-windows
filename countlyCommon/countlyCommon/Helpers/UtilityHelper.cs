@@ -251,5 +251,35 @@ namespace CountlySDK.Helpers
 
             return segmentation;
         }
+
+        internal static string ManipulateStackTrace(string stackTrace, int maxStackTraceLinesPerThread, int maxStackTraceLineLength)
+        {
+            string result = null;
+            if (!string.IsNullOrEmpty(stackTrace)) {
+                string[] lines = stackTrace.Split('\n');
+
+                int limit = lines.Length;
+
+                if (limit > maxStackTraceLinesPerThread) {
+                    limit = maxStackTraceLinesPerThread;
+                }
+
+                for (int i = 0; i < limit; ++i) {
+                    string line = lines[i];
+
+                    if (line.Length > maxStackTraceLineLength) {
+                        line = line.Substring(0, maxStackTraceLineLength);
+                    }
+
+                    if (i + 1 != limit) {
+                        line += '\n';
+                    }
+
+                    result += line;
+                }
+            }
+
+            return result;
+        }
     }
 }
