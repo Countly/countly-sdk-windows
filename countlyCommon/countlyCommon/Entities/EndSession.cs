@@ -25,6 +25,7 @@ using Newtonsoft.Json;
 using System;
 using System.Globalization;
 using System.Runtime.Serialization;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.Entities
 {
@@ -36,18 +37,15 @@ namespace CountlySDK.Entities
         /// </summary>
         /// <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
-        public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, long timestamp, long? duration = null)
+        public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, TimeInstant timeInstant, long? duration = null)
         {
-            TimeHelper.TimeInstant instant = TimeHelper.TimeInstant.Get(timestamp);
-            string timezone = instant.Timezone.ToString(CultureInfo.InvariantCulture);
-
             string durationAddition = "";
             if (duration != null && duration > 0) {
                 duration = Math.Min(duration.Value, 60);
                 durationAddition = string.Format("&session_duration={0}", duration.Value);
             }
 
-            Content = string.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}", appKey, deviceId, timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, timezone, durationAddition);
+            Content = string.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}", appKey, deviceId, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, durationAddition);
         }
 
         [JsonConstructor]

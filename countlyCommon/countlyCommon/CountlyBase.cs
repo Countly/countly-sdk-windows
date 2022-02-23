@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Server.Responses;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon
 {
@@ -152,9 +153,8 @@ namespace CountlySDK.CountlyCommon
             DateTime dateTime = DateTime.Now;
             lastSessionUpdateTime = dateTime;
 
-            long timestamp = timeHelper.GetUniqueUnixTime();
-
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName(), timestamp));
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName(), timeInstant));
         }
 
         protected async Task EndSessionInternal()
@@ -165,8 +165,9 @@ namespace CountlySDK.CountlyCommon
             SessionTimerStop();
             DateTime dateTime = DateTime.Now;
             int elapsedTime = (int)dateTime.Subtract(lastSessionUpdateTime).TotalSeconds;
-            long timestamp = timeHelper.GetUniqueUnixTime();
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timestamp, elapsedTime), true);
+
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, elapsedTime), true);
         }
 
         /// <summary>
@@ -456,8 +457,8 @@ namespace CountlySDK.CountlyCommon
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
 
-            long timestamp = timeHelper.GetUniqueUnixTime();
-            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timestamp);
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timeInstant.Timestamp);
 
             bool saveSuccess = false;
             lock (sync) {
@@ -871,9 +872,9 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
-            long timestamp = timeHelper.GetUniqueUnixTime();
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             //create the required request
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timestamp);
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timeInstant);
             String lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
 
             //add the request to queue and upload it
@@ -1013,9 +1014,9 @@ namespace CountlySDK.CountlyCommon
                 //need server merge, therefore send special request
                 String oldId = await DeviceData.GetDeviceId();
 
-                long timestamp = timeHelper.GetUniqueUnixTime();
+                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
                 //create the required merge request
-                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion, timestamp);
+                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion, timeInstant);
                 String dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
 
                 //change device ID
@@ -1109,8 +1110,8 @@ namespace CountlySDK.CountlyCommon
         internal async Task SendConsentChanges(Dictionary<ConsentFeatures, bool> updatedConsentChanges)
         {
             //create the required merge request
-            long timestamp = timeHelper.GetUniqueUnixTime();
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timestamp);
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timeInstant);
             String cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
 
             //add the request to queue and upload it
@@ -1145,7 +1146,7 @@ namespace CountlySDK.CountlyCommon
             reportViewDuration();
             lastView = viewName;
 
-            lastViewStart = timeHelper.GetUniqueUnixTime();
+            lastViewStart = timeHelper.GetUniqueInstant().Timestamp;
             Segmentation segm = new Segmentation();
             segm.Add("name", viewName);
             segm.Add("visit", "1");
@@ -1176,7 +1177,7 @@ namespace CountlySDK.CountlyCommon
             //if the lastViewStart is equal to 0, the duration would be set to the current timestamp
             //and therefore will be ignored
             if (lastView != null && lastViewStart > 0) {
-                long timestampSeconds = (timeHelper.GetUniqueUnixTime() - lastViewStart) / 1000;
+                long timestampSeconds = (timeHelper.GetUniqueInstant().Timestamp - lastViewStart) / 1000;
                 Segmentation segm = new Segmentation();
                 segm.Add("name", lastView);
                 segm.Add("dur", "" + timestampSeconds);

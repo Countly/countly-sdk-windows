@@ -32,7 +32,7 @@ namespace CountlySDK.Helpers
         {
             public int Dow { get; private set; }
             public int Hour { get; private set; }
-            public int Timezone { get; private set; }
+            public string Timezone { get; private set; }
             public long Timestamp { get; private set; }
 
             
@@ -47,13 +47,14 @@ namespace CountlySDK.Helpers
                 TimeSpan ts = dateTime.Subtract(new DateTime(1970, 1, 1));
                 Timestamp = (long)ts.TotalMilliseconds;
 
-                Timezone = (int)TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes;
+                Timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
             }
 
-            internal TimeInstant(long timestampInMillis, int hour, int dow)
+            internal TimeInstant(long timestampInMillis, int hour, int dow, string timezone)
             {
                 Dow = dow;
                 Hour = hour;
+                Timezone = timezone;
                 Timestamp = timestampInMillis;
             }
 
@@ -69,8 +70,9 @@ namespace CountlySDK.Helpers
                 long timestamp = timestampInMillis;
                 int dow = (int)dateTime.DayOfWeek;
                 int hour = dateTime.TimeOfDay.Hours;
+                string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
 
-                return new TimeInstant(timestamp, hour, dow);
+                return new TimeInstant(timestamp, hour, dow, timezone);
             }
         }
 
@@ -92,9 +94,10 @@ namespace CountlySDK.Helpers
             return calculatedMillis;
         }
 
-        public long GetUniqueUnixTime()
+        public TimeInstant GetUniqueInstant()
         {
-            long calculatedMillis =  ToUnixTime(DateTime.Now.ToUniversalTime());
+            TimeInstant timeInstant = new TimeInstant();
+            long calculatedMillis = timeInstant.Timestamp;
 
             if (_lastMilliSecTimeStamp >= calculatedMillis) {
                 ++_lastMilliSecTimeStamp;
@@ -102,7 +105,7 @@ namespace CountlySDK.Helpers
                 _lastMilliSecTimeStamp = calculatedMillis;
             }
 
-            return _lastMilliSecTimeStamp;
+            return timeInstant;
         }
     }
 }

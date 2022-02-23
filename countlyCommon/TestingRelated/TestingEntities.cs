@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Xunit;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
 {
@@ -35,7 +36,7 @@ namespace TestProject_common
         {
             TimeHelper timeHelper = new TimeHelper();
             for (int i = 0; i < 3; i++) {
-                long ts = timeHelper.GetUniqueUnixTime();
+                TimeInstant ts = timeHelper.GetUniqueInstant();
                 BeginSession bs0 = TestHelper.CreateBeginSession(i, i, ts);
                 BeginSession bs1 = TestHelper.CreateBeginSession(i, i, ts);
                 BeginSession bs2 = TestHelper.CreateBeginSession(i + 1, i, ts);
@@ -65,7 +66,7 @@ namespace TestProject_common
         public void ComparingEntitiesSessionNull()
         {
             TimeHelper timeHelper = new TimeHelper();
-            long ts = timeHelper.GetUniqueUnixTime();
+            TimeInstant ts = timeHelper.GetUniqueInstant();
             BeginSession bs0 = TestHelper.CreateBeginSession(0, 0, ts);
             BeginSession bs1 = TestHelper.CreateBeginSession(0, 0, ts);
             bs1.Content = bs0.Content;
@@ -651,9 +652,7 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesStoredRequest()
         {
-            TimeHelper timeHelper = new TimeHelper();
             for (int i = 0; i < 3; i++) {
-                long ts = timeHelper.GetUniqueUnixTime();
                 StoredRequest sr1 = TestHelper.CreateStoredRequest(i);
                 StoredRequest sr2 = TestHelper.CreateStoredRequest(i);
                 StoredRequest sr3 = TestHelper.CreateStoredRequest(i + 1);
@@ -666,8 +665,6 @@ namespace TestProject_common
         [Fact]
         public void ComparingEntitiesStoredRequestNull()
         {
-            TimeHelper timeHelper = new TimeHelper();
-            long ts = timeHelper.GetUniqueUnixTime();
             StoredRequest sr1 = TestHelper.CreateStoredRequest(0);
             StoredRequest sr2 = TestHelper.CreateStoredRequest(0);
 
@@ -688,17 +685,17 @@ namespace TestProject_common
         public void SerializingEntitiesSession()
         {
             TimeHelper timeHelper = new TimeHelper();
-            BeginSession bs = TestHelper.CreateBeginSession(0, 0, timeHelper.GetUniqueUnixTime());
+            BeginSession bs = TestHelper.CreateBeginSession(0, 0, timeHelper.GetUniqueInstant());
             String s1 = JsonConvert.SerializeObject(bs);
             BeginSession bs2 = JsonConvert.DeserializeObject<BeginSession>(s1);
             Assert.Equal(bs.Content, bs2.Content);
 
-            EndSession es = TestHelper.CreateEndSession(0, timeHelper.GetUniqueUnixTime());
+            EndSession es = TestHelper.CreateEndSession(0, timeHelper.GetUniqueInstant());
             String s2 = JsonConvert.SerializeObject(es);
             EndSession es2 = JsonConvert.DeserializeObject<EndSession>(s2);
             Assert.Equal(es.Content, es2.Content);
 
-            UpdateSession us = TestHelper.CreateUpdateSession(0, 0, timeHelper.GetUniqueUnixTime());
+            UpdateSession us = TestHelper.CreateUpdateSession(0, 0, timeHelper.GetUniqueInstant());
             String s3 = JsonConvert.SerializeObject(us);
             UpdateSession us2 = JsonConvert.DeserializeObject<UpdateSession>(s3);
             Assert.Equal(us.Content, us2.Content);

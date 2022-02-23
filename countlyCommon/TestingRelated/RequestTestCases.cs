@@ -1,10 +1,12 @@
 ﻿using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
 {
@@ -28,29 +30,29 @@ namespace TestProject_common
         [Fact]
         public void BaseRequestBasic()
         {
-            String req = RequestHelper.CreateBaseRequest("a", "b", "c", "d", 123);
-            Assert.Contains("/i?app_key=a&device_id=b&timestamp=123", req);
+            TimeHelper timeHelper = new TimeHelper();
+            TimeInstant instant = timeHelper.GetUniqueInstant();
+            string req = RequestHelper.CreateBaseRequest("a", "b", "c", "d", instant);
+            string expected = string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}", "a", "b", instant.Timestamp, "c", "d", instant.Hour, instant.Dow, instant.Timezone);
 
-            String req2 = RequestHelper.CreateBaseRequest("a", "b", "c", "d", 123);
-            Assert.Contains("/i?app_key=a&device_id=b&timestamp=", req2);
-            Assert.Contains("&sdk_version=c&sdk_name=d", req2);
+            Assert.Contains(expected, req);
         }
 
         [Fact]
         public void LocationRequestBasic()
         {
-            String res2 = RequestHelper.CreateLocationRequest("asd");
+            string res2 = RequestHelper.CreateLocationRequest("asd");
             Assert.Null(res2);
 
-            String res3 = RequestHelper.CreateLocationRequest("asd", null, null, null, null);
+            string res3 = RequestHelper.CreateLocationRequest("asd", null, null, null, null);
             Assert.Null(res3);
         }
 
         [Fact]
         public void LocationRequestSimple()
         {
-            String br = "asd";
-            String res;
+            string br = "asd";
+            string res;
             res = RequestHelper.CreateLocationRequest(br, null, null, null, null);
             Assert.Null(res);
 

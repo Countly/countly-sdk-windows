@@ -127,9 +127,9 @@ namespace CountlySDK
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
 
-            long timestamp = timeHelper.GetUniqueUnixTime();
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);            
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timestamp));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
         }
 
         /// <summary>

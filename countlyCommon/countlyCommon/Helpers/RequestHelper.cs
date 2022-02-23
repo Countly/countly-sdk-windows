@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using static CountlySDK.CountlyCommon.CountlyBase;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon.Helpers
 {
@@ -93,12 +94,9 @@ namespace CountlySDK.CountlyCommon.Helpers
             return res;
         }
 
-        internal static string CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, long timestamp)
+        internal static string CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, TimeInstant instant)
         {
-            TimeHelper.TimeInstant instant = TimeHelper.TimeInstant.Get(timestamp);
-            string timezone = instant.Timezone.ToString(CultureInfo.InvariantCulture);
-
-            return string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}", appKey, deviceId, timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, timezone);
+            return string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}", appKey, deviceId, instant.Timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, instant.Timezone);
         }
     }
 }

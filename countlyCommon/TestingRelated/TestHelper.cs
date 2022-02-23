@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
 {
@@ -29,22 +30,22 @@ namespace TestProject_common
 
         public static string[] locales = new string[] { "pt-BR", "en-US", "nl-NL", "fr-CA", "de-DE", "th-TH", "ja-JP" };
 
-        public static BeginSession CreateBeginSession(int indexData, int indexMetrics, long timestamp)
+        public static BeginSession CreateBeginSession(int indexData, int indexMetrics, TimeInstant timeInstant)
         {
             Metrics m = CreateMetrics(indexMetrics);
-            BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m, v[indexData + 3], timestamp);
+            BeginSession bs = new BeginSession(v[indexData + 0], v[indexData + 1], v[indexData + 2], m, v[indexData + 3], timeInstant);
             return bs;
         }
 
-        public static EndSession CreateEndSession(int index, long timestamp)
+        public static EndSession CreateEndSession(int index, TimeInstant timeInstant)
         {
-            EndSession es = new EndSession(v[index + 0], v[index + 1], v[index + 2], v[index + 3], timestamp);
+            EndSession es = new EndSession(v[index + 0], v[index + 1], v[index + 2], v[index + 3], timeInstant);
             return es;
         }
 
-        public static UpdateSession CreateUpdateSession(int indexData, int indexDuration, long timestamp)
+        public static UpdateSession CreateUpdateSession(int indexData, int indexDuration, TimeInstant timeInstant)
         {
-            UpdateSession us = new UpdateSession(v[indexData + 0], v[indexData + 1], iv[indexDuration], v[indexData + 2], v[indexData + 3], timestamp);
+            UpdateSession us = new UpdateSession(v[indexData + 0], v[indexData + 1], iv[indexDuration], v[indexData + 2], v[indexData + 3], timeInstant);
             return us;
         }
 
@@ -221,14 +222,14 @@ namespace TestProject_common
                 SessionEvent se;
                 switch (a % 3) {
                     case 0:
-                        se = TestHelper.CreateBeginSession(a % 5, a % 4, timeHelper.GetUniqueUnixTime());
+                        se = TestHelper.CreateBeginSession(a % 5, a % 4, timeHelper.GetUniqueInstant());
                         break;
                     case 1:
-                        se = TestHelper.CreateEndSession(a % 5, timeHelper.GetUniqueUnixTime());
+                        se = TestHelper.CreateEndSession(a % 5, timeHelper.GetUniqueInstant());
                         break;
                     case 2:
                     default:
-                        se = TestHelper.CreateUpdateSession(a % 5, a % 6, timeHelper.GetUniqueUnixTime());
+                        se = TestHelper.CreateUpdateSession(a % 5, a % 6, timeHelper.GetUniqueInstant());
                         break;
                 }
 
