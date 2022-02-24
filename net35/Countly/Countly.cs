@@ -33,7 +33,7 @@ using System.Diagnostics;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.CountlyCommon;
-
+using static CountlySDK.Helpers.TimeHelper;
 using System.Runtime.CompilerServices;
 
 #if RUNNING_ON_35
