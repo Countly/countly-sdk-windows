@@ -139,9 +139,6 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\RequestResult.cs">
       <Link>Server\Responses\RequestResult.cs</Link>
     </Compile>
-    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
-      <Link>Server\Responses\ResultResponse.cs</Link>
-    </Compile>
     <Compile Include="Countly.cs" />
     <Compile Include="Entities\CountlyConfig.cs" />
     <Compile Include="Entities\CountlyUserDetails.cs" />

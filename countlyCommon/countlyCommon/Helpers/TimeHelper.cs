@@ -21,25 +21,83 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Globalization;
 
 namespace CountlySDK.Helpers
 {
     internal class TimeHelper
     {
+
+        internal class TimeInstant
+        {
+            public int Dow { get; private set; }
+            public int Hour { get; private set; }
+            public string Timezone { get; private set; }
+            public long Timestamp { get; private set; }
+
+            internal TimeInstant(long timestampInMillis, int hour, int dow, string timezone)
+            {
+                Dow = dow;
+                Hour = hour;
+                Timezone = timezone;
+                Timestamp = timestampInMillis;
+            }
+
+            internal static TimeInstant Get(long timestampInMillis)
+            {
+                if (timestampInMillis < 0L) {
+                    timestampInMillis = 0;
+                    UtilityHelper.CountlyLogging("[TimeInstant][Get] Provided timestamp was less than 0. Value was overridden to 0.");
+                }
+
+                TimeSpan time = TimeSpan.FromMilliseconds(timestampInMillis);
+                DateTime dateTime = new DateTime(1970, 1, 1) + time;
+
+                long timestamp = timestampInMillis;
+                int dow = (int)dateTime.DayOfWeek;
+                int hour = dateTime.TimeOfDay.Hours;
+                string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+
+                return new TimeInstant(timestamp, hour, dow, timezone);
+            }
+        }
+
+        //variable to hold last used timestamp
+        private long _lastMilliSecTimeStamp = 0;
+
+        internal TimeHelper() { }
+
         /// <summary>
         /// Converts DateTime to Unix time format
         /// </summary>
         /// <param name="date">DateTime object</param>
         /// <returns>Unix timestamp</returns>
-        public static long ToUnixTime(DateTime date)
+        public long ToUnixTime(DateTime date)
         {
             TimeSpan ts = date.Subtract(new DateTime(1970, 1, 1));
-            return (long)ts.TotalMilliseconds;
+            long calculatedMillis = (long)ts.TotalMilliseconds;
+
+            return calculatedMillis;
         }
 
-        public static long UnixTimeNow()
+        public long GetUniqueUnixTime()
         {
-            return ToUnixTime(DateTime.Now.ToUniversalTime());
+            long calculatedMillis = ToUnixTime(DateTime.Now.ToUniversalTime());
+
+            if (_lastMilliSecTimeStamp >= calculatedMillis) {
+                ++_lastMilliSecTimeStamp;
+            } else {
+                _lastMilliSecTimeStamp = calculatedMillis;
+            }
+
+            return _lastMilliSecTimeStamp;
+        }
+
+        public TimeInstant GetUniqueInstant()
+        {
+            long currentTimestamp = GetUniqueUnixTime();
+            TimeInstant timeInstant = TimeInstant.Get(currentTimestamp);
+            return timeInstant;
         }
     }
 }

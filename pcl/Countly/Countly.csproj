@@ -120,9 +120,6 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\RequestResult.cs">
       <Link>Server\Responses\RequestResult.cs</Link>
     </Compile>
-    <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\ResultResponse.cs">
-      <Link>Server\Responses\ResultResponse.cs</Link>
-    </Compile>
     <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs">
       <Link>Entities\CountlyUserDetails.cs</Link>
     </Compile>
