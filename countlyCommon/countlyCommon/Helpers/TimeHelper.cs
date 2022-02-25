@@ -35,21 +35,6 @@ namespace CountlySDK.Helpers
             public string Timezone { get; private set; }
             public long Timestamp { get; private set; }
 
-            
-
-            internal TimeInstant()
-            {
-                DateTime dateTime = DateTime.Now;
-
-                Dow = (int)dateTime.DayOfWeek;
-                Hour = dateTime.TimeOfDay.Hours;
-
-                TimeSpan ts = dateTime.Subtract(new DateTime(1970, 1, 1));
-                Timestamp = (long)ts.TotalMilliseconds;
-
-                Timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
-            }
-
             internal TimeInstant(long timestampInMillis, int hour, int dow, string timezone)
             {
                 Dow = dow;
@@ -61,7 +46,8 @@ namespace CountlySDK.Helpers
             internal static TimeInstant Get(long timestampInMillis)
             {
                 if (timestampInMillis < 0L) {
-                    throw new ArgumentException("timestampInMillis must be greater than or equal to zero");
+                    timestampInMillis = 0;
+                    UtilityHelper.CountlyLogging("[TimeInstant][Get] Provided timestamp was less than 0. Value was overridden to 0.");
                 }
 
                 TimeSpan time = TimeSpan.FromMilliseconds(timestampInMillis);
@@ -94,10 +80,9 @@ namespace CountlySDK.Helpers
             return calculatedMillis;
         }
 
-        public TimeInstant GetUniqueInstant()
+        public long GetUniqueUnixTime()
         {
-            TimeInstant timeInstant = new TimeInstant();
-            long calculatedMillis = timeInstant.Timestamp;
+            long calculatedMillis = ToUnixTime(DateTime.Now.ToUniversalTime());
 
             if (_lastMilliSecTimeStamp >= calculatedMillis) {
                 ++_lastMilliSecTimeStamp;
@@ -105,6 +90,13 @@ namespace CountlySDK.Helpers
                 _lastMilliSecTimeStamp = calculatedMillis;
             }
 
+            return _lastMilliSecTimeStamp;
+        }
+
+        public TimeInstant GetUniqueInstant()
+        {
+            long currentTimestamp = GetUniqueUnixTime();
+            TimeInstant timeInstant = TimeInstant.Get(currentTimestamp);
             return timeInstant;
         }
     }
