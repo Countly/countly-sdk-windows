@@ -149,9 +149,7 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("Session Update elapsed time: [" + elapsedTime + "]");
 
             Debug.Assert(elapsedTime != null);
-
-            DateTime dateTime = DateTime.Now;
-            lastSessionUpdateTime = dateTime;
+            lastSessionUpdateTime = DateTime.Now;
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName(), timeInstant));
@@ -163,8 +161,7 @@ namespace CountlySDK.CountlyCommon
             reportViewDuration();
 
             SessionTimerStop();
-            DateTime dateTime = DateTime.Now;
-            int elapsedTime = (int)dateTime.Subtract(lastSessionUpdateTime).TotalSeconds;
+            int elapsedTime = (int)(DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds);
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, elapsedTime), true);
@@ -921,14 +918,12 @@ namespace CountlySDK.CountlyCommon
             if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
             if (config.sessionUpdateInterval <= 0) { throw new ArgumentException("session update interval can't be less than 1 second"); }
 
-
             timeHelper = new TimeHelper();
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {
                 config.serverUrl = config.serverUrl.Substring(0, config.serverUrl.Length - 1);
             }
-
 
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
@@ -1146,7 +1141,7 @@ namespace CountlySDK.CountlyCommon
             reportViewDuration();
             lastView = viewName;
 
-            lastViewStart = timeHelper.GetUniqueInstant().Timestamp;
+            lastViewStart = timeHelper.GetUniqueUnixTime();
             Segmentation segm = new Segmentation();
             segm.Add("name", viewName);
             segm.Add("visit", "1");
@@ -1177,7 +1172,7 @@ namespace CountlySDK.CountlyCommon
             //if the lastViewStart is equal to 0, the duration would be set to the current timestamp
             //and therefore will be ignored
             if (lastView != null && lastViewStart > 0) {
-                long timestampSeconds = (timeHelper.GetUniqueInstant().Timestamp - lastViewStart) / 1000;
+                long timestampSeconds = (timeHelper.GetUniqueUnixTime() - lastViewStart) / 1000;
                 Segmentation segm = new Segmentation();
                 segm.Add("name", lastView);
                 segm.Add("dur", "" + timestampSeconds);
