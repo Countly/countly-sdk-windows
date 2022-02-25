@@ -33,6 +33,7 @@ using CountlySDK.CountlyCommon;
 using CountlySDK.Entities.EntityBase;
 
 using System.Runtime.CompilerServices;
+using static CountlySDK.Helpers.TimeHelper;
 //[assembly: InternalsVisibleTo("CountlySampleConsole")]
 //[assembly: InternalsVisibleTo("CountlyTest_452")]
 
@@ -155,8 +156,9 @@ namespace CountlySDK
             SessionTimerStart();
             SessionStarted?.Invoke(null, EventArgs.Empty);
 
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName()));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
         }
 
         /// <summary>

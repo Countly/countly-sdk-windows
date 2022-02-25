@@ -54,8 +54,9 @@ namespace CountlySDK.Entities.EntityBase
         internal async Task<string> GetDeviceId()
         {
             try {
-                if (deviceId != null)
+                if (deviceId != null) {
                     return deviceId;
+                }
 
                 await LoadDeviceIDFromStorage();
 

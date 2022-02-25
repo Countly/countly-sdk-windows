@@ -28,13 +28,12 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
-using CountlySDK.Server.Responses;
 using System.IO;
 using System.Diagnostics;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.CountlyCommon;
-
+using static CountlySDK.Helpers.TimeHelper;
 using System.Runtime.CompilerServices;
 
 #if RUNNING_ON_35
@@ -128,8 +127,9 @@ namespace CountlySDK
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
 
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName()));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
         }
 
         /// <summary>
