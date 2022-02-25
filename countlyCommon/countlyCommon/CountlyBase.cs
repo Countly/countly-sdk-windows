@@ -129,6 +129,17 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         protected abstract bool SaveUserDetails();
 
+        internal bool consentRequired = false;
+        internal Dictionary<ConsentFeatures, bool> givenConsent = new Dictionary<ConsentFeatures, bool>();
+
+        internal enum ConsentChangedAction
+        {
+            Initialization,
+            ConsentUpdated,
+            DeviceIDChangedNotMerged,
+        }
+        public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users, Views };
+
         internal async Task<bool> SaveStoredRequests()
         {
             lock (sync) {
@@ -1017,17 +1028,6 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        internal bool consentRequired = false;
-        internal Dictionary<ConsentFeatures, bool> givenConsent = new Dictionary<ConsentFeatures, bool>();
-
-        internal enum ConsentChangedAction
-        {
-            Initialization,
-            ConsentUpdated,
-            DeviceIDChangedNotMerged,
-        }
-        public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users, Views };
-
         internal bool IsConsentGiven(ConsentFeatures feature)
         {
             Debug.Assert(givenConsent != null);
@@ -1047,6 +1047,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetConsent'");
             await SetConsentInternal(consentChanges, ConsentChangedAction.ConsentUpdated);
         }
 
