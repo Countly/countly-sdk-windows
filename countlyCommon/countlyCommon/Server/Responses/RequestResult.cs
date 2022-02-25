@@ -1,30 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using CountlySDK.Server.Responses;
+using Newtonsoft.Json.Linq;
 
 namespace CountlySDK.CountlyCommon.Server.Responses
 {
     internal class RequestResult
     {
-        public ResultResponse parsedResponse = null;
-        public String responseText = null;
+        public string responseText = null;
         public int responseCode = -1;
 
         public bool IsSuccess()
         {
-            if (parsedResponse != null) {
-                return parsedResponse.IsSuccess;
+            if (!(responseCode >= 200 && responseCode < 300)) {
+                return false;
             }
-            return false;
-        }
 
-        public bool IsBadRequest()
-        {
-            if (responseCode == 400 || responseCode == 404) {
-                return true;
+            if (responseText == null || responseText.Length == 0) {
+                return false;
             }
+
+            try {
+                return JObject.Parse(responseText).ContainsKey("result");
+            } catch (Exception e) { }
+
             return false;
         }
     }

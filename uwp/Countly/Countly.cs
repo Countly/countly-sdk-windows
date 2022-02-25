@@ -27,7 +27,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
-using CountlySDK.Server.Responses;
 using System.IO;
 using CountlySDK.CountlyCommon;
 using CountlySDK.Entities.EntityBase;
@@ -160,8 +159,9 @@ namespace CountlySDK
             SessionTimerStart();
             SessionStarted?.Invoke(null, EventArgs.Empty);
 
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName()));
+            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
         }
 
         /// <summary>
