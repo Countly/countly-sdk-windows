@@ -20,6 +20,8 @@ namespace CountlySDK.CountlyCommon
         // Current version of the Count.ly SDK as a displayable string.
         protected const string sdkVersion = "20.11.0";
 
+        internal CountlyConfig Configuration;
+
         public abstract string sdkName();
 
         // How often update session is sent
@@ -88,7 +90,7 @@ namespace CountlySDK.CountlyCommon
         // Used for thread-safe operations
         protected object sync = new object();
 
-        protected String breadcrumb = String.Empty;
+        internal readonly Queue<string> CrashBreadcrumbs = new Queue<string>();
 
         // Start session timestamp
         protected DateTime startTime;
@@ -367,8 +369,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null);
+            UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent(k)");
+            return Countly.RecordEvent(Key, 1, null, null, null);
         }
 
         /// <summary>
@@ -379,8 +381,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null);
+            UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent(kc)");
+            return Countly.RecordEvent(Key, Count, null, null, null);
         }
 
         /// <summary>
@@ -392,8 +394,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null);
+            UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent(kcs)");
+            return Countly.RecordEvent(Key, Count, Sum, null, null);
         }
 
         /// <summary>
@@ -405,8 +407,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, Segmentation Segmentation)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation);
+            UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent(kcS)");
+            return Countly.RecordEvent(Key, Count, null, null, Segmentation);
         }
 
         /// <summary>
@@ -419,8 +421,8 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, Segmentation Segmentation)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation);
+            UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent(kcsS)");
+            return Countly.RecordEvent(Key, Count, Sum, null, Segmentation);
         }
 
         /// <summary>
@@ -435,7 +437,16 @@ namespace CountlySDK.CountlyCommon
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation);
+
+            CountlyConfig config = Countly.Instance.Configuration;
+            if (Key.Length > config.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
+                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            }
+
+            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
+            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, segments);
         }
 
         /// <summary>
@@ -448,7 +459,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEvent'");
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!CheckConsentOnKey(Key)) { return true; }
 
@@ -515,7 +526,9 @@ namespace CountlySDK.CountlyCommon
                 lock (sync) {
                     eventsToSend = Events.Take(eventsCount).ToList();
                 }
-                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+
+                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -633,7 +646,11 @@ namespace CountlySDK.CountlyCommon
 
             TimeSpan run = DateTime.Now.Subtract(startTime);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, stackTrace ?? string.Empty, unhandled, breadcrumb, run, AppVersion, customInfo, DeviceData);
+            CountlyConfig config = Countly.Instance.Configuration;
+            Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues);
+            segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize);
+
+            ExceptionEvent eEvent = new ExceptionEvent(error, UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -685,7 +702,8 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 //do the exception upload
-                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent);
+                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent, timeInstant);
 
                 //check if we got a response and that it was a success
                 if (requestResult != null && requestResult.IsSuccess()) {
@@ -748,7 +766,8 @@ namespace CountlySDK.CountlyCommon
                 uploadInProgress = true;
             }
 
-            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), UserDetails);
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, UserDetails);
 
             lock (sync) {
                 uploadInProgress = false;
@@ -772,6 +791,19 @@ namespace CountlySDK.CountlyCommon
         protected async void OnUserDetailsChanged()
         {
             UserDetails.isChanged = true;
+            UserDetails.isNotificationEnabled = false;
+
+            UserDetails.Picture = UtilityHelper.TrimUrl(UserDetails.Picture);
+            UserDetails.Name = UtilityHelper.TrimValue("Name", UserDetails.Name, Configuration.MaxValueSize);
+            UserDetails.Email = UtilityHelper.TrimValue("Email", UserDetails.Email, Configuration.MaxValueSize);
+            UserDetails.Phone = UtilityHelper.TrimValue("Phone", UserDetails.Phone, Configuration.MaxValueSize);
+            UserDetails.Gender = UtilityHelper.TrimValue("Gender", UserDetails.Gender, Configuration.MaxValueSize);
+            UserDetails.Username = UtilityHelper.TrimValue("Username", UserDetails.Username, Configuration.MaxValueSize);
+            UserDetails.Organization = UtilityHelper.TrimValue("Organization", UserDetails.Organization, Configuration.MaxValueSize);
+
+            UserDetails._custom = UtilityHelper.FixSegmentKeysAndValues(UserDetails._custom, Configuration.MaxKeyLength, Configuration.MaxValueSize);
+
+            UserDetails.isNotificationEnabled = true;
 
             SaveUserDetails();
 
@@ -789,7 +821,8 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
-            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), imageStream, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
 
             return (requestResult != null && requestResult.IsSuccess());
         }
@@ -816,7 +849,7 @@ namespace CountlySDK.CountlyCommon
                 Events?.Clear();
                 Sessions?.Clear();
                 Exceptions?.Clear();
-                breadcrumb = String.Empty;
+                CrashBreadcrumbs.Clear();
                 DeviceData = new Device();
                 StoredRequests?.Clear();
 
@@ -845,7 +878,13 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
             Debug.Assert(log != null);
-            Countly.Instance.breadcrumb += log + "\r\n";
+            string validLog = log.Length > Countly.Instance.Configuration.MaxValueSize ? log.Substring(0, Countly.Instance.Configuration.MaxValueSize) : log;
+
+            if (Countly.Instance.CrashBreadcrumbs.Count == Countly.Instance.Configuration.MaxBreadcrumbCount) {
+                Countly.Instance.CrashBreadcrumbs.Dequeue();
+            }
+
+            Countly.Instance.CrashBreadcrumbs.Enqueue(validLog);
         }
 
         public static async Task<String> GetDeviceId()
@@ -942,6 +981,8 @@ namespace CountlySDK.CountlyCommon
             if (config.serverUrl.EndsWith("/")) {
                 config.serverUrl = config.serverUrl.Substring(0, config.serverUrl.Length - 1);
             }
+
+            Configuration = config;
 
             ServerUrl = config.serverUrl;
             AppKey = config.appKey;
@@ -1150,7 +1191,7 @@ namespace CountlySDK.CountlyCommon
         /// Records view
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> RecordView(String viewName)
+        public async Task<bool> RecordView(string viewName)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordView'");
             if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
@@ -1162,6 +1203,10 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            if (viewName.Length > Configuration.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength);
+                viewName = viewName.Substring(0, Configuration.MaxKeyLength);
+            }
 
             reportViewDuration();
             lastView = viewName;
@@ -1209,6 +1254,5 @@ namespace CountlySDK.CountlyCommon
                 lastViewStart = 0;
             }
         }
-
     }
 }
