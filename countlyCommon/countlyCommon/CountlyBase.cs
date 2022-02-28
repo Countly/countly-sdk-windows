@@ -371,13 +371,12 @@ namespace CountlySDK.CountlyCommon
         {
             if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
 
-
             if (Key.Length > Countly.Instance.Configuration.MaxKeyLength) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
                 Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
             }
 
-            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null, false);
+            return Countly.Instance.RecordEventInternal(Key, 1, null, null, null);
         }
 
         /// <summary>
@@ -395,7 +394,7 @@ namespace CountlySDK.CountlyCommon
                 Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
             }
 
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, null);
         }
 
         /// <summary>
@@ -414,7 +413,7 @@ namespace CountlySDK.CountlyCommon
                 Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
             }
 
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, null);
         }
 
         /// <summary>
@@ -436,8 +435,7 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, segments, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation);
         }
 
         /// <summary>
@@ -460,8 +458,7 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, segments, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation);
         }
 
         /// <summary>
@@ -485,8 +482,7 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, segments, false);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation);
         }
 
         /// <summary>
@@ -496,13 +492,12 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Count">Count to associate with the event, should be more than zero</param>
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
-        /// <param name="consentOverride">set by views or other features which record their values by events</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation segmentation, bool consentOverride)
+        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
-            if (!IsConsentGiven(ConsentFeatures.Events) && !consentOverride) { return true; }
+            if (!CheckConsentOnKey(Key)) { return true; }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             CountlyEvent cEvent = new CountlyEvent(Key, Count, Sum, Duration, Segmentation, timeInstant.Timestamp);
@@ -518,6 +513,26 @@ namespace CountlySDK.CountlyCommon
             }
 
             return saveSuccess;
+        }
+
+        private bool CheckConsentOnKey(string key)
+        {
+            if (key.Equals(VIEW_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Views);
+            } else if (key.Equals(NPS_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Feedback);
+            } else if (key.Equals(SURVEY_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Feedback);
+            } else if (key.Equals(STAR_RATING_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.StarRating);
+            } else if (key.Equals(PUSH_ACTION_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Push);
+            } else if (key.Equals(ORIENTATION_EVENT_KEY)) {
+                return IsConsentGiven(ConsentFeatures.Users);
+            } else {
+                return IsConsentGiven(ConsentFeatures.Events);
+            }
+
         }
 
         /// <summary>
@@ -1101,8 +1116,10 @@ namespace CountlySDK.CountlyCommon
         internal bool consentRequired = false;
         internal Dictionary<ConsentFeatures, bool> givenConsent = new Dictionary<ConsentFeatures, bool>();
 
-        public enum ConsentFeatures { Sessions, Events, Location, Crashes, Users, Views };
-
+        public enum ConsentFeatures
+        {
+            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig
+        };
         internal bool IsConsentGiven(ConsentFeatures feature)
         {
             Debug.Assert(givenConsent != null);
@@ -1191,10 +1208,15 @@ namespace CountlySDK.CountlyCommon
 
 
         //track views
-        private String lastView = null;
+        private string lastView = null;
         private long lastViewStart = 0;
         private bool firstView = true;
-        private const String VIEW_EVENT_KEY = "[CLY]_view";
+        private const string NPS_EVENT_KEY = "[CLY]_nps";
+        private const string VIEW_EVENT_KEY = "[CLY]_view";
+        private const string SURVEY_EVENT_KEY = "[CLY]_survey";
+        private const string STAR_RATING_EVENT_KEY = "[CLY]_star_rating";
+        private const string PUSH_ACTION_EVENT_KEY = "[CLY]_push_action";
+        private const string ORIENTATION_EVENT_KEY = "[CLY]_orientation";
 
         /// <summary>
         /// Records view
@@ -1230,7 +1252,7 @@ namespace CountlySDK.CountlyCommon
                 firstView = false;
                 segm.Add("start", "1");
             }
-            return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm, true);
+            return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
         }
 
         /// <summary>
@@ -1257,7 +1279,7 @@ namespace CountlySDK.CountlyCommon
                 segm.Add("dur", "" + timestampSeconds);
                 segm.Add("segment", "Windows");
 
-                await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm, true);
+                await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
 
                 lastView = null;
                 lastViewStart = 0;
