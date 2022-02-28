@@ -35,6 +35,7 @@ namespace CountlySDK.Helpers
             public string Timezone { get; private set; }
             public long Timestamp { get; private set; }
 
+            internal TimeInstant() { }
             internal TimeInstant(long timestampInMillis, int hour, int dow, string timezone)
             {
                 Dow = dow;
