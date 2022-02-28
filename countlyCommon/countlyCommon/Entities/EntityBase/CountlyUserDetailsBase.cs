@@ -50,7 +50,9 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
 
         protected void CallUserDetailsChanged()
         {
-            UserDetailsChanged?.Invoke();
+            if (isNotificationEnabled) {
+                UserDetailsChanged?.Invoke();
+            }
         }
 
         private string name;
@@ -67,7 +69,6 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (name != value) {
                     name = value;
-
                     NotifyDetailsChanged();
                 }
             }
@@ -87,7 +88,6 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (username != value) {
                     username = value;
-
                     NotifyDetailsChanged();
                 }
             }
@@ -107,7 +107,6 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (email != value) {
                     email = value;
-
                     NotifyDetailsChanged();
                 }
             }
@@ -127,7 +126,6 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (organization != value) {
                     organization = value;
-
                     NotifyDetailsChanged();
                 }
             }
@@ -147,7 +145,6 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (phone != value) {
                     phone = value;
-
                     NotifyDetailsChanged();
                 }
             }
@@ -167,7 +164,6 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (picture != value) {
                     picture = value;
-
                     NotifyDetailsChanged();
                 }
             }
@@ -187,7 +183,6 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (gender != value) {
                     gender = value;
-
                     NotifyDetailsChanged();
                 }
             }
@@ -247,7 +242,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         /// </summary>
         [JsonProperty("custom")]
         [DataMemberAttribute]
-        private Dictionary<string, string> _custom
+        internal Dictionary<string, string> _custom
         {
             get {
                 return Custom?.ToDictionary();
@@ -272,12 +267,16 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         [JsonIgnore]
         internal bool isNotified { get; set; }
 
+        [JsonIgnore]
+        internal bool isNotificationEnabled { get; set; }
+
         /// <summary>
         /// Needed for JSON deserialization
         /// </summary>
         public CountlyUserDetailsBase()
         {
             Custom = new CustomInfo();
+            isNotificationEnabled = true;
         }
 
         /// <summary>
