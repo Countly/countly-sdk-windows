@@ -73,6 +73,7 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\DeviceIdTests.cs">
       <Link>DeviceIdTests.cs</Link>
+      </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\EventTests.cs">
       <Link>EventTests.cs</Link>
     </Compile>
