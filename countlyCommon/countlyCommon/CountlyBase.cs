@@ -1037,7 +1037,7 @@ namespace CountlySDK.CountlyCommon
                 await SessionEnd();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 if (consentRequired) {
-                    await RemoveAllConsent();
+                    await RemoveAllConsentInternal();
                 }
                 await SessionBegin();
             } else {
@@ -1081,7 +1081,7 @@ namespace CountlySDK.CountlyCommon
             await SetConsentInternal(consentChanges, ConsentChangedAction.ConsentUpdated);
         }
 
-        internal async Task RemoveAllConsent()
+        internal async Task RemoveAllConsentInternal()
         {
             Dictionary<ConsentFeatures, bool> removedConsent = new Dictionary<ConsentFeatures, bool>();
             foreach (KeyValuePair<ConsentFeatures, bool> entry in givenConsent) {
