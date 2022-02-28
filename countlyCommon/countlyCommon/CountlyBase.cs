@@ -562,7 +562,9 @@ namespace CountlySDK.CountlyCommon
                 lock (sync) {
                     eventsToSend = Events.Take(eventsCount).ToList();
                 }
-                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+
+                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -736,7 +738,8 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 //do the exception upload
-                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent);
+                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent, timeInstant);
 
                 //check if we got a response and that it was a success
                 if (requestResult != null && requestResult.IsSuccess()) {
@@ -799,7 +802,8 @@ namespace CountlySDK.CountlyCommon
                 uploadInProgress = true;
             }
 
-            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), UserDetails);
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, UserDetails);
 
             lock (sync) {
                 uploadInProgress = false;
@@ -853,7 +857,8 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
-            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), imageStream, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
 
             return (requestResult != null && requestResult.IsSuccess());
         }
