@@ -25,7 +25,7 @@ namespace TestProject_common
             CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
             TestHelper.CleanDataFiles();
-            Countly.Instance.deferUpload = false;
+            Countly.Instance.deferUpload = true;
         }
 
         /// <summary>
@@ -45,9 +45,9 @@ namespace TestProject_common
             CountlyConfig cc = TestHelper.CreateConfig();
 
             Countly.Instance.Init(cc).Wait();
+            Countly.Instance.deferUpload = true;
             Countly.Instance.SessionBegin().Wait();
             Countly.Instance.Sessions.Clear();
-            Countly.Instance.deferUpload = true;
 
             string oldDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
             Countly.Instance.ChangeDeviceId("new-device-id", false).Wait();
@@ -58,7 +58,6 @@ namespace TestProject_common
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
-            Assert.NotNull(collection["session_duration"]);
 
             string newDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
             model = Countly.Instance.Sessions[1];
@@ -71,7 +70,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// It validates the functionality of method 'ChangeDeviceId' without server merge.
+        /// It validates the consent removal after changing the device id without merging.
         /// </summary>
         public async void TestConsent_ChangeDeviceIdWithoutMerge()
         {
@@ -82,11 +81,15 @@ namespace TestProject_common
             consent.Add(ConsentFeatures.Users, true);
 
             CountlyConfig cc = TestHelper.CreateConfig();
+            cc.givenConsent = consent;
+
+            cc.consentRequired = true;
+            Countly.Instance.deferUpload = true;
 
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
             Countly.Instance.Sessions.Clear();
-            Countly.Instance.deferUpload = true;
+            Countly.Instance.StoredRequests.Clear();
 
             string oldDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
             Countly.Instance.ChangeDeviceId("new-device-id", false).Wait();
@@ -97,15 +100,11 @@ namespace TestProject_common
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
-            Assert.NotNull(collection["session_duration"]);
 
-            string newDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
-            model = Countly.Instance.Sessions[1];
-            collection = HttpUtility.ParseQueryString(model.Content);
-
-            Assert.Equal("1", collection.Get("begin_session"));
-            Assert.Equal("new-device-id", collection.Get("device_id"));
-            Assert.Equal("new-device-id", newDeviceId);
+            ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
+            foreach (ConsentFeatures c in consents) {
+                Assert.False(Countly.Instance.IsConsentGiven(c));
+            }
         }
 
         [Fact]
@@ -133,7 +132,6 @@ namespace TestProject_common
             Assert.Equal(oldDeviceId, collection.Get("old_device_id"));
             Assert.Equal("new-device-id", collection.Get("device_id"));
             Assert.Equal("new-device-id", newDeviceId);
-
         }
     }
 }
