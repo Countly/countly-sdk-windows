@@ -435,7 +435,7 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-            return Countly.Instance.RecordEventInternal(Key, Count, null, null, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, null, null, segments);
         }
 
         /// <summary>
@@ -458,7 +458,7 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, null, segments);
         }
 
         /// <summary>
@@ -482,7 +482,7 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, Segmentation);
+            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, segments);
         }
 
         /// <summary>
