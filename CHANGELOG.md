@@ -1,5 +1,7 @@
 21.11.0
-* Adding additional time and timezone related information to all requests
+* Adding additional time and timezone related information to all requests.
+* Added new configuration fields to manipulate internal SDK value and key limits. 
+* Warning! This release will introduce configurable maximum size limits for values and keys throughout the SDK. If they would exceed the limits, they would be truncated.
 
 20.11.0
 * Fixed bug that occurred while getting device and system information on restricted machines.
