@@ -1,7 +1,6 @@
 21.11.0
-* Adding additional time and timezone related information to all requests.
 * !! Major breaking change !! Changing device ID without merging will now clear the current consent. Consent has to be given again after performing this action.
-
+* Adding additional time and timezone related information to all requests.
 20.11.0
 * Fixed bug that occurred while getting device and system information on restricted machines.
 * Removed deprecated function "EndSession"
