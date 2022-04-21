@@ -12,6 +12,7 @@ using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;
 using System.Collections.Specialized;
 using CountlySDK.CountlyCommon.Entities;
+using Newtonsoft.Json.Linq;
 
 namespace TestProject_common
 {
@@ -39,6 +40,7 @@ namespace TestProject_common
         [Fact]
         /// <summary>
         /// It validates the functionality of method 'ChangeDeviceId' without server merge.
+        /// Case: When 'consentRequired' is'not set in the configuration.
         /// </summary>
         public async void TestChangeDeviceIdWithoutMerge()
         {
@@ -71,6 +73,7 @@ namespace TestProject_common
         [Fact]
         /// <summary>
         /// It validates the consent removal after changing the device id without merging.
+        /// Case: When 'consentRequired' is set in the configuration.
         /// </summary>
         public async void TestConsent_ChangeDeviceIdWithoutMerge()
         {
@@ -101,10 +104,38 @@ namespace TestProject_common
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
 
+            // There is no consent request
+            Assert.Equal(0, Countly.Instance.StoredRequests.Count);
+
             ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
             foreach (ConsentFeatures c in consents) {
                 Assert.False(Countly.Instance.IsConsentGiven(c));
             }
+
+            consent = new Dictionary<ConsentFeatures, bool>();
+            consent.Add(ConsentFeatures.Crashes, true);
+            consent.Add(ConsentFeatures.Events, true);
+            consent.Add(ConsentFeatures.Location, true);
+            consent.Add(ConsentFeatures.Sessions, true);
+            consent.Add(ConsentFeatures.Users, true);
+            Countly.Instance.SetConsent(consent).Wait();
+
+            Assert.Equal(1, Countly.Instance.StoredRequests.Count);
+            StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
+            collection = HttpUtility.ParseQueryString(request.Request);
+            JObject consentObj = JObject.Parse(collection.Get("consent"));
+
+            Assert.Equal(10, consentObj.Count);
+            Assert.False(consentObj.GetValue("push").ToObject<bool>());
+            Assert.True(consentObj.GetValue("users").ToObject<bool>());
+            Assert.False(consentObj.GetValue("views").ToObject<bool>());
+            Assert.True(consentObj.GetValue("events").ToObject<bool>());
+            Assert.True(consentObj.GetValue("crashes").ToObject<bool>());
+            Assert.True(consentObj.GetValue("sessions").ToObject<bool>());
+            Assert.True(consentObj.GetValue("location").ToObject<bool>());
+            Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
+            Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
+            Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
         }
 
         [Fact]
