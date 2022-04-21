@@ -590,7 +590,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error)'");
+                return false;
+            }
+
             return await RecordException(error, null, null);
         }
 
@@ -602,7 +606,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace = null)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordExceptionRecordException(error, stackTrace)'");
+                return false;
+            }
+
             return await RecordException(error, stackTrace, null);
         }
 
@@ -613,7 +621,11 @@ namespace CountlySDK.CountlyCommon
         /// <param name="stackTrace">exception stacktrace</param>
         protected async Task<bool> RecordUnhandledException(string error, string stackTrace)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace)'");
+                return false;
+            }
+
             return await RecordException(error, stackTrace, null, true);
         }
 
@@ -626,7 +638,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo)'");
+                return false;
+            }
+
             return await RecordException(error, stackTrace, customInfo, false);
         }
 
@@ -640,7 +656,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordException'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo, unhandled)'");
+                return false;
+            }
+
             return await Countly.Instance.RecordExceptionInternal(error, stackTrace, customInfo, unhandled);
         }
 
@@ -890,7 +910,11 @@ namespace CountlySDK.CountlyCommon
         public static void AddBreadCrumb(string log)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'AddBreadCrumb'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'");
+                return;
+            }
+
             Debug.Assert(log != null);
             string validLog = log.Length > Countly.Instance.Configuration.MaxValueSize ? log.Substring(0, Countly.Instance.Configuration.MaxValueSize) : log;
 
@@ -901,10 +925,13 @@ namespace CountlySDK.CountlyCommon
             Countly.Instance.CrashBreadcrumbs.Enqueue(validLog);
         }
 
-        public static async Task<String> GetDeviceId()
+        public static async Task<string> GetDeviceId()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'GetDeviceId'");
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'GetDeviceId'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] GetDeviceId: SDK must initialized before calling 'GetDeviceId'");
+                return string.Empty;
+            }
 
             return await Countly.Instance.DeviceData.GetDeviceId();
         }
@@ -930,10 +957,14 @@ namespace CountlySDK.CountlyCommon
         protected abstract void SessionTimerStart();
         protected abstract void SessionTimerStop();
 
-        public async Task<bool> SetLocation(String gpsLocation, String ipAddress = null, String country_code = null, String city = null)
+        public async Task<bool> SetLocation(String gpsLocation, string ipAddress = null, String country_code = null, String city = null)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetLocation'");
-            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SetLocation'"); }
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation: SDK must initialized before calling 'SetLocation'");
+                return false;
+            }
+
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
             if (gpsLocation == null && ipAddress == null && country_code == null && city == null) {
@@ -953,7 +984,10 @@ namespace CountlySDK.CountlyCommon
         public async Task<bool> DisableLocation()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'DisableLocation'");
-            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'DisableLocation'"); }
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'");
+                return false;
+            }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
             return await SetLocation("", "", "", "");
@@ -985,9 +1019,20 @@ namespace CountlySDK.CountlyCommon
         protected async Task InitBase(CountlyConfig config)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase'");
-            if (!IsServerURLCorrect(config.serverUrl)) { throw new ArgumentException("invalid server url"); }
-            if (!IsAppKeyCorrect(config.appKey)) { throw new ArgumentException("invalid application key"); }
-            if (config.sessionUpdateInterval <= 0) { throw new ArgumentException("session update interval can't be less than 1 second"); }
+            if (!IsServerURLCorrect(config.serverUrl)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Invalid server url!");
+                return;
+            }
+
+            if (!IsAppKeyCorrect(config.appKey)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Invalid application key!");
+                return;
+            }
+
+            if (config.sessionUpdateInterval <= 0) {
+                UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Session update interval can't be less than 1 second.");
+                return;
+            }
 
             timeHelper = new TimeHelper();
 
@@ -1003,7 +1048,11 @@ namespace CountlySDK.CountlyCommon
             AppVersion = config.appVersion;
             sessionUpdateInterval = config.sessionUpdateInterval;
 
-            if (config.developerProvidedDeviceId?.Length == 0) { throw new ArgumentException("'developerProvidedDeviceId' cannot be empty string"); }
+            if (config.developerProvidedDeviceId?.Length == 0) {
+                UtilityHelper.CountlyLogging("[CountlyBase] InitBase: 'DeveloperProvidedDeviceId' cannot be empty string.");
+                return;
+            }
+
             await DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
 
             lock (sync) {
@@ -1029,7 +1078,10 @@ namespace CountlySDK.CountlyCommon
         public async Task SessionBegin()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionBegin'");
-            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin: SDK must initialized before calling 'SessionBegin'");
+                return;
+            }
 
             await SessionBeginInternal();
         }
@@ -1041,8 +1093,14 @@ namespace CountlySDK.CountlyCommon
         public async Task SessionUpdate(int elapsedTimeSeconds)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionUpdate'");
-            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionUpdate'"); }
-            if (elapsedTimeSeconds < 0) { throw new ArgumentException("Elapsed time can not be negative"); }
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
+                return;
+            }
+            if (elapsedTimeSeconds < 0) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative");
+                return;
+            }
 
             await UpdateSessionInternal(elapsedTimeSeconds);
         }
@@ -1054,7 +1112,10 @@ namespace CountlySDK.CountlyCommon
         public async Task SessionEnd()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionEnd'");
-            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionEnd'"); }
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd: SDK must initialized before calling 'SessionEnd'");
+                return;
+            }
 
             await Countly.Instance.EndSessionInternal();
         }
@@ -1069,9 +1130,14 @@ namespace CountlySDK.CountlyCommon
         public async Task ChangeDeviceId(string newDeviceId, bool serverSideMerge = false)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'ChangeDeviceId'");
-            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'ChangeDeviceId'"); }
-            if (newDeviceId == null) { throw new ArgumentException("New device id cannot be null"); }
-            if (newDeviceId.Length == 0) { throw new ArgumentException("New device id cannot be empty string"); }
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: SDK must initialized before calling 'ChangeDeviceId'");
+                return;
+            }
+            if (newDeviceId == null || newDeviceId.Length == 0) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: New device id cannot be null or empty.");
+                return;
+            }
 
             if (!serverSideMerge) {
                 //if no server side merge is needed, we just end the previous session and start a new session with the new id
@@ -1137,7 +1203,11 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetConsentInternal'");
             Debug.Assert(consentChanges != null);
-            if (consentChanges == null) { throw new ArgumentException("'consentChanges' cannot be null"); }
+            if (consentChanges == null) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SetConsent: 'consentChanges' cannot be null");
+                return;
+            }
+
             //if we don't need consent, no need to track it
             if (!consentRequired) { return; }
 
@@ -1231,9 +1301,16 @@ namespace CountlySDK.CountlyCommon
         public async Task<bool> RecordView(string viewName)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordView'");
-            if (!IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'SessionBegin'"); }
-            if (viewName == null) { throw new ArgumentException("'viewName' cannot be null"); }
-            if (viewName.Length == 0) { throw new ArgumentException("'viewName' cannot be a empty string"); }
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: SDK must initialized before calling 'RecordView'");
+                return false;
+            }
+
+            if (viewName == null || viewName.Length == 0) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: 'viewName' cannot be null or empty.");
+                return false;
+            }
+
 
             if (!IsConsentGiven(ConsentFeatures.Views)) {
                 //if we don't have consent, do nothing

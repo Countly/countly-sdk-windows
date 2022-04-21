@@ -56,43 +56,44 @@ namespace CountlySDK.CountlyCommon.Helpers
             }
 
             string consentChanges = "{";
+            ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
 
-            KeyValuePair<ConsentFeatures, bool>[] entryChanges = updatedConsentChanges.ToArray();
-
-            for (int a = 0; a < entryChanges.Length; a++) {
+            for (int a = 0; a < consents.Length; a++) {
                 if (a != 0) { consentChanges += ","; }
 
-                KeyValuePair<ConsentFeatures, bool> feature = entryChanges[a];
-                switch (feature.Key) {
+                ConsentFeatures key = consents[a];
+                bool value = updatedConsentChanges.ContainsKey(key) && updatedConsentChanges[key];
+
+                switch (key) {
                     case ConsentFeatures.Crashes:
-                        consentChanges += "\"crashes\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"crashes\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.Events:
-                        consentChanges += "\"events\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"events\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.Location:
-                        consentChanges += "\"location\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"location\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.Sessions:
-                        consentChanges += "\"sessions\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"sessions\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.Users:
-                        consentChanges += "\"users\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"users\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.Views:
-                        consentChanges += "\"views\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"views\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.Feedback:
-                        consentChanges += "\"feedback\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"feedback\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.StarRating:
-                        consentChanges += "\"star-rating\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"star-rating\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.Push:
-                        consentChanges += "\"push\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"push\":" + (value ? "true" : "false");
                         break;
                     case ConsentFeatures.RemoteConfig:
-                        consentChanges += "\"remote-config\":" + (feature.Value ? "true" : "false");
+                        consentChanges += "\"remote-config\":" + (value ? "true" : "false");
                         break;
                     default:
                         consentChanges += "\"unknown\":false";
