@@ -5,8 +5,8 @@
         <version>20.11.0</version>
         <title>Countly Analytics</title>
         <authors>Countly</authors>
-        <iconUrl>https://raw.githubusercontent.com/Countly/countly-sdk-windows/master/icon.png</iconUrl>
-        <licenseUrl>https://github.com/Countly/countly-sdk-windows/blob/master/LICENSE</licenseUrl>
+        <icon>https://raw.githubusercontent.com/Countly/countly-sdk-windows/master/icon.png</icon>
+        <license>https://github.com/Countly/countly-sdk-windows/blob/master/LICENSE</license>
         <projectUrl>https://github.com/countly/countly-sdk-windows</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Countly Analytics SDK provides a full, open source mobile analytics SDK for all types of Countly services, including Community, Cloud and Enterprise Edition. For more information about Countly, visit http://count.ly</description>
