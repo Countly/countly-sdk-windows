@@ -1,5 +1,7 @@
 21.11.0
+* !! Major breaking change !! Changing device ID without merging will now clear the current consent. Consent has to be given again after performing this action.
 * !! Minor breaking change !! This release will introduce configurable maximum size limits for values and keys throughout the SDK. If they exceeded the limits, they would be truncated.
+* Added additional time and timezone related information to all requests.
 * Added following new configuration fields to manipulate internal SDK value and key limits:
   1. `MaxKeyLength` Set the maximum size of all string keys. Default value is **128**.
   2. `MaxValueSize` Set the maximum size of all values in our key-value pairs. Default value is **256**.
@@ -7,8 +9,7 @@
   4. `MaxStackTraceLinesPerThread` Set the limits how many stack trace lines would be recorded per thread. Default value is **30**.
   5. `MaxStackTraceLineLength` Set the limits how many characters are allowed per stack trace line. Default value is **200**.
   6. `MaxBreadcrumbCount` Set the maximum amount of breadcrumbs. Default value is **100**.
-* Adding additional time and timezone related information to all requests.
-
+  
 20.11.0
 * Fixed bug that occurred while getting device and system information on restricted machines.
 * Removed deprecated function "EndSession"
