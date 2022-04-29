@@ -45,7 +45,7 @@
                 <c>true</c> if a network connection is available; otherwise, <c>false</c>.
             </returns>
         </member>
-        <member name="M:CountlySDK.Entities.BeginSession.#ctor(System.String,System.String,System.String,CountlySDK.Entities.Metrics,System.String,System.Nullable{System.Int64})">
+        <member name="M:CountlySDK.Entities.BeginSession.#ctor(System.String,System.String,System.String,CountlySDK.Entities.Metrics,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant)">
             <summary>
             Creates BeginSession object with provided values
             </summary>
@@ -186,7 +186,7 @@
             Needed for JSON deserialization
             </summary>
         </member>
-        <member name="M:CountlySDK.Entities.EndSession.#ctor(System.String,System.String,System.String,System.String,System.Nullable{System.Int64},System.Nullable{System.Int64})">
+        <member name="M:CountlySDK.Entities.EndSession.#ctor(System.String,System.String,System.String,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant,System.Nullable{System.Int64})">
             <summary>
             Creates EndSession object with provided values
             </summary>
@@ -335,7 +335,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CountlySDK.Entities.UpdateSession.#ctor(System.String,System.String,System.Int32,System.String,System.String,System.Nullable{System.Int64})">
+        <member name="M:CountlySDK.Entities.UpdateSession.#ctor(System.String,System.String,System.Int32,System.String,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant)">
             <summary>
             Creates UpdateSession object with provided values
             </summary>
@@ -486,7 +486,7 @@
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventInternal(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation,System.Boolean)">
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventInternal(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
             <summary>
             Records a custom event with the specified values
             </summary>
@@ -494,7 +494,6 @@
             <param name="Count">Count to associate with the event, should be more than zero</param>
             <param name="Sum">Sum to associate with the event</param>
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
-            <param name="consentOverride">set by views or other features which record their values by events</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadEvents">
@@ -664,6 +663,28 @@
             After how many seconds a session update is sent
             </summary>
         </member>
+        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxKeyLength" -->
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxValueSize">
+            <summary>
+            Maximum size of all values in our key-value pairs
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxSegmentationValues">
+            <summary>
+            Max amount of custom (dev provided) segmentation in one event
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxStackTraceLinesPerThread">
+            <summary>
+            Limits how many stack trace lines would be recorded per thread
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxStackTraceLineLength">
+            <summary>
+            Limits how many characters are allowed per stack trace line
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxBreadcrumbCount" -->
         <member name="M:CountlySDK.CountlyCommon.Entities.DeviceId.#ctor">
             <summary>
             Needed for JSON deserialization
@@ -854,21 +875,6 @@
         <member name="M:CountlySDK.SegmentationItem.#ctor">
             <summary>
             Needed for JSON deserialization
-            </summary>
-        </member>
-        <member name="T:CountlySDK.Server.Responses.ResultResponse">
-            <summary>
-            Represents API response
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Server.Responses.ResultResponse.Result">
-            <summary>
-            Result value
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Server.Responses.ResultResponse.IsSuccess">
-            <summary>
-            Checks if response is success
             </summary>
         </member>
     </members>
