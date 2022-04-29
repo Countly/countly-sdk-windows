@@ -1,6 +1,7 @@
 21.11.0
 * !! Major breaking change !! Changing device ID without merging will now clear the current consent. Consent has to be given again after performing this action.
 * !! Minor breaking change !! This release will introduce configurable maximum size limits for values and keys throughout the SDK. If they exceeded the limits, they would be truncated.
+* When changing consent, the SDK will now send the full state of the consent and not just the delta.
 * Added additional time and timezone related information to all requests.
 * Added following new configuration fields to manipulate internal SDK value and key limits:
   1. `MaxKeyLength` Set the maximum size of all string keys. Default value is **128**.
