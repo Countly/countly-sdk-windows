@@ -1,5 +1,5 @@
 21.11.1
-* Fixed wrong SDK version number.
+* Fixed wrong SDK version number and SDK name.
 
 21.11.0
 * !! Major breaking change !! Changing device ID without merging will now clear the current consent. Consent has to be given again after performing this action.
