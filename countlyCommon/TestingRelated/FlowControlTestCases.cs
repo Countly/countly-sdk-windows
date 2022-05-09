@@ -47,34 +47,5 @@ namespace TestProject_common
             //reworked after removal of the deprecated function
             await Countly.Instance.SessionEnd();
         }
-
-        [Fact]
-        public async void LegacyInitSimpleFail()
-        {
-            Exception exToCatch = null;
-
-            try {
-                await CountlyImpl.StartLegacyCountlySession(null, "234", "345");
-            } catch (Exception ex) { exToCatch = ex; }
-
-            Assert.NotNull(exToCatch);
-            exToCatch = null;
-            Countly.Halt();
-
-            try {
-                await CountlyImpl.StartLegacyCountlySession("123", null, "345");
-            } catch (Exception ex) { exToCatch = ex; }
-
-            Assert.NotNull(exToCatch);
-            exToCatch = null;
-            Countly.Halt();
-
-            try {
-                await CountlyImpl.StartLegacyCountlySession(null, null, null);
-            } catch (Exception ex) { exToCatch = ex; }
-
-            Assert.NotNull(exToCatch);
-            exToCatch = null;
-        }
     }
 }
