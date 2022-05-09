@@ -43,13 +43,14 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
             }
 
+            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
             return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&events={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}{10}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(eventsJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, userDetailsJson));
         }
 
         public async Task<RequestResult> SendException(string serverUrl, string appKey, string deviceId, string sdkVersion, string sdkName, ExceptionEvent exception, TimeInstant timeInstant)
         {
             string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-
+            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
             return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&crash={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}", serverUrl, appKey, deviceId, UtilityHelper.EncodeDataForURL(exceptionJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp));
         }
 
@@ -61,6 +62,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
+            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
             return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp));
         }
 
@@ -72,6 +74,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             }
 
+            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
             return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}", serverUrl, appKey, deviceId, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp), imageStream);
         }
 

@@ -40,6 +40,7 @@ namespace CountlySDK.Entities
         /// <param name="duration">Session duration in seconds</param>
         public UpdateSession(string appKey, string deviceId, int duration, string sdkVersion, string sdkName, TimeInstant timeInstant)
         {
+            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
             Content = string.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, duration, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone);
         }
 

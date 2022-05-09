@@ -42,6 +42,7 @@ namespace CountlySDK.Entities
         public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics, string sdkName, TimeInstant timeInstant)
         {
             string metricsString = UtilityHelper.EncodeDataForURL(metrics.ToString());
+            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
             Content = string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, sdkVersion, metricsString, timeInstant.Timestamp, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone);
         }
 
