@@ -1,3 +1,7 @@
+21.11.1
+* Fixed wrong SDK version number and SDK name.
+* Fixed potential issues where device ID was not encoded.
+
 21.11.0
 * !! Major breaking change !! Changing device ID without merging will now clear the current consent. Consent has to be given again after performing this action.
 * !! Minor breaking change !! This release will introduce configurable maximum size limits for values and keys throughout the SDK. If they exceeded the limits, they would be truncated.

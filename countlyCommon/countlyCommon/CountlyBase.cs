@@ -18,7 +18,7 @@ namespace CountlySDK.CountlyCommon
     abstract public class CountlyBase
     {
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "20.11.0";
+        protected const string sdkVersion = "21.11.1";
 
         internal CountlyConfig Configuration;
 
@@ -957,7 +957,7 @@ namespace CountlySDK.CountlyCommon
         protected abstract void SessionTimerStart();
         protected abstract void SessionTimerStop();
 
-        public async Task<bool> SetLocation(String gpsLocation, string ipAddress = null, String country_code = null, String city = null)
+        public async Task<bool> SetLocation(string gpsLocation, string ipAddress = null, string country_code = null, string city = null)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetLocation'");
             if (!IsInitialized()) {
@@ -973,8 +973,8 @@ namespace CountlySDK.CountlyCommon
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             //create the required request
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timeInstant);
-            String lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
+            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
+            string lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
 
             //add the request to queue and upload it
             await AddRequest(lr);
@@ -1153,8 +1153,8 @@ namespace CountlySDK.CountlyCommon
 
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
                 //create the required merge request
-                String br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkName(), sdkVersion, timeInstant);
-                String dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
+                string br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkVersion, sdkName(),  timeInstant);
+                string dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
 
                 //change device ID
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
@@ -1274,8 +1274,8 @@ namespace CountlySDK.CountlyCommon
         {
             //create the required merge request
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            String br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkName(), sdkVersion, timeInstant);
-            String cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
+            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
+            string cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
 
             //add the request to queue and upload it
             await AddRequest(cur);

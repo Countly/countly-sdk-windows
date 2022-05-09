@@ -12,7 +12,7 @@ namespace CountlySDK.CountlyCommon.Helpers
 {
     internal class RequestHelper
     {
-        internal static string CreateLocationRequest(string bRequest, string gpsLocation = null, string ipAddress = null, string country_code = null, String city = null)
+        internal static string CreateLocationRequest(string bRequest, string gpsLocation = null, string ipAddress = null, string country_code = null, string city = null)
         {
             Debug.Assert(bRequest != null);
             if (bRequest == null) {
@@ -109,6 +109,7 @@ namespace CountlySDK.CountlyCommon.Helpers
 
         internal static string CreateBaseRequest(string appKey, string deviceId, string sdkVersion, string sdkName, TimeInstant instant)
         {
+            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
             return string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}", appKey, deviceId, instant.Timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, instant.Timezone);
         }
     }
