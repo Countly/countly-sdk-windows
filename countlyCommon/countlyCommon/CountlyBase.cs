@@ -1230,7 +1230,7 @@ namespace CountlySDK.CountlyCommon
             if (valuesToUpdate.Count > 0) {
                 //send request of the consent changes
                 if (action == ConsentChangedAction.ConsentUpdated) {
-                    await SendConsentChanges(valuesToUpdate);
+                    await SendConsentChanges(givenConsent);
                 }
 
                 await ActionsOnConsentChanges(valuesToUpdate, action);

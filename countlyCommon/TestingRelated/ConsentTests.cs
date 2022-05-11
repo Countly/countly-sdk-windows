@@ -215,9 +215,8 @@ namespace TestProject_common
 
             cc.givenConsent = consent;
 
-            Countly.Instance.Init(cc).Wait();
             Countly.Instance.deferUpload = true;
-
+            Countly.Instance.Init(cc).Wait();
 
             Assert.Equal(1, Countly.Instance.StoredRequests.Count);
             StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
