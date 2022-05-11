@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("21.11.1.0")]
-[assembly: AssemblyFileVersion("21.11.0.0")]
+[assembly: AssemblyFileVersion("21.11.1.0")]
 
 //for making internal calls visible to tests
 //[assembly: InternalsVisibleTo("CountlyTest_452")]
