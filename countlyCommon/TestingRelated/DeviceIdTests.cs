@@ -105,7 +105,7 @@ namespace TestProject_common
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
 
             // There is no consent request
-            Assert.Equal(0, Countly.Instance.StoredRequests.Count);
+            Assert.Empty(Countly.Instance.StoredRequests);
 
             ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
             foreach (ConsentFeatures c in consents) {
@@ -120,7 +120,7 @@ namespace TestProject_common
             consent.Add(ConsentFeatures.Users, true);
             Countly.Instance.SetConsent(consent).Wait();
 
-            Assert.Equal(1, Countly.Instance.StoredRequests.Count);
+            Assert.Single(Countly.Instance.StoredRequests);
             StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
             collection = HttpUtility.ParseQueryString(request.Request);
             JObject consentObj = JObject.Parse(collection.Get("consent"));

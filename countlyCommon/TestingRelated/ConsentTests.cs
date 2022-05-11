@@ -42,7 +42,7 @@ namespace TestProject_common
         /// </summary>
         /// <param name="expectedValue"> an expected values of consents</param>
         /// <param name="consents"> an array consents</param>
-        public void AssertConsentArray(ConsentFeatures[] consents, bool expectedValue)
+        private void AssertConsentArray(ConsentFeatures[] consents, bool expectedValue)
         {
             foreach (ConsentFeatures consent in consents) {
                 Assert.Equal(expectedValue, Countly.Instance.IsConsentGiven(consent));
@@ -53,14 +53,14 @@ namespace TestProject_common
         /// Assert all consents against the expected value.
         /// </summary>
         /// <param name="expectedValue">an expected values of consents</param>
-        public void AssertConsentAll(bool expectedValue)
+        private void AssertConsentAll(bool expectedValue)
         {
             ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
             AssertConsentArray(consents, expectedValue);
         }
 
         [Fact]
-        public async void ConsentSimple()
+        public void ConsentSimple()
         {
             CountlyConfig cc = TestHelper.CreateConfig();
             cc.consentRequired = true;
@@ -74,7 +74,7 @@ namespace TestProject_common
         }
 
         [Fact]
-        public async void ConsentSimpleDenied()
+        public void ConsentSimpleDenied()
         {
             Dictionary<ConsentFeatures, bool> consent = new Dictionary<ConsentFeatures, bool>();
             consent.Add(ConsentFeatures.Crashes, false);
@@ -96,7 +96,7 @@ namespace TestProject_common
         }
 
         [Fact]
-        public async void ConsentSimpleAllowed()
+        public void ConsentSimpleAllowed()
         {
             Dictionary<ConsentFeatures, bool> consent = new Dictionary<ConsentFeatures, bool>();
             consent.Add(ConsentFeatures.Crashes, true);
@@ -194,7 +194,7 @@ namespace TestProject_common
             cc.givenConsent = consent;
 
             Countly.Instance.Init(cc).Wait();
-            Assert.Equal(0, Countly.Instance.StoredRequests.Count);
+            Assert.Empty(Countly.Instance.StoredRequests);
         }
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace TestProject_common
             Countly.Instance.deferUpload = true;
             Countly.Instance.Init(cc).Wait();
 
-            Assert.Equal(1, Countly.Instance.StoredRequests.Count);
+            Assert.Single(Countly.Instance.StoredRequests);
             StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
             NameValueCollection collection = HttpUtility.ParseQueryString(request.Request);
             JObject consentObj = JObject.Parse(collection.Get("consent"));
@@ -256,7 +256,7 @@ namespace TestProject_common
             consent.Add(ConsentFeatures.Users, true);
             Countly.Instance.SetConsent(consent).Wait();
 
-            Assert.Equal(1, Countly.Instance.StoredRequests.Count);
+            Assert.Single(Countly.Instance.StoredRequests);
             StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
             NameValueCollection collection = HttpUtility.ParseQueryString(request.Request);
             JObject consentObj = JObject.Parse(collection.Get("consent"));
@@ -278,7 +278,7 @@ namespace TestProject_common
             consentToRemove.Add(ConsentFeatures.Sessions, false);
             Countly.Instance.SetConsent(consentToRemove).Wait();
 
-            Assert.Equal(1, Countly.Instance.StoredRequests.Count);
+            Assert.Single(Countly.Instance.StoredRequests);
             request = Countly.Instance.StoredRequests.Dequeue();
             collection = HttpUtility.ParseQueryString(request.Request);
             consentObj = JObject.Parse(collection.Get("consent"));
