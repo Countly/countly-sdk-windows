@@ -1,17 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using CountlySDK;
 using CountlySDK.CountlyCommon;
 
@@ -27,44 +16,62 @@ namespace CountlySampleWPF
             InitializeComponent();
         }
 
-        private async void Button_Click_0(object sender, RoutedEventArgs e)
+        private async void Record_Event(object sender, RoutedEventArgs e)
         {
-            //Record Handled Crash
-            try
-            {
-                throw new DivideByZeroException();
+
+            await Countly.RecordEvent("Basic Event");
+        }
+
+        private async void Record_Event_1(object sender, RoutedEventArgs e)
+        {
+            Segmentation segmentation = new Segmentation();
+            segmentation.Add("retry", "3");
+            segmentation.Add("time_left", "60");
+
+            await Countly.RecordEvent("Basic Event", 1, 10, 10.5, segmentation);
+        }
+
+        private async void Record_View(object sender, RoutedEventArgs e)
+        {
+            await Countly.Instance.RecordView("Start View");
+        }
+
+        private async void Record_Exception(object sender, RoutedEventArgs e)
+        {
+            try {
+                throw new Exception("Exception with segmentation");
+            } catch (Exception ex) {
+                Dictionary<string, string> customInfo = new Dictionary<string, string>();
+                customInfo.Add("customData", "importantStuff");
+
+                await Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
             }
-            catch (Exception ex)
-            {
-                await Countly.RecordException(ex.Message, ex.StackTrace);
-            }
         }
 
-        private async void Button_Click_1(object sender, RoutedEventArgs e)
+        private async void Change_DeviceID_With_Merge(object sender, RoutedEventArgs e)
         {
-            //Record View
-            await Countly.Instance.RecordView("Some View Name");
+            await Countly.Instance.ChangeDeviceId("new-device-id-1", true);
         }
 
-        private void Button_Click_2(object sender, RoutedEventArgs e)
+        private async void Change_DeviceID_Without_Merge(object sender, RoutedEventArgs e)
         {
-            //throwing unhandled exception
-            throw new IndexOutOfRangeException();
+            await Countly.Instance.ChangeDeviceId("new-device-id-1");
         }
 
-        private void Button_Click_3(object sender, RoutedEventArgs e)
+        private void Set_User_Profile(object sender, RoutedEventArgs e)
         {
-            bool consent = true;
+            Countly.UserDetails.Name = "full name";
+            Countly.UserDetails.Username = "username1";
+            Countly.UserDetails.Email = "test@count.ly";
+            Countly.UserDetails.Organization = "organization";
+            Countly.UserDetails.Phone = "000-111-000 ";
+            Countly.UserDetails.Gender = "Male";
+        }
 
-            Countly.Instance.SetConsent(new Dictionary<CountlyBase.ConsentFeatures, bool>
-            {
-                { CountlyBase.ConsentFeatures.Crashes, consent },
-                { CountlyBase.ConsentFeatures.Events, consent },
-                { CountlyBase.ConsentFeatures.Location, false },
-                { CountlyBase.ConsentFeatures.Sessions, consent },
-                { CountlyBase.ConsentFeatures.Users, false },
-                { CountlyBase.ConsentFeatures.Views, consent }
-            });
+        private async void Set_User_Location(object sender, RoutedEventArgs e)
+        {
+            await Countly.Instance.SetLocation("31.5204, 74.3587", "192.0.0.1", "PK", "Lahore");
+
         }
     }
 }

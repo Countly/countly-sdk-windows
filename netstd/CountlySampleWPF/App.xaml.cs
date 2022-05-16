@@ -17,8 +17,8 @@ namespace CountlySampleWPF
     /// </summary>
     public partial class App : Application
     {
-        public const String serverURL = "";
-        public const String appKey = "";
+        public const string serverURL = "https://try.count.ly";
+        public const string appKey = "YOUR_APP_KEY";
 
         private async void App_OnStartup(object sender, StartupEventArgs e)
         {
@@ -33,10 +33,6 @@ namespace CountlySampleWPF
 
             await Countly.Instance.Init(countlyConfig);
             await Countly.Instance.SessionBegin();
-
-            Debug.WriteLine("After init");
-
-            Countly.UserDetails.Name = "fdf";
         }
 
         protected async override void OnExit(ExitEventArgs e)
