@@ -10,9 +10,9 @@ namespace CountlySample
 {
     class Program
     {
-        const String serverURL = "http://try.count.ly";//put your server URL here
-        const String appKey = null;//put your server APP key here       
-        const bool enableDebugOptions = false;
+        const string serverURL = "http://try.count.ly";//put your server URL here
+        const string appKey = "YOUR_APP_KEY";//put your server APP key here       
+
         public int threadIterations = 100;
         int threadWaitStart = 100;
         int threadWaitEnd = 1000;
@@ -23,23 +23,14 @@ namespace CountlySample
             //to use TLS 1.2
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
 
-            (new Program().Run()).GetAwaiter().GetResult();
+            new Program().Run().GetAwaiter().GetResult();
         }
 
         public async Task Run()
         {
             Console.WriteLine("Hello to the Countly sample console program");
 
-            if (serverURL == null || appKey == null) {
-                Console.WriteLine("");
-                Console.WriteLine("Problem encountered, you have not set up either the serverURL or the appKey");
-                Console.ReadKey();
-                return;
-            }
-
             Countly.IsLoggingEnabled = true;
-            //Countly.SetCustomDataPath(@"D:\123z\");//usable only when targeting .net3.5
-            //Countly.SetCustomDataPath(null);
 
             CountlyConfig countlyConfig = new CountlyConfig();
             countlyConfig.serverUrl = serverURL;
@@ -47,83 +38,131 @@ namespace CountlySample
             countlyConfig.appVersion = "123";
 
             await Countly.Instance.Init(countlyConfig);
-            await Countly.Instance.SessionBegin();
-
-            /*
-            //Countly.deferUpload = true;//this call is only available by allowing access to internal members to this project, should not be used
-            await Countly.StartSession(serverURL, appKey, "1.234", Countly.DeviceIdMethod.multipleFields);
-            */
-            Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
-
-            System.Console.WriteLine("DeviceID: " + await Countly.GetDeviceId());
+            _ = Countly.Instance.SessionBegin();
 
             while (true) {
                 Console.WriteLine("");
                 Console.WriteLine("Choose your option:");
-                Console.WriteLine("1) Sample event");
-                Console.WriteLine("2) Sample caught exception");
-                Console.WriteLine("3) Change deviceID to a random value (create new user)");
-                Console.WriteLine("4) Change the name of the current user");
-                Console.WriteLine("5) Exit");
-                Console.WriteLine("6) Another caught Exception");
-                Console.WriteLine("7) Some view");
-                Console.WriteLine("8) Another view");
-                Console.WriteLine("9) Test");
+                Console.WriteLine("1) Record basic event");
+                Console.WriteLine("2) Record event with segmentation");
+                Console.WriteLine("3) Record event with sum and count");
+                Console.WriteLine("4) Record event with sum and segmentation");
+                Console.WriteLine("5) Record timed event with sum, count, duration and segmentation");
 
-                if (enableDebugOptions) {
-                    Console.WriteLine("8) (debug) Threading test");
+                Console.WriteLine("6) Record start view");
+                Console.WriteLine("7) Record another view");
+
+                Console.WriteLine("8) Set user profile");
+                Console.WriteLine("9) Set user custom profile");
+
+                Console.WriteLine("10) Set location");
+                Console.WriteLine("11) Disable location");
+
+                Console.WriteLine("12) Change deviceId with server merge");
+                Console.WriteLine("13) Change deviceId without server merge");
+
+                Console.WriteLine("14) Record an exception");
+                Console.WriteLine("15) Record an exception with segmentation");
+
+                Console.WriteLine("16) Threading test");
+
+                Console.WriteLine("0 Exit");
+
+                string line = System.Console.ReadLine();
+
+                int input = -1;
+                try {
+                    input = int.Parse(line);
+                } catch (Exception ex) {
                 }
-
-
-                ConsoleKeyInfo cki = System.Console.ReadKey();
                 Console.WriteLine("");
 
-                if (cki.Key == ConsoleKey.D1) {
-                    System.Console.WriteLine("1");
-                    Countly.RecordEvent("Some event");
-                } else if (cki.Key == ConsoleKey.D2) {
-                    Console.WriteLine("2");
+
+                if (input == 1) {
+                    _ = Countly.RecordEvent("Basic Event");
+                } else if (input == 2) {
+                    _ = Countly.RecordEvent("Event With Sum And Count", 2, 23);
+                } else if (input == 3) {
+                    Segmentation segment = new Segmentation();
+                    segment.Add("Time Spent", "60");
+                    segment.Add("Retry Attempts", "3");
+
+                    _ = Countly.RecordEvent("Event With Count And Segment", 1, segment);
+
+                } else if (input == 4) {
+                    Segmentation segment = new Segmentation();
+                    segment.Add("Time Spent", "60");
+                    segment.Add("Retry Attempts", "3");
+
+                    _ = Countly.RecordEvent("Event With Sum, Count And Segment", 1, 23, segment);
+
+                } else if (input == 5) {
+                    Segmentation segment = new Segmentation();
+                    segment.Add("Time Spent", "60");
+                    segment.Add("Retry Attempts", "3");
+
+                    _ = Countly.RecordEvent("Event With Sum, Count, Duration And Segment", 1, 23, 12.0, segment);
+
+                } else if (input == 8) {
+                    Countly.UserDetails.Name = "full name";
+                    Countly.UserDetails.Username = "username1";
+                    Countly.UserDetails.Email = "test@count.ly";
+                    Countly.UserDetails.Organization = "organization";
+                    Countly.UserDetails.Phone = "000-111-000 ";
+                    Countly.UserDetails.Gender = "Male";
+                } else if (input == 9) {
+                    CustomInfo customInfo = new CustomInfo();
+                    customInfo.Add("Height", "5'10");
+                    customInfo.Add("Weight", "79 kg");
+                    customInfo.Add("Black", "Hair Color");
+
+                    Countly.UserDetails.Custom = customInfo;
+                    break;
+                } else if (input == 6) {
+                    Console.WriteLine("6");
+                    _ = Countly.Instance.RecordView("Another view");
+                } else if (input == 7) {
+                    Console.WriteLine("7");
+                    _ = Countly.Instance.RecordView("Start view");
+
+                } else if (input == 10) {
+                    _ = Countly.Instance.SetLocation("31.5204, 74.3587", "192.0.0.1", "PK", "Lahore");
+                } else if (input == 11) {
+                    _ = Countly.Instance.DisableLocation();
+                } else if (input == 12) {
+                    _ = Countly.Instance.ChangeDeviceId("new-device-id-1");
+                } else if (input == 13) {
+                    _ = Countly.Instance.ChangeDeviceId("new-device-id-2", true);
+                } else if (input == 14) {
 
                     try {
-                        throw new Exception("This is some bad exception 3");
+                        throw new Exception("This is some bad exception");
+                    } catch (Exception ex) {
+                        _ = Countly.RecordException(ex.Message, ex.StackTrace);
+                    }
+                } else if (input == 15) {
+
+                    try {
+                        throw new Exception("Exception with segmentation");
                     } catch (Exception ex) {
                         Dictionary<string, string> customInfo = new Dictionary<string, string>();
                         customInfo.Add("customData", "importantStuff");
-                        Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
+
+                        _ = Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
                     }
-                } else if (cki.Key == ConsoleKey.D3) {
-                    Console.WriteLine("3");
-                    //await Device.SetDeviceId("ID-" + (new Random()).Next());
-                } else if (cki.Key == ConsoleKey.D4) {
-                    Console.WriteLine("4");
-                    Countly.UserDetails.Name = "Some Username " + (new Random()).Next();
-                } else if (cki.Key == ConsoleKey.D5) {
-                    Console.WriteLine("5");
-                    break;
-                } else if (cki.Key == ConsoleKey.D6) {
-                    Console.WriteLine("6");
-                    await Countly.RecordException("What is here", "");
-                } else if (cki.Key == ConsoleKey.D7) {
-                    Console.WriteLine("7");
-                    await Countly.Instance.RecordView("Some view Name");
-
-                } else if (cki.Key == ConsoleKey.D8) {
-                    Console.WriteLine("8");
-                    await Countly.Instance.RecordView("Another view Name");
-
-                } else if (enableDebugOptions && cki.Key == ConsoleKey.D9) {
-                    Console.WriteLine("8");
-                    Console.WriteLine("Running threaded debug test");
+                } else if (input == 16) {
+                    Console.WriteLine("==== Running threaded debug tests ====");
                     ThreadTest();
+                } else if (input == 0) {
+                    break;
                 } else {
                     Console.WriteLine("Wrong input, please try again.");
                 }
             };
 
-            await Countly.Instance.SessionEnd();
+            _ = Countly.Instance.SessionEnd();
+
         }
-
-
 
         void ThreadTest()
         {
@@ -143,12 +182,12 @@ namespace CountlySample
                 threads[a].Join();
             }
 
-            System.Console.WriteLine("Threading test is over.");
+            System.Console.WriteLine("==== Threading test is over. ====");
         }
 
         void ThreadWorkEvents()
         {
-            String[] eventKeys = new string[] { "key_1", "key_2", "key_3", "key_4", "key_5", "key_6" };
+            string[] eventKeys = new string[] { "key_1", "key_2", "key_3", "key_4", "key_5", "key_6" };
 
             for (int a = 0; a < threadIterations; a++) {
                 int choice = a % 5;
@@ -193,7 +232,7 @@ namespace CountlySample
                 exToUse = ex;
             }
 
-            Dictionary<String, String> dict = new Dictionary<string, string>();
+            Dictionary<string, string> dict = new Dictionary<string, string>();
             dict.Add("booh", "waah");
 
 

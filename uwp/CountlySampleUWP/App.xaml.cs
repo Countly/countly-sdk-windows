@@ -86,16 +86,13 @@ namespace CountlySampleUWP
             Countly.IsLoggingEnabled = true;
             var cc = new CountlyConfig
             {
-                serverUrl = "SERVER_URL",
-                appKey = "APP_KEY",
+                serverUrl = "https://try.count.ly",
+                appKey = "YOUR_APP_KEY",
                 appVersion = "1.2.3",
             };
 
-            //Countly.Instance.deferUpload = true;
             await Countly.Instance.Init(cc);
             await Countly.Instance.SessionBegin();
-            await Countly.RecordEvent("qwedqwe");
-            await Countly.Instance.RecordView("Some View");
         }
 
 
@@ -130,8 +127,6 @@ namespace CountlySampleUWP
         {
             Debug.WriteLine("Calling [OnResuming]");
             await Countly.Instance.SessionBegin();
-            await Countly.RecordEvent("qwedqwe");
-            await Countly.Instance.RecordView("Some View");
         }
 
         protected override async void OnActivated(IActivatedEventArgs args)

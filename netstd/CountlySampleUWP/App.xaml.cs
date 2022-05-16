@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using CountlySDK;
+using CountlySDK.Entities;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -28,8 +31,10 @@ namespace CountlySampleUWP
         /// </summary>
         public App()
         {
+            Debug.WriteLine("Calling [App]");
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            this.Resuming += OnResuming;
         }
 
         /// <summary>
@@ -43,15 +48,13 @@ namespace CountlySampleUWP
 
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
-            if (rootFrame == null)
-            {
+            if (rootFrame == null) {
                 // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
 
                 rootFrame.NavigationFailed += OnNavigationFailed;
 
-                if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
-                {
+                if (e.PreviousExecutionState == ApplicationExecutionState.Terminated) {
                     //TODO: Load state from previously suspended application
                 }
 
@@ -59,10 +62,8 @@ namespace CountlySampleUWP
                 Window.Current.Content = rootFrame;
             }
 
-            if (e.PrelaunchActivated == false)
-            {
-                if (rootFrame.Content == null)
-                {
+            if (e.PrelaunchActivated == false) {
+                if (rootFrame.Content == null) {
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
                     // parameter
@@ -71,7 +72,24 @@ namespace CountlySampleUWP
                 // Ensure the current window is active
                 Window.Current.Activate();
             }
+            Launched();
         }
+
+        private async void Launched()
+        {
+            Debug.WriteLine("Calling [Launched]");
+            //create the Countly init object
+            Countly.IsLoggingEnabled = true;
+            var cc = new CountlyConfig {
+                serverUrl = "https://try.count.ly",
+                appKey = "YOUR_APP_KEY",
+                appVersion = "1.2.3",
+            };
+
+            await Countly.Instance.Init(cc);
+            await Countly.Instance.SessionBegin();
+        }
+
 
         /// <summary>
         /// Invoked when Navigation to a certain page fails
@@ -90,11 +108,25 @@ namespace CountlySampleUWP
         /// </summary>
         /// <param name="sender">The source of the suspend request.</param>
         /// <param name="e">Details about the suspend request.</param>
-        private void OnSuspending(object sender, SuspendingEventArgs e)
+        private async void OnSuspending(object sender, SuspendingEventArgs e)
         {
+            Debug.WriteLine("Calling [OnSuspending]");
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
+            await Countly.Instance.SessionEnd();
+
             deferral.Complete();
+        }
+
+        private async void OnResuming(object sender, object e)
+        {
+            Debug.WriteLine("Calling [OnResuming]");
+            await Countly.Instance.SessionBegin();
+        }
+
+        protected override void OnActivated(IActivatedEventArgs args)
+        {
+            Debug.WriteLine("Calling [OnActivated]");
         }
     }
 }
