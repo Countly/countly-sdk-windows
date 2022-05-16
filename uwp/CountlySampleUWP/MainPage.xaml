@@ -8,10 +8,12 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Button Content="Record Handled Crash" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click"/>
-        <Button Content="Record View" HorizontalAlignment="Left" Margin="10,84,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click_1"/>
-        <Button Content="Cause Unhandled Crash" HorizontalAlignment="Left" Margin="10,158,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click_2"/>
-        <Button Content="Set consent" HorizontalAlignment="Left" Margin="10,232,0,0" VerticalAlignment="Top" Height="69" Width="186" Click="Button_Click_3"/>
-
+        
+        <Button Content="Record Basic Event" Margin="10,10,0,0" VerticalAlignment="Top" Click="Record_Event"/>
+        <Button Content="Record An Event With Segmentation" Margin="10,60,0,0" VerticalAlignment="Top" Click="Record_Event_1"/>
+        <Button Content="Record An Exception" Margin="10,110,0,0" VerticalAlignment="Top" Click="Record_Exception"/>
+        <Button Content="Record A View" Margin="10,160,0,0" VerticalAlignment="Top" Click="Record_View"/>
+        <Button Content="Set User Location" Margin="10,210,0,0" VerticalAlignment="Top" Click="Set_User_Location"/>
+        <Button Content="Set User Profile" Margin="10,260,0,0" VerticalAlignment="Top" Click="Set_User_Profile"/>
     </Grid>
 </Page>
