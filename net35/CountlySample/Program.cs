@@ -52,19 +52,19 @@ namespace CountlySample
                 Console.WriteLine("6) Record start view");
                 Console.WriteLine("7) Record another view");
 
-                Console.WriteLine("8 Set user profile");
-                Console.WriteLine("9 Set user custom profile");
+                Console.WriteLine("8) Set user profile");
+                Console.WriteLine("9) Set user custom profile");
 
-                Console.WriteLine("10 Set location");
-                Console.WriteLine("11 Disable location");
+                Console.WriteLine("10) Set location");
+                Console.WriteLine("11) Disable location");
 
-                Console.WriteLine("12 Change deviceId with server merge");
-                Console.WriteLine("13 Change deviceId without server merge");
+                Console.WriteLine("12) Change deviceId with server merge");
+                Console.WriteLine("13) Change deviceId without server merge");
 
-                Console.WriteLine("14 Record an exception");
-                Console.WriteLine("15 Record an exception with segmentation");
+                Console.WriteLine("14) Record an exception");
+                Console.WriteLine("15) Record an exception with segmentation");
 
-                Console.WriteLine("16 Threading test");
+                Console.WriteLine("16) Threading test");
 
                 Console.WriteLine("0 Exit");
 
