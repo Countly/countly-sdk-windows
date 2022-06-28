@@ -75,8 +75,8 @@ namespace CountlySDK.CountlyCommon
             get {
                 lock (Countly.Instance.sync) {
                     if (userDetails == null) {
-                        userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename).Result;
-                        if (userDetails == null) { userDetails = new CountlyUserDetails(); }
+                         userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename).Result;
+                        if (userDetails == null) { userDetails = new CountlyUserDetails(); } else { userDetails.isNotificationEnabled = true; }
                         userDetails.UserDetailsChanged += Countly.Instance.OnUserDetailsChanged;
                     }
                 }
