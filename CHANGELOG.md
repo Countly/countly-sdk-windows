@@ -1,4 +1,7 @@
 21.11.1
+* Fixed user custom properties bug.
+
+21.11.1
 * Fixed wrong SDK version number and SDK name.
 * Fixed potential issues where device ID was not encoded.
 * Fixed bug where the correct consent state was not sent when consent was removed.
