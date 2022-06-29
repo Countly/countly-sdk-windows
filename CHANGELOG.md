@@ -1,5 +1,5 @@
 21.11.1
-* Fixed user custom properties bug.
+* Fixed a bug where 'User custom properties' were not recording.
 
 21.11.1
 * Fixed wrong SDK version number and SDK name.
