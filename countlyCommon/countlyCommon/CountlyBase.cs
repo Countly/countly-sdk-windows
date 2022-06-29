@@ -18,7 +18,7 @@ namespace CountlySDK.CountlyCommon
     abstract public class CountlyBase
     {
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "21.11.1";
+        protected const string sdkVersion = "21.11.2";
 
         internal CountlyConfig Configuration;
 
@@ -76,7 +76,13 @@ namespace CountlySDK.CountlyCommon
                 lock (Countly.Instance.sync) {
                     if (userDetails == null) {
                         userDetails = Storage.Instance.LoadFromFile<CountlyUserDetails>(userDetailsFilename).Result;
-                        if (userDetails == null) { userDetails = new CountlyUserDetails(); }
+
+                        if (userDetails == null) {
+                            userDetails = new CountlyUserDetails();
+                        } else {
+                            userDetails.isNotificationEnabled = true;
+                        }
+
                         userDetails.UserDetailsChanged += Countly.Instance.OnUserDetailsChanged;
                     }
                 }
@@ -1153,7 +1159,7 @@ namespace CountlySDK.CountlyCommon
 
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
                 //create the required merge request
-                string br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkVersion, sdkName(),  timeInstant);
+                string br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkVersion, sdkName(), timeInstant);
                 string dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
 
                 //change device ID
