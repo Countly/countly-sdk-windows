@@ -1,4 +1,4 @@
-21.11.1
+21.11.2
 * Fixed a bug where 'User properties' were not being recorded.
 
 21.11.1
