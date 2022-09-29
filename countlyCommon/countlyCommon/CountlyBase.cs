@@ -1087,7 +1087,7 @@ namespace CountlySDK.CountlyCommon
         /// Returns the device id type
         /// </summary>
         /// <returns>DeviceIdType</returns>
-        public DeviceIdType getDeviceIDType()
+        public DeviceIdType GetDeviceIDType()
         {
             if (DeviceData.usedIdMethod == DeviceIdMethodInternal.developerSupplied) {
                 return DeviceIdType.DeveloperProvided;
