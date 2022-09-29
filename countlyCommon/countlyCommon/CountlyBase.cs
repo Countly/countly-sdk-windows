@@ -878,7 +878,7 @@ namespace CountlySDK.CountlyCommon
             await Countly.Instance.HaltInternal();
         }
 
-        protected async Task HaltInternal()
+        internal async Task HaltInternal(bool clearStorage = true)
         {
             lock (sync) {
                 ServerUrl = null;
@@ -901,6 +901,13 @@ namespace CountlySDK.CountlyCommon
                 consentRequired = false;
                 givenConsent.Clear();
             }
+            if (clearStorage) {
+                await ClearStorage();
+            }
+        }
+
+        protected async Task ClearStorage()
+        {
             await Storage.Instance.DeleteFile(eventsFilename);
             await Storage.Instance.DeleteFile(sessionsFilename);
             await Storage.Instance.DeleteFile(exceptionsFilename);
@@ -1059,7 +1066,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            await DeviceData.SetPreferredDeviceIdMethod((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
+            await DeviceData.InitDeviceId((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
 
             lock (sync) {
                 StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(storedRequestsFilename).Result ?? new Queue<StoredRequest>();
@@ -1080,7 +1087,8 @@ namespace CountlySDK.CountlyCommon
         /// Returns the device id type
         /// </summary>
         /// <returns>DeviceIdType</returns>
-        public DeviceIdType getDeviceIDType() {
+        public DeviceIdType getDeviceIDType()
+        {
             if (DeviceData.usedIdMethod == DeviceIdMethodInternal.developerSupplied) {
                 return DeviceIdType.DeveloperProvided;
             } else {
