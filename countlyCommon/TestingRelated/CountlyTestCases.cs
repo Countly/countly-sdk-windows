@@ -1,4 +1,5 @@
 ﻿using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
@@ -40,7 +41,9 @@ namespace TestProject_common
         [Fact]
         public async void BasicDeviceID()
         {
-            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            string dId = deviceId.deviceId;
+
             Assert.NotNull(dId);
             Assert.NotEqual(0, dId.Length);
         }
@@ -51,14 +54,19 @@ namespace TestProject_common
             bool res;
             res = await Countly.RecordEvent("Some event user1", 123);
             Assert.True(res);
-            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            string dId = deviceId.deviceId;
+
             Assert.NotNull(dId);
             Assert.NotEqual(0, dId.Length);
 
-            String newId = "qweqwe";
+            string newId = "qweqwe";
 
             await Countly.Instance.ChangeDeviceId(newId, false);
-            String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
+            deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            string dId2 = deviceId.deviceId;
+
             Assert.Equal(newId, dId2);
             res = await Countly.RecordEvent("Some event user2", 123);
             Assert.True(res);
@@ -69,11 +77,12 @@ namespace TestProject_common
         {
             bool res;
 
-            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            string dId = deviceId.deviceId;
             Assert.NotNull(dId);
             Assert.NotEqual(0, dId.Length);
 
-            String newId = "qweqwe";
+            string newId = "qweqwe";
 
             await Countly.Instance.ChangeDeviceId(newId + "1", false);
             res = await Countly.RecordEvent("Some event user2", 123);
@@ -93,13 +102,18 @@ namespace TestProject_common
             bool res;
             res = await Countly.RecordEvent("Some event user1", 123);
             Assert.True(res);
-            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            string dId = deviceId.deviceId;
+
             Assert.NotNull(dId);
             Assert.NotEqual(0, dId.Length);
 
-            String newId = "qweqwe";
+            string newId = "qweqwe";
             await Countly.Instance.ChangeDeviceId(newId, true);
-            String dId2 = await Countly.Instance.DeviceData.GetDeviceId();
+            deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            string dId2 = deviceId.deviceId;
+
             Assert.Equal(newId, dId2);
             res = await Countly.RecordEvent("Some event same user", 123);
             Assert.True(res);
@@ -110,11 +124,12 @@ namespace TestProject_common
         {
             bool res;
 
-            String dId = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            string dId = deviceId.deviceId;
             Assert.NotNull(dId);
             Assert.NotEqual(0, dId.Length);
 
-            String newId = "qweqwe";
+            string newId = "qweqwe";
 
             await Countly.Instance.ChangeDeviceId(newId + "1", true);
             res = await Countly.RecordEvent("Some event user2", 123);

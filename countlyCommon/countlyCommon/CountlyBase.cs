@@ -939,7 +939,8 @@ namespace CountlySDK.CountlyCommon
                 return string.Empty;
             }
 
-            return await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId did = await Countly.Instance.DeviceData.GetDeviceId();
+            return did.deviceId;
         }
 
         protected bool IsServerURLCorrect(String url)
@@ -1155,11 +1156,14 @@ namespace CountlySDK.CountlyCommon
                 await SessionBegin();
             } else {
                 //need server merge, therefore send special request
-                string oldId = await DeviceData.GetDeviceId();
+                DeviceId dId = await DeviceData.GetDeviceId();
+                string oldId = dId.deviceId;
+
+                DeviceId newdId = new DeviceId(newDeviceId, DeviceIdMethodInternal.developerSupplied);
 
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
                 //create the required merge request
-                string br = RequestHelper.CreateBaseRequest(AppKey, newDeviceId, sdkVersion, sdkName(), timeInstant);
+                string br = RequestHelper.CreateBaseRequest(AppKey, newdId, sdkVersion, sdkName(), timeInstant);
                 string dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
 
                 //change device ID

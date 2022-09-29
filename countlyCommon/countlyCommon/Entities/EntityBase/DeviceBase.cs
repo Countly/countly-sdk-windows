@@ -51,27 +51,30 @@ namespace CountlySDK.Entities.EntityBase
         /// <summary>
         /// Returns the unique device identificator
         /// </summary>
-        internal async Task<string> GetDeviceId()
+        internal async Task<DeviceId> GetDeviceId()
         {
             try {
+                DeviceId dId = null;
                 if (deviceId != null) {
-                    return deviceId;
+
+                    dId = new DeviceId(deviceId, usedIdMethod);
+                    return dId;
                 }
 
                 await LoadDeviceIDFromStorage();
 
                 if (deviceId == null) {
-                    DeviceId dId = ComputeDeviceID();
+                    dId = ComputeDeviceID();
                     deviceId = dId.deviceId;
                     usedIdMethod = dId.deviceIdMethod;
 
                     await SaveDeviceIDToStorage();
                 }
 
-                return deviceId;
+                return dId;
             } catch {
                 //todo log
-                return String.Empty;
+                return null;
             }
         }
 

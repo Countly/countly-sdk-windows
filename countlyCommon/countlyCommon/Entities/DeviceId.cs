@@ -29,6 +29,31 @@ namespace CountlySDK.CountlyCommon.Entities
         [JsonConstructor]
         internal DeviceId() { }
 
+        internal int Type() {
+            int type = 0;
+            switch (deviceIdMethod) {
+                case DeviceBase.DeviceIdMethodInternal.cpuId:
+                    type = 1;
+                    break;
+                case DeviceBase.DeviceIdMethodInternal.multipleWindowsFields:
+                    type = 2;
+                    break;
+                case DeviceBase.DeviceIdMethodInternal.windowsGUID:
+                    type = 3;
+                    break;
+                case DeviceBase.DeviceIdMethodInternal.winHardwareToken:
+                    type = 4;
+                    break;
+                case DeviceBase.DeviceIdMethodInternal.developerSupplied:
+                    type = 0;
+                    break;
+                default:
+                    break;
+            }
+
+            return type;
+        }
+
         public int CompareTo(DeviceId other)
         {
             if (!(deviceId == null && other.deviceId == null)) {
