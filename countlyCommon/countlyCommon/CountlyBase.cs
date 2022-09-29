@@ -1074,6 +1074,20 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
         }
 
+        public enum DeviceIdType { DeveloperProvided = 0, SDKGenerated = 1 };
+
+        /// <summary>
+        /// Returns the device id type
+        /// </summary>
+        /// <returns>DeviceIdType</returns>
+        public DeviceIdType getDeviceIDType() {
+            if (DeviceData.usedIdMethod == DeviceIdMethodInternal.developerSupplied) {
+                return DeviceIdType.DeveloperProvided;
+            } else {
+                return DeviceIdType.SDKGenerated;
+            }
+        }
+
         protected abstract Task SessionBeginInternal();
 
         /// <summary>

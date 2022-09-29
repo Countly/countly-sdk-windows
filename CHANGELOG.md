@@ -1,3 +1,6 @@
+22.02.0
+* Added ability to get device id type.
+
 21.11.2
 * Fixed a bug where 'User properties' were not being recorded.
 
