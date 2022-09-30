@@ -76,7 +76,7 @@ namespace CountlySDK.Entities.EntityBase
                 return dId;
             } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("[DeviceBase][GetDeviceId] thrown exception, " + ex.ToString());
-                return null;
+                return new DeviceId("", DeviceIdMethodInternal.none);
             }
         }
 
