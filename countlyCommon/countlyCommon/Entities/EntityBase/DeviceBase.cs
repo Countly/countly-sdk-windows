@@ -69,11 +69,13 @@ namespace CountlySDK.Entities.EntityBase
                     usedIdMethod = dId.deviceIdMethod;
 
                     await SaveDeviceIDToStorage();
+                } else {
+                    dId = new DeviceId(deviceId, usedIdMethod);
                 }
 
                 return dId;
-            } catch {
-                //todo log
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[DeviceBase][GetDeviceId] thrown exception, " + ex.ToString());
                 return null;
             }
         }

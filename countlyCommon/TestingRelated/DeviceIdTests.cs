@@ -51,7 +51,8 @@ namespace TestProject_common
             Countly.Instance.SessionBegin().Wait();
             Countly.Instance.Sessions.Clear();
 
-            string oldDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId dId = await Countly.Instance.DeviceData.GetDeviceId();
+            string oldDeviceId = dId.deviceId;
             Countly.Instance.ChangeDeviceId("new-device-id", false).Wait();
 
             //End session request
@@ -61,7 +62,8 @@ namespace TestProject_common
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
 
-            string newDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            dId = await Countly.Instance.DeviceData.GetDeviceId();
+            string newDeviceId = dId.deviceId;
             model = Countly.Instance.Sessions[1];
             collection = HttpUtility.ParseQueryString(model.Content);
 
@@ -94,7 +96,8 @@ namespace TestProject_common
             Countly.Instance.Sessions.Clear();
             Countly.Instance.StoredRequests.Clear();
 
-            string oldDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId dId = await Countly.Instance.DeviceData.GetDeviceId();
+            string oldDeviceId = dId.deviceId;
             Countly.Instance.ChangeDeviceId("new-device-id", false).Wait();
 
             //End session request
@@ -152,9 +155,12 @@ namespace TestProject_common
             Countly.Instance.Sessions.Clear();
             Countly.Instance.deferUpload = true;
 
-            string oldDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId dId = await Countly.Instance.DeviceData.GetDeviceId();
+            string oldDeviceId = dId.deviceId;
+
             Countly.Instance.ChangeDeviceId("new-device-id", true).Wait();
-            string newDeviceId = await Countly.Instance.DeviceData.GetDeviceId();
+            dId = await Countly.Instance.DeviceData.GetDeviceId();
+            string newDeviceId = dId.deviceId;
 
             //End session request
             StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
