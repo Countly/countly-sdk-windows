@@ -1,4 +1,5 @@
 22.02.0
+* ! Minor breaking change ! Device ID is now sticky during init. If a device ID value was acquired by the SDK before, it will now ignore the init-time provided custom device ID value.
 * Added ability to get device id type.
 
 21.11.2
