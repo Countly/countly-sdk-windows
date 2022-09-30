@@ -30,7 +30,7 @@ namespace CountlySDK.CountlyCommon.Entities
         internal DeviceId() { }
 
         internal int Type() {
-            int type = 0;
+            int type = 9;
             switch (deviceIdMethod) {
                 case DeviceBase.DeviceIdMethodInternal.cpuId:
                     type = 1;
