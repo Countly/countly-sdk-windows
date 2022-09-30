@@ -44,14 +44,14 @@ namespace CountlySDK.CountlyCommon.Server
             }
 
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&events={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}{10}", serverUrl, appKey, did, UtilityHelper.EncodeDataForURL(eventsJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, userDetailsJson));
+            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&events={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}{10}&t={11}", serverUrl, appKey, did, UtilityHelper.EncodeDataForURL(eventsJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, userDetailsJson, deviceId.Type()));
         }
 
         public async Task<RequestResult> SendException(string serverUrl, string appKey, DeviceId deviceId, string sdkVersion, string sdkName, ExceptionEvent exception, TimeInstant timeInstant)
         {
             string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&crash={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}", serverUrl, appKey, did, UtilityHelper.EncodeDataForURL(exceptionJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp));
+            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&crash={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}&t={10}", serverUrl, appKey, did, UtilityHelper.EncodeDataForURL(exceptionJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, deviceId.Type()));
         }
 
         public async Task<RequestResult> UploadUserDetails(string serverUrl, string appKey, DeviceId deviceId, string sdkVersion, string sdkName, TimeInstant timeInstant, CountlyUserDetails userDetails = null)
@@ -63,7 +63,7 @@ namespace CountlySDK.CountlyCommon.Server
             }
 
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}", serverUrl, appKey, did, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp));
+            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}&t={10}", serverUrl, appKey, did, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, deviceId.Type()));
         }
 
         public async Task<RequestResult> UploadUserPicture(string serverUrl, string appKey, DeviceId deviceId, string sdkVersion, string sdkName, Stream imageStream, TimeInstant timeInstant, CountlyUserDetails userDetails = null)
@@ -75,7 +75,7 @@ namespace CountlySDK.CountlyCommon.Server
             }
 
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}", serverUrl, appKey, did, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp), imageStream);
+            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}&t={10}", serverUrl, appKey, did, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, deviceId.Type()), imageStream);
         }
 
         public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request)

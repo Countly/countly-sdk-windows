@@ -61,6 +61,7 @@ namespace TestProject_common
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
+            Assert.False(string.IsNullOrEmpty(collection.Get("t")));
 
             dId = await Countly.Instance.DeviceData.GetDeviceId();
             string newDeviceId = dId.deviceId;
@@ -106,6 +107,7 @@ namespace TestProject_common
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
+            Assert.False(string.IsNullOrEmpty(collection.Get("t")));
 
             // There is no consent request
             Assert.Empty(Countly.Instance.StoredRequests);
@@ -169,6 +171,7 @@ namespace TestProject_common
             Assert.Equal(oldDeviceId, collection.Get("old_device_id"));
             Assert.Equal("new-device-id", collection.Get("device_id"));
             Assert.Equal("new-device-id", newDeviceId);
+            Assert.False(string.IsNullOrEmpty(collection.Get("t")));
         }
     }
 }

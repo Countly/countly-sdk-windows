@@ -42,7 +42,7 @@ namespace CountlySDK.Entities
         public UpdateSession(string appKey, DeviceId deviceId, int duration, string sdkVersion, string sdkName, TimeInstant timeInstant)
         {
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            Content = string.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, did, duration, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone);
+            Content = string.Format("/i?app_key={0}&device_id={1}&session_duration={2}&timestamp={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&t={9}", appKey, did, duration, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, deviceId.Type());
         }
 
         [JsonConstructor]

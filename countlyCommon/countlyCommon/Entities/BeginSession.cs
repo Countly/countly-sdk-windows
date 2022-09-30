@@ -44,7 +44,7 @@ namespace CountlySDK.Entities
         {
             string metricsString = UtilityHelper.EncodeDataForURL(metrics.ToString());
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            Content = string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, did, sdkVersion, metricsString, timeInstant.Timestamp, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone);
+            Content = string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&t={9}", appKey, did, sdkVersion, metricsString, timeInstant.Timestamp, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, deviceId.Type());
         }
 
         /// <summary>

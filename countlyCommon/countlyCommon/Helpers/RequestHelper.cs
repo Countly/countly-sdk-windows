@@ -111,7 +111,7 @@ namespace CountlySDK.CountlyCommon.Helpers
         internal static string CreateBaseRequest(string appKey, DeviceId deviceId, string sdkVersion, string sdkName, TimeInstant instant)
         {
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}", appKey, did, instant.Timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, instant.Timezone);
+            return string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&t={8}", appKey, did, instant.Timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, instant.Timezone, deviceId.Type());
         }
     }
 }

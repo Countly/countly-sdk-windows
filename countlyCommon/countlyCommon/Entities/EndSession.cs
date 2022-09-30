@@ -47,7 +47,7 @@ namespace CountlySDK.Entities
             }
 
             string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            Content = string.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}", appKey, did, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, durationAddition);
+            Content = string.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}&t={9}", appKey, did, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, durationAddition, deviceId.Type());
         }
 
         [JsonConstructor]
