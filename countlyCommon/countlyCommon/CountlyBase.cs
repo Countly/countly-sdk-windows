@@ -456,7 +456,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="count">how many of these events have occurred, default value is "1"</param>
         /// <param name="sum">set sum if needed, default value is "0"</param>
         /// <returns></returns>
-        public void EndEvent(string key, Segmentation segmentation = null, int? count = 1, double? sum = 0)
+        public async Task EndEvent(string key, Segmentation segmentation = null, int count = 1, double? sum = 0)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : key = " + key + ", segmentation = " + segmentation + ", count = " + count + ", sum = " + sum);
 
@@ -477,7 +477,7 @@ namespace CountlySDK.CountlyCommon
             DateTime startTime = _timedEvents[key];
             double duration = (DateTime.Now - startTime).TotalSeconds;
 
-            Countly.RecordEvent(key, 1, sum, duration, segmentation);
+            await Countly.RecordEvent(key, count, sum, duration, segmentation);
 
             _timedEvents.Remove(key);
         }
@@ -986,6 +986,7 @@ namespace CountlySDK.CountlyCommon
 
                 SessionTimerStop();
 
+                _timedEvents.Clear();
                 Events?.Clear();
                 Sessions?.Clear();
                 Exceptions?.Clear();

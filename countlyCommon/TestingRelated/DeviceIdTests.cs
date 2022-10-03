@@ -207,7 +207,7 @@ namespace TestProject_common
         {
             string sdkDeviceId = await instance.DeviceData.GetDeviceId();
             Assert.NotNull(sdkDeviceId);
-            Assert.Equal(type, instance.getDeviceIDType());
+            Assert.Equal(type, instance.GetDeviceIDType());
 
             if (compareDeviceId) {
                 Assert.Equal(deviceId, sdkDeviceId);
