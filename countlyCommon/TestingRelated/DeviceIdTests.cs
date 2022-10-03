@@ -13,6 +13,7 @@ using static CountlySDK.CountlyCommon.CountlyBase;
 using System.Collections.Specialized;
 using CountlySDK.CountlyCommon.Entities;
 using Newtonsoft.Json.Linq;
+using CountlySDK.Entities.EntityBase;
 
 namespace TestProject_common
 {
@@ -61,7 +62,10 @@ namespace TestProject_common
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
-            Assert.False(string.IsNullOrEmpty(collection.Get("t")));
+
+            string type = collection.Get("t");
+            Assert.False(string.IsNullOrEmpty(type));
+            Assert.Equal("3", type);
 
             dId = await Countly.Instance.DeviceData.GetDeviceId();
             string newDeviceId = dId.deviceId;
@@ -71,6 +75,10 @@ namespace TestProject_common
             Assert.Equal("1", collection.Get("begin_session"));
             Assert.Equal("new-device-id", collection.Get("device_id"));
             Assert.Equal("new-device-id", newDeviceId);
+
+            type = collection.Get("t");
+            Assert.False(string.IsNullOrEmpty(type));
+            Assert.Equal("0", type);
         }
 
         [Fact]
@@ -107,7 +115,10 @@ namespace TestProject_common
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
-            Assert.False(string.IsNullOrEmpty(collection.Get("t")));
+
+            string type = collection.Get("t");
+            Assert.False(string.IsNullOrEmpty(type));
+            Assert.Equal("3", type);
 
             // There is no consent request
             Assert.Empty(Countly.Instance.StoredRequests);
@@ -141,6 +152,10 @@ namespace TestProject_common
             Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
             Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
             Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
+
+            type = collection.Get("t");
+            Assert.False(string.IsNullOrEmpty(type));
+            Assert.Equal("0", type);
         }
 
         [Fact]
@@ -171,7 +186,10 @@ namespace TestProject_common
             Assert.Equal(oldDeviceId, collection.Get("old_device_id"));
             Assert.Equal("new-device-id", collection.Get("device_id"));
             Assert.Equal("new-device-id", newDeviceId);
-            Assert.False(string.IsNullOrEmpty(collection.Get("t")));
+
+            string type = collection.Get("t");
+            Assert.False(string.IsNullOrEmpty(type));
+            Assert.Equal("0", type);
         }
 
         /**
@@ -212,17 +230,17 @@ namespace TestProject_common
             return Countly.Instance;
         }
 
-        private async void ValidateDeviceIDAndType(Countly instance, string deviceId, DeviceIdType type, bool compareDeviceId = true)
+        private async void ValidateDeviceIDAndType(Countly instance, string deviceId, DeviceIdType type, DeviceBase.DeviceIdMethodInternal internalType, bool compareDeviceId = true)
         {
-            string sdkDeviceId = await instance.DeviceData.GetDeviceId();
-            Assert.NotNull(sdkDeviceId);
-            Assert.Equal(type, instance.getDeviceIDType());
+            DeviceId sdkDeviceId = await instance.DeviceData.GetDeviceId();
+            Assert.NotNull(sdkDeviceId.deviceId);
+            Assert.Equal(type, instance.GetDeviceIDType());
+            Assert.Equal(internalType, sdkDeviceId.deviceIdMethod);
 
             if (compareDeviceId) {
-                Assert.Equal(deviceId, sdkDeviceId);
+                Assert.Equal(deviceId, sdkDeviceId.deviceId);
             } else {
-                Assert.NotEmpty(sdkDeviceId);
-
+                Assert.NotEmpty(sdkDeviceId.deviceId);
             }
         }
 
@@ -234,7 +252,7 @@ namespace TestProject_common
         public void TestDeviceIdGeneratedBySDK()
         {
             ConfigureAndInitSDK();
-            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, false);
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
         }
 
         /// <summary>
@@ -245,7 +263,7 @@ namespace TestProject_common
         public void TestDeviceIdGivenInConfig()
         {
             ConfigureAndInitSDK("device_id");
-            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
         }
 
         /// <summary>
@@ -256,13 +274,13 @@ namespace TestProject_common
         public async void CustomDeviceIDWasSet_CustomDeviceIDNotProvided()
         {
             ConfigureAndInitSDK("device_id");
-            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
 
             // Destroy instance before init SDK again.
             await Countly.Instance.HaltInternal(false);
 
             ConfigureAndInitSDK();
-            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
 
         }
 
@@ -274,13 +292,13 @@ namespace TestProject_common
         public async void CustomDeviceIDWasSet_CustomDeviceIDProvided()
         {
             ConfigureAndInitSDK("device_id");
-            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
 
             // Destroy instance before init SDK again.
             await Countly.Instance.HaltInternal(false);
 
             ConfigureAndInitSDK("device_id_new");
-            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
         }
 
 
@@ -292,15 +310,15 @@ namespace TestProject_common
         public async void GeneratedDeviceID_CustomDeviceIDNotProvided()
         {
             ConfigureAndInitSDK();
-            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, false);
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
 
-            string deviceID = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId deviceID = await Countly.Instance.DeviceData.GetDeviceId();
 
             // Destroy instance before init SDK again.
             await Countly.Instance.HaltInternal(false);
 
             ConfigureAndInitSDK();
-            ValidateDeviceIDAndType(Countly.Instance, deviceID, DeviceIdType.SDKGenerated);
+            ValidateDeviceIDAndType(Countly.Instance, deviceID.deviceId, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID);
         }
 
         /// <summary>
@@ -311,15 +329,15 @@ namespace TestProject_common
         public async void GeneratedDeviceID_CustomDeviceIDProvided()
         {
             ConfigureAndInitSDK();
-            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, false);
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
 
-            string deviceID = await Countly.Instance.DeviceData.GetDeviceId();
+            DeviceId deviceID = await Countly.Instance.DeviceData.GetDeviceId();
 
             // Destroy instance before init SDK again.
             await Countly.Instance.HaltInternal(false);
 
             ConfigureAndInitSDK("device_id_new");
-            ValidateDeviceIDAndType(Countly.Instance, deviceID, DeviceIdType.SDKGenerated);
+            ValidateDeviceIDAndType(Countly.Instance, deviceID.deviceId, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID);
         }
     }
 }
