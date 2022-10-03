@@ -43,7 +43,7 @@ namespace CountlySDK.Entities.EntityBase
         protected DeviceIdMethodInternal preferredIdMethod = DeviceIdMethodInternal.none;
 
         //method used for generating currently used device ID
-        protected DeviceIdMethodInternal usedIdMethod = DeviceIdMethodInternal.none;
+        internal DeviceIdMethodInternal usedIdMethod = DeviceIdMethodInternal.none;
 
         // Used for thread-safe operations
         protected object sync = new object();
@@ -95,13 +95,28 @@ namespace CountlySDK.Entities.EntityBase
         }
 
         /// <summary>
+        /// Initialize deviceId with developer provided device id in configuration or with Random generated Id and Cache it.
+        /// </summary>
+        /// <param name="deviceIdMethod">preferred method</param>
+        /// <param name="suppliedDeviceId">device id to use</param>
+        /// <returns></returns>
+        internal async Task InitDeviceId(DeviceIdMethodInternal deviceIdMethod, string suppliedDeviceId = null)
+        {
+            await LoadDeviceIDFromStorage();
+
+            if (string.IsNullOrEmpty(deviceId)) {
+                await SetPreferredDeviceIdMethod(deviceIdMethod, suppliedDeviceId);
+            }
+        }
+
+        /// <summary>
         /// Set preferred method for generating device id. If a Id is already provided, use that and
         /// set method to developerSupplied
         /// </summary>
         /// <param name="deviceIdMethod">preferred method</param>
         /// <param name="suppliedDeviceId">device id to use</param>
         /// <returns></returns>
-        internal async Task SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod, String suppliedDeviceId = null)
+        internal async Task SetPreferredDeviceIdMethod(DeviceIdMethodInternal deviceIdMethod, string suppliedDeviceId = null)
         {
             if (suppliedDeviceId != null) {
                 deviceId = suppliedDeviceId;
@@ -121,7 +136,7 @@ namespace CountlySDK.Entities.EntityBase
             if (dId == null) {
                 // if it's null then either there is no device Id saved or it's saved 
                 // in the legacy format as just a string. Try deserializing that
-                String backupDeviceId = await Storage.Instance.LoadFromFile<string>(deviceFilename);
+                string backupDeviceId = await Storage.Instance.LoadFromFile<string>(deviceFilename);
 
                 if (backupDeviceId != null) {
                     //it was in the backup format, assume it's Guid

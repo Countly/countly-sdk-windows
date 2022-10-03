@@ -32,9 +32,9 @@ namespace TestProject_common
         /// <summary>
         /// Test cleanup
         /// </summary>
-        public void Dispose()
+        public async void Dispose()
         {
-
+            await Countly.Instance.HaltInternal();
         }
 
         [Fact]
@@ -172,6 +172,154 @@ namespace TestProject_common
             Assert.Equal("new-device-id", collection.Get("device_id"));
             Assert.Equal("new-device-id", newDeviceId);
             Assert.False(string.IsNullOrEmpty(collection.Get("t")));
+        }
+
+        /**
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * | SDK state at the end of the previous app session | Provided configuration during init | Action taken by SDK  |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * |           Custom      |   SDK used a             |              Custom                |    Flag   |   flag   |
+         * |         device ID     |   generated              |            device ID               |    not    |          |
+         * |         was set       |       ID                 |             provided               |    set    |   set    |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * |                     First init                   |                   -                |    1      |    -     |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * |                     First init                   |                   x                |    2      |    -     |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * |            x          |             -            |                   -                |    3      |    -     |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * |            x          |             -            |                   x                |    4      |    -     |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * |            -          |             x            |                   -                |    5      |    -     |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         * |            -          |             x            |                   x                |    6      |    -     |
+         * +--------------------------------------------------+------------------------------------+----------------------+
+         */
+
+        private readonly string _serverUrl = "https://xyz.com/";
+        private readonly string _appKey = "772c091355076ead703f987fee94490";
+
+
+        private Countly ConfigureAndInitSDK(string deviceId = null, bool isAutomaticSessionTrackingDisabled = false)
+        {
+            CountlyConfig configuration = new CountlyConfig {
+                appKey = _appKey,
+                serverUrl = _serverUrl,
+                developerProvidedDeviceId = deviceId,
+            };
+
+            Countly.Instance.Init(configuration).Wait();
+            return Countly.Instance;
+        }
+
+        private async void ValidateDeviceIDAndType(Countly instance, string deviceId, DeviceIdType type, bool compareDeviceId = true)
+        {
+            string sdkDeviceId = await instance.DeviceData.GetDeviceId();
+            Assert.NotNull(sdkDeviceId);
+            Assert.Equal(type, instance.getDeviceIDType());
+
+            if (compareDeviceId) {
+                Assert.Equal(deviceId, sdkDeviceId);
+            } else {
+                Assert.NotEmpty(sdkDeviceId);
+
+            }
+        }
+
+        /// <summary>
+        /// Scenario 1: First time init the SDK without custom device ID and init the SDK second time with custom device ID.
+        /// SDK Action: During second init, SDK will not override the device ID generated during first init. 
+        /// </summary>
+        [Fact]
+        public void TestDeviceIdGeneratedBySDK()
+        {
+            ConfigureAndInitSDK();
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, false);
+        }
+
+        /// <summary>
+        /// Scenario 2: First time init the SDK with custom device ID and init the SDK second time without device ID.
+        /// SDK Action: During second init, SDK will not override the custom device ID provided in first init. 
+        /// </summary>
+        [Fact]
+        public void TestDeviceIdGivenInConfig()
+        {
+            ConfigureAndInitSDK("device_id");
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+        }
+
+        /// <summary>
+        /// Scenario 3: First time init the SDK with custom device ID and init the SDK second time without device ID.
+        /// SDK Action: During second init, SDK will not override the custom device ID provided in first init. 
+        /// </summary>
+        [Fact]
+        public async void CustomDeviceIDWasSet_CustomDeviceIDNotProvided()
+        {
+            ConfigureAndInitSDK("device_id");
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+
+            // Destroy instance before init SDK again.
+            await Countly.Instance.HaltInternal(false);
+
+            ConfigureAndInitSDK();
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+
+        }
+
+        /// <summary>
+        /// Scenario 4: First time init the SDK with custom device ID and init the SDK second time with a new custom device ID.
+        /// SDK Action: During second init, SDK will not override the custom device ID provided in first init. 
+        /// </summary>
+        [Fact]
+        public async void CustomDeviceIDWasSet_CustomDeviceIDProvided()
+        {
+            ConfigureAndInitSDK("device_id");
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+
+            // Destroy instance before init SDK again.
+            await Countly.Instance.HaltInternal(false);
+
+            ConfigureAndInitSDK("device_id_new");
+            ValidateDeviceIDAndType(Countly.Instance, "device_id", DeviceIdType.DeveloperProvided);
+        }
+
+
+        /// <summary>
+        /// Scenario 5: First time init the SDK without custom device ID and init the SDK second time without custom device ID.
+        /// SDK Action: During second init, SDK will not override the device ID generated during first init.
+        /// </summary>
+        [Fact]
+        public async void GeneratedDeviceID_CustomDeviceIDNotProvided()
+        {
+            ConfigureAndInitSDK();
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, false);
+
+            string deviceID = await Countly.Instance.DeviceData.GetDeviceId();
+
+            // Destroy instance before init SDK again.
+            await Countly.Instance.HaltInternal(false);
+
+            ConfigureAndInitSDK();
+            ValidateDeviceIDAndType(Countly.Instance, deviceID, DeviceIdType.SDKGenerated);
+        }
+
+        /// <summary>
+        /// Scenario 6: First time init the SDK without custom device ID and init the SDK second time with a custom device ID.
+        /// SDK Action: During second init, SDK will not override the device ID generated during first init.
+        /// </summary>
+        [Fact]
+        public async void GeneratedDeviceID_CustomDeviceIDProvided()
+        {
+            ConfigureAndInitSDK();
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, false);
+
+            string deviceID = await Countly.Instance.DeviceData.GetDeviceId();
+
+            // Destroy instance before init SDK again.
+            await Countly.Instance.HaltInternal(false);
+
+            ConfigureAndInitSDK("device_id_new");
+            ValidateDeviceIDAndType(Countly.Instance, deviceID, DeviceIdType.SDKGenerated);
         }
     }
 }

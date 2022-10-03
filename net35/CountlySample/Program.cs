@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySample
 {
@@ -64,7 +65,9 @@ namespace CountlySample
                 Console.WriteLine("14) Record an exception");
                 Console.WriteLine("15) Record an exception with segmentation");
 
-                Console.WriteLine("16) Threading test");
+                Console.WriteLine("16) Device id type test");
+
+                Console.WriteLine("17) Threading test");
 
                 Console.WriteLine("0 Exit");
 
@@ -151,6 +154,15 @@ namespace CountlySample
                         _ = Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
                     }
                 } else if (input == 16) {
+                    DeviceIdType type = Countly.Instance.GetDeviceIDType();
+
+                    if (type == DeviceIdType.SDKGenerated) {
+                        await Countly.Instance.ChangeDeviceId("device id", true);
+                    } else if (type == DeviceIdType.DeveloperProvided) {
+                        await Countly.Instance.ChangeDeviceId("new device id", false);
+                    }
+
+                } else if (input == 17) {
                     Console.WriteLine("==== Running threaded debug tests ====");
                     ThreadTest();
                 } else if (input == 0) {
