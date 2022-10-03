@@ -94,15 +94,15 @@ namespace TestProject_common
 
             Countly.Instance.StartEvent("test_event");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             Countly.Instance.StartEvent("test_event_1");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(2, Countly.Instance._timedEvents.Count);
+            Assert.Equal(2, Countly.Instance.TimedEvents.Count);
 
             await Countly.Instance.ChangeDeviceId("new_device_id");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(0, Countly.Instance._timedEvents.Count);
+            Assert.Equal(0, Countly.Instance.TimedEvents.Count);
         }
 
         /// <summary>
@@ -119,44 +119,44 @@ namespace TestProject_common
             Countly.Instance.Init(configuration).Wait();
 
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(0, Countly.Instance._timedEvents.Count);
+            Assert.Equal(0, Countly.Instance.TimedEvents.Count);
 
             // Start a timed event
             Countly.Instance.StartEvent("test_event");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             // Start an existing timed event
             Countly.Instance.StartEvent("test_event");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             // Start another timed event
             Countly.Instance.StartEvent("test_event_1");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(2, Countly.Instance._timedEvents.Count);
+            Assert.Equal(2, Countly.Instance.TimedEvents.Count);
 
             // Cancel a timed event
             Countly.Instance.CancelEvent("test_event_1");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             // Cancel a not started timed event
             Countly.Instance.CancelEvent("test_event_2");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             // End a canceled timed event
             Countly.Instance.EndEvent("test_event_1").Wait();
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             System.Threading.Thread.Sleep(2000);
 
             // End a timed event
             Countly.Instance.EndEvent("test_event").Wait();
             Assert.Single(Countly.Instance.Events);
-            Assert.Equal(0, Countly.Instance._timedEvents.Count);
+            Assert.Equal(0, Countly.Instance.TimedEvents.Count);
 
             CountlyEvent model = Countly.Instance.Events[0];
             validateSegmentation(model, "test_event", 1, 0, 2);
@@ -177,17 +177,17 @@ namespace TestProject_common
             Countly.Instance.Init(configuration).Wait();
 
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(0, Countly.Instance._timedEvents.Count);
+            Assert.Equal(0, Countly.Instance.TimedEvents.Count);
 
             // Start a timed event
             Countly.Instance.StartEvent("test_event");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             // Start another timed event
             Countly.Instance.StartEvent("test_event_1");
             Assert.Empty(Countly.Instance.Events);
-            Assert.Equal(2, Countly.Instance._timedEvents.Count);
+            Assert.Equal(2, Countly.Instance.TimedEvents.Count);
 
             System.Threading.Thread.Sleep(3000);
 
@@ -198,10 +198,51 @@ namespace TestProject_common
             // End a timed event
             Countly.Instance.EndEvent("test_event", segm, 5, 10).Wait();
             Assert.Single(Countly.Instance.Events);
-            Assert.Equal(1, Countly.Instance._timedEvents.Count);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
             CountlyEvent model = Countly.Instance.Events[0];
             validateSegmentation(model, "test_event", 5, 10, 3, segm);
+        }
+
+        /// <summary>
+        /// It validates the cancellation of timed events on consent removal.
+        /// </summary>
+        [Fact]
+        public void TestTimedEventsCancelationOnConsentRemoval()
+        {
+            CountlyConfig configuration = new CountlyConfig {
+                serverUrl = _serverUrl,
+                appKey = _appKey,
+                consentRequired = true
+            };
+
+            Countly.Instance.Init(configuration).Wait();
+
+            Assert.Empty(Countly.Instance.Events);
+
+            Countly.Instance.StartEvent("test_event");
+            Assert.Empty(Countly.Instance.Events);
+            Assert.Equal(0, Countly.Instance.TimedEvents.Count);
+
+            //Give 'event' consent
+            Countly.Instance.SetConsent(new Dictionary<ConsentFeatures, bool>() { { ConsentFeatures.Events, true } }).Wait();
+
+            Countly.Instance.StartEvent("test_event");
+            Assert.Empty(Countly.Instance.Events);
+            Assert.Equal(1, Countly.Instance.TimedEvents.Count);
+
+            Countly.Instance.StartEvent("test_event_1");
+            Assert.Empty(Countly.Instance.Events);
+            Assert.Equal(2, Countly.Instance.TimedEvents.Count);
+
+            //remove 'event' consent
+            Countly.Instance.SetConsent(new Dictionary<ConsentFeatures, bool>() { { ConsentFeatures.Events, false } }).Wait();
+            Assert.Empty(Countly.Instance.Events);
+            Assert.Equal(0, Countly.Instance.TimedEvents.Count);
+
+            Countly.Instance.StartEvent("test_event");
+            Assert.Empty(Countly.Instance.Events);
+            Assert.Equal(0, Countly.Instance.TimedEvents.Count);
         }
     }
 }

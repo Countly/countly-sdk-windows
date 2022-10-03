@@ -41,7 +41,7 @@ namespace CountlySDK.CountlyCommon
 
         internal TimeHelper timeHelper;
 
-        internal readonly IDictionary<string, DateTime> _timedEvents = new Dictionary<string, DateTime>();
+        internal readonly IDictionary<string, DateTime> TimedEvents = new Dictionary<string, DateTime>();
 
         //if stored event/sesstion/exception upload should be defered to a later time
         //if set to true, upload will not happen, but will just return "true"
@@ -405,12 +405,12 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (_timedEvents.ContainsKey(key)) {
+            if (TimedEvents.ContainsKey(key)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : Event with key '" + key + "' has already started.");
                 return;
             }
 
-            _timedEvents.Add(key, DateTime.Now);
+            TimedEvents.Add(key, DateTime.Now);
 
         }
 
@@ -432,20 +432,20 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (!_timedEvents.ContainsKey(key)) {
+            if (!TimedEvents.ContainsKey(key)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : Time event with key '" + key + "' doesn't exist.");
                 return;
             }
 
-            _timedEvents.Remove(key);
+            TimedEvents.Remove(key);
         }
 
         /// <summary>
         /// Add all recorded events to request queue
         /// </summary>
-        internal void CancelAllTimedEvents()
+        private void CancelAllTimedEvents()
         {
-            _timedEvents.Clear();
+            TimedEvents.Clear();
         }
 
         /// <summary>
@@ -469,17 +469,17 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (!_timedEvents.ContainsKey(key)) {
+            if (!TimedEvents.ContainsKey(key)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : Time event with key '" + key + "' doesn't exist.");
                 return;
             }
 
-            DateTime startTime = _timedEvents[key];
+            DateTime startTime = TimedEvents[key];
             double duration = (DateTime.Now - startTime).TotalSeconds;
 
             await Countly.RecordEvent(key, count, sum, duration, segmentation);
 
-            _timedEvents.Remove(key);
+            TimedEvents.Remove(key);
         }
 
         /// <summary>
@@ -986,7 +986,7 @@ namespace CountlySDK.CountlyCommon
 
                 SessionTimerStop();
 
-                _timedEvents.Clear();
+                TimedEvents.Clear();
                 Events?.Clear();
                 Sessions?.Clear();
                 Exceptions?.Clear();
@@ -1385,6 +1385,7 @@ namespace CountlySDK.CountlyCommon
                     case ConsentFeatures.Crashes:
                         break;
                     case ConsentFeatures.Events:
+                        CancelAllTimedEvents();
                         break;
                     case ConsentFeatures.Location:
                         if (!isGiven && action == ConsentChangedAction.ConsentUpdated) { await DisableLocation(); }
