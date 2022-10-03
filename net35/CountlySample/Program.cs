@@ -67,7 +67,10 @@ namespace CountlySample
 
                 Console.WriteLine("16) Device id type test");
 
-                Console.WriteLine("17) Threading test");
+                Console.WriteLine("17) Start a timed event");
+                Console.WriteLine("18) End timed event");
+
+                Console.WriteLine("19) Threading test");
 
                 Console.WriteLine("0 Exit");
 
@@ -163,6 +166,14 @@ namespace CountlySample
                     }
 
                 } else if (input == 17) {
+                    Countly.Instance.StartEvent("timed event");
+                } else if (input == 18) {
+                    Segmentation segment = new Segmentation();
+                    segment.Add("Time Spent", "60");
+                    segment.Add("Retry Attempts", "5");
+
+                    Countly.Instance.EndEvent("timed event", segment, 2, 10.0);
+                } else if (input == 19) {
                     Console.WriteLine("==== Running threaded debug tests ====");
                     ThreadTest();
                 } else if (input == 0) {
