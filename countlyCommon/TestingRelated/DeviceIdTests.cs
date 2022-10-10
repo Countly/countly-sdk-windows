@@ -192,6 +192,32 @@ namespace TestProject_common
             Assert.Equal("0", type);
         }
 
+        [Fact]
+        /// <summary>
+        /// It validates the type values of device id generation methods.
+        /// </summary>
+        public void ValidateDeviceIdTypeValue()
+        {
+            DeviceId did = new DeviceId("device-id", DeviceBase.DeviceIdMethodInternal.none);
+            Assert.Equal(9, did.Type());
+
+            did = new DeviceId("device-id", DeviceBase.DeviceIdMethodInternal.cpuId);
+            Assert.Equal(1, did.Type());
+
+            did = new DeviceId("device-id", DeviceBase.DeviceIdMethodInternal.multipleWindowsFields);
+            Assert.Equal(2, did.Type());
+
+            did = new DeviceId("device-id", DeviceBase.DeviceIdMethodInternal.windowsGUID);
+            Assert.Equal(3, did.Type());
+
+            did = new DeviceId("device-id", DeviceBase.DeviceIdMethodInternal.winHardwareToken);
+            Assert.Equal(4, did.Type());
+
+            did = new DeviceId("device-id", DeviceBase.DeviceIdMethodInternal.developerSupplied);
+            Assert.Equal(0, did.Type());
+        }
+
+
         /**
          * +--------------------------------------------------+------------------------------------+----------------------+
          * | SDK state at the end of the previous app session | Provided configuration during init | Action taken by SDK  |
