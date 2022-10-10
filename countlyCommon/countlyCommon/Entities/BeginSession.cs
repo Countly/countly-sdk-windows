@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using System;
@@ -39,11 +40,11 @@ namespace CountlySDK.Entities
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
         /// <param name="sdkVersion">SDK version string</param>
         /// <param name="metrics">Metrics parameters</param>
-        public BeginSession(string appKey, string deviceId, string sdkVersion, Metrics metrics, string sdkName, TimeInstant timeInstant)
+        public BeginSession(string appKey, DeviceId deviceId, string sdkVersion, Metrics metrics, string sdkName, TimeInstant timeInstant)
         {
             string metricsString = UtilityHelper.EncodeDataForURL(metrics.ToString());
-            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
-            Content = string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}", appKey, deviceId, sdkVersion, metricsString, timeInstant.Timestamp, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone);
+            string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
+            Content = string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&begin_session=1&metrics={3}&timestamp={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&t={9}", appKey, did, sdkVersion, metricsString, timeInstant.Timestamp, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, deviceId.Type());
         }
 
         /// <summary>
