@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using System;
@@ -37,7 +38,7 @@ namespace CountlySDK.Entities
         /// </summary>
         /// <param name="appKey">App key for the application being tracked; find in the Countly Dashboard under Management > Applications</param>
         /// <param name="deviceId">Unique ID for the device the app is running on</param>
-        public EndSession(string appKey, string deviceId, string sdkVersion, string sdkName, TimeInstant timeInstant, long? duration = null)
+        public EndSession(string appKey, DeviceId deviceId, string sdkVersion, string sdkName, TimeInstant timeInstant, long? duration = null)
         {
             string durationAddition = "";
             if (duration != null && duration > 0) {
@@ -45,8 +46,8 @@ namespace CountlySDK.Entities
                 durationAddition = string.Format("&session_duration={0}", duration.Value);
             }
 
-            deviceId = UtilityHelper.EncodeDataForURL(deviceId);
-            Content = string.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}", appKey, deviceId, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, durationAddition);
+            string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
+            Content = string.Format("/i?app_key={0}&device_id={1}&end_session=1&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}{8}&t={9}", appKey, did, timeInstant.Timestamp, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, durationAddition, deviceId.Type());
         }
 
         [JsonConstructor]

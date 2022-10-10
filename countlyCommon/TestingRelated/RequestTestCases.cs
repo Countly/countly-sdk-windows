@@ -1,4 +1,6 @@
-﻿using CountlySDK.CountlyCommon.Helpers;
+﻿using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using System;
 using System.Collections.Generic;
@@ -32,8 +34,9 @@ namespace TestProject_common
         {
             TimeHelper timeHelper = new TimeHelper();
             TimeInstant instant = timeHelper.GetUniqueInstant();
-            string req = RequestHelper.CreateBaseRequest("a", "b", "c", "d", instant);
-            string expected = string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}", "a", "b", instant.Timestamp, "c", "d", instant.Hour, instant.Dow, instant.Timezone);
+            DeviceId dId = new DeviceId("b", DeviceBase.DeviceIdMethodInternal.developerSupplied);
+            string req = RequestHelper.CreateBaseRequest("a", dId, "c", "d", instant);
+            string expected = string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&t={8}", "a", "b", instant.Timestamp, "c", "d", instant.Hour, instant.Dow, instant.Timezone, dId.Type());
 
             Assert.Contains(expected, req);
         }

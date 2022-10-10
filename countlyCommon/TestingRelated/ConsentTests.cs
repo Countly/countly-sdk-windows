@@ -221,6 +221,7 @@ namespace TestProject_common
             Assert.Single(Countly.Instance.StoredRequests);
             StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
             NameValueCollection collection = HttpUtility.ParseQueryString(request.Request);
+            Assert.False(string.IsNullOrEmpty(collection.Get("t")));
             JObject consentObj = JObject.Parse(collection.Get("consent"));
 
             Assert.Equal(10, consentObj.Count);
