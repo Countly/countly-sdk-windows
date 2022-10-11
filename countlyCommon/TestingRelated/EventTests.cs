@@ -36,16 +36,16 @@ namespace TestProject_common
             Countly.Instance.HaltInternal().Wait();
         }
 
-        private void validateSegmentation(CountlyEvent model, string key, int count, double sum, double dur, Segmentation segmentation = null) {
-            Assert.Equal(key, model.Key);
-            Assert.Equal(sum, model.Sum);
-            Assert.Equal(count, model.Count);
-            Assert.True(model.Duration >= 2.0);
+        private void validateEventData(CountlyEvent countlyEvent, string key, int count, double sum, double dur, Segmentation segmentation = null) {
+            Assert.Equal(key, countlyEvent.Key);
+            Assert.Equal(sum, countlyEvent.Sum);
+            Assert.Equal(count, countlyEvent.Count);
+            Assert.True(countlyEvent.Duration >= dur);
 
             if (segmentation != null) {
-                Assert.Equal(0, segmentation.CompareTo(model.Segmentation));
+                Assert.Equal(0, segmentation.CompareTo(countlyEvent.Segmentation));
             } else {
-                Assert.Null(model.Segmentation);
+                Assert.Null(countlyEvent.Segmentation);
             }
             
         }
@@ -74,8 +74,8 @@ namespace TestProject_common
             bool res = await Countly.RecordEvent("test_event", 1, 23, 5.0, Segmentation: segm);
             Assert.True(res);
 
-            CountlyEvent model = Countly.Instance.Events[0];
-            validateSegmentation(model, "test", 1, 23, 5, segm);
+            CountlyEvent countlyEvent = Countly.Instance.Events[0];
+            validateEventData(countlyEvent, "test", 1, 23, 5, segm);
             Countly.Instance.SessionEnd().Wait();
         }
 
@@ -158,8 +158,8 @@ namespace TestProject_common
             Assert.Single(Countly.Instance.Events);
             Assert.Equal(0, Countly.Instance.TimedEvents.Count);
 
-            CountlyEvent model = Countly.Instance.Events[0];
-            validateSegmentation(model, "test_event", 1, 0, 2);
+            CountlyEvent countlyEvent = Countly.Instance.Events[0];
+            validateEventData(countlyEvent, "test_event", 1, 0, 2);
         }
 
 
@@ -200,8 +200,8 @@ namespace TestProject_common
             Assert.Single(Countly.Instance.Events);
             Assert.Equal(1, Countly.Instance.TimedEvents.Count);
 
-            CountlyEvent model = Countly.Instance.Events[0];
-            validateSegmentation(model, "test_event", 5, 10, 3, segm);
+            CountlyEvent countlyEvent = Countly.Instance.Events[0];
+            validateEventData(countlyEvent, "test_event", 5, 10, 3, segm);
         }
 
         /// <summary>

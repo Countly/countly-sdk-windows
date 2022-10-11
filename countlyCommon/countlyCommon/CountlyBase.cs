@@ -393,7 +393,10 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : key = " + key);
 
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent: SDK must initialized before calling 'StartEvent'");
+                return;
+            }
 
 
             if (!IsConsentGiven(ConsentFeatures.Events)) {
