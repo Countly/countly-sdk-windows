@@ -263,7 +263,6 @@ namespace TestProject_common
             Assert.Equal(type, instance.GetDeviceIDType());
             Assert.Equal(internalType, sdkDeviceId.deviceIdMethod);
 
-
             if (compareDeviceId) {
                 Assert.Equal(deviceId, sdkDeviceId.deviceId);
             } else {
