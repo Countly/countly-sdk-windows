@@ -41,6 +41,8 @@ namespace CountlySDK.CountlyCommon
 
         internal TimeHelper timeHelper;
 
+        internal readonly IDictionary<string, DateTime> TimedEvents = new Dictionary<string, DateTime>();
+
         //if stored event/sesstion/exception upload should be defered to a later time
         //if set to true, upload will not happen, but will just return "true"
         //data will still be saved in their respective files
@@ -380,6 +382,107 @@ namespace CountlySDK.CountlyCommon
                 uploadInProgress = false;
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Start a timed event.
+        /// </summary>
+        /// <param name="key">event key</param>
+        /// <returns></returns>
+        public void StartEvent(string key)
+        {
+            UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : key = " + key);
+
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent: SDK must initialized before calling 'StartEvent'");
+                return;
+            }
+
+
+            if (!IsConsentGiven(ConsentFeatures.Events)) {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.");
+                return;
+            }
+
+            if (TimedEvents.ContainsKey(key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : Event with key '" + key + "' has already started.");
+                return;
+            }
+
+            TimedEvents.Add(key, DateTime.Now);
+
+        }
+
+        /// <summary>
+        /// Cancel a timed event.
+        /// </summary>
+        /// <param name="key">event key</param>
+        /// <returns></returns>
+        public void CancelEvent(string key)
+        {
+            UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : key = " + key);
+
+            if (!IsConsentGiven(ConsentFeatures.Events)) {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.");
+                return;
+            }
+
+            if (!TimedEvents.ContainsKey(key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : Time event with key '" + key + "' doesn't exist.");
+                return;
+            }
+
+            TimedEvents.Remove(key);
+        }
+
+        /// <summary>
+        /// Add all recorded events to request queue
+        /// </summary>
+        private void CancelAllTimedEvents()
+        {
+            TimedEvents.Clear();
+        }
+
+        /// <summary>
+        /// End a timed event.
+        /// </summary>
+        /// <param name="key">event key</param>
+        /// <param name="segmentation">custom segmentation you want to set, leave null if you don't want to add anything</param>
+        /// <param name="count">how many of these events have occurred, default value is "1"</param>
+        /// <param name="sum">set sum if needed, default value is "0"</param>
+        /// <returns></returns>
+        public async Task EndEvent(string key, Segmentation segmentation = null, int count = 1, double? sum = 0)
+        {
+            UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : key = " + key + ", segmentation = " + segmentation + ", count = " + count + ", sum = " + sum);
+
+            if (!IsConsentGiven(ConsentFeatures.Events)) {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.");
+                return;
+            }
+
+            if (!TimedEvents.ContainsKey(key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : Time event with key '" + key + "' doesn't exist.");
+                return;
+            }
+
+            DateTime startTime = TimedEvents[key];
+            double duration = (DateTime.Now - startTime).TotalSeconds;
+
+            await Countly.RecordEvent(key, count, sum, duration, segmentation);
+
+            TimedEvents.Remove(key);
         }
 
         /// <summary>
@@ -886,6 +989,7 @@ namespace CountlySDK.CountlyCommon
 
                 SessionTimerStop();
 
+                TimedEvents.Clear();
                 Events?.Clear();
                 Sessions?.Clear();
                 Exceptions?.Clear();
@@ -1170,6 +1274,10 @@ namespace CountlySDK.CountlyCommon
 
             if (!serverSideMerge) {
                 //if no server side merge is needed, we just end the previous session and start a new session with the new id
+
+                //Cancel all timed events
+                CancelAllTimedEvents();
+
                 await SessionEnd();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 if (consentRequired) {
@@ -1284,6 +1392,7 @@ namespace CountlySDK.CountlyCommon
                     case ConsentFeatures.Crashes:
                         break;
                     case ConsentFeatures.Events:
+                        CancelAllTimedEvents();
                         break;
                     case ConsentFeatures.Location:
                         if (!isGiven && action == ConsentChangedAction.ConsentUpdated) { await DisableLocation(); }
