@@ -118,11 +118,13 @@ namespace CountlySDK.Entities
         public CountlyEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, long? timestamp)
         {
             if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(Key)) {
-                throw new ArgumentException("Event Key must be non-empty string");
+                UtilityHelper.CountlyLogging("Event Key must be non-empty string");
+                return;
             }
 
             if (Count <= 0) {
-                throw new ArgumentException("Event Count must be positive number");
+                UtilityHelper.CountlyLogging("Event Count must be positive number");
+                return;
             }
 
             this.Key = Key;
