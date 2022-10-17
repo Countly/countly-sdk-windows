@@ -1,15 +1,14 @@
-﻿using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.CountlyCommon.Helpers;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
+using CountlySDK.Entities;
+using CountlySDK.Helpers;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -1136,7 +1135,7 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase'");
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase' on SDK flavor: " + sdkName());
             if (!IsServerURLCorrect(config.serverUrl)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Invalid server url!");
                 return;
