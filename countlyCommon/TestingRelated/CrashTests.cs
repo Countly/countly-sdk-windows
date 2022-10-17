@@ -34,7 +34,7 @@ namespace TestProject_common
         }
 
         [Fact]
-         /// <summary>
+        /// <summary>
         /// It validates the limits of total allowed bread crumbs and size of a breadcrumb.
         /// </summary>
         public void TestLimitOfAllowedBreadCrumbs()
@@ -47,12 +47,12 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
 
-            Countly.AddBreadCrumb("bread_crumbs_1");
-            Countly.AddBreadCrumb("bread_crumbs_2");
-            Countly.AddBreadCrumb("bread_crumbs_3_");
-            Countly.AddBreadCrumb("bread_crumbs_4");
-            Countly.AddBreadCrumb("bread_crumbs_5");
-            Countly.AddBreadCrumb("bread_crumbs_6_");
+            Countly.Instance.AddBreadCrumbs("bread_crumbs_1");
+            Countly.Instance.AddBreadCrumbs("bread_crumbs_2");
+            Countly.Instance.AddBreadCrumbs("bread_crumbs_3_");
+            Countly.Instance.AddBreadCrumbs("bread_crumbs_4");
+            Countly.Instance.AddBreadCrumbs("bread_crumbs_5");
+            Countly.Instance.AddBreadCrumbs("bread_crumbs_6_");
 
             Assert.Equal(5, Countly.Instance.CrashBreadcrumbs.Count);
 

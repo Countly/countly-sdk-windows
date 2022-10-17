@@ -1,15 +1,14 @@
-﻿using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.CountlyCommon.Helpers;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
+using CountlySDK.Entities;
+using CountlySDK.Helpers;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -1024,9 +1023,21 @@ namespace CountlySDK.CountlyCommon
         /// Adds log breadcrumb
         /// </summary>
         /// <param name="log">log string</param>
+        [Obsolete("'AddBreadCrumb' is deprecated, please use non static method 'AddBreadCrumbs' instead.")]
         public static void AddBreadCrumb(string log)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
+            Countly.Instance.AddBreadCrumbs(log);
+
+        }
+
+        /// <summary>
+        /// Adds log breadcrumb
+        /// </summary>
+        /// <param name="log">log string</param>
+        public void AddBreadCrumbs(string log)
+        {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumbs'");
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'");
                 return;
