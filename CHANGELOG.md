@@ -1,3 +1,6 @@
+22.02.1
+* Static method "AddBreadCrumb" is deprecated, this is going to be removed in the future.
+
 22.02.0
 * ! Minor breaking change ! Device ID is now sticky during init. If a device ID value was acquired by the SDK before, it will now ignore the init-time provided custom device ID value.
 * Added ability to get device id type.
