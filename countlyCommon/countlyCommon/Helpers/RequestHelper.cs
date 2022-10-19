@@ -124,7 +124,9 @@ namespace CountlySDK.CountlyCommon.Helpers
             //Metrics added to each request
             IDictionary<string, object> requestData = baseParams;
             foreach (KeyValuePair<string, object> item in queryParams) {
-                requestData.Add(item.Key, item.Value);
+                if (!requestData.ContainsKey(item.Key)) {
+                    requestData.Add(item.Key, item.Value);
+                }
             }
 
             string data = BuildQueryString(requestData);
@@ -137,7 +139,7 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// </summary>
         /// <param name="queryParams"></param>
         /// <returns></returns>
-        private static string BuildQueryString(IDictionary<string, object> queryParams)
+        internal static string BuildQueryString(IDictionary<string, object> queryParams)
         {
             //  Dictionary<string, object> queryParams = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
             StringBuilder requestStringBuilder = new StringBuilder();
