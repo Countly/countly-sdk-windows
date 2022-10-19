@@ -1,16 +1,12 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.CountlyCommon.Helpers;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
+using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.Entities;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
@@ -115,32 +111,6 @@ namespace TestProject_common
             TestHelper.ValidateDataPointUpload().Wait();
             Countly.Instance.SessionEnd().Wait();
             TestHelper.ValidateDataPointUpload().Wait();
-        }
-
-        [Fact]
-        public async void ConsentSimpleAllowedThenRemoved()
-        {
-            Dictionary<ConsentFeatures, bool> consentGiven = TestHelper.AllConsentValues(true);
-            Dictionary<ConsentFeatures, bool> consentRemoved = TestHelper.AllConsentValues(false);
-
-            CountlyConfig cc = TestHelper.CreateConfig();
-            cc.givenConsent = consentGiven;
-            cc.consentRequired = true;
-            Countly.Instance.deferUpload = true;
-            Countly.Instance.Init(cc).Wait();
-            int previousCount = Countly.Instance.Sessions.Count;
-            Countly.Instance.SessionBegin().Wait();
-
-            await Countly.Instance.SetConsent(consentRemoved);
-            await Countly.Instance.SetConsent(consentGiven);
-            await Countly.Instance.SetConsent(consentRemoved);
-
-            TestHelper.ValidateDataPointUpload().Wait();
-            Countly.Instance.SessionEnd().Wait();
-            TestHelper.ValidateDataPointUpload().Wait();
-
-            Assert.Equal(2 + previousCount, Countly.Instance.Sessions.Count);
-            Assert.Equal(4, Countly.Instance.StoredRequests.Count);
         }
 
         /// <summary>
@@ -279,7 +249,7 @@ namespace TestProject_common
             consentToRemove.Add(ConsentFeatures.Sessions, false);
             Countly.Instance.SetConsent(consentToRemove).Wait();
 
-            Assert.Single(Countly.Instance.StoredRequests);
+            Assert.Equal(2, Countly.Instance.StoredRequests.Count);
             request = Countly.Instance.StoredRequests.Dequeue();
             collection = HttpUtility.ParseQueryString(request.Request);
             consentObj = JObject.Parse(collection.Get("consent"));

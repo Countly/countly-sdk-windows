@@ -21,18 +21,14 @@ THE SOFTWARE.
 */
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System.IO;
 using CountlySDK.CountlyCommon;
+using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
-
-
-using System.Runtime.CompilerServices;
+using CountlySDK.Helpers;
 //[assembly: InternalsVisibleTo("CountlyTest_461")]
 //[assembly: InternalsVisibleTo("CountlySampleUWP")]
 
@@ -159,9 +155,16 @@ namespace CountlySDK
             SessionTimerStart();
             SessionStarted?.Invoke(null, EventArgs.Empty);
 
-            TimeHelper.TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
+
+            Dictionary<string, object> requestParams =
+                           new Dictionary<string, object>();
+
+            requestParams.Add("begin_session", 1);
+            requestParams.Add("metrics", metrics.ToString());
+
+            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            await AddRequest(request);
         }
 
         /// <summary>
