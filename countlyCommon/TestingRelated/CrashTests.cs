@@ -47,12 +47,12 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
 
-            Countly.Instance.AddBreadCrumbs("bread_crumbs_1");
-            Countly.Instance.AddBreadCrumbs("bread_crumbs_2");
-            Countly.Instance.AddBreadCrumbs("bread_crumbs_3_");
-            Countly.Instance.AddBreadCrumbs("bread_crumbs_4");
-            Countly.Instance.AddBreadCrumbs("bread_crumbs_5");
-            Countly.Instance.AddBreadCrumbs("bread_crumbs_6_");
+            Countly.Instance.AddCrashBreadCrumb("bread_crumbs_1");
+            Countly.Instance.AddCrashBreadCrumb("bread_crumbs_2");
+            Countly.Instance.AddCrashBreadCrumb("bread_crumbs_3_");
+            Countly.Instance.AddCrashBreadCrumb("bread_crumbs_4");
+            Countly.Instance.AddCrashBreadCrumb("bread_crumbs_5");
+            Countly.Instance.AddCrashBreadCrumb("bread_crumbs_6_");
 
             Assert.Equal(5, Countly.Instance.CrashBreadcrumbs.Count);
 
