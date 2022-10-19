@@ -1,6 +1,7 @@
 ## What's Countly?
 
-[Countly](http://count.ly) is an innovative, real-time, open source mobile analytics and push notifications application. It collects data from mobile devices, and visualizes this information to analyze mobile application usage and end-user behavior. There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. Both parts are open source with different licensing terms.
+[Countly](http://count.ly) is an innovative, real-time, open source mobile analytics and push notifications application. It collects data from mobile devices, and visualizes this information to analyze mobile application usage and end-user behavior. 
+There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. Both parts are open source with different licensing terms.
 
 **Slack user?** [Join our community](http://slack.count.ly:3000/) to ask questions and get answers!
 
@@ -8,7 +9,8 @@
 
 ![Countly Windows SDK](https://github.com/Countly/countly-sdk-windows/blob/master/sdk_banner.png)
 
-This repository includes the Countly mobile analytics SDK for Windows Phone and Windows apps. Countly SDK is used to collect data from Windows devices and send it to Countly server. Countly server is required to collect, store and visualize retrieved data. Note that it currently doesn't support push notifications for Windows Phone devices, however we expect this feature to be available very soon.
+This repository includes the Countly mobile analytics SDK for Windows Phone and Windows apps. Countly SDK is used to collect data from Windows devices and send it to Countly server. Countly server is required to collect, store and visualize retrieved data. 
+Note that it currently doesn't support push notifications for Windows Phone devices, however we expect this feature to be available very soon.
 
 For a list of supported devices and installation instructions, see [Countly SDK for Windows Phone and Windows desktop apps](http://resources.count.ly/v1.0/docs/countly-sdk-for-windows-phone) documentation at [Countly Resources](http://resources.count.ly).
 
@@ -29,11 +31,15 @@ If you like Countly, [why not use one of our badges](https://count.ly/brand-asse
 
 <a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/dark.svg?v2" alt="Countly - Product Analytics" /></a>
 
-    <a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/dark.svg" alt="Countly - Product Analytics" /></a>
+```JS
+<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/dark.svg" alt="Countly - Product Analytics" /></a>
+```
 
 <a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/light.svg?v2" alt="Countly - Product Analytics" /></a>
 
-    <a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/light.svg" alt="Countly - Product Analytics" /></a>
+```JS
+<a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/light.svg" alt="Countly - Product Analytics" /></a>
+```
 
 ## Support
 

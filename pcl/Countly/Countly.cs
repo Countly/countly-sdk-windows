@@ -137,7 +137,9 @@ namespace CountlySDK
         {
             if (IsInitialized()) { return; }
 
-            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
+            if (config == null) {
+                UtilityHelper.CountlyLogging("Configuration object can not be null while initializing Countly");
+            }
 
             Storage.Instance.fileSystem = config.fileSystem;
 

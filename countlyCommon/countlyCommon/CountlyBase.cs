@@ -560,7 +560,10 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'");
+                return Task.Factory.StartNew(() => { return false; });
+            }
 
             CountlyConfig config = Countly.Instance.Configuration;
             if (Key.Length > config.MaxKeyLength) {
@@ -1137,7 +1140,7 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase'");
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase' on SDK flavor: " + sdkName());
             if (!IsServerURLCorrect(config.serverUrl)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Invalid server url!");
                 return;
