@@ -1,12 +1,11 @@
-﻿using CountlySDK.CountlyCommon.Entities;
+﻿using System;
+using System.Collections.Generic;
+using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -20,6 +19,9 @@ namespace TestProject_common
         public RequestTestCases()
         {
             TestHelper.CleanDataFiles();
+            Countly.Halt();
+            TestHelper.CleanDataFiles();
+            Countly.Instance.deferUpload = true;
         }
 
         /// <summary>
@@ -75,5 +77,67 @@ namespace TestProject_common
             Assert.Equal("asd&location=a&ip=b&country_code=c", res);
         }
 
+        [Fact]
+        /// <summary>
+        /// It validates base request parameters.
+        /// </summary>
+        public async void ValidateBaseRequestParams()
+        {
+
+            CountlyConfig cc = new CountlyConfig() {
+                serverUrl = "https://try.count.ly/",
+                appKey = "YOUR_APP_KEY",
+                developerProvidedDeviceId = "test device id",
+                deviceIdMethod = Countly.DeviceIdMethod.developerSupplied
+            };
+
+            await Countly.Instance.Init(cc);
+            Dictionary<string, object> baseParams = await Countly.Instance.GetBaseParams();
+
+            Assert.Equal(9, baseParams.Count);
+
+            Assert.Equal("YOUR_APP_KEY", baseParams["app_key"]);
+            Assert.Equal("test device id", baseParams["device_id"]);
+            Assert.Equal("21.11.2", baseParams["sdk_version"]);
+            Assert.Equal(0, baseParams["t"]);
+
+            Assert.True(baseParams.ContainsKey("sdk_name"));
+            Assert.True(baseParams.ContainsKey("timestamp"));
+            Assert.True(baseParams.ContainsKey("dow"));
+            Assert.True(baseParams.ContainsKey("hour"));
+            Assert.True(baseParams.ContainsKey("tz"));
+        }
+
+        [Fact]
+        /// <summary>
+        /// It validates request builder.
+        /// </summary>
+        public void ValidateRequestBuilder()
+        {
+            Dictionary<string, object> param1 = new Dictionary<string, object>
+             {
+                {"a", "A"},
+                {"b", "B"},
+                {"1", 1},
+                {"2", true},
+            };
+
+            Dictionary<string, object> parame2 = new Dictionary<string, object>
+            {
+                {"c", "C"},
+                {"d", "D"},
+                {"1", 1},
+                {"3", 3},
+                {"4", false},
+            };
+
+            string request = RequestHelper.BuildQueryString(param1);
+            Assert.Equal("/i?a=A&b=B&1=1&2=True", request);
+
+
+            request = RequestHelper.BuildRequest(param1, parame2);
+            Assert.Equal("/i?a=A&b=B&1=1&2=True&c=C&d=D&3=3&4=False", request);
+
+        }
     }
 }

@@ -1,15 +1,11 @@
-﻿using CountlySDK;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using CountlySDK;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Xunit;
 
 namespace TestProject_common
@@ -144,8 +140,8 @@ namespace TestProject_common
 
             Assert.Equal(50, Countly.Instance.Events.Count);
             Assert.Equal(50, Countly.Instance.Exceptions.Count);
-            Assert.Equal(3, Countly.Instance.Sessions.Count);
-            Assert.Empty(Countly.Instance.StoredRequests);
+            Assert.Equal(2, Countly.Instance.Sessions.Count);
+            Assert.Equal(1, Countly.Instance.StoredRequests.Count);
             Assert.Equal("B249FB85668941FAA8301E2A5CA95901", await Countly.GetDeviceId());
 
             CountlyUserDetails cud = Countly.UserDetails;

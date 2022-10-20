@@ -1,19 +1,15 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Helpers;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
+using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;
-using System.Collections.Specialized;
-using CountlySDK.CountlyCommon.Entities;
-using Newtonsoft.Json.Linq;
-using CountlySDK.Entities.EntityBase;
 
 namespace TestProject_common
 {
@@ -50,15 +46,15 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.deferUpload = true;
             Countly.Instance.SessionBegin().Wait();
-            Countly.Instance.Sessions.Clear();
+            Countly.Instance.StoredRequests.Clear();
 
             DeviceId dId = await Countly.Instance.DeviceData.GetDeviceId();
             string oldDeviceId = dId.deviceId;
             Countly.Instance.ChangeDeviceId("new-device-id", false).Wait();
 
             //End session request
-            SessionEvent model = Countly.Instance.Sessions[0];
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Content);
+            StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
@@ -69,8 +65,8 @@ namespace TestProject_common
 
             dId = await Countly.Instance.DeviceData.GetDeviceId();
             string newDeviceId = dId.deviceId;
-            model = Countly.Instance.Sessions[1];
-            collection = HttpUtility.ParseQueryString(model.Content);
+            model = Countly.Instance.StoredRequests.Dequeue();
+            collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("begin_session"));
             Assert.Equal("new-device-id", collection.Get("device_id"));
@@ -110,8 +106,8 @@ namespace TestProject_common
             Countly.Instance.ChangeDeviceId("new-device-id", false).Wait();
 
             //End session request
-            SessionEvent model = Countly.Instance.Sessions[0];
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Content);
+            StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.Equal(oldDeviceId, collection.Get("device_id"));
@@ -120,8 +116,10 @@ namespace TestProject_common
             Assert.False(string.IsNullOrEmpty(type));
             Assert.Equal("3", type);
 
-            // There is no consent request
-            Assert.Empty(Countly.Instance.StoredRequests);
+            // There is no consent request, request queue only contains session begin and session end request.
+            Assert.Equal(2, Countly.Instance.StoredRequests.Count);
+
+            Countly.Instance.StoredRequests.Clear();
 
             ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
             foreach (ConsentFeatures c in consents) {
@@ -136,7 +134,8 @@ namespace TestProject_common
             consent.Add(ConsentFeatures.Users, true);
             Countly.Instance.SetConsent(consent).Wait();
 
-            Assert.Single(Countly.Instance.StoredRequests);
+            //Contain consent request and session being request.
+            Assert.Equal(2, Countly.Instance.StoredRequests.Count);
             StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
             collection = HttpUtility.ParseQueryString(request.Request);
             JObject consentObj = JObject.Parse(collection.Get("consent"));
@@ -170,6 +169,7 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.SessionBegin().Wait();
             Countly.Instance.Sessions.Clear();
+            Countly.Instance.StoredRequests.Clear();
             Countly.Instance.deferUpload = true;
 
             DeviceId dId = await Countly.Instance.DeviceData.GetDeviceId();

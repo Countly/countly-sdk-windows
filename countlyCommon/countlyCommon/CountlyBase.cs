@@ -154,6 +154,27 @@ namespace CountlySDK.CountlyCommon
             Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig
         };
 
+        protected abstract Task SessionBeginInternal();
+        internal async Task<Dictionary<string, object>> GetBaseParams()
+        {
+            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+            DeviceId deviceId = await DeviceData.GetDeviceId();
+            Dictionary<string, object> baseParams = new Dictionary<string, object>
+             {
+                {"app_key", AppKey},
+                {"device_id", deviceId.deviceId},
+                {"t", deviceId.Type()},
+                {"sdk_name", sdkName()},
+                {"sdk_version", sdkVersion},
+                {"timestamp", timeInstant.Timestamp},
+                {"dow", timeInstant.Dow},
+                {"hour", timeInstant.Hour},
+                {"tz", timeInstant.Timezone},
+            };
+
+            return baseParams;
+        }
+
         internal async Task<bool> SaveStoredRequests()
         {
             lock (sync) {
@@ -173,8 +194,12 @@ namespace CountlySDK.CountlyCommon
             Debug.Assert(elapsedTime != null);
             lastSessionUpdateTime = DateTime.Now;
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName(), timeInstant));
+            Dictionary<string, object> requestParams =
+               new Dictionary<string, object>();
+
+            requestParams.Add("session_duration", elapsedTime.Value);
+            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            await AddRequest(request);
         }
 
         protected async Task EndSessionInternal()
@@ -185,36 +210,13 @@ namespace CountlySDK.CountlyCommon
             SessionTimerStop();
             int elapsedTime = (int)(DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds);
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, elapsedTime), true);
-        }
+            Dictionary<string, object> requestParams =
+               new Dictionary<string, object>();
 
-        /// <summary>
-        ///  Adds session event to queue and uploads
-        /// </summary>
-        /// <param name="sessionEvent">session event object</param>
-        /// <param name="uploadImmediately">indicates when start to upload, by default - immediately after event was added</param>
-        internal async Task AddSessionEvent(SessionEvent sessionEvent, bool uploadImmediately = true)
-        {
-            try {
-                if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return; }
-
-                if (!IsConsentGiven(ConsentFeatures.Sessions)) { return; }
-
-                lock (sync) {
-                    Sessions.Add(sessionEvent);
-                }
-
-                bool success = SaveSessions();
-
-                if (uploadImmediately && success) {
-                    await Upload();
-                }
-            } catch (Exception ex) {
-                if (IsLoggingEnabled) {
-                    UtilityHelper.CountlyLogging(ex.Message);
-                }
-            }
+            requestParams.Add("end_session", 1);
+            requestParams.Add("session_duration", elapsedTime);
+            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            await AddRequest(request);
         }
 
         /// <summary>
@@ -402,7 +404,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -429,7 +431,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -466,7 +468,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -1121,7 +1123,7 @@ namespace CountlySDK.CountlyCommon
             return false;
         }
 
-        internal async Task AddRequest(String networkRequest, bool isIdMerge = false)
+        internal async Task AddRequest(string networkRequest, bool isIdMerge = false)
         {
             Debug.Assert(networkRequest != null);
 
@@ -1202,8 +1204,6 @@ namespace CountlySDK.CountlyCommon
                 return DeviceIdType.SDKGenerated;
             }
         }
-
-        protected abstract Task SessionBeginInternal();
 
         /// <summary>
         /// Start tracking a session

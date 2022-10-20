@@ -21,20 +21,14 @@ THE SOFTWARE.
 */
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System.IO;
-using System.Diagnostics;
-using static CountlySDK.Entities.EntityBase.DeviceBase;
-using CountlySDK.Entities.EntityBase;
 using CountlySDK.CountlyCommon;
-using static CountlySDK.Helpers.TimeHelper;
-using System.Runtime.CompilerServices;
+using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
+using CountlySDK.Helpers;
 
 #if RUNNING_ON_35
 //[assembly: InternalsVisibleTo("CountlyTest_35")]
@@ -130,9 +124,16 @@ namespace CountlySDK
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
+
+            Dictionary<string, object> requestParams =
+                new Dictionary<string, object>();
+
+            requestParams.Add("begin_session", 1);
+            requestParams.Add("metrics", metrics.ToString());
+
+            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            await AddRequest(request);
         }
 
         /// <summary>
