@@ -1028,16 +1028,28 @@ namespace CountlySDK.CountlyCommon
         /// Adds log breadcrumb
         /// </summary>
         /// <param name="log">log string</param>
+        [Obsolete("'AddBreadCrumb' is deprecated, please use non static method 'AddCrashBreadCrumb' instead.")]
         public static void AddBreadCrumb(string log)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
+            Countly.Instance.AddCrashBreadCrumb(log);
+
+        }
+
+        /// <summary>
+        /// Adds log breadcrumb
+        /// </summary>
+        /// <param name="log">log string</param>
+        public void AddCrashBreadCrumb(string breadCrumb)
+        {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumbs'");
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'");
                 return;
             }
 
-            Debug.Assert(log != null);
-            string validLog = log.Length > Countly.Instance.Configuration.MaxValueSize ? log.Substring(0, Countly.Instance.Configuration.MaxValueSize) : log;
+            Debug.Assert(breadCrumb != null);
+            string validLog = breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize ? breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize) : breadCrumb;
 
             if (Countly.Instance.CrashBreadcrumbs.Count == Countly.Instance.Configuration.MaxBreadcrumbCount) {
                 Countly.Instance.CrashBreadcrumbs.Dequeue();
