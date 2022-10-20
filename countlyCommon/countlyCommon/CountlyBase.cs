@@ -404,7 +404,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -431,7 +431,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -468,7 +468,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
