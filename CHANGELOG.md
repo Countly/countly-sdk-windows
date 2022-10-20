@@ -77,7 +77,6 @@
 * Fixed bug where crashes would not show up in dashboard
 * Fixed a timestamp bug
 
-
 18.1.0
 * Fixing multithreading bug
 * Adding multithreading protections
