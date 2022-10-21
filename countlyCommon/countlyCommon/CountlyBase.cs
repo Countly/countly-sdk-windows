@@ -1115,6 +1115,20 @@ namespace CountlySDK.CountlyCommon
             return await Upload();
         }
 
+        /// <summary>
+        /// Sends a request with an empty "location" parameter.
+        /// </summary>
+        internal async Task SendRequestWithEmptyLocation()
+        {
+            Dictionary<string, object> requestParams =
+               new Dictionary<string, object> {
+                   { "location", string.Empty }
+               };
+
+            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            await AddRequest(request);
+        }
+
         public async Task<bool> DisableLocation()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'DisableLocation'");
@@ -1123,8 +1137,8 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
-
-            return await SetLocation("", "", "", "");
+            await SendRequestWithEmptyLocation();
+            return true;
         }
 
         internal bool IsInitialized()
@@ -1200,6 +1214,28 @@ namespace CountlySDK.CountlyCommon
             consentRequired = config.consentRequired;
             if (config.givenConsent != null) { await SetConsent(config.givenConsent); }
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
+
+            await OnInitComplete();
+        }
+
+        /// <summary>
+        /// Run session startup logic and start timer with the specified interval
+        /// </summary>
+        internal async Task OnInitComplete()
+        {
+            if (Configuration.IsAutomaticSessionTrackingDisabled || !IsConsentGiven(ConsentFeatures.Sessions)) {
+                /* If location is disabled in init
+                and no session consent is given. Send empty location as separate request.*/
+                if (Configuration.IsLocationDisabled || !!IsConsentGiven(ConsentFeatures.Location)) {
+                    await SendRequestWithEmptyLocation();
+                } else {
+                    /*
+                 * If there is no session consent or automatic session tracking is disabled, 
+                 * location values set in init should be sent as a separate location request.
+                 */
+                    await SetLocation(Configuration.Location, Configuration.IPAddress, Configuration.CountryCode, Configuration.City);
+                }
+            }
         }
 
         public enum DeviceIdType { DeveloperProvided = 0, SDKGenerated = 1 };

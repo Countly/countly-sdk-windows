@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Entities
@@ -78,5 +75,36 @@ namespace CountlySDK.CountlyCommon.Entities
         /// Set the maximum amount of breadcrumbs.
         /// </summary>
         public int MaxBreadcrumbCount = 100;
+
+        internal string City = null;
+        internal string Location = null;
+        internal string IPAddress = null;
+        internal string CountryCode = null;
+        internal bool IsLocationDisabled = false;
+        internal bool IsAutomaticSessionTrackingDisabled = false;
+
+        /// <summary>
+        /// Disabled the location tracking on the Countly server
+        /// </summary>
+        public void DisableLocation()
+        {
+            IsLocationDisabled = true;
+        }
+
+        /// <summary>
+        /// Set location parameters that will be used during init.
+        /// </summary>
+        /// <param name="countryCode">ISO Country code for the user's country</param>
+        /// <param name="city">Name of the user's city</param>
+        /// <param name="gpsCoordinates">comma separate lat and lng values.<example>"56.42345,123.45325"</example> </param>
+        /// <param name="ipAddress">user's IP Address</param>
+        /// <returns></returns>
+        public void SetLocation(string countryCode, string city, string gpsCoordinates, string ipAddress)
+        {
+            City = city;
+            IPAddress = ipAddress;
+            CountryCode = countryCode;
+            Location = gpsCoordinates;
+        }
     }
 }
