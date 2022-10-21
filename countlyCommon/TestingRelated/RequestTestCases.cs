@@ -98,7 +98,7 @@ namespace TestProject_common
 
             Assert.Equal("YOUR_APP_KEY", baseParams["app_key"]);
             Assert.Equal("test device id", baseParams["device_id"]);
-            Assert.Equal("21.11.2", baseParams["sdk_version"]);
+            Assert.Equal("22.02.1", baseParams["sdk_version"]);
             Assert.Equal(0, baseParams["t"]);
 
             Assert.True(baseParams.ContainsKey("sdk_name"));
