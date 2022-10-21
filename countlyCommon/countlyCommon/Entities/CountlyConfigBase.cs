@@ -81,7 +81,6 @@ namespace CountlySDK.CountlyCommon.Entities
         internal string IPAddress = null;
         internal string CountryCode = null;
         internal bool IsLocationDisabled = false;
-        internal bool IsAutomaticSessionTrackingDisabled = false;
 
         /// <summary>
         /// Disabled the location tracking on the Countly server

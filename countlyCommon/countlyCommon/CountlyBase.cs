@@ -1253,14 +1253,14 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         internal async Task OnInitComplete()
         {
-            if (Configuration.IsAutomaticSessionTrackingDisabled || !IsConsentGiven(ConsentFeatures.Sessions)) {
+            if (!IsConsentGiven(ConsentFeatures.Sessions)) {
                 /* If location is disabled in init
                 and no session consent is given. Send empty location as separate request.*/
                 if (Configuration.IsLocationDisabled || !!IsConsentGiven(ConsentFeatures.Location)) {
                     await SendRequestWithEmptyLocation();
                 } else {
                     /*
-                 * If there is no session consent or automatic session tracking is disabled, 
+                 * If there is no session consent, 
                  * location values set in init should be sent as a separate location request.
                  */
                     await SetLocation(Configuration.Location, Configuration.IPAddress, Configuration.CountryCode, Configuration.City);
