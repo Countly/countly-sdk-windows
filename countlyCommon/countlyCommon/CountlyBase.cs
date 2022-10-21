@@ -1115,6 +1115,36 @@ namespace CountlySDK.CountlyCommon
             return await Upload();
         }
 
+        protected Dictionary<string, object> GetLocationParams()
+        {
+            Dictionary<string, object> locatoinParams =
+               new Dictionary<string, object>();
+
+            /* If location is disabled or no location consent is given,
+            the SDK adds an empty location entry to every "begin_session" request. */
+            if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)) {
+                locatoinParams.Add("location", string.Empty);
+            } else {
+                if (!string.IsNullOrEmpty(Configuration.IPAddress)) {
+                    locatoinParams.Add("ip_address", Configuration.IPAddress);
+                }
+
+                if (!string.IsNullOrEmpty(Configuration.CountryCode)) {
+                    locatoinParams.Add("country_code", Configuration.CountryCode);
+                }
+
+                if (!string.IsNullOrEmpty(Configuration.City)) {
+                    locatoinParams.Add("city", Configuration.City);
+                }
+
+                if (!string.IsNullOrEmpty(Configuration.Location)) {
+                    locatoinParams.Add("location", Configuration.Location);
+                }
+            }
+
+            return locatoinParams;
+        }
+
         /// <summary>
         /// Sends a request with an empty "location" parameter.
         /// </summary>
