@@ -96,7 +96,7 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         /// <param name="countryCode">ISO Country code for the user's country</param>
         /// <param name="city">Name of the user's city</param>
-        /// <param name="gpsCoordinates">comma separate lat and lng values.<example>"56.42345,123.45325"</example> </param>
+        /// <param name="gpsCoordinates">comma separate lat and long values.<example>"56.42345,123.45325"</example> </param>
         /// <param name="ipAddress">user's IP Address</param>
         /// <returns></returns>
         public void SetLocation(string countryCode, string city, string gpsCoordinates, string ipAddress)
