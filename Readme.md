@@ -2,7 +2,7 @@
 
 # Countly Windows SDK
 
-This repository contains the Countly Windows SDK, which can be integrated into Windows desktop applications. The Countly Windows SDK is intended to be used with [Countly Community Edition](https://github.com/Countly/countly-server) or [Countly Enterprise Edition](https://count.ly/product).
+This repository contains the Countly Windows SDK, which can be integrated into .NET applications. The Countly Windows SDK is intended to be used with [Countly Community Edition](https://github.com/Countly/countly-server) or [Countly Enterprise Edition](https://count.ly/product).
 
 ## What is Countly?
 [Countly](https://count.ly) is a product analytics solution and innovation enabler that helps teams track product performance and customer journey and behavior across [mobile](https://count.ly/mobile-analytics), [web](http://count.ly/web-analytics),
