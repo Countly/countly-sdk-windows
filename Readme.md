@@ -1,33 +1,39 @@
-## What's Countly?
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/879d496d02794c6d806c5f105bc9f6e1)](https://www.codacy.com/gh/Countly/countly-sdk-windows/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Countly/countly-sdk-windows&amp;utm_campaign=Badge_Grade)
 
-[Countly](http://count.ly) is an innovative, real-time, open source mobile analytics and push notifications application. It collects data from mobile devices, and visualizes this information to analyze mobile application usage and end-user behavior. 
-There are two parts of Countly: the server that collects and analyzes data, and mobile SDK that sends this data. Both parts are open source with different licensing terms.
+# Countly Windows SDK
 
-**Slack user?** [Join our community](http://slack.count.ly:3000/) to ask questions and get answers!
+This repository contains the Countly Windows SDK, which can be integrated into Windows desktop applications. The Countly Windows SDK is intended to be used with [Countly Community Edition](https://github.com/Countly/countly-server) or [Countly Enterprise Edition](https://count.ly/product).
 
-## About
+## What is Countly?
+[Countly](https://count.ly) is a product analytics solution and innovation enabler that helps teams track product performance and customer journey and behavior across [mobile](https://count.ly/mobile-analytics), [web](http://count.ly/web-analytics),
+and [desktop](https://count.ly/desktop-analytics) applications. [Ensuring privacy by design](https://count.ly/privacy-by-design), Countly allows you to innovate and enhance your products to provide personalized and customized customer experiences, and meet key business and revenue goals.
 
-![Countly Windows SDK](https://github.com/Countly/countly-sdk-windows/blob/master/sdk_banner.png)
+Track, measure, and take action - all without leaving Countly.
 
-This repository includes the Countly mobile analytics SDK for Windows Phone and Windows apps. Countly SDK is used to collect data from Windows devices and send it to Countly server. Countly server is required to collect, store and visualize retrieved data. 
-Note that it currently doesn't support push notifications for Windows Phone devices, however we expect this feature to be available very soon.
+* **Slack user?** [Join our Slack Community](https://slack.count.ly)
+* **Questions or feature requests?** [Post in our Community Forum](https://support.count.ly/hc/en-us/community/topics)
+* **Looking for the Countly Server?** [Countly Community Edition repository](https://github.com/Countly/countly-server)
+* **Looking for other Countly SDKs?** [An overview of all Countly SDKs for mobile, web and desktop](https://support.count.ly/hc/en-us/articles/360037236571-Downloading-and-Installing-SDKs#officially-supported-sdks)
 
-For a list of supported devices and installation instructions, see [Countly SDK for Windows Phone and Windows desktop apps](http://resources.count.ly/v1.0/docs/countly-sdk-for-windows-phone) documentation at [Countly Resources](http://resources.count.ly).
+## Integrating Countly SDK in your projects
 
-### Other Github resources
+Link to the script and call helper methods based on what you want to track: sessions, views, clicks, custom events, user data, etc. and for much more [check out our documentation](https://support.count.ly/hc/en-us/articles/360037754691-Windows).
 
-Check Countly Server source code here: 
+For information about how to add the SDK to your project, please check [this section of the documentation](https://support.count.ly/hc/en-us/articles/360037754691-Windows#adding-the-sdk-to-the-project).
 
-- [Countly Server (countly-server)](https://github.com/Countly/countly-server)
+You can find minimal SDK integration information for your project in [this section of the documentation](https://support.count.ly/hc/en-us/articles/360037754691-Windows#minimal-setup).
+For an example integration of this SDK, you can have a look [here](https://github.com/Countly/countly-sdk-windows/tree/master/netstd/CountlySampleUWP).
 
-There are also other Countly mobile analytics SDK repositories on [Countly web page](http://resources.count.ly/v1.0/docs/downloading-sdks).
+This SDK supports the following features:
+* [Analytics](https://support.count.ly/hc/en-us/articles/4431589003545-Analytics)
+* [User Profiles](https://support.count.ly/hc/en-us/articles/4403281285913-User-Profiles)
+* [Crash Reports](https://support.count.ly/hc/en-us/articles/4404213566105-Crashes-Errors)
 
-### How can I help you with your efforts?
-Glad you asked. We need ideas, feedbacks and constructive comments. All your suggestions will be taken care with upmost importance. We are on [Twitter](http://twitter.com/gocountly) and [Facebook](http://www.facebook.com/Countly) if you would like to keep up with our fast progress!
+## Security
+Security is very important to us. If you discover any issue regarding security, please disclose the information responsibly by sending an email to security@count.ly and **not by creating a GitHub issue**.
 
 ## Badges
-
-If you like Countly, [why not use one of our badges](https://count.ly/brand-assets) and give a link back to us, so others know about this wonderful platform? 
+If you like Countly, [why not use one of our badges](https://count.ly/brand-assets) and give a link back to us so others know about this wonderful platform?
 
 <a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/dark.svg?v2" alt="Countly - Product Analytics" /></a>
 
@@ -41,6 +47,7 @@ If you like Countly, [why not use one of our badges](https://count.ly/brand-asse
 <a href="https://count.ly/f/badge" rel="nofollow"><img style="width:145px;height:60px" src="https://count.ly/badges/light.svg" alt="Countly - Product Analytics" /></a>
 ```
 
-## Support
+## How can I help you with your efforts?
+Glad you asked! We need ideas, feedback and constructive comments. All your suggestions will be taken care of with utmost importance. For feature requests and engaging with the community, join [our Slack Community](https://slack.count.ly) or [Community Forum](https://support.count.ly/hc/en-us/community/topics).
 
-For community support page, see [http://community.count.ly](http://community.count.ly "Countly Support").
+We are on [Twitter](http://twitter.com/gocountly), [Facebook](https://www.facebook.com/Countly) and [LinkedIn](https://www.linkedin.com/company/countly) if you would like to keep up with Countly related updates.
