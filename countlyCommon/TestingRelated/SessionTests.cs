@@ -102,7 +102,7 @@ namespace TestProject_common
         /// <summary>
         /// It validates 'SessionBegin' method with location disable.
         /// </summary>
-        public async void TestSessionBeginWithLocationDisable()
+        public async void TestSessionBeginWithLocationDisabled()
         {
             CountlyConfig cc = new CountlyConfig {
                 serverUrl = "https://try.count.ly",
