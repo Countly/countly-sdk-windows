@@ -9,6 +9,7 @@ using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
+using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -16,6 +17,36 @@ namespace CountlySDK.CountlyCommon
 {
     abstract public class CountlyBase
     {
+        internal class ExposedToRequestHelper : IRequestHelper
+        {
+            CountlyBase _base = null;
+            internal ExposedToRequestHelper(CountlyBase instance)
+            {
+                _base = instance;
+            }
+
+            public string GetAppKey()
+            {
+                return _base.Configuration.appKey;
+            }
+
+            public string GetSDKName()
+            {
+                return _base.sdkName();
+            }
+
+            public string GetSDKVersion() { return sdkVersion; }
+
+            async Task<DeviceId> IRequestHelper.GetDeviceId()
+            {
+                DeviceId deviceId = await _base.DeviceData.GetDeviceId();
+                return deviceId;
+            }
+
+            public TimeInstant GetTimeInstant() { return _base.timeHelper.GetUniqueInstant(); }
+
+        }
+
         // Current version of the Count.ly SDK as a displayable string.
         protected const string sdkVersion = "22.02.1";
 
@@ -39,6 +70,7 @@ namespace CountlySDK.CountlyCommon
         internal bool uploadInProgress;
 
         internal TimeHelper timeHelper;
+        internal RequestHelper requestHelper;
 
         internal readonly IDictionary<string, DateTime> TimedEvents = new Dictionary<string, DateTime>();
 
@@ -155,25 +187,6 @@ namespace CountlySDK.CountlyCommon
         };
 
         protected abstract Task SessionBeginInternal();
-        internal async Task<Dictionary<string, object>> GetBaseParams()
-        {
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            DeviceId deviceId = await DeviceData.GetDeviceId();
-            Dictionary<string, object> baseParams = new Dictionary<string, object>
-             {
-                {"app_key", AppKey},
-                {"device_id", deviceId.deviceId},
-                {"t", deviceId.Type()},
-                {"sdk_name", sdkName()},
-                {"sdk_version", sdkVersion},
-                {"timestamp", timeInstant.Timestamp},
-                {"dow", timeInstant.Dow},
-                {"hour", timeInstant.Hour},
-                {"tz", timeInstant.Timezone},
-            };
-
-            return baseParams;
-        }
 
         internal async Task<bool> SaveStoredRequests()
         {
@@ -198,7 +211,7 @@ namespace CountlySDK.CountlyCommon
                new Dictionary<string, object>();
 
             requestParams.Add("session_duration", elapsedTime.Value);
-            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
         }
 
@@ -215,7 +228,7 @@ namespace CountlySDK.CountlyCommon
 
             requestParams.Add("end_session", 1);
             requestParams.Add("session_duration", elapsedTime);
-            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
         }
 
@@ -1169,6 +1182,8 @@ namespace CountlySDK.CountlyCommon
             }
 
             timeHelper = new TimeHelper();
+            ExposedToRequestHelper exposed = new ExposedToRequestHelper(this);
+            requestHelper = new RequestHelper(exposed);
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {

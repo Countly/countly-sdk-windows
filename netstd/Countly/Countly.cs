@@ -153,7 +153,7 @@ namespace CountlySDK
             requestParams.Add("begin_session", 1);
             requestParams.Add("metrics", UtilityHelper.EncodeDataForURL(metrics.ToString()));
 
-            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
         }
 

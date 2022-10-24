@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Helpers;
 using static CountlySDK.CountlyCommon.CountlyBase;
@@ -12,6 +13,42 @@ namespace CountlySDK.CountlyCommon.Helpers
 {
     internal class RequestHelper
     {
+
+        internal interface IRequestHelper
+        {
+            string GetAppKey();
+            string GetSDKName();
+            string GetSDKVersion();
+            Task<DeviceId> GetDeviceId();
+            TimeInstant GetTimeInstant();
+        }
+
+        private readonly IRequestHelper _interface;
+
+        internal RequestHelper(IRequestHelper exposed)
+        {
+            _interface = exposed;
+        }
+
+        internal async Task<Dictionary<string, object>> GetBaseParams()
+        {
+            TimeInstant timeInstant = _interface.GetTimeInstant();
+            DeviceId deviceId = await _interface.GetDeviceId();
+            Dictionary<string, object> baseParams = new Dictionary<string, object>
+             {
+                {"app_key", _interface.GetAppKey()},
+                {"device_id", deviceId.deviceId},
+                {"t", deviceId.Type()},
+                {"sdk_name", _interface.GetSDKName()},
+                {"sdk_version", _interface.GetSDKVersion()},
+                {"timestamp", timeInstant.Timestamp},
+                {"dow", timeInstant.Dow},
+                {"hour", timeInstant.Hour},
+                {"tz", timeInstant.Timezone},
+            };
+
+            return baseParams;
+        }
         internal static string CreateLocationRequest(string bRequest, string gpsLocation = null, string ipAddress = null, string country_code = null, string city = null)
         {
             Debug.Assert(bRequest != null);
@@ -119,8 +156,10 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// </summary>
         /// <param name="queryParams"></param>
         /// <returns></returns>
-        internal static string BuildRequest(IDictionary<string, object> baseParams, IDictionary<string, object> queryParams)
+        internal async Task<string> BuildRequest(IDictionary<string, object> queryParams)
         {
+            IDictionary<string, object> baseParams = await GetBaseParams();
+
             //Metrics added to each request
             IDictionary<string, object> requestData = baseParams;
             foreach (KeyValuePair<string, object> item in queryParams) {
@@ -139,7 +178,7 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// </summary>
         /// <param name="queryParams"></param>
         /// <returns></returns>
-        internal static string BuildQueryString(IDictionary<string, object> queryParams)
+        internal string BuildQueryString(IDictionary<string, object> queryParams)
         {
             //  Dictionary<string, object> queryParams = JsonConvert.DeserializeObject<Dictionary<string, object>>(data);
             StringBuilder requestStringBuilder = new StringBuilder();
