@@ -1,3 +1,5 @@
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/879d496d02794c6d806c5f105bc9f6e1)](https://www.codacy.com/gh/Countly/countly-sdk-windows/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Countly/countly-sdk-windows&amp;utm_campaign=Badge_Grade)
+
 # Countly Windows SDK
 
 This repository contains the Countly Windows SDK, which can be integrated into Windows desktop applications. The Countly Windows SDK is intended to be used with [Countly Community Edition](https://github.com/Countly/countly-server) or [Countly Enterprise Edition](https://count.ly/product).
