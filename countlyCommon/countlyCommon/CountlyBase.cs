@@ -1256,7 +1256,7 @@ namespace CountlySDK.CountlyCommon
             if (!IsConsentGiven(ConsentFeatures.Sessions)) {
                 /* If location is disabled in init
                 and no session consent is given. Send empty location as separate request.*/
-                if (Configuration.IsLocationDisabled || !!IsConsentGiven(ConsentFeatures.Location)) {
+                if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)) {
                     await SendRequestWithEmptyLocation();
                 } else {
                     /*
