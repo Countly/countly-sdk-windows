@@ -1464,11 +1464,13 @@ namespace CountlySDK.CountlyCommon
         {
             //create the required merge request
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
-            string cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
+            string consentParam = requestHelper.CreateConsentUpdateRequest(updatedConsentChanges);
 
+            Dictionary<string, object> requestParams =
+                   new Dictionary<string, object> { { "consent", consentParam } };
+            string request = await requestHelper.BuildRequest(requestParams);
             //add the request to queue and upload it
-            await AddRequest(cur);
+            await AddRequest(request);
             await Upload();
         }
 

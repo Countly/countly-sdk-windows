@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Threading.Tasks;
+using System.Web;
 using CountlySDK;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
-using CountlySDK.Helpers;
 using Xunit;
+using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
 using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
@@ -29,52 +32,6 @@ namespace TestProject_common
         /// </summary>
         public void Dispose()
         {
-        }
-
-        [Fact]
-        public void BaseRequestBasic()
-        {
-            TimeHelper timeHelper = new TimeHelper();
-            TimeInstant instant = timeHelper.GetUniqueInstant();
-            DeviceId dId = new DeviceId("b", DeviceBase.DeviceIdMethodInternal.developerSupplied);
-            string req = RequestHelper.CreateBaseRequest("a", dId, "c", "d", instant);
-            string expected = string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&t={8}", "a", "b", instant.Timestamp, "c", "d", instant.Hour, instant.Dow, instant.Timezone, dId.Type());
-
-            Assert.Contains(expected, req);
-        }
-
-        [Fact]
-        public void LocationRequestBasic()
-        {
-            string res2 = RequestHelper.CreateLocationRequest("asd");
-            Assert.Null(res2);
-
-            string res3 = RequestHelper.CreateLocationRequest("asd", null, null, null, null);
-            Assert.Null(res3);
-        }
-
-        [Fact]
-        public void LocationRequestSimple()
-        {
-            string br = "asd";
-            string res;
-            res = RequestHelper.CreateLocationRequest(br, null, null, null, null);
-            Assert.Null(res);
-
-            res = RequestHelper.CreateLocationRequest(br, "", "", "", "");
-            Assert.Equal("asd&location=&ip=&country_code=&city=", res);
-
-            res = RequestHelper.CreateLocationRequest(br, null, "a", "b", "c");
-            Assert.Equal("asd&ip=a&country_code=b&city=c", res);
-
-            res = RequestHelper.CreateLocationRequest(br, "a", null, "b", "c");
-            Assert.Equal("asd&location=a&country_code=b&city=c", res);
-
-            res = RequestHelper.CreateLocationRequest(br, "a", "b", null, "c");
-            Assert.Equal("asd&location=a&ip=b&city=c", res);
-
-            res = RequestHelper.CreateLocationRequest(br, "a", "b", "c", null);
-            Assert.Equal("asd&location=a&ip=b&country_code=c", res);
         }
 
         [Fact]
@@ -108,34 +65,74 @@ namespace TestProject_common
             Assert.True(baseParams.ContainsKey("tz"));
         }
 
-        //[Fact]
-        ///// <summary>
-        ///// It validates request builder.
-        ///// </summary>
-        //public void ValidateRequestBuilder()
-        //{
-        //    Dictionary<string, object> param1 = new Dictionary<string, object>
-        //     {
-        //        {"a", "A"},
-        //        {"b", "B"},
-        //        {"1", 1},
-        //        {"2", true},
-        //    };
+        [Fact]
+        /// <summary>
+        /// It validates request builder.
+        /// </summary>
+        public async void ValidateRequestBuilder()
+        {
+            Dictionary<string, object> param = new Dictionary<string, object>
+             {
+                {"a", "A"},
+                {"b", "B"},
+                {"1", 1},
+                {"2", true},
+            };
 
-        //    Dictionary<string, object> parame2 = new Dictionary<string, object>
-        //    {
-        //        {"c", "C"},
-        //        {"d", "D"},
-        //        {"1", 1},
-        //        {"3", 3},
-        //        {"4", false},
-        //    };
 
-        //    RequestHelper requestHelper = new RequestHelper();
+            RequestHelper requestHelper = new RequestHelper(new IRequesttHelperImpl());
 
-        //    string request = requestHelper.BuildQueryString(param1);
-        //    Assert.Equal("/i?a=A&b=B&1=1&2=True", request);
+            string request = await requestHelper.BuildRequest(param);
 
-        //}
+            NameValueCollection collection = HttpUtility.ParseQueryString(request.Substring(2));
+
+            Assert.Equal("A", collection.Get("a"));
+            Assert.Equal("B", collection.Get("b"));
+            Assert.Equal("1", collection.Get("1"));
+            Assert.Equal("True", collection.Get("2"));
+
+            Assert.Equal("app-key", collection.Get("app_key"));
+            Assert.Equal("0", collection.Get("t"));
+            Assert.Equal("sdk-name", collection.Get("sdk_name"));
+            Assert.Equal("sdk-version", collection.Get("sdk_version"));
+            Assert.Equal("device-id", collection.Get("device_id"));
+
+            Assert.Equal("300", collection.Get("tz"));
+            Assert.Equal("2", collection.Get("dow"));
+            Assert.Equal("7", collection.Get("hour"));
+            Assert.Equal("1666683640551", collection.Get("timestamp"));
+
+        }
+
+        private class IRequesttHelperImpl : IRequestHelper
+        {
+            public string GetAppKey()
+            {
+                return "app-key";
+            }
+
+            public async Task<DeviceId> GetDeviceId()
+            {
+                DeviceId deviceId = new DeviceId("device-id", DeviceBase.DeviceIdMethodInternal.developerSupplied);
+                return deviceId;
+            }
+
+            public string GetSDKName()
+            {
+                return "sdk-name";
+            }
+
+            public string GetSDKVersion()
+            {
+                return "sdk-version";
+            }
+
+            public TimeInstant GetTimeInstant()
+            {
+                long timestamp = 1666683640551;
+                TimeInstant timeInstant = TimeInstant.Get(timestamp);
+                return timeInstant;
+            }
+        }
     }
 }

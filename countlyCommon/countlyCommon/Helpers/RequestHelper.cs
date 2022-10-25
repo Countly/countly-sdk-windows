@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.Helpers;
 using static CountlySDK.CountlyCommon.CountlyBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -49,37 +47,10 @@ namespace CountlySDK.CountlyCommon.Helpers
 
             return baseParams;
         }
-        internal static string CreateLocationRequest(string bRequest, string gpsLocation = null, string ipAddress = null, string country_code = null, string city = null)
+
+
+        internal string CreateConsentUpdateRequest(Dictionary<ConsentFeatures, bool> updatedConsentChanges)
         {
-            Debug.Assert(bRequest != null);
-            if (bRequest == null) {
-                return null;
-            }
-
-            if (gpsLocation != null || ipAddress != null || country_code != null || city != null) {
-                string res = null;
-
-                string rGps = gpsLocation == null ? null : string.Format("&location={0}", UtilityHelper.EncodeDataForURL(gpsLocation));
-                string rIp = ipAddress == null ? null : string.Format("&ip={0}", UtilityHelper.EncodeDataForURL(ipAddress));
-                string rCountry = country_code == null ? null : string.Format("&country_code={0}", UtilityHelper.EncodeDataForURL(country_code));
-                string rCity = city == null ? null : string.Format("&city={0}", UtilityHelper.EncodeDataForURL(city));
-
-                res = string.Format("{0}{1}{2}{3}{4}", bRequest, rGps, rIp, rCountry, rCity);
-                return res;
-            }
-
-            return null;
-        }
-
-        internal static string CreateConsentUpdateRequest(string bRequest, Dictionary<ConsentFeatures, bool> updatedConsentChanges)
-        {
-            Debug.Assert(bRequest != null);
-            Debug.Assert(updatedConsentChanges != null);
-            Debug.Assert(updatedConsentChanges.Count > 0);
-            if (bRequest == null) {
-                return null;
-            }
-
             string consentChanges = "{";
             ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
 
@@ -128,14 +99,7 @@ namespace CountlySDK.CountlyCommon.Helpers
 
             consentChanges += "}";
 
-            string res = string.Format("{0}&consent={1}", bRequest, UtilityHelper.EncodeDataForURL(consentChanges));
-            return res;
-        }
-
-        internal static string CreateBaseRequest(string appKey, DeviceId deviceId, string sdkVersion, string sdkName, TimeInstant instant)
-        {
-            string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return string.Format("/i?app_key={0}&device_id={1}&timestamp={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&t={8}", appKey, did, instant.Timestamp, sdkVersion, sdkName, instant.Hour, instant.Dow, instant.Timezone, deviceId.Type());
+            return consentChanges;
         }
 
         /// <summary>
