@@ -17,10 +17,10 @@ namespace CountlySDK.CountlyCommon
 {
     abstract public class CountlyBase
     {
-        internal class ExposedToRequestHelper : IRequestHelper
+        internal class IRequestHelperImpl : IRequestHelper
         {
             CountlyBase _base = null;
-            internal ExposedToRequestHelper(CountlyBase instance)
+            internal IRequestHelperImpl(CountlyBase instance)
             {
                 _base = instance;
             }
@@ -1201,7 +1201,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             timeHelper = new TimeHelper();
-            ExposedToRequestHelper exposed = new ExposedToRequestHelper(this);
+            IRequestHelperImpl exposed = new IRequestHelperImpl(this);
             requestHelper = new RequestHelper(exposed);
 
             //remove last backslash
