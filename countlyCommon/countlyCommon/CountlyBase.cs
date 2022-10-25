@@ -1114,18 +1114,37 @@ namespace CountlySDK.CountlyCommon
 
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
-            if (gpsLocation == null && ipAddress == null && country_code == null && city == null) {
-                return false;
+            Dictionary<string, object> requestParams =
+                new Dictionary<string, object>();
+
+            /*
+             * Empty country code, city and IP address can not be sent.
+             */
+
+            if (!string.IsNullOrEmpty(ipAddress)) {
+                requestParams.Add("ip_address", ipAddress);
             }
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            //create the required request
-            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
-            string lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
+            if (!string.IsNullOrEmpty(country_code)) {
+                requestParams.Add("country_code", country_code);
+            }
 
-            //add the request to queue and upload it
-            await AddRequest(lr);
-            return await Upload();
+            if (!string.IsNullOrEmpty(city)) {
+                requestParams.Add("city", city);
+            }
+
+            if (!string.IsNullOrEmpty(gpsLocation)) {
+                requestParams.Add("location", gpsLocation);
+            }
+
+            if (requestParams.Count > 0) {
+                string request = await requestHelper.BuildRequest(requestParams);
+                //add the request to queue and upload it
+                await AddRequest(request);
+                return await Upload();
+            }
+
+            return true;
         }
 
         public async Task<bool> DisableLocation()
@@ -1318,18 +1337,19 @@ namespace CountlySDK.CountlyCommon
                 DeviceId dId = await DeviceData.GetDeviceId();
                 string oldId = dId.deviceId;
 
-                DeviceId newdId = new DeviceId(newDeviceId, DeviceIdMethodInternal.developerSupplied);
-
-                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                //create the required merge request
-                string br = RequestHelper.CreateBaseRequest(AppKey, newdId, sdkVersion, sdkName(), timeInstant);
-                string dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
-
                 //change device ID
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
 
+                //create the required merge request
+                Dictionary<string, object> requestParams =
+                    new Dictionary<string, object> { { "old_device_id", oldId } };
+
+                string request = await requestHelper.BuildRequest(requestParams);
+
+
+
                 //add the request to queue and upload it
-                await AddRequest(dimr, true);
+                await AddRequest(request, true);
                 await Upload();
             }
         }

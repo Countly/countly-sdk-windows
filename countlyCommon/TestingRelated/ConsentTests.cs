@@ -22,7 +22,7 @@ namespace TestProject_common
             CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
             TestHelper.CleanDataFiles();
-            Countly.Instance.deferUpload = false;
+            Countly.Instance.deferUpload = true;
         }
 
         /// <summary>
@@ -30,7 +30,8 @@ namespace TestProject_common
         /// </summary>
         public void Dispose()
         {
-
+            Countly.Halt();
+            TestHelper.CleanDataFiles();
         }
 
         /// <summary>

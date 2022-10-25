@@ -71,18 +71,6 @@ namespace CountlySDK.CountlyCommon.Helpers
             return null;
         }
 
-        internal static string CreateDeviceIdMergeRequest(string bRequest, string oldId)
-        {
-            Debug.Assert(bRequest != null);
-            Debug.Assert(oldId != null);
-            if (bRequest == null) {
-                return null;
-            }
-
-            string res = string.Format("{0}&old_device_id={1}", bRequest, oldId);
-            return res;
-        }
-
         internal static string CreateConsentUpdateRequest(string bRequest, Dictionary<ConsentFeatures, bool> updatedConsentChanges)
         {
             Debug.Assert(bRequest != null);
