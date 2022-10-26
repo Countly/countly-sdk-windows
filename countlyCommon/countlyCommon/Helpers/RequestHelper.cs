@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,7 +54,7 @@ namespace CountlySDK.CountlyCommon.Helpers
         {
             Debug.Assert(updatedConsentChanges != null);
             Debug.Assert(updatedConsentChanges.Count > 0);
-            
+
             string consentChanges = "{";
             ConsentFeatures[] consents = System.Enum.GetValues(typeof(ConsentFeatures)).Cast<ConsentFeatures>().ToArray();
 

@@ -1187,7 +1187,7 @@ namespace CountlySDK.CountlyCommon
                    { "location", string.Empty }
                };
 
-            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
         }
 
