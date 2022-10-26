@@ -1,3 +1,6 @@
+22.06.0
+* Added ability to record location information or disable location tracking during SDK initialization
+
 22.02.1
 * Static method "AddBreadCrumb" is deprecated, this is going to be removed in the future.
 
