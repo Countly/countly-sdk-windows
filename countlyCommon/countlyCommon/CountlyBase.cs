@@ -9,6 +9,7 @@ using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
+using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -16,6 +17,36 @@ namespace CountlySDK.CountlyCommon
 {
     abstract public class CountlyBase
     {
+        internal class IRequestHelperImpl : IRequestHelper
+        {
+            CountlyBase _base = null;
+            internal IRequestHelperImpl(CountlyBase instance)
+            {
+                _base = instance;
+            }
+
+            public string GetAppKey()
+            {
+                return _base.Configuration.appKey;
+            }
+
+            public string GetSDKName()
+            {
+                return _base.sdkName();
+            }
+
+            public string GetSDKVersion() { return sdkVersion; }
+
+            async Task<DeviceId> IRequestHelper.GetDeviceId()
+            {
+                DeviceId deviceId = await _base.DeviceData.GetDeviceId();
+                return deviceId;
+            }
+
+            public TimeInstant GetTimeInstant() { return _base.timeHelper.GetUniqueInstant(); }
+
+        }
+
         // Current version of the Count.ly SDK as a displayable string.
         protected const string sdkVersion = "22.02.1";
 
@@ -39,6 +70,7 @@ namespace CountlySDK.CountlyCommon
         internal bool uploadInProgress;
 
         internal TimeHelper timeHelper;
+        internal RequestHelper requestHelper;
 
         internal readonly IDictionary<string, DateTime> TimedEvents = new Dictionary<string, DateTime>();
 
@@ -155,25 +187,6 @@ namespace CountlySDK.CountlyCommon
         };
 
         protected abstract Task SessionBeginInternal();
-        internal async Task<Dictionary<string, object>> GetBaseParams()
-        {
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            DeviceId deviceId = await DeviceData.GetDeviceId();
-            Dictionary<string, object> baseParams = new Dictionary<string, object>
-             {
-                {"app_key", AppKey},
-                {"device_id", deviceId.deviceId},
-                {"t", deviceId.Type()},
-                {"sdk_name", sdkName()},
-                {"sdk_version", sdkVersion},
-                {"timestamp", timeInstant.Timestamp},
-                {"dow", timeInstant.Dow},
-                {"hour", timeInstant.Hour},
-                {"tz", timeInstant.Timezone},
-            };
-
-            return baseParams;
-        }
 
         internal async Task<bool> SaveStoredRequests()
         {
@@ -198,7 +211,7 @@ namespace CountlySDK.CountlyCommon
                new Dictionary<string, object>();
 
             requestParams.Add("session_duration", elapsedTime.Value);
-            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
         }
 
@@ -215,7 +228,7 @@ namespace CountlySDK.CountlyCommon
 
             requestParams.Add("end_session", 1);
             requestParams.Add("session_duration", elapsedTime);
-            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
         }
 
@@ -1101,18 +1114,37 @@ namespace CountlySDK.CountlyCommon
 
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
-            if (gpsLocation == null && ipAddress == null && country_code == null && city == null) {
-                return false;
+            Dictionary<string, object> requestParams =
+                new Dictionary<string, object>();
+
+            /*
+             * Empty country code, city and IP address can not be sent.
+             */
+
+            if (!string.IsNullOrEmpty(ipAddress)) {
+                requestParams.Add("ip_address", ipAddress);
             }
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            //create the required request
-            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
-            string lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
+            if (!string.IsNullOrEmpty(country_code)) {
+                requestParams.Add("country_code", country_code);
+            }
 
-            //add the request to queue and upload it
-            await AddRequest(lr);
-            return await Upload();
+            if (!string.IsNullOrEmpty(city)) {
+                requestParams.Add("city", city);
+            }
+
+            if (!string.IsNullOrEmpty(gpsLocation)) {
+                requestParams.Add("location", gpsLocation);
+            }
+
+            if (requestParams.Count > 0) {
+                string request = await requestHelper.BuildRequest(requestParams);
+                //add the request to queue and upload it
+                await AddRequest(request);
+                return await Upload();
+            }
+
+            return true;
         }
 
         public async Task<bool> DisableLocation()
@@ -1169,6 +1201,8 @@ namespace CountlySDK.CountlyCommon
             }
 
             timeHelper = new TimeHelper();
+            IRequestHelperImpl exposed = new IRequestHelperImpl(this);
+            requestHelper = new RequestHelper(exposed);
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {
@@ -1303,18 +1337,19 @@ namespace CountlySDK.CountlyCommon
                 DeviceId dId = await DeviceData.GetDeviceId();
                 string oldId = dId.deviceId;
 
-                DeviceId newdId = new DeviceId(newDeviceId, DeviceIdMethodInternal.developerSupplied);
-
-                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                //create the required merge request
-                string br = RequestHelper.CreateBaseRequest(AppKey, newdId, sdkVersion, sdkName(), timeInstant);
-                string dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
-
                 //change device ID
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
 
+                //create the required merge request
+                Dictionary<string, object> requestParams =
+                    new Dictionary<string, object> { { "old_device_id", oldId } };
+
+                string request = await requestHelper.BuildRequest(requestParams);
+
+
+
                 //add the request to queue and upload it
-                await AddRequest(dimr, true);
+                await AddRequest(request, true);
                 await Upload();
             }
         }
@@ -1429,11 +1464,13 @@ namespace CountlySDK.CountlyCommon
         {
             //create the required merge request
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
-            string cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
+            string consentParam = requestHelper.CreateConsentUpdateRequest(updatedConsentChanges);
 
+            Dictionary<string, object> requestParams =
+                   new Dictionary<string, object> { { "consent", consentParam } };
+            string request = await requestHelper.BuildRequest(requestParams);
             //add the request to queue and upload it
-            await AddRequest(cur);
+            await AddRequest(request);
             await Upload();
         }
 
