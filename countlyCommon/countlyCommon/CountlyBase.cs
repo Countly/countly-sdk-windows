@@ -213,6 +213,7 @@ namespace CountlySDK.CountlyCommon
             requestParams.Add("session_duration", elapsedTime.Value);
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
+            await Upload();
         }
 
         protected async Task EndSessionInternal()
@@ -230,6 +231,7 @@ namespace CountlySDK.CountlyCommon
             requestParams.Add("session_duration", elapsedTime);
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>
