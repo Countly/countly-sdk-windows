@@ -25,7 +25,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon;
-using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
@@ -152,10 +151,11 @@ namespace CountlySDK
                            new Dictionary<string, object>(GetLocationParams());
 
             requestParams.Add("begin_session", 1);
-            requestParams.Add("metrics", UtilityHelper.EncodeDataForURL(metrics.ToString()));
+            requestParams.Add("metrics", metrics.ToString());
 
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>
