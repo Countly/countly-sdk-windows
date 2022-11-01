@@ -1,6 +1,6 @@
 22.06.0
 * Added ability to record location information or disable location tracking during SDK initialization.
-* Fixed a bug where session requests were not sent immediatly.
+* Fixed a bug where added session requests were not sent immediately.
 
 22.02.1
 * Static method "AddBreadCrumb" is deprecated. A non static method called 'AddCrashBreadCrumb' was added as a replacement.
