@@ -1,5 +1,6 @@
 22.06.0
 * Added ability to record location information or disable location tracking during SDK initialization.
+* Fixed 'os name' in metrics, 'os name' on windows 11 was reporting wrong.
 
 22.02.1
 * Static method "AddBreadCrumb" is deprecated. A non static method called 'AddCrashBreadCrumb' was added as a replacement.

@@ -8,9 +8,10 @@
     <Copyright>Copyright © Countly 2022</Copyright>
     <FileVersion>22.02.1.0</FileVersion>
     <Version>22.02.1</Version>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
