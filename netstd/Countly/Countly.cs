@@ -151,10 +151,11 @@ namespace CountlySDK
                            new Dictionary<string, object>(GetLocationParams());
 
             requestParams.Add("begin_session", 1);
-            requestParams.Add("metrics", UtilityHelper.EncodeDataForURL(metrics.ToString()));
+            requestParams.Add("metrics", metrics.ToString());
 
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>

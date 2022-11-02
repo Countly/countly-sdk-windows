@@ -25,7 +25,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon;
-using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
@@ -165,8 +164,9 @@ namespace CountlySDK
             requestParams.Add("begin_session", 1);
             requestParams.Add("metrics", metrics.ToString());
 
-            string request = RequestHelper.BuildRequest(await GetBaseParams(), requestParams);
+            string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>

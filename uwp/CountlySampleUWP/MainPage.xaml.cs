@@ -1,19 +1,9 @@
-﻿using CountlySDK;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using CountlySDK;
+using CountlySDK.Entities;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
-using static CountlySDK.CountlyCommon.CountlyBase;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -81,10 +71,39 @@ namespace CountlySampleUWP
             Countly.UserDetails.Gender = "Male";
         }
 
+        private void Set_User_Custom_Profile(object sender, RoutedEventArgs e)
+        {
+            CustomInfo customInfo = new CustomInfo();
+            customInfo.Add("Height", "5'10");
+            customInfo.Add("Weight", "79 kg");
+            customInfo.Add("Black", "Hair Color");
+
+            Countly.UserDetails.Custom = customInfo;
+        }
+
         private async void Set_User_Location(object sender, RoutedEventArgs e)
         {
             await Countly.Instance.SetLocation("31.5204, 74.3587", "192.0.0.1", "PK", "Lahore");
 
+        }
+
+        private async void Disable_Location(object sender, RoutedEventArgs e)
+        {
+            await Countly.Instance.DisableLocation();
+        }
+
+        private void Start_Timed_Event(object sender, RoutedEventArgs e)
+        {
+            Countly.Instance.StartEvent("timed event");
+        }
+
+        private async void End_Timed_Event(object sender, RoutedEventArgs e)
+        {
+            Segmentation segment = new Segmentation();
+            segment.Add("Time Spent", "60");
+            segment.Add("Retry Attempts", "5");
+
+            await Countly.Instance.EndEvent("timed event", segment, 2, 10.0);
         }
     }
 }

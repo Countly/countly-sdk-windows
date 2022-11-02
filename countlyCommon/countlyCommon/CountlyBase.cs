@@ -213,6 +213,7 @@ namespace CountlySDK.CountlyCommon
             requestParams.Add("session_duration", elapsedTime.Value);
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
+            await Upload();
         }
 
         protected async Task EndSessionInternal()
@@ -230,6 +231,7 @@ namespace CountlySDK.CountlyCommon
             requestParams.Add("session_duration", elapsedTime);
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>
@@ -1276,7 +1278,10 @@ namespace CountlySDK.CountlyCommon
 
             //consent related
             consentRequired = config.consentRequired;
-            if (config.givenConsent != null) { await SetConsent(config.givenConsent); }
+            if (config.givenConsent != null) {
+                await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
             await OnInitComplete();
@@ -1484,11 +1489,13 @@ namespace CountlySDK.CountlyCommon
 
             if (valuesToUpdate.Count > 0) {
                 //send request of the consent changes
-                if (action == ConsentChangedAction.ConsentUpdated) {
+                if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.Initialization) {
                     await SendConsentChanges(givenConsent);
                 }
 
-                await ActionsOnConsentChanges(valuesToUpdate, action);
+                if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.DeviceIDChangedNotMerged) {
+                    await ActionsOnConsentChanges(valuesToUpdate, action);
+                }
             }
         }
 
@@ -1518,7 +1525,7 @@ namespace CountlySDK.CountlyCommon
                                 //if it's not null then we had already tried tracking a session
                                 await SessionBegin();
                             }
-                        } else { await SessionEnd(); }
+                        } else if (!isGiven) { await SessionEnd(); }
                         break;
                     case ConsentFeatures.Users:
                         break;
