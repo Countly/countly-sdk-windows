@@ -3,7 +3,7 @@
 * Fixed 'os name' in metrics, 'os name' on windows 11 was reporting wrong.
 * Fixed a bug where added session requests were not sent immediately.
 
-#### 22.02.1
+## 22.02.1
 * Static method "AddBreadCrumb" is deprecated. A non static method called 'AddCrashBreadCrumb' was added as a replacement.
 * For the UWP flavor of the SDK, changing the target version to "Windows 10, version 2004"
 
