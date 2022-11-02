@@ -45,7 +45,7 @@
                 <c>true</c> if a network connection is available; otherwise, <c>false</c>.
             </returns>
         </member>
-        <member name="M:CountlySDK.Entities.BeginSession.#ctor(System.String,System.String,System.String,CountlySDK.Entities.Metrics,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant)">
+        <member name="M:CountlySDK.Entities.BeginSession.#ctor(System.String,CountlySDK.CountlyCommon.Entities.DeviceId,System.String,CountlySDK.Entities.Metrics,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant)">
             <summary>
             Creates BeginSession object with provided values
             </summary>
@@ -186,7 +186,7 @@
             Needed for JSON deserialization
             </summary>
         </member>
-        <member name="M:CountlySDK.Entities.EndSession.#ctor(System.String,System.String,System.String,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant,System.Nullable{System.Int64})">
+        <member name="M:CountlySDK.Entities.EndSession.#ctor(System.String,CountlySDK.CountlyCommon.Entities.DeviceId,System.String,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant,System.Nullable{System.Int64})">
             <summary>
             Creates EndSession object with provided values
             </summary>
@@ -202,6 +202,14 @@
             <summary>
             Sets the unique device identificator
             </summary>
+        </member>
+        <member name="M:CountlySDK.Entities.EntityBase.DeviceBase.InitDeviceId(CountlySDK.Entities.EntityBase.DeviceBase.DeviceIdMethodInternal,System.String)">
+            <summary>
+            Initialize deviceId with developer provided device id in configuration or with Random generated Id and Cache it.
+            </summary>
+            <param name="deviceIdMethod">preferred method</param>
+            <param name="suppliedDeviceId">device id to use</param>
+            <returns></returns>
         </member>
         <member name="M:CountlySDK.Entities.EntityBase.DeviceBase.SetPreferredDeviceIdMethod(CountlySDK.Entities.EntityBase.DeviceBase.DeviceIdMethodInternal,System.String)">
             <summary>
@@ -335,7 +343,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:CountlySDK.Entities.UpdateSession.#ctor(System.String,System.String,System.Int32,System.String,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant)">
+        <member name="M:CountlySDK.Entities.UpdateSession.#ctor(System.String,CountlySDK.CountlyCommon.Entities.DeviceId,System.Int32,System.String,System.String,CountlySDK.Helpers.TimeHelper.TimeInstant)">
             <summary>
             Creates UpdateSession object with provided values
             </summary>
@@ -418,18 +426,40 @@
             Saves user details info to the storage
             </summary>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddSessionEvent(CountlySDK.Entities.SessionEvent,System.Boolean)">
-            <summary>
-             Adds session event to queue and uploads
-            </summary>
-            <param name="sessionEvent">session event object</param>
-            <param name="uploadImmediately">indicates when start to upload, by default - immediately after event was added</param>
-        </member>
         <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.Upload" -->
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadSessions">
             <summary>
             Uploads sessions queue to Countly server
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.StartEvent(System.String)">
+            <summary>
+            Start a timed event.
+            </summary>
+            <param name="key">event key</param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.CancelEvent(System.String)">
+            <summary>
+            Cancel a timed event.
+            </summary>
+            <param name="key">event key</param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.CancelAllTimedEvents">
+            <summary>
+            Add all recorded events to request queue
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.EndEvent(System.String,CountlySDK.Segmentation,System.Int32,System.Nullable{System.Double})">
+            <summary>
+            End a timed event.
+            </summary>
+            <param name="key">event key</param>
+            <param name="segmentation">custom segmentation you want to set, leave null if you don't want to add anything</param>
+            <param name="count">how many of these events have occurred, default value is "1"</param>
+            <param name="sum">set sum if needed, default value is "0"</param>
             <returns></returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEvent(System.String)">
@@ -583,6 +613,18 @@
             Adds log breadcrumb
             </summary>
             <param name="log">log string</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddCrashBreadCrumb(System.String)">
+            <summary>
+            Adds log breadcrumb
+            </summary>
+            <param name="log">log string</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.GetDeviceIDType">
+            <summary>
+            Returns the device id type
+            </summary>
+            <returns>DeviceIdType</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.SessionBegin">
             <summary>
@@ -767,6 +809,21 @@
             Serializes object into json
             </summary>
             <returns>json representation string</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.BuildRequest(System.Collections.Generic.IDictionary{System.String,System.Object},System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Builds request by adding Base params into supplied queryParams parameters.
+            The data is appended in the URL.
+            </summary>
+            <param name="queryParams"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.BuildQueryString(System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>
+            Builds query string using supplied queryParams parameters.
+            </summary>
+            <param name="queryParams"></param>
+            <returns></returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Helpers.StorageBase.SaveToFile``1(System.String,System.Object)">
             <summary>

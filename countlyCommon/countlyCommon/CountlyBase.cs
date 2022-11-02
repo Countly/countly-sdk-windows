@@ -1,15 +1,15 @@
-﻿using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.CountlyCommon.Helpers;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
+using CountlySDK.Entities;
+using CountlySDK.Helpers;
+using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -17,8 +17,38 @@ namespace CountlySDK.CountlyCommon
 {
     abstract public class CountlyBase
     {
+        internal class IRequestHelperImpl : IRequestHelper
+        {
+            CountlyBase _base = null;
+            internal IRequestHelperImpl(CountlyBase instance)
+            {
+                _base = instance;
+            }
+
+            public string GetAppKey()
+            {
+                return _base.Configuration.appKey;
+            }
+
+            public string GetSDKName()
+            {
+                return _base.sdkName();
+            }
+
+            public string GetSDKVersion() { return sdkVersion; }
+
+            async Task<DeviceId> IRequestHelper.GetDeviceId()
+            {
+                DeviceId deviceId = await _base.DeviceData.GetDeviceId();
+                return deviceId;
+            }
+
+            public TimeInstant GetTimeInstant() { return _base.timeHelper.GetUniqueInstant(); }
+
+        }
+
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "21.11.2";
+        protected const string sdkVersion = "22.02.1";
 
         internal CountlyConfig Configuration;
 
@@ -40,6 +70,7 @@ namespace CountlySDK.CountlyCommon
         internal bool uploadInProgress;
 
         internal TimeHelper timeHelper;
+        internal RequestHelper requestHelper;
 
         internal readonly IDictionary<string, DateTime> TimedEvents = new Dictionary<string, DateTime>();
 
@@ -155,6 +186,8 @@ namespace CountlySDK.CountlyCommon
             Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig
         };
 
+        protected abstract Task SessionBeginInternal();
+
         internal async Task<bool> SaveStoredRequests()
         {
             lock (sync) {
@@ -174,8 +207,13 @@ namespace CountlySDK.CountlyCommon
             Debug.Assert(elapsedTime != null);
             lastSessionUpdateTime = DateTime.Now;
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            await AddSessionEvent(new UpdateSession(AppKey, await DeviceData.GetDeviceId(), elapsedTime.Value, sdkVersion, sdkName(), timeInstant));
+            Dictionary<string, object> requestParams =
+               new Dictionary<string, object>();
+
+            requestParams.Add("session_duration", elapsedTime.Value);
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+            await Upload();
         }
 
         protected async Task EndSessionInternal()
@@ -186,36 +224,14 @@ namespace CountlySDK.CountlyCommon
             SessionTimerStop();
             int elapsedTime = (int)(DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds);
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            await AddSessionEvent(new EndSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, elapsedTime), true);
-        }
+            Dictionary<string, object> requestParams =
+               new Dictionary<string, object>();
 
-        /// <summary>
-        ///  Adds session event to queue and uploads
-        /// </summary>
-        /// <param name="sessionEvent">session event object</param>
-        /// <param name="uploadImmediately">indicates when start to upload, by default - immediately after event was added</param>
-        internal async Task AddSessionEvent(SessionEvent sessionEvent, bool uploadImmediately = true)
-        {
-            try {
-                if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return; }
-
-                if (!IsConsentGiven(ConsentFeatures.Sessions)) { return; }
-
-                lock (sync) {
-                    Sessions.Add(sessionEvent);
-                }
-
-                bool success = SaveSessions();
-
-                if (uploadImmediately && success) {
-                    await Upload();
-                }
-            } catch (Exception ex) {
-                if (IsLoggingEnabled) {
-                    UtilityHelper.CountlyLogging(ex.Message);
-                }
-            }
+            requestParams.Add("end_session", 1);
+            requestParams.Add("session_duration", elapsedTime);
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>
@@ -265,7 +281,7 @@ namespace CountlySDK.CountlyCommon
 
                     UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
 
-                    if (sC > 0 || exC > 0 || evC > 0 || isChanged) {
+                    if (sC > 0 || exC > 0 || evC > 0 || rC > 0 || isChanged) {
                         //work still needs to be done
                         return await Upload();
                     }
@@ -403,7 +419,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -430,7 +446,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -467,7 +483,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key)) {
+            if (string.IsNullOrEmpty(key) || key == " ") {
                 UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.");
                 return;
             }
@@ -559,7 +575,10 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
-            if (!Countly.Instance.IsInitialized()) { throw new InvalidOperationException("SDK must initialized before calling 'RecordEvent'"); }
+            if (!Countly.Instance.IsInitialized()) {
+                UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'");
+                return Task.Factory.StartNew(() => { return false; });
+            }
 
             CountlyConfig config = Countly.Instance.Configuration;
             if (Key.Length > config.MaxKeyLength) {
@@ -1024,16 +1043,28 @@ namespace CountlySDK.CountlyCommon
         /// Adds log breadcrumb
         /// </summary>
         /// <param name="log">log string</param>
+        [Obsolete("'AddBreadCrumb' is deprecated, please use non static method 'AddCrashBreadCrumb' instead.")]
         public static void AddBreadCrumb(string log)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
+            Countly.Instance.AddCrashBreadCrumb(log);
+
+        }
+
+        /// <summary>
+        /// Adds log breadcrumb
+        /// </summary>
+        /// <param name="log">log string</param>
+        public void AddCrashBreadCrumb(string breadCrumb)
+        {
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumbs'");
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'");
                 return;
             }
 
-            Debug.Assert(log != null);
-            string validLog = log.Length > Countly.Instance.Configuration.MaxValueSize ? log.Substring(0, Countly.Instance.Configuration.MaxValueSize) : log;
+            Debug.Assert(breadCrumb != null);
+            string validLog = breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize ? breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize) : breadCrumb;
 
             if (Countly.Instance.CrashBreadcrumbs.Count == Countly.Instance.Configuration.MaxBreadcrumbCount) {
                 Countly.Instance.CrashBreadcrumbs.Dequeue();
@@ -1085,18 +1116,81 @@ namespace CountlySDK.CountlyCommon
 
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
-            if (gpsLocation == null && ipAddress == null && country_code == null && city == null) {
-                return false;
+            Dictionary<string, object> requestParams =
+                new Dictionary<string, object>();
+
+            /*
+             * Empty country code, city and IP address can not be sent.
+             */
+
+            if (!string.IsNullOrEmpty(ipAddress)) {
+                requestParams.Add("ip_address", ipAddress);
             }
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            //create the required request
-            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
-            string lr = RequestHelper.CreateLocationRequest(br, gpsLocation, ipAddress, country_code, city);
+            if (!string.IsNullOrEmpty(country_code)) {
+                requestParams.Add("country_code", country_code);
+            }
 
-            //add the request to queue and upload it
-            await AddRequest(lr);
-            return await Upload();
+            if (!string.IsNullOrEmpty(city)) {
+                requestParams.Add("city", city);
+            }
+
+            if (!string.IsNullOrEmpty(gpsLocation)) {
+                requestParams.Add("location", gpsLocation);
+            }
+
+            if (requestParams.Count > 0) {
+                string request = await requestHelper.BuildRequest(requestParams);
+                //add the request to queue and upload it
+                await AddRequest(request);
+                return await Upload();
+            }
+
+            return true;
+        }
+
+        protected Dictionary<string, object> GetLocationParams()
+        {
+            Dictionary<string, object> locationParams =
+               new Dictionary<string, object>();
+
+            /* If location is disabled or no location consent is given,
+            the SDK adds an empty location entry to every "begin_session" request. */
+            if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)) {
+                locationParams.Add("location", string.Empty);
+            } else {
+                if (!string.IsNullOrEmpty(Configuration.IPAddress)) {
+                    locationParams.Add("ip_address", Configuration.IPAddress);
+                }
+
+                if (!string.IsNullOrEmpty(Configuration.CountryCode)) {
+                    locationParams.Add("country_code", Configuration.CountryCode);
+                }
+
+                if (!string.IsNullOrEmpty(Configuration.City)) {
+                    locationParams.Add("city", Configuration.City);
+                }
+
+                if (!string.IsNullOrEmpty(Configuration.Location)) {
+                    locationParams.Add("location", Configuration.Location);
+                }
+            }
+
+            return locationParams;
+        }
+
+        /// <summary>
+        /// Sends a request with an empty "location" parameter.
+        /// </summary>
+        internal async Task SendRequestWithEmptyLocation()
+        {
+            Dictionary<string, object> requestParams =
+               new Dictionary<string, object> {
+                   { "location", string.Empty }
+               };
+
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
         }
 
         public async Task<bool> DisableLocation()
@@ -1107,8 +1201,8 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
-
-            return await SetLocation("", "", "", "");
+            await SendRequestWithEmptyLocation();
+            return true;
         }
 
         internal bool IsInitialized()
@@ -1119,7 +1213,7 @@ namespace CountlySDK.CountlyCommon
             return false;
         }
 
-        internal async Task AddRequest(String networkRequest, bool isIdMerge = false)
+        internal async Task AddRequest(string networkRequest, bool isIdMerge = false)
         {
             Debug.Assert(networkRequest != null);
 
@@ -1136,7 +1230,7 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase'");
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase' on SDK flavor: " + sdkName());
             if (!IsServerURLCorrect(config.serverUrl)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Invalid server url!");
                 return;
@@ -1153,6 +1247,8 @@ namespace CountlySDK.CountlyCommon
             }
 
             timeHelper = new TimeHelper();
+            IRequestHelperImpl exposed = new IRequestHelperImpl(this);
+            requestHelper = new RequestHelper(exposed);
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {
@@ -1182,8 +1278,33 @@ namespace CountlySDK.CountlyCommon
 
             //consent related
             consentRequired = config.consentRequired;
-            if (config.givenConsent != null) { await SetConsent(config.givenConsent); }
+            if (config.givenConsent != null) {
+                await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
+
+            await OnInitComplete();
+        }
+
+        /// <summary>
+        /// Run session startup logic and start timer with the specified interval
+        /// </summary>
+        internal async Task OnInitComplete()
+        {
+            if (!IsConsentGiven(ConsentFeatures.Sessions)) {
+                /* If location is disabled in init
+                and no session consent is given. Send empty location as separate request.*/
+                if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)) {
+                    await SendRequestWithEmptyLocation();
+                } else {
+                    /*
+                 * If there is no session consent, 
+                 * location values set in init should be sent as a separate location request.
+                 */
+                    await SetLocation(Configuration.Location, Configuration.IPAddress, Configuration.CountryCode, Configuration.City);
+                }
+            }
         }
 
         public enum DeviceIdType { DeveloperProvided = 0, SDKGenerated = 1 };
@@ -1200,8 +1321,6 @@ namespace CountlySDK.CountlyCommon
                 return DeviceIdType.SDKGenerated;
             }
         }
-
-        protected abstract Task SessionBeginInternal();
 
         /// <summary>
         /// Start tracking a session
@@ -1289,18 +1408,19 @@ namespace CountlySDK.CountlyCommon
                 DeviceId dId = await DeviceData.GetDeviceId();
                 string oldId = dId.deviceId;
 
-                DeviceId newdId = new DeviceId(newDeviceId, DeviceIdMethodInternal.developerSupplied);
-
-                TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                //create the required merge request
-                string br = RequestHelper.CreateBaseRequest(AppKey, newdId, sdkVersion, sdkName(), timeInstant);
-                string dimr = RequestHelper.CreateDeviceIdMergeRequest(br, oldId);
-
                 //change device ID
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
 
+                //create the required merge request
+                Dictionary<string, object> requestParams =
+                    new Dictionary<string, object> { { "old_device_id", oldId } };
+
+                string request = await requestHelper.BuildRequest(requestParams);
+
+
+
                 //add the request to queue and upload it
-                await AddRequest(dimr, true);
+                await AddRequest(request, true);
                 await Upload();
             }
         }
@@ -1369,11 +1489,13 @@ namespace CountlySDK.CountlyCommon
 
             if (valuesToUpdate.Count > 0) {
                 //send request of the consent changes
-                if (action == ConsentChangedAction.ConsentUpdated) {
+                if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.Initialization) {
                     await SendConsentChanges(givenConsent);
                 }
 
-                await ActionsOnConsentChanges(valuesToUpdate, action);
+                if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.DeviceIDChangedNotMerged) {
+                    await ActionsOnConsentChanges(valuesToUpdate, action);
+                }
             }
         }
 
@@ -1403,7 +1525,7 @@ namespace CountlySDK.CountlyCommon
                                 //if it's not null then we had already tried tracking a session
                                 await SessionBegin();
                             }
-                        } else { await SessionEnd(); }
+                        } else if (!isGiven) { await SessionEnd(); }
                         break;
                     case ConsentFeatures.Users:
                         break;
@@ -1415,11 +1537,13 @@ namespace CountlySDK.CountlyCommon
         {
             //create the required merge request
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            string br = RequestHelper.CreateBaseRequest(AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant);
-            string cur = RequestHelper.CreateConsentUpdateRequest(br, updatedConsentChanges);
+            string consentParam = requestHelper.CreateConsentUpdateRequest(updatedConsentChanges);
 
+            Dictionary<string, object> requestParams =
+                   new Dictionary<string, object> { { "consent", consentParam } };
+            string request = await requestHelper.BuildRequest(requestParams);
             //add the request to queue and upload it
-            await AddRequest(cur);
+            await AddRequest(request);
             await Upload();
         }
 

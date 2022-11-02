@@ -21,20 +21,13 @@ THE SOFTWARE.
 */
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System.IO;
-using System.Diagnostics;
-using static CountlySDK.Entities.EntityBase.DeviceBase;
-using CountlySDK.Entities.EntityBase;
 using CountlySDK.CountlyCommon;
-using static CountlySDK.Helpers.TimeHelper;
-using System.Runtime.CompilerServices;
+using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
+using CountlySDK.Helpers;
 
 #if RUNNING_ON_35
 //[assembly: InternalsVisibleTo("CountlyTest_35")]
@@ -116,7 +109,10 @@ namespace CountlySDK
         {
             if (IsInitialized()) { return; }
 
-            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
+            if (config == null) {
+                UtilityHelper.CountlyLogging("Configuration object can not be null while initializing Countly");
+                return;
+            }
 
             await InitBase(config);
         }
@@ -127,9 +123,18 @@ namespace CountlySDK
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
+
+            // Adding location into session request
+            Dictionary<string, object> requestParams =
+                           new Dictionary<string, object>(GetLocationParams());
+
+            requestParams.Add("begin_session", 1);
+            requestParams.Add("metrics", metrics.ToString());
+
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>

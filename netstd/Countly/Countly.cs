@@ -20,15 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.CountlyCommon;
-using CountlySDK.Entities;
-using CountlySDK.Entities.EntityBase;
-using CountlySDK.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using static CountlySDK.Helpers.TimeHelper;
+using CountlySDK.CountlyCommon;
+using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
+using CountlySDK.Helpers;
 //[assembly: InternalsVisibleTo("CountlyTest_461")]
 //[assembly: InternalsVisibleTo("CountlySampleUWP")]
 
@@ -131,7 +130,9 @@ namespace CountlySDK
         {
             if (IsInitialized()) { return; }
 
-            if (config == null) { throw new InvalidOperationException("Configuration object can not be null while initializing Countly"); }
+            if (config == null) {
+                UtilityHelper.CountlyLogging("Configuration object can not be null while initializing Countly");
+            }
 
             await InitBase(config);
         }
@@ -143,9 +144,18 @@ namespace CountlySDK
             SessionTimerStart();
             SessionStarted?.Invoke(null, EventArgs.Empty);
 
-            TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
-            await AddSessionEvent(new BeginSession(AppKey, await DeviceData.GetDeviceId(), sdkVersion, metrics, sdkName(), timeInstant));
+
+            // Adding location into session request
+            Dictionary<string, object> requestParams =
+                           new Dictionary<string, object>(GetLocationParams());
+
+            requestParams.Add("begin_session", 1);
+            requestParams.Add("metrics", metrics.ToString());
+
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>

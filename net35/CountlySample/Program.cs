@@ -153,7 +153,7 @@ namespace CountlySample
                     } catch (Exception ex) {
                         Dictionary<string, string> customInfo = new Dictionary<string, string>();
                         customInfo.Add("customData", "importantStuff");
-
+                        Countly.Instance.AddCrashBreadCrumb("test-breadcrum");
                         _ = Countly.RecordException(ex.Message, ex.StackTrace, customInfo);
                     }
                 } else if (input == 16) {

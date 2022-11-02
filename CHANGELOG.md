@@ -1,3 +1,11 @@
+22.06.0
+* Added ability to record location information or disable location tracking during SDK initialization.
+* Fixed a bug where added session requests were not sent immediately.
+
+22.02.1
+* Static method "AddBreadCrumb" is deprecated. A non static method called 'AddCrashBreadCrumb' was added as a replacement.
+* For the UWP flavor of the SDK, changing the target version to "Windows 10, version 2004"
+
 22.02.0
 * ! Minor breaking change ! Device ID is now sticky during init. If a device ID value was acquired by the SDK before, it will now ignore the init-time provided custom device ID value.
 * Added ability to get device id type.
@@ -73,7 +81,6 @@
 * Fixed deserialization bugs
 * Fixed bug where crashes would not show up in dashboard
 * Fixed a timestamp bug
-
 
 18.1.0
 * Fixing multithreading bug
