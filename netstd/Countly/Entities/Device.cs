@@ -20,13 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using System;
+using System.Net.NetworkInformation;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
-using System;
-using System.Diagnostics;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
 
 namespace CountlySDK.Entities
 {
@@ -134,10 +132,12 @@ namespace CountlySDK.Entities
                         operatingSystem = "95";
                         break;
                     case 10:
-                        if (vs.Revision.ToString() == "2222A")
+                        if (vs.Revision.ToString() == "2222A") {
                             operatingSystem = "98SE";
-                        else
+                        } else {
                             operatingSystem = "98";
+                        }
+
                         break;
                     case 90:
                         operatingSystem = "Me";
@@ -154,23 +154,31 @@ namespace CountlySDK.Entities
                         operatingSystem = "NT 4.0";
                         break;
                     case 5:
-                        if (vs.Minor == 0)
+                        if (vs.Minor == 0) {
                             operatingSystem = "2000";
-                        else
+                        } else {
                             operatingSystem = "XP";
+                        }
                         break;
                     case 6:
-                        if (vs.Minor == 0)
+                        if (vs.Minor == 0) {
                             operatingSystem = "Vista";
-                        else if (vs.Minor == 1)
+                        } else if (vs.Minor == 1) {
                             operatingSystem = "7";
-                        else if (vs.Minor == 2)
+                        } else if (vs.Minor == 2) {
                             operatingSystem = "8";
-                        else
+                        } else {
                             operatingSystem = "8.1";
+                        }
+
                         break;
                     case 10:
-                        operatingSystem = "10";
+                        if (vs.Build >= 22000) {
+                            operatingSystem = "11";
+                        } else {
+                            operatingSystem = "10";
+                        }
+
                         break;
                     default:
                         break;

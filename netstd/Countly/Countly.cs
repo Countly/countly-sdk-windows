@@ -144,7 +144,7 @@ namespace CountlySDK
             SessionTimerStart();
             SessionStarted?.Invoke(null, EventArgs.Empty);
 
-            Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
+            Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, null, null, null, AppVersion, DeviceData.Locale);
 
             // Adding location into session request
             Dictionary<string, object> requestParams =
