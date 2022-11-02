@@ -12,8 +12,20 @@
         <Button Content="Record Basic Event" Margin="10,10,0,0" VerticalAlignment="Top" Click="Record_Event"/>
         <Button Content="Record An Event With Segmentation" Margin="10,60,0,0" VerticalAlignment="Top" Click="Record_Event_1"/>
         <Button Content="Record An Exception" Margin="10,110,0,0" VerticalAlignment="Top" Click="Record_Exception"/>
+        
         <Button Content="Record A View" Margin="10,160,0,0" VerticalAlignment="Top" Click="Record_View"/>
+        
         <Button Content="Set User Location" Margin="10,210,0,0" VerticalAlignment="Top" Click="Set_User_Location"/>
-        <Button Content="Set User Profile" Margin="10,260,0,0" VerticalAlignment="Top" Click="Set_User_Profile"/>
+        <Button Content="Disable User Location" Margin="10,260,0,0" VerticalAlignment="Top" Click="Disable_Location"/>
+        
+        
+        <Button Content="Set User Profile" Margin="10,310,0,0" VerticalAlignment="Top" Click="Set_User_Profile"/>
+        <Button Content="Set User Custom Profile" Margin="10,360,0,0" VerticalAlignment="Top" Click="Set_User_Custom_Profile"/>
+        
+        <Button Content="Change deviceId with merge" Margin="10,410,0,0" VerticalAlignment="Top" Click="Change_DeviceID_With_Merge"/>
+        <Button Content="Change deviceId without merge" Margin="10,460,0,0" VerticalAlignment="Top" Click="Change_DeviceID_Without_Merge"/>
+        
+        <Button Content="Start a timed event" Margin="10,510,0,0" VerticalAlignment="Top" Click="Start_Timed_Event"/>
+        <Button Content="End a timed event" Margin="10,560,0,0" VerticalAlignment="Top" Click="End_Timed_Event"/>
     </Grid>
 </Page>
