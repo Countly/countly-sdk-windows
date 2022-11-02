@@ -1,4 +1,4 @@
-#22.06.0
+# 22.06.0
 * Added ability to record location information or disable location tracking during SDK initialization.
 * Fixed 'os name' in metrics, 'os name' on windows 11 was reporting wrong.
 * Fixed a bug where added session requests were not sent immediately.
