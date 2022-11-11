@@ -620,6 +620,16 @@
             </summary>
             <param name="log">log string</param>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SendRequestWithEmptyLocation">
+            <summary>
+            Sends a request with an empty "location" parameter.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.OnInitComplete">
+            <summary>
+            Run session startup logic and start timer with the specified interval
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.GetDeviceIDType">
             <summary>
             Returns the device id type
@@ -727,6 +737,21 @@
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxBreadcrumbCount" -->
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableLocation">
+            <summary>
+            Disabled the location tracking on the Countly server
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetLocation(System.String,System.String,System.String,System.String)">
+            <summary>
+            Set location parameters that will be used during init.
+            </summary>
+            <param name="countryCode">ISO Country code for the user's country</param>
+            <param name="city">Name of the user's city</param>
+            <param name="gpsCoordinates">comma separate lat and long values.<example>"56.42345,123.45325"</example> </param>
+            <param name="ipAddress">user's IP Address</param>
+            <returns></returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.DeviceId.#ctor">
             <summary>
             Needed for JSON deserialization
@@ -810,7 +835,7 @@
             </summary>
             <returns>json representation string</returns>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.BuildRequest(System.Collections.Generic.IDictionary{System.String,System.Object},System.Collections.Generic.IDictionary{System.String,System.Object})">
+        <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.BuildRequest(System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>
             Builds request by adding Base params into supplied queryParams parameters.
             The data is appended in the URL.
