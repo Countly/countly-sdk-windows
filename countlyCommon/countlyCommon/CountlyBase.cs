@@ -281,7 +281,7 @@ namespace CountlySDK.CountlyCommon
 
                     UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
 
-                    if (sC > 0 || exC > 0 || evC > 0 || isChanged) {
+                    if (sC > 0 || exC > 0 || evC > 0 || rC > 0 || isChanged) {
                         //work still needs to be done
                         return await Upload();
                     }
