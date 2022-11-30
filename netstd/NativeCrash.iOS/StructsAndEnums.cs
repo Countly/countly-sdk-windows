@@ -1,0 +1,4 @@
+namespace NativeCrash.iOS
+{
+
+}
