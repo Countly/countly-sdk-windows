@@ -8,7 +8,8 @@ namespace MauiSample
         {
             var builder = MauiApp.CreateBuilder();
             builder
-                .UseMauiApp<App>()
+                .UseMauiApp<TestApp>()
+                .ConfigureCrash()
                 .ConfigureFonts(fonts => {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
@@ -20,5 +21,34 @@ namespace MauiSample
 
             return builder.Build();
         }
+
+        private static MauiAppBuilder ConfigureCrash(this MauiAppBuilder builder)
+        {
+            builder.Services.AddSingleton<INativeCrash, MauiSampleApp.CrashNative>();
+            return builder;
+        }
     }
+}
+
+public class TestApp : Application
+{
+    public TestApp(INativeCrash crashTester)
+    {
+        MainPage = new ContentPage
+        {
+            Content = new Label
+            {
+                Text = "Test App",
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center
+            },
+        };
+
+        crashTester.Test();
+    }
+}
+
+public interface INativeCrash
+{
+    void Test();
 }
