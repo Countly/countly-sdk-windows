@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NativeCrash.Android", "Nati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NativeCrash.iOS", "NativeCrash.iOS\NativeCrash.iOS.csproj", "{5289E1F3-EC9E-40DE-BA4B-E1A7CCDEAED3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiSample", "MauiSample\MauiSample.csproj", "{BDD88F46-2675-4545-A580-8905A1A6EA2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MauiSample", "MauiSample\MauiSample.csproj", "{BDD88F46-2675-4545-A580-8905A1A6EA2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiSampleApp", "MauiSampleApp\MauiSampleApp.csproj", "{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -154,6 +156,30 @@ Global
 		{BDD88F46-2675-4545-A580-8905A1A6EA2E}.Release|x86.ActiveCfg = Release|Any CPU
 		{BDD88F46-2675-4545-A580-8905A1A6EA2E}.Release|x86.Build.0 = Release|Any CPU
 		{BDD88F46-2675-4545-A580-8905A1A6EA2E}.Release|x86.Deploy.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|ARM.Build.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|ARM.Deploy.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|x64.Build.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|x64.Deploy.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|x86.Build.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Debug|x86.Deploy.0 = Debug|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|ARM.ActiveCfg = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|ARM.Build.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|ARM.Deploy.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|x64.ActiveCfg = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|x64.Build.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|x64.Deploy.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|x86.ActiveCfg = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|x86.Build.0 = Release|Any CPU
+		{5DCCA5B2-AA5C-4AF5-ADF4-F3F512B9E3CE}.Release|x86.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
