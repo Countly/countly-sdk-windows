@@ -29,7 +29,7 @@ namespace MauiSampleApp
     public class SampleApp : Application
     {
 
-        public const string serverURL = "https://master.count.ly";
+        public const string serverURL = "https://try.count.ly";
         public const string appKey = "YOUR_APP_KEY";
         public SampleApp(ICrashTester crashTester)
         {
