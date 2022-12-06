@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CountlySDK.Entities;
+using CountlySDK;
+using Microsoft.Extensions.Logging;
 
 namespace MauiSampleApp
 {
@@ -26,11 +28,37 @@ namespace MauiSampleApp
 
     public class SampleApp : Application
     {
+
+        public const string serverURL = "https://try.count.ly";
+        public const string appKey = "YOUR_APP_KEY";
         public SampleApp(ICrashTester crashTester)
         {
+            InitCountlySDK();
             MainPage = new AppShell();
-
+            
             crashTester.Test();
+        }
+
+        private async void InitCountlySDK()
+        {
+            Countly.IsLoggingEnabled = true;
+
+            CountlyConfig countlyConfig = new CountlyConfig();
+            countlyConfig.serverUrl = serverURL;
+            countlyConfig.appKey = appKey;
+            countlyConfig.appVersion = "123";
+
+            await Countly.Instance.Init(countlyConfig);
+            await Countly.Instance.SessionBegin();
+
+            await Countly.RecordEvent("App started");
+
+            // report unhandled crash
+            MauiExceptions.UnhandledException += (sender, args) =>
+            {
+                Countly.RecordException(args.ExceptionObject.ToString(), null, null, true).Wait();
+            };
+
         }
     }
 
