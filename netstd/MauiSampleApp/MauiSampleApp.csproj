@@ -52,8 +52,12 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\Countly\Countly.csproj" />
+    <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0-android' ">
+        <ProjectReference Include="..\NativeCrash.Android\NativeCrash.Android.csproj" />
 	</ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Countly\Countly.csproj" />
+    </ItemGroup>
 
 </Project>

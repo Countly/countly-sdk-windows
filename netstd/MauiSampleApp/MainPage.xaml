@@ -35,6 +35,13 @@
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Center" />
 
+            <Button
+                x:Name="CrashBtn"
+                Text="Crash the App"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnCrashAppClicked"
+                HorizontalOptions="Center" />
+
         </VerticalStackLayout>
     </ScrollView>
 
