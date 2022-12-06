@@ -6,19 +6,37 @@ namespace MauiSampleApp
     {
         public static MauiApp CreateMauiApp()
         {
-            var builder = MauiApp.CreateBuilder();
-            builder
-                .UseMauiApp<App>()
-                .ConfigureFonts(fonts => {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                });
+            return MauiApp.CreateBuilder()
+                .UseMauiApp<SampleApp>()
+                .ConfigureFonts(fonts =>
+                                {
+                                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                                })
+                .ConfigureServices()
+                .Build();
+        }
 
-#if DEBUG
-		builder.Logging.AddDebug();
-#endif
-
-            return builder.Build();
+        private static MauiAppBuilder ConfigureServices(this MauiAppBuilder builder)
+        {
+            builder.Services.AddSingleton<ICrashTester, CrashTester>();
+            return builder;
         }
     }
+
+    public class SampleApp : Application
+    {
+        public SampleApp(ICrashTester crashTester)
+        {
+            MainPage = new AppShell();
+
+            crashTester.Test();
+        }
+    }
+
+    public interface ICrashTester
+    {
+        void Test();
+    }
+
 }
