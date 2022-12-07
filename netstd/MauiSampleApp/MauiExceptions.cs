@@ -43,10 +43,10 @@ public static class MauiExceptions
         // All exceptions will flow through Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser,
         // and NOT through AppDomain.CurrentDomain.UnhandledException
 
-        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (sender, args) =>
-        {
-            UnhandledException?.Invoke(sender, new UnhandledExceptionEventArgs(args.Exception, true));
-        };
+        //Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (sender, args) =>
+        //{
+        //    UnhandledException?.Invoke(sender, new UnhandledExceptionEventArgs(args.Exception, true));
+        //};
 
 #elif WINDOWS
 
