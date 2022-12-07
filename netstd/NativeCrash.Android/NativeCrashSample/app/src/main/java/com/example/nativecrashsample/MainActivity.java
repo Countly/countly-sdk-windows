@@ -2,7 +2,7 @@ package com.example.nativecrashsample;
 
 import android.os.Bundle;
 
-import com.example.crashlib.CrashHandler;
+import com.countly.nativecrashlib.NativeCrashHandler;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,15 +42,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-
-                int a = 5;
-                int b = 0;
-                int c = a / b;
             }
         });
 
-        CrashHandler handler = new CrashHandler();
-
+        NativeCrashHandler crashHandler = new NativeCrashHandler();
     }
 
     @Override
