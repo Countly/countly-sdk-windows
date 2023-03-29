@@ -48,7 +48,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "22.06.0";
+        protected const string sdkVersion = "22.06.1";
 
         internal CountlyConfig Configuration;
 

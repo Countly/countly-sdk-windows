@@ -183,6 +183,8 @@ namespace CountlySDK.Entities
                     default:
                         break;
                 }
+            } else {
+                return os.Platform.ToString();
             }
             //Make sure we actually got something in our OS check
             //We don't want to just return " Service Pack 2" or " 32-bit"
