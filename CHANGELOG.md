@@ -1,6 +1,5 @@
 ## 22.06.1
-* Added .NET MAUI sample app for SDK's '.NET Standard' flavor.
-* Fixed empty OS name issue when SDK runs on .NET MAUI framework.
+* Fixed empty OS name issue when running the SDK '.NET Standard' flavor with .NET MAUI.
 
 ## 22.06.0
 * Added ability to record location information or disable location tracking during SDK initialization.
