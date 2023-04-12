@@ -1,12 +1,7 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Helpers;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CountlySDK;
+using CountlySDK.Entities;
 using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
@@ -36,7 +31,8 @@ namespace TestProject_common
             Countly.Instance.HaltInternal().Wait();
         }
 
-        private void validateEventData(CountlyEvent countlyEvent, string key, int count, double sum, double dur, Segmentation segmentation = null) {
+        private void validateEventData(CountlyEvent countlyEvent, string key, int count, double sum, double dur, Segmentation segmentation = null)
+        {
             Assert.Equal(key, countlyEvent.Key);
             Assert.Equal(sum, countlyEvent.Sum);
             Assert.Equal(count, countlyEvent.Count);
@@ -47,7 +43,7 @@ namespace TestProject_common
             } else {
                 Assert.Null(countlyEvent.Segmentation);
             }
-            
+
         }
 
         [Fact]
@@ -81,6 +77,8 @@ namespace TestProject_common
 
         /// <summary>
         /// It validates the cancellation of timed events on changing device id without merge.
+        ///
+        /// todo potentially flakey test
         /// </summary>
         [Fact]
         public async void TestTimedEventsCancelationOnDeviceIdChange()

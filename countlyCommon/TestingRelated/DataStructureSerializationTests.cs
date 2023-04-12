@@ -115,10 +115,10 @@ namespace TestProject_common
             CountlyUserDetails cud = TestHelper.CreateCountlyUserDetails(0, 0);
             ExceptionEvent unhandledException = TestHelper.CreateExceptionEvent(0);
 
-            TestHelper.StorageSerDesComp<List<SessionEvent>>(sessionList, Countly.sessionsFilename);
-            TestHelper.StorageSerDesComp<List<ExceptionEvent>>(exceptionList, Countly.exceptionsFilename);
-            TestHelper.StorageSerDesComp<List<CountlyEvent>>(eventList, Countly.eventsFilename);
-            TestHelper.StorageSerDesComp<Queue<StoredRequest>>(requestQueue, Countly.storedRequestsFilename);
+            TestHelper.StorageSerDesCompList<SessionEvent>(sessionList, Countly.sessionsFilename);
+            TestHelper.StorageSerDesCompList<ExceptionEvent>(exceptionList, Countly.exceptionsFilename);
+            TestHelper.StorageSerDesCompList<CountlyEvent>(eventList, Countly.eventsFilename);
+            TestHelper.StorageSerDesCompQueue<StoredRequest>(requestQueue, Countly.storedRequestsFilename);
             TestHelper.StorageSerDesComp<CountlyUserDetails>(cud, Countly.userDetailsFilename);
             TestHelper.StorageSerDesComp<ExceptionEvent>(unhandledException, Countly.unhandledExceptionFilename);
         }

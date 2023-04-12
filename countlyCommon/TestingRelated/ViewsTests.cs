@@ -1,14 +1,7 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Helpers;
+﻿using System;
+using CountlySDK;
 using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
-using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace TestProject_common
 {
@@ -36,6 +29,8 @@ namespace TestProject_common
         [Fact]
         /// <summary>
         /// It validates the limit of the view's name size.
+        ///
+        /// todo potentially flakey test
         /// </summary>
         public async void TestEventLimits()
         {

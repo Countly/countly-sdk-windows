@@ -60,16 +60,16 @@ namespace CountlySDK.CountlyCommon
         protected int sessionUpdateInterval = 60;
 
         // Server url provided by a user
-        protected string ServerUrl;
+        protected string ServerUrl = null;
 
         // Application key provided by a user
-        protected string AppKey;
+        protected string AppKey = null;
 
         // Application version provided by a user
-        protected string AppVersion;
+        protected string AppVersion = null;
 
         // Indicates sync process with a server
-        internal bool uploadInProgress;
+        internal bool uploadInProgress = false;
 
         internal TimeHelper timeHelper;
         internal RequestHelper requestHelper;
@@ -630,6 +630,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (saveSuccess) {
+                //todo rework this
                 saveSuccess = await Upload();
             }
 
@@ -1023,9 +1024,6 @@ namespace CountlySDK.CountlyCommon
         internal async Task HaltInternal(bool clearStorage = true)
         {
             lock (sync) {
-                ServerUrl = null;
-                AppKey = null;
-
                 SessionTimerStop();
 
                 TimedEvents.Clear();
@@ -1044,9 +1042,21 @@ namespace CountlySDK.CountlyCommon
                 consentRequired = false;
                 givenConsent.Clear();
 
+                ServerUrl = null;
+                AppKey = null;
+
+                sessionUpdateInterval = 60;
+                AppVersion = null;
+                uploadInProgress = false;
+
                 //clear session things
                 startTime = new DateTime();
                 lastSessionUpdateTime = new DateTime();
+
+                //clear view related things
+                lastView = null;
+                lastViewStart = 0;
+                firstView = true;
             }
             if (clearStorage) {
                 await ClearStorage();

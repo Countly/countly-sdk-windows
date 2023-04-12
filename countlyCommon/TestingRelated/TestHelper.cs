@@ -1,16 +1,16 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.Entities;
-using CountlySDK.Entities.EntityBase;
-using CountlySDK.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
+using CountlySDK.Helpers;
 using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;
 using static CountlySDK.Helpers.TimeHelper;
@@ -254,7 +254,7 @@ namespace TestProject_common
             return srQueue;
         }
 
-        public static async void StorageSerDesComp<T>(T obj, String filename) where T : class
+        public static async Task<T> StorageSerDes<T>(T obj, String filename) where T : class
         {
             await Storage.Instance.DeleteFile(filename);
             T res1 = await Storage.Instance.LoadFromFile<T>(filename);
@@ -262,9 +262,28 @@ namespace TestProject_common
 
             await Storage.Instance.SaveToFile<T>(filename, obj);
 
-            T res = await Storage.Instance.LoadFromFile<T>(filename);
+            return await Storage.Instance.LoadFromFile<T>(filename);
+        }
+
+        public static async void StorageSerDesComp<T>(T obj, String filename) where T : class
+        {
+            T res = await StorageSerDes<T>(obj, filename);
 
             Assert.Equal(obj, res);
+        }
+
+        public static async void StorageSerDesCompList<T>(List<T> obj, String filename) where T : IComparable<T>
+        {
+            List<T> res = await StorageSerDes<List<T>>(obj, filename);
+
+            Assert.Equal(0, UtilityHelper.CompareLists<T>(obj, res));
+        }
+
+        public static async void StorageSerDesCompQueue<T>(Queue<T> obj, String filename) where T : IComparable<T>
+        {
+            Queue<T> res = await StorageSerDes<Queue<T>>(obj, filename);
+
+            Assert.Equal(0, UtilityHelper.CompareQueues<T>(obj, res));
         }
 
         public static async Task ValidateDataPointUpload()
@@ -379,6 +398,11 @@ namespace TestProject_common
 
         public static CountlyConfig CreateConfig()
         {
+            //enable this globally
+            //https://stackoverflow.com/questions/2859790/the-request-was-aborted-could-not-create-ssl-tls-secure-channel
+            //to use TLS 1.2
+            ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
+
             return CountlyImpl.CreateCountlyConfig();
         }
 

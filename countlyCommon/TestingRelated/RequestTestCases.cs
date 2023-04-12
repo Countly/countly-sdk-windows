@@ -16,6 +16,11 @@ namespace TestProject_common
 {
     public class RequestTestCases : IDisposable
     {
+        long timestampForRequest = 1666683640551;
+        TimeInstant timeInstantForRequest;
+
+        IRequestHelper testRequestHelperInterface;
+
         /// <summary>
         /// Test setup
         /// </summary>
@@ -25,6 +30,9 @@ namespace TestProject_common
             Countly.Halt();
             TestHelper.CleanDataFiles();
             Countly.Instance.deferUpload = true;
+            timeInstantForRequest = TimeInstant.Get(timestampForRequest);
+
+            testRequestHelperInterface = new TestRequestHelperInterface(timeInstantForRequest);
         }
 
         /// <summary>
@@ -80,7 +88,7 @@ namespace TestProject_common
             };
 
 
-            RequestHelper requestHelper = new RequestHelper(new IRequesttHelperImpl());
+            RequestHelper requestHelper = new RequestHelper(testRequestHelperInterface);
 
             string request = await requestHelper.BuildRequest(param);
 
@@ -97,15 +105,22 @@ namespace TestProject_common
             Assert.Equal("sdk-version", collection.Get("sdk_version"));
             Assert.Equal("device-id", collection.Get("device_id"));
 
-            Assert.Equal("300", collection.Get("tz"));
+            Assert.Equal(timeInstantForRequest.Timezone, collection.Get("tz"));
             Assert.Equal("2", collection.Get("dow"));
             Assert.Equal("7", collection.Get("hour"));
             Assert.Equal("1666683640551", collection.Get("timestamp"));
 
         }
 
-        private class IRequesttHelperImpl : IRequestHelper
+        private class TestRequestHelperInterface : IRequestHelper
         {
+            TimeInstant usedInstance;
+
+            public TestRequestHelperInterface(TimeInstant usedInstance)
+            {
+                this.usedInstance = usedInstance;
+            }
+
             public string GetAppKey()
             {
                 return "app-key";
@@ -129,9 +144,7 @@ namespace TestProject_common
 
             public TimeInstant GetTimeInstant()
             {
-                long timestamp = 1666683640551;
-                TimeInstant timeInstant = TimeInstant.Get(timestamp);
-                return timeInstant;
+                return usedInstance;
             }
         }
     }

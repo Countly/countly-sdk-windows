@@ -1,15 +1,11 @@
-﻿using CountlySDK.CountlyCommon.Server;
-using CountlySDK.Helpers;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Specialized;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
+using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
+using CountlySDK.Helpers;
 
 namespace CountlySDK
 {
