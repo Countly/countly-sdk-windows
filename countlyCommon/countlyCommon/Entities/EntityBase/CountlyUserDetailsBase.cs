@@ -20,13 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.Entities;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using CountlySDK.Entities;
+using Newtonsoft.Json;
 
 namespace CountlySDK.CountlyCommon.Entities.EntityBase
 {
@@ -358,12 +358,14 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
 
                     //if some differences are found, assume that this is greater
                     foreach (KeyValuePair<String, String> pair in _custom) {
-                        if (!other._custom.ContainsKey(pair.Key))
+                        if (!other._custom.ContainsKey(pair.Key)) {
                             return 1;
+                        }
                         String otherPairValue = other._custom[pair.Key];
 
-                        if (!pair.Value.Equals(otherPairValue))
+                        if (!pair.Value.Equals(otherPairValue)) {
                             return 1;
+                        }
                     }
                 }
             }

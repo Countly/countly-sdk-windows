@@ -20,11 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.Entities.EntityBase;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using CountlySDK.Entities.EntityBase;
+using Newtonsoft.Json;
 
 namespace CountlySDK.Entities
 {
@@ -240,7 +240,7 @@ namespace CountlySDK.Entities
                 if (other.Custom == null) { return 1; }
                 if (!Custom.Count.Equals(other.Custom.Count)) { return Custom.Count.CompareTo(other.Custom.Count); }
 
-                foreach (var a in Custom.Keys) {
+                foreach (string a in Custom.Keys) {
                     if (!other.Custom.ContainsKey(a)) { return -1; }
                     if (!Custom[a].Equals(other.Custom[a])) { return Custom[a].CompareTo(other.Custom[a]); }
                 }

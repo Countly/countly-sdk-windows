@@ -25,8 +25,9 @@ THE SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Text;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.Helpers
 {
@@ -66,10 +67,27 @@ namespace CountlySDK.Helpers
             return unescapedString;
         }
 
-        public static void CountlyLogging(String msg)
+        public static void CountlyLogging(String msg, LogLevel level = LogLevel.DEBUG)
         {
             if (Countly.IsLoggingEnabled) {
-                System.Diagnostics.Debug.WriteLine(msg);
+                StringBuilder fullMessage = new StringBuilder(msg.Length + 10);
+
+                if (level == LogLevel.VERBOSE) {
+                    fullMessage.Append("[VERBOSE] ");
+                } else if (level == LogLevel.DEBUG) {
+                    fullMessage.Append("[DEBUG] ");
+                } else if (level == LogLevel.INFO) {
+                    fullMessage.Append("[INFO] ");
+                } else if (level == LogLevel.WARNING) {
+                    fullMessage.Append("[WARNING] ");
+                } else if (level == LogLevel.ERROR) {
+                    fullMessage.Append("[ERROR] ");
+                } else {
+                    fullMessage.Append("[OTHER] ");
+                }
+
+                fullMessage.Append(msg);
+                System.Diagnostics.Debug.WriteLine(fullMessage.ToString());
             }
         }
 
@@ -88,8 +106,9 @@ namespace CountlySDK.Helpers
 
         public static int CompareLists<T>(List<T> first, List<T> second) where T : IComparable<T>
         {
-            if (first == null && second == null)
+            if (first == null && second == null) {
                 return 0;
+            }
             if (first == null) { return -1; }
             if (second == null) { return 1; }
 

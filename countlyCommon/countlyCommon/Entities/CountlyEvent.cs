@@ -20,13 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.Helpers;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using CountlySDK.Helpers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace CountlySDK.Entities
 {
@@ -85,8 +85,9 @@ namespace CountlySDK.Entities
         public Dictionary<String, String> segmentation
         {
             get {
-                if (Segmentation == null)
+                if (Segmentation == null) {
                     return null;
+                }
 
                 return Segmentation.segmentation.ToDictionary(s => s.Key, s => s.Value);
             }
@@ -162,7 +163,7 @@ namespace CountlySDK.Entities
                 if (other.segmentation == null) { return 1; }
                 if (!segmentation.Count.Equals(other.segmentation.Count)) { return segmentation.Count.CompareTo(other.segmentation.Count); }
 
-                foreach (var a in segmentation.Keys) {
+                foreach (string a in segmentation.Keys) {
                     if (!other.segmentation.ContainsKey(a)) { return -1; }
                     if (!segmentation[a].Equals(other.segmentation[a])) { return segmentation[a].CompareTo(other.segmentation[a]); }
                 }

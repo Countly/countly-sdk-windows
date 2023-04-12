@@ -20,11 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace CountlySDK.Entities
 {
@@ -139,8 +139,9 @@ namespace CountlySDK.Entities
         internal Dictionary<string, string> ToDictionary()
         {
             lock (sync) {
-                if (items.Count == 0)
+                if (items.Count == 0) {
                     return null;
+                }
             }
 
             Dictionary<string, string> dictionary = new Dictionary<string, string>();
