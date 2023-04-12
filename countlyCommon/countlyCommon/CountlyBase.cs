@@ -139,6 +139,10 @@ namespace CountlySDK.CountlyCommon
         // When the last session update was sent
         internal DateTime lastSessionUpdateTime;
 
+        // If this is true, then a "begin session" has been called and there hasn't been an "end session"
+        // this would indicate that we have to resume session tracking once consent is given
+        internal bool automaticSessionTrackingStarted = false;
+
         //holds device info
         internal Device DeviceData = new Device();
 
@@ -221,6 +225,8 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task EndSessionInternal()
         {
+            UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
+
             //report the duration of current view
             reportViewDuration();
 
@@ -1052,6 +1058,7 @@ namespace CountlySDK.CountlyCommon
                 //clear session things
                 startTime = new DateTime();
                 lastSessionUpdateTime = new DateTime();
+                automaticSessionTrackingStarted = false;
 
                 //clear view related things
                 lastView = null;
@@ -1369,6 +1376,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
+            automaticSessionTrackingStarted = true;
             startTime = DateTime.Now;
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
@@ -1447,12 +1455,20 @@ namespace CountlySDK.CountlyCommon
                 //Cancel all timed events
                 CancelAllTimedEvents();
 
-                await SessionEnd();
+                bool sessionWasStarted = automaticSessionTrackingStarted;
+
+                if (sessionWasStarted) {
+                    //we need to end the session only if it was started previously
+                    await SessionEnd();
+                }
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 if (consentRequired) {
                     await RemoveAllConsentInternal();
                 }
-                await SessionBegin();
+                if (sessionWasStarted) {
+                    //restart the session only if an automatic one was started before
+                    await SessionBegin();
+                }
             } else {
                 //need server merge, therefore send special request
                 DeviceId dId = await DeviceData.GetDeviceId();
@@ -1574,8 +1590,8 @@ namespace CountlySDK.CountlyCommon
                             //consent is being given
 
                             //we check if a session had been started before
-                            if (!startTime.Equals(DateTime.MinValue)) {
-                                //if the 'startTime' value is not the min value then that means that a session was already started before
+                            if (automaticSessionTrackingStarted) {
+                                //if 'automaticSessionTrackingStarted' is set to true then that means that a session was already started before
                                 //this means that the user already had the intention for sessions to run (tried to use 'automatic' sessions
                                 //to keep true to this original intention, we automatically start another session
                                 await SessionBegin();
@@ -1583,7 +1599,10 @@ namespace CountlySDK.CountlyCommon
                         } else if (!isGiven) {
                             //session consent is being removed
                             //we would only want to end a session if it had been started
-                            await SessionEnd();
+                            if (!startTime.Equals(DateTime.MinValue)) {
+                                //if the 'startTime' value is not the min value then that means that a session was already started before
+                                await SessionEnd();
+                            }
                         }
                         break;
                     case ConsentFeatures.Users:

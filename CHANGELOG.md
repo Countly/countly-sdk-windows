@@ -1,5 +1,6 @@
 ## 22.06.2
 * Updating 'Newtonsoft.Json' version to '13.0.3'
+* Fixed a bug where a "end session" request would be created incorrectly when removing "session" consent.
 
 ## 22.06.1
 * Fixed empty OS name issue when running the SDK '.NET Standard' flavor with .NET MAUI.

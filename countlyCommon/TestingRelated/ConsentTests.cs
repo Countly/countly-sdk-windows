@@ -259,7 +259,7 @@ namespace TestProject_common
             Countly.Instance.SetConsent(consentToRemove).Wait();
 
             //there should now be a consent request with changes and a "end session" request
-            Assert.Equal(4, Countly.Instance.StoredRequests.Count);
+            Assert.Equal(3, Countly.Instance.StoredRequests.Count);
 
             request = Countly.Instance.StoredRequests.ElementAt(2);
             collection = HttpUtility.ParseQueryString(request.Request);
@@ -276,9 +276,6 @@ namespace TestProject_common
             Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
             Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
             Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
-
-            request = Countly.Instance.StoredRequests.ElementAt(3);
-            Assert.True(request.Request.Contains("&end_session=1"));
         }
     }
 }
