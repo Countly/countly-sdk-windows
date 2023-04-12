@@ -149,24 +149,15 @@ namespace CountlySDK
             await RecordExceptionInternal(e.Message, null, null, true);
         }
 
-        protected override async Task SessionBeginInternal()
+        internal override Metrics GetSessionMetrics()
         {
-            startTime = DateTime.Now;
-            lastSessionUpdateTime = startTime;
-            SessionTimerStart();
-            SessionStarted?.Invoke(null, EventArgs.Empty);
-
             Metrics metrics = new Metrics(DeviceData.OS, null, null, null, null, AppVersion, DeviceData.Locale);
-            // Adding location into session request
-            Dictionary<string, object> requestParams =
-                           new Dictionary<string, object>(GetLocationParams());
+            return metrics;
+        }
 
-            requestParams.Add("begin_session", 1);
-            requestParams.Add("metrics", metrics.ToString());
-
-            string request = await requestHelper.BuildRequest(requestParams);
-            await AddRequest(request);
-            await Upload();
+        internal override void InformSessionEvent()
+        {
+            SessionStarted?.Invoke(null, EventArgs.Empty);
         }
 
         /// <summary>

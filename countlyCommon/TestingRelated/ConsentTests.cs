@@ -220,6 +220,12 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.deferUpload = true;
 
+            //this should be a empty location request
+            Assert.Single(Countly.Instance.StoredRequests);
+            StoredRequest request = Countly.Instance.StoredRequests.ElementAt(0);
+            Assert.True(request.Request.Contains("&location="));
+
+
             Dictionary<ConsentFeatures, bool> consent = new Dictionary<ConsentFeatures, bool>();
             consent.Add(ConsentFeatures.Crashes, true);
             consent.Add(ConsentFeatures.Events, true);
@@ -228,8 +234,10 @@ namespace TestProject_common
             consent.Add(ConsentFeatures.Users, true);
             Countly.Instance.SetConsent(consent).Wait();
 
-            Assert.Single(Countly.Instance.StoredRequests);
-            StoredRequest request = Countly.Instance.StoredRequests.Dequeue();
+            Assert.Equal(2, Countly.Instance.StoredRequests.Count);
+            //ignoring the first request since it's an empty location
+            //second request is the consent one
+            request = Countly.Instance.StoredRequests.ElementAt(1);
             NameValueCollection collection = HttpUtility.ParseQueryString(request.Request);
             JObject consentObj = JObject.Parse(collection.Get("consent"));
 
@@ -250,8 +258,10 @@ namespace TestProject_common
             consentToRemove.Add(ConsentFeatures.Sessions, false);
             Countly.Instance.SetConsent(consentToRemove).Wait();
 
-            Assert.Equal(2, Countly.Instance.StoredRequests.Count);
-            request = Countly.Instance.StoredRequests.Dequeue();
+            //there should now be a consent request with changes and a "end session" request
+            Assert.Equal(4, Countly.Instance.StoredRequests.Count);
+
+            request = Countly.Instance.StoredRequests.ElementAt(2);
             collection = HttpUtility.ParseQueryString(request.Request);
             consentObj = JObject.Parse(collection.Get("consent"));
 
@@ -266,6 +276,9 @@ namespace TestProject_common
             Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
             Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
             Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
+
+            request = Countly.Instance.StoredRequests.ElementAt(3);
+            Assert.True(request.Request.Contains("&end_session=1"));
         }
     }
 }

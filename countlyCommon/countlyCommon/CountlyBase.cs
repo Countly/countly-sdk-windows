@@ -188,7 +188,8 @@ namespace CountlySDK.CountlyCommon
             Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig
         };
 
-        protected abstract Task SessionBeginInternal();
+        internal abstract Metrics GetSessionMetrics();
+        internal abstract void InformSessionEvent();
 
         internal async Task<bool> SaveStoredRequests()
         {
@@ -224,13 +225,25 @@ namespace CountlySDK.CountlyCommon
             reportViewDuration();
 
             SessionTimerStop();
-            int elapsedTime = (int)(DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds);
+            double elapsedTime = DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
 
-            Dictionary<string, object> requestParams =
-               new Dictionary<string, object>();
+            if (elapsedTime > int.MaxValue) {
+                UtilityHelper.CountlyLogging("[EndSessionInternal] about to be reported duration exceed max data type size. Setting to 0", LogLevel.ERROR);
+                //assume something has gone wrong
+                elapsedTime = 0;
+            }
+
+            int elapsedTimeSeconds = (int)elapsedTime;
+
+            if (elapsedTimeSeconds < 0) {
+                UtilityHelper.CountlyLogging("[EndSessionInternal] session duration is about to be reported as negative. Setting to 0", LogLevel.ERROR);
+                elapsedTimeSeconds = 0;
+            }
+
+            Dictionary<string, object> requestParams = new Dictionary<string, object>();
 
             requestParams.Add("end_session", 1);
-            requestParams.Add("session_duration", elapsedTime);
+            requestParams.Add("session_duration", elapsedTimeSeconds);
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -1002,6 +1015,11 @@ namespace CountlySDK.CountlyCommon
             await Countly.Instance.HaltInternal();
         }
 
+        /// <summary>
+        /// This should clear all internal state
+        /// </summary>
+        /// <param name="clearStorage"></param>
+        /// <returns></returns>
         internal async Task HaltInternal(bool clearStorage = true)
         {
             lock (sync) {
@@ -1025,6 +1043,10 @@ namespace CountlySDK.CountlyCommon
 
                 consentRequired = false;
                 givenConsent.Clear();
+
+                //clear session things
+                startTime = new DateTime();
+                lastSessionUpdateTime = new DateTime();
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1337,7 +1359,23 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            await SessionBeginInternal();
+            startTime = DateTime.Now;
+            lastSessionUpdateTime = startTime;
+            SessionTimerStart();
+
+            InformSessionEvent();
+
+            Metrics metrics = GetSessionMetrics();
+
+            // Adding location into session request
+            Dictionary<string, object> requestParams = new Dictionary<string, object>(GetLocationParams());
+
+            requestParams.Add("begin_session", 1);
+            requestParams.Add("metrics", metrics.ToString());
+
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+            await Upload();
         }
 
         /// <summary>
@@ -1523,11 +1561,20 @@ namespace CountlySDK.CountlyCommon
                         break;
                     case ConsentFeatures.Sessions:
                         if (isGiven && action == ConsentChangedAction.ConsentUpdated) {
+                            //consent is being given
+
+                            //we check if a session had been started before
                             if (!startTime.Equals(DateTime.MinValue)) {
-                                //if it's not null then we had already tried tracking a session
+                                //if the 'startTime' value is not the min value then that means that a session was already started before
+                                //this means that the user already had the intention for sessions to run (tried to use 'automatic' sessions
+                                //to keep true to this original intention, we automatically start another session
                                 await SessionBegin();
                             }
-                        } else if (!isGiven) { await SessionEnd(); }
+                        } else if (!isGiven) {
+                            //session consent is being removed
+                            //we would only want to end a session if it had been started
+                            await SessionEnd();
+                        }
                         break;
                     case ConsentFeatures.Users:
                         break;

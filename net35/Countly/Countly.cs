@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using CountlySDK.CountlyCommon;
@@ -117,24 +118,15 @@ namespace CountlySDK
             await InitBase(config);
         }
 
-        protected override async Task SessionBeginInternal()
+        internal override Metrics GetSessionMetrics()
         {
-            startTime = DateTime.Now;
-            lastSessionUpdateTime = startTime;
-            SessionTimerStart();
-
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
+            return metrics;
+        }
 
-            // Adding location into session request
-            Dictionary<string, object> requestParams =
-                           new Dictionary<string, object>(GetLocationParams());
+        internal override void InformSessionEvent()
+        {
 
-            requestParams.Add("begin_session", 1);
-            requestParams.Add("metrics", metrics.ToString());
-
-            string request = await requestHelper.BuildRequest(requestParams);
-            await AddRequest(request);
-            await Upload();
         }
 
         /// <summary>
