@@ -20,6 +20,10 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\..\countlyCommon\countlyCommon\CountlyBase.cs" Link="CountlyBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs" Link="Entities\BeginSession.cs" />

@@ -608,6 +608,13 @@
             <returns>true if image is successfully uploaded, false otherwise</returns>
         </member>
         <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.Halt" -->
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.HaltInternal(System.Boolean)">
+            <summary>
+            This should clear all internal state
+            </summary>
+            <param name="clearStorage"></param>
+            <returns></returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddBreadCrumb(System.String)">
             <summary>
             Adds log breadcrumb
