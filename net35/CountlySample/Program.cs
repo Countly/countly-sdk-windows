@@ -1,10 +1,10 @@
-﻿using CountlySDK;
-using CountlySDK.Entities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using CountlySDK;
+using CountlySDK.Entities;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySample

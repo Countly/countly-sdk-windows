@@ -1,21 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using CountlySDK;
 using CountlySDK.Entities;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace CountlySampleUWP
@@ -35,6 +25,20 @@ namespace CountlySampleUWP
             this.InitializeComponent();
             this.Suspending += OnSuspending;
             this.Resuming += OnResuming;
+            this.LeavingBackground += App_LeavingBackground;
+            this.EnteredBackground += App_EnteredBackground;
+        }
+
+        private async void App_EnteredBackground(object sender, EnteredBackgroundEventArgs e)
+        {
+            Debug.WriteLine("Calling [App_EnteredBackground]");
+            await Countly.Instance.SessionEnd();
+        }
+
+        private async void App_LeavingBackground(object sender, LeavingBackgroundEventArgs e)
+        {
+            Debug.WriteLine("Calling [App_LeavingBackground]");
+            await Countly.Instance.SessionBegin();
         }
 
         /// <summary>
@@ -81,8 +85,8 @@ namespace CountlySampleUWP
             //create the Countly init object
             Countly.IsLoggingEnabled = true;
             var cc = new CountlyConfig {
-                serverUrl = "https://try.count.ly",
-                appKey = "YOUR_APP_KEY",
+                serverUrl = "https://master.count.ly",
+                appKey = "5e20d03806255d314eb6679b26fda6e580b3d899",
                 appVersion = "1.2.3",
             };
 
@@ -113,7 +117,7 @@ namespace CountlySampleUWP
             Debug.WriteLine("Calling [OnSuspending]");
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
-            await Countly.Instance.SessionEnd();
+
 
             deferral.Complete();
         }
@@ -121,7 +125,6 @@ namespace CountlySampleUWP
         private async void OnResuming(object sender, object e)
         {
             Debug.WriteLine("Calling [OnResuming]");
-            await Countly.Instance.SessionBegin();
         }
 
         protected override void OnActivated(IActivatedEventArgs args)
