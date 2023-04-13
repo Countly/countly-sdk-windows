@@ -194,10 +194,10 @@
     <Compile Include="..\..\netstd\Countly\Helpers\StorageNetStd.cs">
       <Link>Helpers\StorageNetStd.cs</Link>
     </Compile>
-    <Compile Include="..\..\pcl\Countly\Helpers\TimerHelper.cs">
+    <Compile Include="..\..\netstd\Countly\Helpers\TimerHelper.cs">
       <Link>Helpers\TimerHelper.cs</Link>
     </Compile>
-    <Compile Include="..\..\pcl\Countly\Server\Api.cs">
+    <Compile Include="..\..\netstd\Countly\Server\Api.cs">
       <Link>Server\Api.cs</Link>
     </Compile>
     <Compile Include="Countly.cs" />

@@ -24,16 +24,6 @@
             <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
             <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
           </group>
-          <group targetFramework="netcore">
-            <dependency id="Newtonsoft.Json" version="13.0.3" />
-          </group>
-	        <group targetFramework=".NETPortable4.5-Profile259">
-            <dependency id="Newtonsoft.Json" version="13.0.3" />
-            <dependency id="PCLStorage" version="1.0.2" />
-            <dependency id="Microsoft.Bcl" version="1.1.10" />
-            <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
-            <dependency id="Microsoft.Net.Http" version="2.2.29" />
-          </group>
           <group targetFramework="uap">
             <dependency id="Newtonsoft.Json" version="13.0.3" />
           </group>
@@ -47,8 +37,6 @@
         <file src="lib\net35-full\Countly.xml" target="lib\net35-full\Countly.xml" />
 	      <file src="lib\net40-client\Countly.dll" target="lib\net40-client\Countly.dll" />
         <file src="lib\net40-client\Countly.xml" target="lib\net40-client\Countly.xml" />
-	      <file src="lib\.NETPortable4.5-Profile259\Countly.dll" target="lib\.NETPortable4.5-Profile259\Countly.dll" />
-        <file src="lib\.NETPortable4.5-Profile259\Countly.xml" target="lib\.NETPortable4.5-Profile259\Countly.xml" />
         <file src="lib\uap\Countly.dll" target="lib\uap\Countly.dll" />
         <file src="lib\uap\Countly.xml" target="lib\uap\Countly.xml" />
         <file src="lib\netstandard2.0\Countly.dll" target="lib\netstandard2.0\Countly.dll" />
