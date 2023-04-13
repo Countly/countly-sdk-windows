@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CountlySDK.CountlyCommon.Helpers
@@ -43,6 +40,6 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// <summary>
         /// Retrive storage folder name
         /// </summary>
-        internal abstract String folder { get; }
+        public string sdkFolder = "countly";
     }
 }

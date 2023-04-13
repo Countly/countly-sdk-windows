@@ -18,13 +18,7 @@
             <dependency id="AsyncBridge.Net35" version="0.3.1" />
             <dependency id="TaskParallelLibrary" version="1.0.2856.0" />
           </group>
-	        <group targetFramework="net40-client">
-            <dependency id="Newtonsoft.Json" version="13.0.3" />
-            <dependency id="Microsoft.Bcl" version="1.1.10" />
-            <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
-            <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
-          </group>
-          <group targetFramework="uap">
+	        <group targetFramework="net45">
             <dependency id="Newtonsoft.Json" version="13.0.3" />
           </group>
           <group targetFramework="netstandard2.0">
@@ -35,10 +29,8 @@
     <files>
         <file src="lib\net35-full\Countly.dll" target="lib\net35-full\Countly.dll" />
         <file src="lib\net35-full\Countly.xml" target="lib\net35-full\Countly.xml" />
-	      <file src="lib\net40-client\Countly.dll" target="lib\net40-client\Countly.dll" />
-        <file src="lib\net40-client\Countly.xml" target="lib\net40-client\Countly.xml" />
-        <file src="lib\uap\Countly.dll" target="lib\uap\Countly.dll" />
-        <file src="lib\uap\Countly.xml" target="lib\uap\Countly.xml" />
+        <file src="lib\net45\Countly.dll" target="lib\net45\Countly.dll" />
+        <file src="lib\net45\Countly.xml" target="lib\net45\Countly.xml" />
         <file src="lib\netstandard2.0\Countly.dll" target="lib\netstandard2.0\Countly.dll" />
         <file src="lib\netstandard2.0\Countly.xml" target="lib\netstandard2.0\Countly.xml" />
     </files>

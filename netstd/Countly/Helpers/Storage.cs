@@ -20,14 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.CountlyCommon.Helpers;
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.IsolatedStorage;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 namespace CountlySDK.Helpers
 {
@@ -43,11 +37,6 @@ namespace CountlySDK.Helpers
         internal Storage() { }
         public static Storage Instance { get { return instance; } }
         //-------------SINGLETON-----------------
-
-        /// <summary>
-        /// Countly folder
-        /// </summary>
-        internal override string folder { get { return "countly"; } }
 
         internal override IsolatedStorageFile isolatedStorage { get { return IsolatedStorageFile.GetUserStoreForAssembly(); } }
 

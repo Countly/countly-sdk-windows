@@ -37,6 +37,11 @@ namespace CountlySDK.CountlyCommon.Entities
         public bool consentRequired = false;
 
         /// <summary>
+        /// Folder name that the SDK will use in isolated storage
+        /// </summary>
+        public string sdkFolderName = "countly";
+
+        /// <summary>
         /// Features for which consent is given or denied. These set values are not persistent
         /// </summary>
         public Dictionary<ConsentFeatures, bool> givenConsent = null;
