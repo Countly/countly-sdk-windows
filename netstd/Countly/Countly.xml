@@ -113,6 +113,11 @@
             <param name="Sum">Sum parameter, can be null</param>
             <param name="Segmentation">Segmentation parameter</param>
         </member>
+        <member name="T:CountlySDK.Entities.CountlyUserDetails">
+            <summary>
+            Holds user-specific info in json-ready format
+            </summary>
+        </member>
         <member name="T:CountlySDK.Entities.CustomInfo">
             <summary>
             Holds a dictionary of custom info values
@@ -351,11 +356,6 @@
             <param name="deviceId">Unique ID for the device the app is running on</param>
             <param name="duration">Session duration in seconds</param>
         </member>
-        <member name="T:CountlySDK.Entities.CountlyUserDetails">
-            <summary>
-            Holds user-specific info in json-ready format
-            </summary>
-        </member>
         <member name="P:CountlySDK.Helpers.Storage.folder">
             <summary>
             Countly folder
@@ -366,6 +366,11 @@
             Delete file
             </summary>
             <param name="filename">Filename to delete</param>
+        </member>
+        <member name="T:CountlySDK.Helpers.TimerHelper">
+            <summary>
+            Used in place of DispatchTimer
+            </summary>
         </member>
         <member name="M:CountlySDK.Helpers.TimeHelper.ToUnixTime(System.DateTime)">
             <summary>
@@ -388,11 +393,6 @@
             </summary>
             <param name="s"></param>
             <returns></returns>
-        </member>
-        <member name="T:CountlySDK.Helpers.TimerHelper">
-            <summary>
-            Used in place of DispatchTimer
-            </summary>
         </member>
         <member name="P:CountlySDK.CountlyCommon.CountlyBase.IsLoggingEnabled">
             <summary>

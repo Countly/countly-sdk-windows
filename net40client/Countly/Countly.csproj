@@ -99,6 +99,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs">
       <Link>Entities\CountlyEvent.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyUserDetails.cs">
+      <Link>Entities\CountlyUserDetails.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs">
       <Link>Entities\CustomInfo.cs</Link>
     </Compile>
@@ -161,9 +164,6 @@
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\CountlyConfig.cs">
       <Link>Entities\CountlyConfig.cs</Link>
-    </Compile>
-    <Compile Include="..\..\net35\Countly\Entities\CountlyUserDetails.cs">
-      <Link>Entities\CountlyUserDetails.cs</Link>
     </Compile>
     <Compile Include="..\..\net35\Countly\Entities\Device.cs">
       <Link>Entities\Device.cs</Link>
