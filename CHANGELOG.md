@@ -1,10 +1,10 @@
 ## 23.02.0
-* !! Major breaking change !! Explicit support (and a SDK flavor) for "Portable Class Library Profile 259 (.NETFramework 4.5, Windows 8.0, WindowsPhone 8.0, WindowsPhoneApp 8.1)" has been removed.
-* !! Major breaking change !! Explicit support (and a SDK flavor) for ".NET Framework 4.0 Client library" has been removed.
-* !! Major breaking change !! Explicit support (and a SDK flavor) for "Universal Windows Platform" has been removed.
+* !! Major breaking change !! Explicit support (and an SDK flavor) for "Portable Class Library Profile 259 (.NETFramework 4.5, Windows 8.0, WindowsPhone 8.0, WindowsPhoneApp 8.1)" has been removed.
+* !! Major breaking change !! Explicit support (and an SDK flavor) for ".NET Framework 4.0 Client library" has been removed.
+* !! Major breaking change !! Explicit support (and an SDK flavor) for "Universal Windows Platform" has been removed.
 * !! Major breaking change !! The explicit "netcore" target has been removed from the nuspec configuration
 
-* Added Explicit support and a SDK flavor for ".NET Framework 4.5"
+* Added Explicit support and an SDK flavor for ".NET Framework 4.5"
 
 ## 22.06.1
 * Fixed empty OS name issue when running the SDK '.NET Standard' flavor with .NET MAUI.
