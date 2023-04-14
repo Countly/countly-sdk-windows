@@ -3,7 +3,6 @@
 * !! Major breaking change !! Explicit support (and an SDK flavor) for ".NET Framework 4.0 Client library" has been removed.
 * !! Major breaking change !! Explicit support (and an SDK flavor) for "Universal Windows Platform" has been removed.
 * !! Major breaking change !! The explicit "netcore" target has been removed from the nuspec configuration
-
 * Added Explicit support and an SDK flavor for ".NET Framework 4.5"
 
 ## 22.06.1
