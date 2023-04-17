@@ -1,3 +1,6 @@
+## 23.02.1
+* Max segmentation value set to 100 (from 30)
+
 ## 23.02.0
 * !! Major breaking change !! Explicit support (and a SDK flavor) for "Portable Class Library Profile 259 (.NETFramework 4.5, Windows 8.0, WindowsPhone 8.0, WindowsPhoneApp 8.1)" has been removed.
 * !! Major breaking change !! The explicit "netcore" target has been removed from the nuspec configuration
