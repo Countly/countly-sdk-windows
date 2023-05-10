@@ -223,7 +223,7 @@ namespace TestProject_common
             //this should be a empty location request
             Assert.Single(Countly.Instance.StoredRequests);
             StoredRequest request = Countly.Instance.StoredRequests.ElementAt(0);
-            Assert.True(request.Request.Contains("&location="));
+            Assert.Contains("&location=", request.Request);
 
 
             Dictionary<ConsentFeatures, bool> consent = new Dictionary<ConsentFeatures, bool>();

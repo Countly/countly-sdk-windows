@@ -1,12 +1,8 @@
-﻿using CountlySDK;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
+using CountlySDK;
+using CountlySDK.Entities;
 using Xunit;
 
 namespace TestProject_common
@@ -63,7 +59,7 @@ namespace TestProject_common
 
             for (int a = 0; a < threadCountMultiplyer; a++) {
                 for (int b = 0; b < threadActions.Length; b++) {
-                    int idx = b + threadActions.Length * a;
+                    int idx = b + (threadActions.Length * a);
                     int idxA = b;
                     threads.Add(new Thread(new ThreadStart(() => {
                         threadSync.WaitOne();
