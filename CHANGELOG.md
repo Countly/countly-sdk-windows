@@ -4,6 +4,7 @@
 * !! Major breaking change !! Explicit support (and an SDK flavor) for "Universal Windows Platform" has been removed.
 * !! Major breaking change !! The explicit "netcore" target has been removed from the nuspec configuration
 * Added Explicit support and an SDK flavor for ".NET Framework 4.5"
+* Default max segmentation value count changed from 30 to 100
 
 ## 22.06.1
 * Fixed empty OS name issue when running the SDK '.NET Standard' flavor with .NET MAUI.
