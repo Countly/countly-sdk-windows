@@ -20,14 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.CountlyCommon.Helpers;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.IO.IsolatedStorage;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Helpers;
 
 namespace CountlySDK.Helpers
 {
@@ -44,19 +42,15 @@ namespace CountlySDK.Helpers
         public static Storage Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        /// <summary>
-        /// Countly folder
-        /// </summary>
-        internal override string folder { get { return "countly"; } }
         private string customDataPath = null;
 
         private string Path
         {
             get {
                 if (customDataPath == null) {
-                    return System.IO.Directory.GetCurrentDirectory() + @"\" + folder;
+                    return System.IO.Directory.GetCurrentDirectory() + @"\" + sdkFolder;
                 } else {
-                    return customDataPath + @"\" + folder;
+                    return customDataPath + @"\" + sdkFolder;
                 }
             }
         }

@@ -27,6 +27,12 @@ namespace CountlySampleUWP
             this.Resuming += OnResuming;
             this.LeavingBackground += App_LeavingBackground;
             this.EnteredBackground += App_EnteredBackground;
+            this.UnhandledException += App_UnhandledException;
+        }
+
+        private async void App_UnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+        {
+            await Countly.RecordException(e.Message, e.Exception.StackTrace, null, true);
         }
 
         private async void App_EnteredBackground(object sender, EnteredBackgroundEventArgs e)
@@ -85,8 +91,8 @@ namespace CountlySampleUWP
             //create the Countly init object
             Countly.IsLoggingEnabled = true;
             var cc = new CountlyConfig {
-                serverUrl = "https://master.count.ly",
-                appKey = "5e20d03806255d314eb6679b26fda6e580b3d899",
+                serverUrl = "https://try.count.ly",
+                appKey = "YOUR_APP_KEY",
                 appVersion = "1.2.3",
             };
 

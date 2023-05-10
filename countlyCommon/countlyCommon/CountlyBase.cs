@@ -342,7 +342,11 @@ namespace CountlySDK.CountlyCommon
 
                         //remove the executed request
                         StoredRequest srd = null;
-                        try { srd = StoredRequests.Dequeue(); } catch { }
+                        try {
+                            srd = StoredRequests.Dequeue();
+                        } catch {
+                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, failing 'StoredRequests.Dequeue()'");
+                        }
                         Debug.Assert(srd != null);
                         Debug.Assert(srd == sr);
 
@@ -1285,6 +1289,12 @@ namespace CountlySDK.CountlyCommon
             if (config.sessionUpdateInterval <= 0) {
                 UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Session update interval can't be less than 1 second.");
                 return;
+            }
+
+            if (config.sdkFolderName != null && config.sdkFolderName.Length > 0) {
+                Storage.Instance.sdkFolder = config.sdkFolderName;
+            } else {
+                UtilityHelper.CountlyLogging("[CountlyBase] Provided SDK folder name can't be 'null' or empty string.");
             }
 
             timeHelper = new TimeHelper();

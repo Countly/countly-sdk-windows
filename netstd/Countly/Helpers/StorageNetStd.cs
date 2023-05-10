@@ -20,7 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.CountlyCommon.Helpers;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -28,13 +27,12 @@ using System.IO.IsolatedStorage;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Helpers;
 
 namespace CountlySDK.Helpers
 {
     internal class StorageNetStd : StorageBase
     {
-        internal override string folder => throw new NotImplementedException();
-
         internal virtual IsolatedStorageFile isolatedStorage { get { throw new NotImplementedException(); } }
 
         internal virtual void closeIsolatedStorageStream(IsolatedStorageFileStream file) { throw new NotImplementedException(); }
@@ -44,11 +42,11 @@ namespace CountlySDK.Helpers
         private bool IsFileExists(IsolatedStorageFile store, string fileName)
         {
             UtilityHelper.CountlyLogging("[StorageNetStd] Calling 'IsFileExists', with store");
-            if (!store.DirectoryExists(folder)) {
+            if (!store.DirectoryExists(sdkFolder)) {
                 return false;
             }
 
-            return store.FileExists(Path.Combine(folder, fileName));
+            return store.FileExists(Path.Combine(sdkFolder, fileName));
         }
 
         public bool IsFileExists(string fileName)
@@ -69,11 +67,11 @@ namespace CountlySDK.Helpers
                 try {
                     var store = isolatedStorage;
 
-                    if (!store.DirectoryExists(folder)) {
-                        store.CreateDirectory(folder);
+                    if (!store.DirectoryExists(sdkFolder)) {
+                        store.CreateDirectory(sdkFolder);
                     }
 
-                    using (IsolatedStorageFileStream file = store.OpenFile(Path.Combine(folder, filename), FileMode.Create, FileAccess.Write, FileShare.Read)) {
+                    using (IsolatedStorageFileStream file = store.OpenFile(Path.Combine(sdkFolder, filename), FileMode.Create, FileAccess.Write, FileShare.Read)) {
                         if (file != null && objForSave != null) {
                             DataContractSerializer ser = new DataContractSerializer(objForSave.GetType());
                             ser.WriteObject(file, objForSave);
@@ -106,7 +104,7 @@ namespace CountlySDK.Helpers
                         return obj;
                     }
 
-                    using (var file = store.OpenFile(Path.Combine(folder, filename), FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+                    using (var file = store.OpenFile(Path.Combine(sdkFolder, filename), FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                         if (file != null) {
                             DataContractSerializer ser = new DataContractSerializer(typeof(T));
                             obj = (T)ser.ReadObject(file);
@@ -134,7 +132,7 @@ namespace CountlySDK.Helpers
             try {
                 var store = isolatedStorage;
                 if (IsFileExists(store, filename)) {
-                    store.DeleteFile(Path.Combine(folder, filename));
+                    store.DeleteFile(Path.Combine(sdkFolder, filename));
                 }
             } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("[StorageNetStd] DeleteFile, Problem while loading from file. " + ex.ToString());

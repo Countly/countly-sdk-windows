@@ -1,14 +1,8 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Helpers;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CountlySDK;
+using CountlySDK.Entities;
 using Xunit;
-using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace TestProject_common
 {
@@ -17,7 +11,7 @@ namespace TestProject_common
         /// <summary>
         /// Test setup
         /// </summary>
-        public UserDetailsTests ()
+        public UserDetailsTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
@@ -43,7 +37,6 @@ namespace TestProject_common
             cc.MaxValueSize = 3;
 
             Countly.Instance.Init(cc).Wait();
-            Countly.Instance.SessionBegin().Wait();
 
             Countly.UserDetails.Name = "Full Name";
             Countly.UserDetails.Username = "username";
@@ -65,11 +58,9 @@ namespace TestProject_common
             Assert.Equal("222", Countly.UserDetails.Phone);
             Assert.Equal(4096, Countly.UserDetails.Picture.Length);
             Assert.Equal("Mal", Countly.UserDetails.Gender);
-
-            Countly.Instance.SessionEnd().Wait();
         }
 
-    [Fact]
+        [Fact]
         /// <summary>
         /// It validate user detail segments limits.
         /// </summary>
@@ -80,7 +71,6 @@ namespace TestProject_common
             cc.MaxValueSize = 6;
 
             Countly.Instance.Init(cc).Wait();
-            Countly.Instance.SessionBegin().Wait();
 
             Countly.UserDetails.Custom.Add("Hair", "Black_1");
             Countly.UserDetails.Custom.Add("Height", "5.9");
@@ -90,7 +80,6 @@ namespace TestProject_common
             Assert.Equal("Black_", custom["Hair"].ToString());
             Assert.Equal("5.9", custom["Heigh"].ToString());
 
-            Countly.Instance.SessionEnd().Wait();
         }
     }
 }

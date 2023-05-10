@@ -1,6 +1,9 @@
 ## 23.02.0
-* !! Major breaking change !! Explicit support (and a SDK flavor) for "Portable Class Library Profile 259 (.NETFramework 4.5, Windows 8.0, WindowsPhone 8.0, WindowsPhoneApp 8.1)" has been removed.
+* !! Major breaking change !! Explicit support (and an SDK flavor) for "Portable Class Library Profile 259 (.NETFramework 4.5, Windows 8.0, WindowsPhone 8.0, WindowsPhoneApp 8.1)" has been removed.
+* !! Major breaking change !! Explicit support (and an SDK flavor) for ".NET Framework 4.0 Client library" has been removed.
+* !! Major breaking change !! Explicit support (and an SDK flavor) for "Universal Windows Platform" has been removed.
 * !! Major breaking change !! The explicit "netcore" target has been removed from the nuspec configuration
+* Added Explicit support and an SDK flavor for ".NET Framework 4.5"
 * Default max segmentation value count changed from 30 to 100
 
 ## 22.06.1
@@ -32,7 +35,7 @@
 
 ## 21.11.0
 * !! Major breaking change !! Changing device ID without merging will now clear the current consent. Consent has to be given again after performing this action.
-* !! Minor breaking change !! This release will introduce configurable maximum size limits for values and keys throughout the SDK. If they exceeded the limits, they would be truncated.
+* ! Minor breaking change ! This release will introduce configurable maximum size limits for values and keys throughout the SDK. If they exceeded the limits, they would be truncated.
 * When changing consent, the SDK will now send the full state of the consent and not just the delta.
 * Added additional time and timezone related information to all requests.
 * Added following new configuration fields to manipulate internal SDK value and key limits:

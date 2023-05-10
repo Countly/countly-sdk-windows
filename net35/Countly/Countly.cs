@@ -33,7 +33,7 @@ using CountlySDK.Helpers;
 #if RUNNING_ON_35
 //[assembly: InternalsVisibleTo("CountlyTest_35")]
 #elif RUNNING_ON_40
-//[assembly: InternalsVisibleTo("CountlyTest_40")]
+//[assembly: InternalsVisibleTo("CountlyTest_45")]
 #endif
 
 namespace CountlySDK
@@ -65,7 +65,7 @@ namespace CountlySDK
 #if RUNNING_ON_35
             return "csharp-net35";
 #elif RUNNING_ON_40
-            return "csharp-net40";
+            return "csharp-net45";
 #endif
         }
 
