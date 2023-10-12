@@ -9,7 +9,7 @@
         <licenseUrl>https://github.com/Countly/countly-sdk-windows/blob/master/LICENSE</licenseUrl>
         <projectUrl>https://github.com/countly/countly-sdk-windows</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Countly Analytics SDK provides a full, open source mobile analytics SDK for all types of Countly services, including Community, Cloud and Enterprise Edition. For more information about Countly, visit http://count.ly</description>
+        <description>Countly Analytics SDK provides a full, open source analytics SDK for Countly Lite, Countly Flex and Countly Enterprise. For more information about Countly, visit https://countly.com</description>
         <copyright>(C) Countly</copyright>
         <tags>countly, analytics</tags>
         <dependencies>
