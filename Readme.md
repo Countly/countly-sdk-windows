@@ -1,3 +1,4 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3dcfdb66610d461faac186ad269477d2)](https://app.codacy.com/gh/Countly/countly-sdk-windows?utm_source=github.com&utm_medium=referral&utm_content=Countly/countly-sdk-windows&utm_campaign=Badge_Grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/879d496d02794c6d806c5f105bc9f6e1)](https://www.codacy.com/gh/Countly/countly-sdk-windows/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Countly/countly-sdk-windows&amp;utm_campaign=Badge_Grade)
 
 # Countly Windows SDK
