@@ -43,6 +43,7 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SessionEvent.cs" Link="Entities\SessionEvent.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\StoredRequest.cs" Link="Entities\StoredRequest.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs" Link="Entities\UpdateSession.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\EventPool.cs" Link="Helpers\EventPool.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs" Link="Helpers\PhoneNameHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\RequestHelper.cs" Link="Helpers\RequestHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs" Link="Helpers\StorageBase.cs" />
@@ -50,6 +51,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs" Link="Helpers\UtilityHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\ApiBase.cs" Link="Server\ApiBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\RequestResult.cs" Link="Server\Responses\RequestResult.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Modules\**\*.*">
+        <Link>Modules\%(FileName)%(Extension)</Link>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

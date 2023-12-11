@@ -81,6 +81,22 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         public int MaxBreadcrumbCount = 100;
 
+        // <summary>
+        /// Enable/Disable backend mode
+        /// </summary>
+        public bool backendMode = false;
+
+        // <summary>
+        /// Maximum event queue threshold
+        /// </summary>
+        public int EventQueueThreshold = 10;
+
+        // <summary>
+        /// Maximum request queue size
+        /// </summary>
+        public int RequestQueueMaxSize = 1000;
+
+
         internal string City = null;
         internal string Location = null;
         internal string IPAddress = null;
