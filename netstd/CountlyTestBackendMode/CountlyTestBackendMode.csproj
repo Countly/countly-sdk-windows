@@ -7,4 +7,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Countly\Countly.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -42,7 +42,6 @@ namespace CountlySDK.CountlyCommon
                     appCount = 0;
                 }
 
-                appEventCacheCounts.Add(appKey, appCount);
                 appEventCacheCounts[appKey] = ++appCount;
                 globalEventCount++;
 

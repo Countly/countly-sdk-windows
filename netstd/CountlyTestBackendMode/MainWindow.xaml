@@ -7,6 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <Button x:Name="testButton" Content="Test" HorizontalAlignment="Left" Margin="362,144,0,0" VerticalAlignment="Top" Height="23" Width="80" Click="TestButton_Click"/>
+        <TextBox x:Name="eventCount" HorizontalAlignment="Left" Margin="342,46,0,0" TextWrapping="Wrap" Text="Event Count" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="appCount" HorizontalAlignment="Left" Margin="342,76,0,0" TextWrapping="Wrap" Text="App Count" VerticalAlignment="Top" Width="120" />
+        <TextBox x:Name="deviceCount" HorizontalAlignment="Left" Margin="342,108,0,0" TextWrapping="Wrap" Text="Device Count" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>
