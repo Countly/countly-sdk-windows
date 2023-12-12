@@ -8,10 +8,13 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Button x:Name="testButton" Content="Test" HorizontalAlignment="Left" Margin="362,144,0,0" VerticalAlignment="Top" Height="23" Width="80" Click="TestButton_Click"/>
-        <TextBox x:Name="eventCount" HorizontalAlignment="Left" Margin="342,46,0,0" TextWrapping="Wrap" Text="Event Count" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="appCount" HorizontalAlignment="Left" Margin="342,76,0,0" TextWrapping="Wrap" Text="App Count" VerticalAlignment="Top" Width="120" />
-        <TextBox x:Name="deviceCount" HorizontalAlignment="Left" Margin="342,108,0,0" TextWrapping="Wrap" Text="Device Count" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="eventCount" HorizontalAlignment="Left" Margin="342,46,0,0" TextWrapping="Wrap" Text="1000" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="appCount" HorizontalAlignment="Left" Margin="342,76,0,0" TextWrapping="Wrap" Text="2" VerticalAlignment="Top" Width="120" />
+        <TextBox x:Name="deviceCount" HorizontalAlignment="Left" Margin="342,108,0,0" TextWrapping="Wrap" Text="6" VerticalAlignment="Top" Width="120"/>
         <TextBox x:Name="testResult" HorizontalAlignment="Center" Margin="0,217,0,0" TextWrapping="Wrap" Text="Testing Took:" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.327,0.696"/>
+        <Label Content="Event Count" HorizontalAlignment="Left" Margin="268,41,0,0" VerticalAlignment="Top"/>
+        <Label Content="App Count" HorizontalAlignment="Left" Margin="266,72,0,0" VerticalAlignment="Top"/>
+        <Label Content="Device Count" HorizontalAlignment="Left" Margin="266,103,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

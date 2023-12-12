@@ -354,7 +354,10 @@ namespace CountlySDK.CountlyCommon
                         Debug.Assert(srd != null);
                         Debug.Assert(srd == sr);
 
-                        bool success = SaveStoredRequests().Result;//todo, handle this in the future                        
+                        if (Configuration.backendMode) {
+                            bool success = SaveStoredRequests().Result;//todo, handle this in the future
+                        }
+
                     }
                     return true;
                 } else {
@@ -396,7 +399,9 @@ namespace CountlySDK.CountlyCommon
                         UserDetails.isChanged = false;
                     }
 
-                    SaveUserDetails();
+                    if (!Configuration.backendMode) {
+                        SaveUserDetails();
+                    }
 
                     lock (sync) {
                         uploadInProgress = false;
@@ -406,7 +411,11 @@ namespace CountlySDK.CountlyCommon
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadSessions] Failed at removing session." + ex.ToString());
                         }
-                        bool success = SaveSessions();//todo, handle this in the future
+
+                        if (!Configuration.backendMode) {
+                            bool success = SaveSessions();//todo, handle this in the future
+
+                        }
                     }
 
                     int sessionCount = 0;
@@ -728,7 +737,9 @@ namespace CountlySDK.CountlyCommon
 
                     UserDetails.isChanged = false;
 
-                    SaveUserDetails();
+                    if (!Configuration.backendMode) {
+                        SaveUserDetails();
+                    }
 
                     lock (sync) {
                         uploadInProgress = false;
@@ -741,7 +752,10 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[UploadEvents] Failed at removing events." + ex.ToString());
                         }
 
-                        bool success = SaveEvents();//todo, react to this in the future
+                        if (!Configuration.backendMode) {
+                            bool success = SaveEvents();//todo, react to this in the future
+
+                        }
                         eventsCountToUploadAgain = Events.Count;
                     }
 
@@ -934,7 +948,10 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[UploadExceptions] thrown exception when removing entry, " + ex.ToString());
                         }
 
-                        SaveExceptions();//todo, in the future, react to this failing
+                        if (!Configuration.backendMode) {
+                            SaveExceptions();//todo, in the future, react to this failing
+
+                        }
 
                         exceptionsCountToUploadAgain = Exceptions.Count;
                         uploadInProgress = false;//mark that we have stoped upload
@@ -994,7 +1011,10 @@ namespace CountlySDK.CountlyCommon
                 //if it's a successful or bad request, remove it from the queue              
                 UserDetails.isChanged = false;
 
-                SaveUserDetails();
+                if (!Configuration.backendMode) {
+                    SaveUserDetails();
+
+                }
 
                 return true;
             } else {
@@ -1022,7 +1042,9 @@ namespace CountlySDK.CountlyCommon
 
             UserDetails.isNotificationEnabled = true;
 
-            SaveUserDetails();
+            if (!Configuration.backendMode) {
+                SaveUserDetails();
+            }
 
             await Upload();
         }
@@ -1375,11 +1397,18 @@ namespace CountlySDK.CountlyCommon
 
             await DeviceData.InitDeviceId((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
 
-            lock (sync) {
-                StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(storedRequestsFilename).Result ?? new Queue<StoredRequest>();
-                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
-                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
-                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
+            if (!Configuration.backendMode) {
+                lock (sync) {
+                    StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(storedRequestsFilename).Result ?? new Queue<StoredRequest>();
+                    Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
+                    Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
+                    Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
+                }
+            } else {
+                StoredRequests = new Queue<StoredRequest>();
+                Events = new List<CountlyEvent>();
+                Sessions = new List<SessionEvent>();
+                Exceptions = new List<ExceptionEvent>();
             }
 
             //consent related
