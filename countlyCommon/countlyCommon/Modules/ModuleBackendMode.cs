@@ -80,7 +80,6 @@ namespace CountlySDK.CountlyCommon
         public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
-            await _cly.Upload();
         }
     }
 

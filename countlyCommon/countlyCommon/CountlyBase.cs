@@ -228,11 +228,14 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
 
-            //report the duration of current view
-            reportViewDuration();
-
             SessionTimerStop();
             double elapsedTime = DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd, Backend Mode enabled, returning");
+                return;
+            }
+            //report the duration of current view
+            reportViewDuration();
 
             if (elapsedTime > int.MaxValue) {
                 UtilityHelper.CountlyLogging("[EndSessionInternal] about to be reported duration exceed max data type size. Setting to 0", LogLevel.ERROR);
@@ -1436,6 +1439,10 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionBegin()
         {
+            automaticSessionTrackingStarted = true;
+            startTime = DateTime.Now;
+            lastSessionUpdateTime = startTime;
+            SessionTimerStart();
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionBegin'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin: SDK must initialized before calling 'SessionBegin'");
@@ -1446,11 +1453,6 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin, Backend Mode enabled, returning");
                 return;
             }
-
-            automaticSessionTrackingStarted = true;
-            startTime = DateTime.Now;
-            lastSessionUpdateTime = startTime;
-            SessionTimerStart();
 
             InformSessionEvent();
 
@@ -1497,11 +1499,6 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionEnd()
         {
-            if (Configuration.backendMode) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd, Backend Mode enabled, returning");
-                return;
-            }
-
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionEnd'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd: SDK must initialized before calling 'SessionEnd'");
