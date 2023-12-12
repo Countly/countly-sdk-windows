@@ -134,8 +134,11 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void UpdateSession(object sender, EventArgs e)
+        private async void OnTimer(object sender, EventArgs e)
         {
+            if (Configuration.backendMode) {
+                moduleBackendMode.OnTimer();
+            }
             await UpdateSessionInternal();
         }
 
@@ -143,7 +146,7 @@ namespace CountlySDK
         {
             Timer = new DispatcherTimer();
             Timer.Interval = TimeSpan.FromSeconds(sessionUpdateInterval);
-            Timer.Tick += UpdateSession;
+            Timer.Tick += OnTimer;
             Timer.Start();
         }
 
@@ -151,7 +154,7 @@ namespace CountlySDK
         {
             if (Timer != null) {
                 Timer.Stop();
-                Timer.Tick -= UpdateSession;
+                Timer.Tick -= OnTimer;
                 Timer = null;
             }
         }
