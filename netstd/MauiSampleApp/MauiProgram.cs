@@ -1,6 +1,5 @@
-﻿using CountlySDK.Entities;
-using CountlySDK;
-using Microsoft.Extensions.Logging;
+﻿using CountlySDK;
+using CountlySDK.Entities;
 
 namespace MauiSampleApp
 {
