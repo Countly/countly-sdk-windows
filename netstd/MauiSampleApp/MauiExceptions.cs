@@ -19,8 +19,7 @@ public static class MauiExceptions
         // It will fire for exceptions from iOS and Mac Catalyst,
         // and for exceptions on background threads from WinUI 3.
 
-        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
-        {
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
             UnhandledException?.Invoke(sender, args);
         };
 
@@ -32,8 +31,7 @@ public static class MauiExceptions
         // 
         // See: https://github.com/xamarin/xamarin-macios/issues/15252
 
-        ObjCRuntime.Runtime.MarshalManagedException += (_, args) =>
-        {
+        ObjCRuntime.Runtime.MarshalManagedException += (_, args) => {
             args.ExceptionMode = ObjCRuntime.MarshalManagedExceptionMode.UnwindNativeCode;
         };
 
@@ -61,17 +59,14 @@ public static class MauiExceptions
         //   See: https://github.com/microsoft/microsoft-ui-xaml/issues/7160
         //
 
-        AppDomain.CurrentDomain.FirstChanceException += (_, args) =>
-        {
+        AppDomain.CurrentDomain.FirstChanceException += (_, args) => {
             _lastFirstChanceException = args.Exception;
         };
 
-        Microsoft.UI.Xaml.Application.Current.UnhandledException += (sender, args) =>
-        {
+        Microsoft.UI.Xaml.Application.Current.UnhandledException += (sender, args) => {
             var exception = args.Exception;
 
-            if (exception.StackTrace is null)
-            {
+            if (exception.StackTrace is null) {
                 exception = _lastFirstChanceException;
             }
 

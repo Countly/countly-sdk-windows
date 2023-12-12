@@ -29,7 +29,8 @@ namespace CountlySDK.CountlyCommon.Entities
         [JsonConstructor]
         internal DeviceId() { }
 
-        internal int Type() {
+        internal int Type()
+        {
             int type = 9;
             switch (deviceIdMethod) {
                 case DeviceBase.DeviceIdMethodInternal.cpuId:

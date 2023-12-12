@@ -10,11 +10,10 @@ namespace MauiSampleApp
         {
             return MauiApp.CreateBuilder()
                 .UseMauiApp<SampleApp>()
-                .ConfigureFonts(fonts =>
-                                {
-                                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                                })
+                .ConfigureFonts(fonts => {
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                })
                 .ConfigureServices()
                 .Build();
         }
@@ -52,8 +51,7 @@ namespace MauiSampleApp
             await Countly.RecordEvent("App started");
 
             // report unhandled crash
-            MauiExceptions.UnhandledException += (sender, args) =>
-            {
+            MauiExceptions.UnhandledException += (sender, args) => {
                 Countly.RecordException(args.ExceptionObject.ToString(), null, null, true).Wait();
             };
 
