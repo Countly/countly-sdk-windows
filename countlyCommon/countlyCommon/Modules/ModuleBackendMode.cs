@@ -57,7 +57,8 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging($"[ModuleBackendMode] ProcessQueue, deviceId:[{deviceId}] appKey:[{appKey}] eventsCount:[{events.Count}]");
             if (events.Count > 0) {
-                _cly.AddRequest(CreateEventRequest(deviceId, appKey, events));
+                await _cly.AddRequest(CreateEventRequest(deviceId, appKey, events));
+                await _cly.Upload();
             }
         }
 
