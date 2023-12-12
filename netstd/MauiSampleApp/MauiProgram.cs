@@ -1,25 +1,4 @@
 ﻿using CountlySDK;
-
-/* Unmerged change from project 'MauiSampleApp (net7.0-maccatalyst)'
-Before:
-using CountlySDK;
-After:
-using CountlySDK.Entities;
-*/
-
-/* Unmerged change from project 'MauiSampleApp (net7.0-ios)'
-Before:
-using CountlySDK;
-After:
-using CountlySDK.Entities;
-*/
-
-/* Unmerged change from project 'MauiSampleApp (net7.0-windows10.0.19041.0)'
-Before:
-using CountlySDK;
-After:
-using CountlySDK.Entities;
-*/
 using CountlySDK.Entities;
 
 namespace MauiSampleApp
