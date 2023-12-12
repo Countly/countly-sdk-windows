@@ -11,6 +11,7 @@
         <TextBox x:Name="eventCount" HorizontalAlignment="Left" Margin="342,46,0,0" TextWrapping="Wrap" Text="Event Count" VerticalAlignment="Top" Width="120"/>
         <TextBox x:Name="appCount" HorizontalAlignment="Left" Margin="342,76,0,0" TextWrapping="Wrap" Text="App Count" VerticalAlignment="Top" Width="120" />
         <TextBox x:Name="deviceCount" HorizontalAlignment="Left" Margin="342,108,0,0" TextWrapping="Wrap" Text="Device Count" VerticalAlignment="Top" Width="120"/>
+        <TextBox x:Name="testResult" HorizontalAlignment="Center" Margin="0,217,0,0" TextWrapping="Wrap" Text="Testing Took:" VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.327,0.696"/>
 
     </Grid>
 </Window>

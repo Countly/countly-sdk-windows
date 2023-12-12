@@ -74,6 +74,8 @@ namespace CountlyTestBackendMode
             DateTime endTime = DateTime.Now;
 
             Debug.WriteLine(endTime - startTime);
+            testResult.Text = $"Testing took: {endTime - startTime} minutes";
+
 
         }
 

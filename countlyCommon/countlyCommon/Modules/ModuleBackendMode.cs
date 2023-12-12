@@ -27,17 +27,12 @@ namespace CountlySDK.CountlyCommon
             eventPool.Put(deviceId, appKey, new CountlyEvent(eventKey, eventCount, eventSum, eventDuration, segmentations, timestamp));
         }
 
-
         private async Task ProcessQueue(string deviceId, string appKey, List<CountlyEvent> events)
         {
-
             UtilityHelper.CountlyLogging("[ModuleBackendMode] ProcessQueue,");
-
             if (events.Count > 0) {
                 _cly.AddRequest(CreateEventRequest(deviceId, appKey, events));
             }
-
-
         }
 
         private string CreateEventRequest(string deviceId, string appKey, List<CountlyEvent> events)
