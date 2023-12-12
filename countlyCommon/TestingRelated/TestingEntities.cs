@@ -1,14 +1,10 @@
-﻿using CountlySDK;
+﻿using System;
+using System.Collections.Generic;
+using CountlySDK;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
-using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Xunit;
 using static CountlySDK.Helpers.TimeHelper;
 

@@ -1,6 +1,26 @@
-﻿using CountlySDK.Entities;
+﻿using CountlySDK;
+
+/* Unmerged change from project 'MauiSampleApp (net7.0-maccatalyst)'
+Before:
 using CountlySDK;
-using Microsoft.Extensions.Logging;
+After:
+using CountlySDK.Entities;
+*/
+
+/* Unmerged change from project 'MauiSampleApp (net7.0-ios)'
+Before:
+using CountlySDK;
+After:
+using CountlySDK.Entities;
+*/
+
+/* Unmerged change from project 'MauiSampleApp (net7.0-windows10.0.19041.0)'
+Before:
+using CountlySDK;
+After:
+using CountlySDK.Entities;
+*/
+using CountlySDK.Entities;
 
 namespace MauiSampleApp
 {
@@ -10,11 +30,10 @@ namespace MauiSampleApp
         {
             return MauiApp.CreateBuilder()
                 .UseMauiApp<SampleApp>()
-                .ConfigureFonts(fonts =>
-                                {
-                                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-                                })
+                .ConfigureFonts(fonts => {
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                })
                 .ConfigureServices()
                 .Build();
         }
@@ -52,8 +71,7 @@ namespace MauiSampleApp
             await Countly.RecordEvent("App started");
 
             // report unhandled crash
-            MauiExceptions.UnhandledException += (sender, args) =>
-            {
+            MauiExceptions.UnhandledException += (sender, args) => {
                 Countly.RecordException(args.ExceptionObject.ToString(), null, null, true).Wait();
             };
 

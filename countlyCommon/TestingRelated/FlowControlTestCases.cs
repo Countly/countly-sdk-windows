@@ -1,11 +1,6 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Helpers;
+﻿using System;
+using CountlySDK;
 using CountlySDK.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace TestProject_common

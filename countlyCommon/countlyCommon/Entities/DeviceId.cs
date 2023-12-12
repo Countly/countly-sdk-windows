@@ -1,10 +1,7 @@
-﻿using CountlySDK.Entities.EntityBase;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Runtime.Serialization;
-using System.Text;
+using CountlySDK.Entities.EntityBase;
+using Newtonsoft.Json;
 
 namespace CountlySDK.CountlyCommon.Entities
 {
@@ -29,7 +26,8 @@ namespace CountlySDK.CountlyCommon.Entities
         [JsonConstructor]
         internal DeviceId() { }
 
-        internal int Type() {
+        internal int Type()
+        {
             int type = 9;
             switch (deviceIdMethod) {
                 case DeviceBase.DeviceIdMethodInternal.cpuId:

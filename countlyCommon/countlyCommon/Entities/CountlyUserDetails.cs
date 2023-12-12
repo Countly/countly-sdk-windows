@@ -20,8 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-using CountlySDK.CountlyCommon.Entities.EntityBase;
 using System.Runtime.Serialization;
+using CountlySDK.CountlyCommon.Entities.EntityBase;
 
 namespace CountlySDK.Entities
 {

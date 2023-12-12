@@ -1,14 +1,10 @@
-﻿using CountlySDK;
-using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
+using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.Entities;
 using Xunit;
 
 namespace TestProject_common

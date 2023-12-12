@@ -20,12 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using System;
+using System.Runtime.Serialization;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
-using System;
-using System.Globalization;
-using System.Runtime.Serialization;
 using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.Entities
