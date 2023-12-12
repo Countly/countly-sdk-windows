@@ -55,7 +55,7 @@ namespace CountlySDK.CountlyCommon
 
         private async Task ProcessQueue(string deviceId, string appKey, List<CountlyEvent> events)
         {
-            UtilityHelper.CountlyLogging("[ModuleBackendMode] ProcessQueue,");
+            UtilityHelper.CountlyLogging($"[ModuleBackendMode] ProcessQueue, deviceId:[{deviceId}] appKey:[{appKey}] eventsCount:[{events.Count}]");
             if (events.Count > 0) {
                 _cly.AddRequest(CreateEventRequest(deviceId, appKey, events));
             }
@@ -63,6 +63,7 @@ namespace CountlySDK.CountlyCommon
 
         internal async void OnTimer()
         {
+            UtilityHelper.CountlyLogging($"[ModuleBackendMode] OnTimer");
             lock (eventPool) {
                 eventPool.Dump();
             }
