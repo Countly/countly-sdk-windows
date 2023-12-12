@@ -1816,8 +1816,9 @@ namespace CountlySDK.CountlyCommon
         /// <returns>BackendMode interface to use backend mode features</returns>
         public BackendMode BackendMode()
         {
-            if (Configuration.backendMode) {
+            if (!Configuration.backendMode) {
                 UtilityHelper.CountlyLogging("[CountlyBase] BackendMode, is not enabled returning null");
+                return null;
             }
 
             return moduleBackendMode;
