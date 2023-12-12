@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using CountlySDK;
-using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
-using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using Xunit;
-using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
 {

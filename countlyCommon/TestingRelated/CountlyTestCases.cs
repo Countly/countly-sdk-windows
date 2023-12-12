@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using CountlySDK;
-using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Xunit;
 
