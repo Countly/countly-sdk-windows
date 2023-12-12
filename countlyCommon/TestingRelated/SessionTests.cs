@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Web;
 using CountlySDK;
-using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;

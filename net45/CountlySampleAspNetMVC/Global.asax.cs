@@ -1,13 +1,10 @@
-﻿using CountlySDK;
-using CountlySDK.Entities;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using CountlySDK;
+using CountlySDK.Entities;
 
 namespace CountlySampleAspNetMVC
 {

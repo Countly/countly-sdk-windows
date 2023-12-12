@@ -1,6 +1,4 @@
 ﻿using CountlySDK;
-using CountlySDK.Entities;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 
 namespace MauiSampleApp
 {

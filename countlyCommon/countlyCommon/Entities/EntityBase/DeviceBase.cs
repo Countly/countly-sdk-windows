@@ -20,13 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Helpers;
-using System;
-using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CountlySDK.Entities.EntityBase
 {

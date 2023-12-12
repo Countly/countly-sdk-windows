@@ -1,17 +1,13 @@
-﻿using CountlySDK.CountlyCommon.Entities;
-using CountlySDK.CountlyCommon.Server;
-using CountlySDK.Entities;
-using CountlySDK.Helpers;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.CountlyCommon.Server.Responses;
-using System.Globalization;
+using CountlySDK.Entities;
+using CountlySDK.Helpers;
+using Newtonsoft.Json;
 using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon.Server

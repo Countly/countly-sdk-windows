@@ -1,15 +1,10 @@
-﻿using CountlySDK;
-using CountlySDK.Entities;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
+using CountlySDK;
+using CountlySDK.Entities;
 
 namespace CountlySampleAspNet
 {

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Windows;
 using CountlySDK;
-using CountlySDK.CountlyCommon;
 
 namespace CountlySampleWPF
 {

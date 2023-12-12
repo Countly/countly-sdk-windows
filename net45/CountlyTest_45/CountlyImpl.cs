@@ -1,11 +1,6 @@
-﻿using CountlySDK;
+﻿using System.Threading.Tasks;
+using CountlySDK;
 using CountlySDK.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TestProject_common;
 
 namespace TestProject_common
 {

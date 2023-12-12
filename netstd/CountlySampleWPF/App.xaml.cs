@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using System.Windows;
 using CountlySDK;
-using CountlySDK.CountlyCommon;
 using CountlySDK.Entities;
 
 namespace CountlySampleWPF
