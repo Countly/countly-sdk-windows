@@ -27,7 +27,7 @@ namespace CountlyTestBackendMode
             countlyConfig.serverUrl = serverURL;
             countlyConfig.appKey = appKey;
             countlyConfig.appVersion = "123";
-            countlyConfig.backendMode = true;
+            countlyConfig.EnableBackendMode();
 
             Countly.Instance.Init(countlyConfig);
         }

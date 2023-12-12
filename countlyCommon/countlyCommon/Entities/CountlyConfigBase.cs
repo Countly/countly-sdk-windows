@@ -84,17 +84,17 @@ namespace CountlySDK.CountlyCommon.Entities
         // <summary>
         /// Enable/Disable backend mode
         /// </summary>
-        public bool backendMode = false;
+        internal bool backendMode = false;
 
         // <summary>
         /// Maximum event queue threshold
         /// </summary>
-        public int EventQueueThreshold = 10;
+        internal int EventQueueThreshold = 10;
 
         // <summary>
         /// Maximum request queue size
         /// </summary>
-        public int RequestQueueMaxSize = 1000;
+        internal int RequestQueueMaxSize = 1000;
 
 
         internal string City = null;
@@ -125,6 +125,38 @@ namespace CountlySDK.CountlyCommon.Entities
             IPAddress = ipAddress;
             CountryCode = countryCode;
             Location = gpsCoordinates;
+        }
+
+        /// <summary>
+        /// Enabled backend mode. When backend mode enabled other feature calls are disabled
+        /// </summary>
+        /// <returns>Config for the call chaining</returns>
+        public CountlyConfigBase EnableBackendMode()
+        {
+            backendMode = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets maximum size of the request queue, default value is 1000
+        /// </summary>
+        /// <param name="requestQueueMaxSize">new request queue size</param> 
+        /// <returns>Config for the call chaining</returns>
+        public CountlyConfigBase SetRequestQueueMaxSize(int requestQueueMaxSize)
+        {
+            RequestQueueMaxSize = requestQueueMaxSize;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the maximum size of the event queue, default value is 10
+        /// </summary>
+        /// <param name="eventsQueueSize">new event queue size</param>
+        /// <returns>Config for the call chaining</returns>
+        public CountlyConfigBase SetEventQueueSizeToSend(int eventsQueueSize)
+        {
+            EventQueueThreshold = eventsQueueSize;
+            return this;
         }
     }
 }

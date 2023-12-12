@@ -15,7 +15,7 @@ using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon
 {
-    abstract public class CountlyBase
+    public abstract class CountlyBase
     {
         internal class IRequestHelperImpl : IRequestHelper
         {
@@ -1385,12 +1385,13 @@ namespace CountlySDK.CountlyCommon
                 await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
             }
 
-            if (Configuration.backendMode) {
-                moduleBackendMode = new ModuleBackendMode(Configuration.EventQueueThreshold);
-            }
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
             await OnInitComplete();
+
+            if (Configuration.backendMode) {
+                moduleBackendMode = new ModuleBackendMode(this);
+            }
         }
 
         /// <summary>
