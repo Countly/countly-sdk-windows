@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
@@ -22,9 +23,34 @@ namespace CountlySDK.CountlyCommon
             requestHelper = new IRequestHelperImpl(Countly.Instance);
         }
 
-        private void RecordEventInternal(string deviceId, string appKey, string eventKey, double eventSum, int eventCount, long eventDuration, Segmentation segmentations, long timestamp)
+        private void RecordEventInternal(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0)
         {
-            eventPool.Put(deviceId, appKey, new CountlyEvent(eventKey, eventCount, eventSum, eventDuration, segmentations, timestamp));
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, deviceId cannot be null or empty, returning");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(appKey)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, appKey cannot be null or empty, returning");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(eventKey)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, eventKey cannot be null or empty, returning");
+                return;
+            }
+
+            if (timestamp <= 0) {
+                timestamp = _cly.timeHelper.ToUnixTime(DateTime.UtcNow);
+            }
+
+            if (eventCount < 0) {
+                eventCount = 1;
+            }
+
+            lock (eventPool) {
+                eventPool.Put(deviceId, appKey, new CountlyEvent(eventKey, eventCount, eventSum, eventDuration, segmentations, timestamp));
+            }
         }
 
         private async Task ProcessQueue(string deviceId, string appKey, List<CountlyEvent> events)
@@ -32,6 +58,13 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[ModuleBackendMode] ProcessQueue,");
             if (events.Count > 0) {
                 _cly.AddRequest(CreateEventRequest(deviceId, appKey, events));
+            }
+        }
+
+        internal async void OnTimer()
+        {
+            lock (eventPool) {
+                eventPool.Dump();
             }
         }
 
@@ -43,7 +76,7 @@ namespace CountlySDK.CountlyCommon
             return string.Format("/i?app_key={0}&device_id={1}&events={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&timestamp={8}&t={9}", appKey, did, UtilityHelper.EncodeDataForURL(eventsJson), requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, 0);
         }
 
-        public async void RecordEvent(string deviceId, string appKey, string eventKey, double eventSum, int eventCount, long eventDuration, Segmentation segmentations, long timestamp)
+        public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
             await _cly.Upload();
@@ -52,7 +85,7 @@ namespace CountlySDK.CountlyCommon
 
     public interface BackendMode
     {
-        void RecordEvent(string deviceId, string appKey, string eventKey, double eventSum, int eventCount, long eventDuration, Segmentation segmentations, long timestamp);
+        void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
     }
 
 }

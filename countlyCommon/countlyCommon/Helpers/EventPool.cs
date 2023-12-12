@@ -26,13 +26,12 @@ namespace CountlySDK.CountlyCommon
 
             perAppKeyEventCache = new Dictionary<string, Dictionary<string, List<CountlyEvent>>>();
             appEventCacheCounts = new Dictionary<string, int>();
-
         }
 
         internal void Put(string deviceId, string appKey, CountlyEvent record)
         {
             lock (perAppKeyEventCache) {
-                var events = EnsureAndGet(deviceId, appKey);
+                List<CountlyEvent> events = EnsureAndGet(deviceId, appKey);
 
                 if (!appEventCacheCounts.TryGetValue(appKey, out int appCount)) {
                     appCount = 0;
@@ -47,7 +46,7 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        internal List<CountlyEvent> EnsureAndGet(string deviceId, string appKey)
+        private List<CountlyEvent> EnsureAndGet(string deviceId, string appKey)
         {
             List<CountlyEvent> events;
 
@@ -70,14 +69,14 @@ namespace CountlySDK.CountlyCommon
             return events;
         }
 
-        internal List<CountlyEvent> InitEventList(string appKey, string deviceId)
+        private List<CountlyEvent> InitEventList(string appKey, string deviceId)
         {
             List<CountlyEvent> events = new List<CountlyEvent>(eventCacheSize);
             perAppKeyEventCache[appKey][deviceId] = events;
             return events;
         }
 
-        internal List<CountlyEvent> RemoveAndGet(string appKey, string deviceId)
+        private List<CountlyEvent> RemoveAndGet(string appKey, string deviceId)
         {
             perAppKeyEventCache.TryGetValue(appKey, out Dictionary<string, List<CountlyEvent>> eventCache);
             eventCache.TryGetValue(deviceId, out List<CountlyEvent> events);
@@ -104,6 +103,13 @@ namespace CountlySDK.CountlyCommon
         {
             foreach (string key in perAppKeyEventCache[appKey].Keys) {
                 bufferCallback.Invoke(key, appKey, RemoveAndGet(appKey, key));
+            }
+        }
+
+        internal void Dump()
+        {
+            foreach (string key in perAppKeyEventCache.Keys) {
+                CallCallbackForAppKey(key);
             }
         }
     }
