@@ -143,14 +143,13 @@ namespace CountlySDK
         {
             Timer = new DispatcherTimer();
             Timer.Interval = TimeSpan.FromSeconds(sessionUpdateInterval);
-            Timer.Tick += OnTimer;
+            Timer.Tick += UpdateSession;
             Timer.Start();
         }
 
         protected override void SessionTimerStop()
         {
-            if (Timer != null)
-            {
+            if (Timer != null) {
                 Timer.Stop();
                 Timer.Tick -= UpdateSession;
                 Timer = null;
