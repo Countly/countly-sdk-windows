@@ -15,7 +15,7 @@
             </summary>
             <returns>True if success, otherwise - False</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.Countly.OnTimer(System.Object,System.Object)" -->
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.Countly.UpdateSession(System.Object,System.Object)" -->
         <member name="F:CountlySDK.Entities.CountlyConfig.deviceIdMethod">
             <summary>
             Which method for deviceId generation is used
@@ -775,7 +775,7 @@
             </summary>
             <returns>Config for the call chaining</returns>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetRequestQueueMaxSize(System.Int32)">
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetMaxRequestQueueSize(System.Int32)">
             <summary>
             Sets maximum size of the request queue, default value is 1000
             This will currently works for only backend mode
@@ -790,6 +790,22 @@
             </summary>
             <param name="eventsQueueSize">new event queue size</param>
             <returns>Config for the call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetBackendModeAppEQSizeToSend(System.Int32)">
+            <summary>
+            Changes the maximum size of the event queue size for an app, default value is 1000
+            This will only work for backend mode
+            </summary>
+            <param name="appEQSize"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetBackendModeServerEQSizeToSend(System.Int32)">
+            <summary>
+            Changes the maximum size of the event queue size for all of the event queues, default value is 10000
+            This will only work for backend mode 
+            </summary>
+            <param name="serverEQSize"></param>
+            <returns></returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.DeviceId.#ctor">
             <summary>
