@@ -78,12 +78,14 @@ namespace CountlySDK.CountlyCommon
 
         private List<CountlyEvent> RemoveAndGet(string appKey, string deviceId)
         {
-            perAppKeyEventCache.TryGetValue(appKey, out Dictionary<string, List<CountlyEvent>> eventCache);
-            eventCache.TryGetValue(deviceId, out List<CountlyEvent> events);
-            eventCache.Remove(deviceId);
-            appEventCacheCounts[appKey] -= events.Count();
-            globalEventCount -= events.Count();
-            return events;
+            lock (perAppKeyEventCache) {
+                perAppKeyEventCache.TryGetValue(appKey, out Dictionary<string, List<CountlyEvent>> eventCache);
+                eventCache.TryGetValue(deviceId, out List<CountlyEvent> events);
+                eventCache.Remove(deviceId);
+                appEventCacheCounts[appKey] -= events.Count();
+                globalEventCount -= events.Count();
+                return events;
+            }
         }
 
         private void CheckAndProcessLimits(string appKey, string deviceId, List<CountlyEvent> events, int appCount)
