@@ -8,7 +8,8 @@
     <Copyright>Copyright © Countly 2022</Copyright>
     <FileVersion>23.10.0.0</FileVersion>
     <Version>23.10.0</Version>
-    <SignAssembly>False</SignAssembly>
+    <SignAssembly>True</SignAssembly>
+    <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
 
