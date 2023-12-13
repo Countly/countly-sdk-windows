@@ -4,8 +4,13 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Web;
 using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
 using Xunit;
+using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
 {

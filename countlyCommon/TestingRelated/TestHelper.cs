@@ -7,9 +7,13 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
+using CountlySDK.Helpers;
 using Xunit;
 using static CountlySDK.CountlyCommon.CountlyBase;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
 {
