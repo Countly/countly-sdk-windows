@@ -206,6 +206,11 @@ namespace CountlySDK.CountlyCommon
         protected async Task UpdateSessionInternal(int? elapsedTime = null)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Session Update happening'");
+            if (Configuration.backendMode) {
+                moduleBackendMode.OnTimer();
+                return;
+            }
+
             if (elapsedTime == null) {
                 //calculate elapsed time from the last time update was sent (includes manual calls)
                 elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
@@ -226,16 +231,18 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task EndSessionInternal()
         {
-            UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
-
-            SessionTimerStop();
-            double elapsedTime = DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
             if (Configuration.backendMode) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd, Backend Mode enabled, returning");
                 return;
             }
+            UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
+
+            double elapsedTime = DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
+
             //report the duration of current view
             reportViewDuration();
+
+            SessionTimerStop();
 
             if (elapsedTime > int.MaxValue) {
                 UtilityHelper.CountlyLogging("[EndSessionInternal] about to be reported duration exceed max data type size. Setting to 0", LogLevel.ERROR);
@@ -352,7 +359,10 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, failing 'StoredRequests.Dequeue()'");
                         }
                         Debug.Assert(srd != null);
-                        Debug.Assert(srd == sr);
+                        if (srd != sr) {
+                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, the head request is not equal to sent request", LogLevel.ERROR);
+
+                        }
 
                         if (!Configuration.backendMode) {
                             bool success = SaveStoredRequests().Result;//todo, handle this in the future
@@ -1408,10 +1418,12 @@ namespace CountlySDK.CountlyCommon
                     Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
                 }
             } else {
-                StoredRequests = new Queue<StoredRequest>();
-                Events = new List<CountlyEvent>();
-                Sessions = new List<SessionEvent>();
-                Exceptions = new List<ExceptionEvent>();
+                lock (sync) {
+                    StoredRequests = new Queue<StoredRequest>();
+                    Events = new List<CountlyEvent>();
+                    Sessions = new List<SessionEvent>();
+                    Exceptions = new List<ExceptionEvent>();
+                }
             }
 
             //consent related
@@ -1426,6 +1438,7 @@ namespace CountlySDK.CountlyCommon
 
             if (Configuration.backendMode) {
                 moduleBackendMode = new ModuleBackendMode(this);
+                SessionTimerStart();
             }
         }
 
@@ -1471,10 +1484,6 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionBegin()
         {
-            automaticSessionTrackingStarted = true;
-            startTime = DateTime.Now;
-            lastSessionUpdateTime = startTime;
-            SessionTimerStart();
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionBegin'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin: SDK must initialized before calling 'SessionBegin'");
@@ -1486,6 +1495,10 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
+            automaticSessionTrackingStarted = true;
+            startTime = DateTime.Now;
+            lastSessionUpdateTime = startTime;
+            SessionTimerStart();
             InformSessionEvent();
 
             Metrics metrics = GetSessionMetrics();

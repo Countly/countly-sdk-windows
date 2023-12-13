@@ -143,7 +143,7 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         /// <param name="requestQueueMaxSize">new request queue size</param> 
         /// <returns>Config for the call chaining</returns>
-        public CountlyConfigBase SetRequestQueueMaxSize(int requestQueueMaxSize)
+        public CountlyConfigBase SetMaxRequestQueueSize(int requestQueueMaxSize)
         {
             RequestQueueMaxSize = requestQueueMaxSize;
             return this;
