@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlySampleAspNetMVC", "C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlyTest_45", "CountlyTest_45\CountlyTest_45.csproj", "{C25FB332-2321-4995-AA8A-F63DBEA85C2C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlyTestBackendMode", "CountlyTestBackendMode\CountlyTestBackendMode.csproj", "{22650F5C-5895-429E-825B-6C228637B97D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{C25FB332-2321-4995-AA8A-F63DBEA85C2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C25FB332-2321-4995-AA8A-F63DBEA85C2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C25FB332-2321-4995-AA8A-F63DBEA85C2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22650F5C-5895-429E-825B-6C228637B97D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22650F5C-5895-429E-825B-6C228637B97D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22650F5C-5895-429E-825B-6C228637B97D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22650F5C-5895-429E-825B-6C228637B97D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
