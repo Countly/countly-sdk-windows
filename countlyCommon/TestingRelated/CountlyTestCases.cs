@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Xunit;
 
@@ -178,7 +179,7 @@ namespace TestProject_common
             CountlyUserDetails cud = Countly.UserDetails;
             cud.Name = "PinocioWithARealImage";
 
-            var res = await Countly.Instance.Upload();
+            bool res = await Countly.Instance.Upload();
 
             //todo, test is succeeding, but not really uploading
             MemoryStream ms = TestHelper.MemoryStreamRead(TestHelper.testDataLocation + "\\sample_image.png");

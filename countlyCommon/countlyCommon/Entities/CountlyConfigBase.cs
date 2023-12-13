@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Entities
@@ -81,6 +82,26 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         public int MaxBreadcrumbCount = 100;
 
+        // <summary>
+        /// Enable/Disable backend mode
+        /// </summary>
+        internal bool backendMode = false;
+
+        // <summary>
+        /// Maximum event queue threshold
+        /// </summary>
+        internal int EventQueueThreshold = 10;
+
+        internal int BackendModeAppEQSize = 1000;
+
+        internal int BackendModeServerEQSize = 10000;
+
+        // <summary>
+        /// Maximum request queue size
+        /// </summary>
+        internal int RequestQueueMaxSize = 1000;
+
+
         internal string City = null;
         internal string Location = null;
         internal string IPAddress = null;
@@ -109,6 +130,64 @@ namespace CountlySDK.CountlyCommon.Entities
             IPAddress = ipAddress;
             CountryCode = countryCode;
             Location = gpsCoordinates;
+        }
+
+        /// <summary>
+        /// Enabled backend mode. When backend mode enabled other feature calls are disabled
+        /// </summary>
+        /// <returns>Config for the call chaining</returns>
+        public CountlyConfigBase EnableBackendMode()
+        {
+            backendMode = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets maximum size of the request queue, default value is 1000
+        /// This will currently works for only backend mode
+        /// </summary>
+        /// <param name="requestQueueMaxSize">new request queue size</param> 
+        /// <returns>Config for the call chaining</returns>
+        public CountlyConfigBase SetMaxRequestQueueSize(int requestQueueMaxSize)
+        {
+            RequestQueueMaxSize = requestQueueMaxSize;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the maximum size of the event queue, default value is 10
+        /// This will currently works for only backend mode
+        /// </summary>
+        /// <param name="eventsQueueSize">new event queue size</param>
+        /// <returns>Config for the call chaining</returns>
+        public CountlyConfigBase SetEventQueueSizeToSend(int eventsQueueSize)
+        {
+            EventQueueThreshold = eventsQueueSize;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the maximum size of the event queue size for an app, default value is 1000
+        /// This will only work for backend mode
+        /// </summary>
+        /// <param name="appEQSize"></param>
+        /// <returns></returns>
+        public CountlyConfigBase SetBackendModeAppEQSizeToSend(int appEQSize)
+        {
+            BackendModeAppEQSize = appEQSize;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the maximum size of the event queue size for all of the event queues, default value is 10000
+        /// This will only work for backend mode 
+        /// </summary>
+        /// <param name="serverEQSize"></param>
+        /// <returns></returns>
+        public CountlyConfigBase SetBackendModeServerEQSizeToSend(int serverEQSize)
+        {
+            BackendModeServerEQSize = serverEQSize;
+            return this;
         }
     }
 }

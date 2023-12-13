@@ -15,7 +15,7 @@
             </summary>
             <returns>True if success, otherwise - False</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.Countly.UpdateSession(System.Object,System.Object)" -->
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.Countly.OnTimer(System.Object,System.Object)" -->
         <member name="F:CountlySDK.Entities.CountlyConfig.deviceIdMethod">
             <summary>
             Which method for deviceId generation is used
@@ -676,6 +676,13 @@
             Reports duration of last view
             </summary>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.BackendMode">
+            <summary>
+            Backend mode to handle multi application cases and
+            data migrations
+            </summary>
+            <returns>BackendMode interface to use backend mode features</returns>
+        </member>
         <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.serverUrl">
             <summary>
             Server url
@@ -744,6 +751,9 @@
             </summary>
         </member>
         <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxBreadcrumbCount" -->
+        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.backendMode" -->
+        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EventQueueThreshold" -->
+        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.RequestQueueMaxSize" -->
         <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableLocation">
             <summary>
             Disabled the location tracking on the Countly server
@@ -758,6 +768,28 @@
             <param name="gpsCoordinates">comma separate lat and long values.<example>"56.42345,123.45325"</example> </param>
             <param name="ipAddress">user's IP Address</param>
             <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableBackendMode">
+            <summary>
+            Enabled backend mode. When backend mode enabled other feature calls are disabled
+            </summary>
+            <returns>Config for the call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetRequestQueueMaxSize(System.Int32)">
+            <summary>
+            Sets maximum size of the request queue, default value is 1000
+            This will currently works for only backend mode
+            </summary>
+            <param name="requestQueueMaxSize">new request queue size</param> 
+            <returns>Config for the call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetEventQueueSizeToSend(System.Int32)">
+            <summary>
+            Changes the maximum size of the event queue, default value is 10
+            This will currently works for only backend mode
+            </summary>
+            <param name="eventsQueueSize">new event queue size</param>
+            <returns>Config for the call chaining</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.DeviceId.#ctor">
             <summary>

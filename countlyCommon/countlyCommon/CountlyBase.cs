@@ -15,7 +15,7 @@ using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon
 {
-    abstract public class CountlyBase
+    public abstract class CountlyBase
     {
         internal class IRequestHelperImpl : IRequestHelper
         {
@@ -48,11 +48,12 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "23.02.0";
+        protected const string sdkVersion = "23.12.0";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
         internal CountlyConfig Configuration;
+        internal ModuleBackendMode moduleBackendMode;
 
         public abstract string sdkName();
 
@@ -205,6 +206,12 @@ namespace CountlySDK.CountlyCommon
         protected async Task UpdateSessionInternal(int? elapsedTime = null)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Session Update happening'");
+            if (Configuration.backendMode) {
+                moduleBackendMode.OnTimer();
+                Upload();
+                return;
+            }
+
             if (elapsedTime == null) {
                 //calculate elapsed time from the last time update was sent (includes manual calls)
                 elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
@@ -225,6 +232,10 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task EndSessionInternal()
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd, Backend Mode enabled, returning");
+                return;
+            }
             UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
 
             //report the duration of current view
@@ -232,6 +243,7 @@ namespace CountlySDK.CountlyCommon
 
             SessionTimerStop();
             double elapsedTime = DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
+
 
             if (elapsedTime > int.MaxValue) {
                 UtilityHelper.CountlyLogging("[EndSessionInternal] about to be reported duration exceed max data type size. Setting to 0", LogLevel.ERROR);
@@ -348,9 +360,15 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, failing 'StoredRequests.Dequeue()'");
                         }
                         Debug.Assert(srd != null);
-                        Debug.Assert(srd == sr);
+                        if (srd != sr) {
+                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, the head request is not equal to sent request", LogLevel.ERROR);
 
-                        bool success = SaveStoredRequests().Result;//todo, handle this in the future                        
+                        }
+
+                        if (!Configuration.backendMode) {
+                            bool success = SaveStoredRequests().Result;//todo, handle this in the future
+                        }
+
                     }
                     return true;
                 } else {
@@ -392,7 +410,9 @@ namespace CountlySDK.CountlyCommon
                         UserDetails.isChanged = false;
                     }
 
-                    SaveUserDetails();
+                    if (!Configuration.backendMode) {
+                        SaveUserDetails();
+                    }
 
                     lock (sync) {
                         uploadInProgress = false;
@@ -402,7 +422,11 @@ namespace CountlySDK.CountlyCommon
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadSessions] Failed at removing session." + ex.ToString());
                         }
-                        bool success = SaveSessions();//todo, handle this in the future
+
+                        if (!Configuration.backendMode) {
+                            bool success = SaveSessions();//todo, handle this in the future
+
+                        }
                     }
 
                     int sessionCount = 0;
@@ -432,6 +456,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void StartEvent(string key)
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent, Backend Mode enabled, returning");
+                return;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : key = " + key);
 
             if (!Countly.Instance.IsInitialized()) {
@@ -465,6 +494,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void CancelEvent(string key)
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent, Backend Mode enabled, returning");
+                return;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : key = " + key);
 
             if (!IsConsentGiven(ConsentFeatures.Events)) {
@@ -502,6 +536,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task EndEvent(string key, Segmentation segmentation = null, int count = 1, double? sum = 0)
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent, Backend Mode enabled, returning");
+                return;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : key = " + key + ", segmentation = " + segmentation + ", count = " + count + ", sum = " + sum);
 
             if (!IsConsentGiven(ConsentFeatures.Events)) {
@@ -600,6 +639,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
+            if (Countly.Instance.Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent, Backend Mode enabled, returning false");
+                return Task.Factory.StartNew(() => { return false; });
+            }
+
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'");
                 return Task.Factory.StartNew(() => { return false; });
@@ -704,7 +748,9 @@ namespace CountlySDK.CountlyCommon
 
                     UserDetails.isChanged = false;
 
-                    SaveUserDetails();
+                    if (!Configuration.backendMode) {
+                        SaveUserDetails();
+                    }
 
                     lock (sync) {
                         uploadInProgress = false;
@@ -717,7 +763,10 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[UploadEvents] Failed at removing events." + ex.ToString());
                         }
 
-                        bool success = SaveEvents();//todo, react to this in the future
+                        if (!Configuration.backendMode) {
+                            bool success = SaveEvents();//todo, react to this in the future
+
+                        }
                         eventsCountToUploadAgain = Events.Count;
                     }
 
@@ -810,6 +859,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
+            if (Countly.Instance.Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException, Backend Mode enabled, returning false");
+                return false;
+            }
+
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo, unhandled)'");
                 return false;
@@ -905,7 +959,10 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[UploadExceptions] thrown exception when removing entry, " + ex.ToString());
                         }
 
-                        SaveExceptions();//todo, in the future, react to this failing
+                        if (!Configuration.backendMode) {
+                            SaveExceptions();//todo, in the future, react to this failing
+
+                        }
 
                         exceptionsCountToUploadAgain = Exceptions.Count;
                         uploadInProgress = false;//mark that we have stoped upload
@@ -965,7 +1022,10 @@ namespace CountlySDK.CountlyCommon
                 //if it's a successful or bad request, remove it from the queue              
                 UserDetails.isChanged = false;
 
-                SaveUserDetails();
+                if (!Configuration.backendMode) {
+                    SaveUserDetails();
+
+                }
 
                 return true;
             } else {
@@ -993,7 +1053,9 @@ namespace CountlySDK.CountlyCommon
 
             UserDetails.isNotificationEnabled = true;
 
-            SaveUserDetails();
+            if (!Configuration.backendMode) {
+                SaveUserDetails();
+            }
 
             await Upload();
         }
@@ -1068,6 +1130,9 @@ namespace CountlySDK.CountlyCommon
                 lastView = null;
                 lastViewStart = 0;
                 firstView = true;
+
+                // modules
+                moduleBackendMode = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1102,6 +1167,11 @@ namespace CountlySDK.CountlyCommon
         /// <param name="log">log string</param>
         public void AddCrashBreadCrumb(string breadCrumb)
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddCrashBreadCrumb, Backend Mode enabled, returning");
+                return;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumbs'");
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'");
@@ -1153,6 +1223,12 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> SetLocation(string gpsLocation, string ipAddress = null, string country_code = null, string city = null)
         {
+
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation, Backend Mode enabled, returning false");
+                return false;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetLocation'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SetLocation: SDK must initialized before calling 'SetLocation'");
@@ -1240,6 +1316,11 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> DisableLocation()
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation, Backend Mode enabled, returning false");
+                return false;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'DisableLocation'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'");
@@ -1266,8 +1347,18 @@ namespace CountlySDK.CountlyCommon
 
             lock (sync) {
                 StoredRequest sr = new StoredRequest(networkRequest, isIdMerge);
+                if (Configuration.backendMode) {
+                    if (StoredRequests.Count >= Configuration.RequestQueueMaxSize) {
+                        StoredRequests.Dequeue();
+                    }
+                }
+
                 StoredRequests.Enqueue(sr);
-                SaveStoredRequests();
+                if (!Configuration.backendMode) {
+                    SaveStoredRequests();
+                } else {
+                    UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, Backend mode enabled, request storage disabled");
+                }
             }
         }
 
@@ -1320,11 +1411,20 @@ namespace CountlySDK.CountlyCommon
 
             await DeviceData.InitDeviceId((DeviceIdMethodInternal)config.deviceIdMethod, config.developerProvidedDeviceId);
 
-            lock (sync) {
-                StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(storedRequestsFilename).Result ?? new Queue<StoredRequest>();
-                Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
-                Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
-                Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
+            if (!Configuration.backendMode) {
+                lock (sync) {
+                    StoredRequests = Storage.Instance.LoadFromFile<Queue<StoredRequest>>(storedRequestsFilename).Result ?? new Queue<StoredRequest>();
+                    Events = Storage.Instance.LoadFromFile<List<CountlyEvent>>(eventsFilename).Result ?? new List<CountlyEvent>();
+                    Sessions = Storage.Instance.LoadFromFile<List<SessionEvent>>(sessionsFilename).Result ?? new List<SessionEvent>();
+                    Exceptions = Storage.Instance.LoadFromFile<List<ExceptionEvent>>(exceptionsFilename).Result ?? new List<ExceptionEvent>();
+                }
+            } else {
+                lock (sync) {
+                    StoredRequests = new Queue<StoredRequest>();
+                    Events = new List<CountlyEvent>();
+                    Sessions = new List<SessionEvent>();
+                    Exceptions = new List<ExceptionEvent>();
+                }
             }
 
             //consent related
@@ -1336,6 +1436,11 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
             await OnInitComplete();
+
+            if (Configuration.backendMode) {
+                moduleBackendMode = new ModuleBackendMode(this);
+                SessionTimerStart();
+            }
         }
 
         /// <summary>
@@ -1386,11 +1491,15 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin, Backend Mode enabled, returning");
+                return;
+            }
+
             automaticSessionTrackingStarted = true;
             startTime = DateTime.Now;
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
-
             InformSessionEvent();
 
             Metrics metrics = GetSessionMetrics();
@@ -1412,6 +1521,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionUpdate(int elapsedTimeSeconds)
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate, Backend Mode enabled, returning");
+                return;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionUpdate'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
@@ -1449,6 +1563,12 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task ChangeDeviceId(string newDeviceId, bool serverSideMerge = false)
         {
+
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId, Backend Mode enabled, returning");
+                return;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'ChangeDeviceId'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: SDK must initialized before calling 'ChangeDeviceId'");
@@ -1520,6 +1640,11 @@ namespace CountlySDK.CountlyCommon
 
         public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SetConsent, Backend Mode enabled, returning");
+                return;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetConsent'");
             await SetConsentInternal(consentChanges, ConsentChangedAction.ConsentUpdated);
         }
@@ -1653,6 +1778,11 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task<bool> RecordView(string viewName)
         {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView, Backend Mode enabled, returning false");
+                return false;
+            }
+
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordView'");
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordView: SDK must initialized before calling 'RecordView'");
@@ -1720,6 +1850,21 @@ namespace CountlySDK.CountlyCommon
                 lastView = null;
                 lastViewStart = 0;
             }
+        }
+
+        /// <summary>
+        /// Backend mode to handle multi application cases and
+        /// data migrations
+        /// </summary>
+        /// <returns>BackendMode interface to use backend mode features</returns>
+        public BackendMode BackendMode()
+        {
+            if (!Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] BackendMode, is not enabled returning null");
+                return null;
+            }
+
+            return moduleBackendMode;
         }
     }
 }

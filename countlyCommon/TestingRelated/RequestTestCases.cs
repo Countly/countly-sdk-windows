@@ -4,8 +4,13 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using System.Web;
 using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
 using Xunit;
+using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
+using static CountlySDK.Helpers.TimeHelper;
 
 namespace TestProject_common
 {
@@ -58,7 +63,7 @@ namespace TestProject_common
 
             Assert.Equal("YOUR_APP_KEY", baseParams["app_key"]);
             Assert.Equal("test device id", baseParams["device_id"]);
-            Assert.Equal("23.02.0", baseParams["sdk_version"]);
+            Assert.Equal("23.12.0", baseParams["sdk_version"]);
             Assert.Equal(0, baseParams["t"]);
 
             Assert.True(baseParams.ContainsKey("sdk_name"));

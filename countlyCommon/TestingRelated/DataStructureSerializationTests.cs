@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using CountlySDK;
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
+using CountlySDK.Entities.EntityBase;
+using CountlySDK.Helpers;
 using Xunit;
 
 namespace TestProject_common

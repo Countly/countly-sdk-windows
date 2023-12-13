@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MauiSampleApp", "MauiSample
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NativeCrash.Android", "MauiSampleAppNativeIntegrations\NativeCrash.Android\NativeCrash.Android.csproj", "{57B0F750-7B44-46A9-BE39-4FAC038FA767}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CountlyTestBackendMode", "CountlyTestBackendMode\CountlyTestBackendMode.csproj", "{DF45EF7D-5F7C-4254-A357-7B24BB50115B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -136,6 +138,22 @@ Global
 		{57B0F750-7B44-46A9-BE39-4FAC038FA767}.Release|x64.Build.0 = Release|Any CPU
 		{57B0F750-7B44-46A9-BE39-4FAC038FA767}.Release|x86.ActiveCfg = Release|Any CPU
 		{57B0F750-7B44-46A9-BE39-4FAC038FA767}.Release|x86.Build.0 = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|ARM.Build.0 = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|x64.Build.0 = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Debug|x86.Build.0 = Debug|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|ARM.ActiveCfg = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|ARM.Build.0 = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|x64.ActiveCfg = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|x64.Build.0 = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|x86.ActiveCfg = Release|Any CPU
+		{DF45EF7D-5F7C-4254-A357-7B24BB50115B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

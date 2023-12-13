@@ -4,10 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Countly Windows SDK targeting net standard 2.0</Description>
     <Product>Countly SDK</Product>
-    <AssemblyVersion>23.02.0.0</AssemblyVersion>
+    <AssemblyVersion>23.12.0.0</AssemblyVersion>
     <Copyright>Copyright © Countly 2022</Copyright>
-    <FileVersion>23.02.0.0</FileVersion>
-    <Version>23.02.0</Version>
+    <FileVersion>23.12.0.0</FileVersion>
+    <Version>23.12.0</Version>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
@@ -43,6 +43,7 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\SessionEvent.cs" Link="Entities\SessionEvent.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\StoredRequest.cs" Link="Entities\StoredRequest.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\UpdateSession.cs" Link="Entities\UpdateSession.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\EventPool.cs" Link="Helpers\EventPool.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs" Link="Helpers\PhoneNameHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\RequestHelper.cs" Link="Helpers\RequestHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs" Link="Helpers\StorageBase.cs" />
@@ -50,6 +51,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs" Link="Helpers\UtilityHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\ApiBase.cs" Link="Server\ApiBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Server\Responses\RequestResult.cs" Link="Server\Responses\RequestResult.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Modules\**\*.*">
+        <Link>Modules\%(FileName)%(Extension)</Link>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

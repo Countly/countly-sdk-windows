@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using CountlySDK;
 using CountlySDK.Entities;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
