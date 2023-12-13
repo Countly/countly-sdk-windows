@@ -208,6 +208,7 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[CountlyBase] Session Update happening'");
             if (Configuration.backendMode) {
                 moduleBackendMode.OnTimer();
+                Upload();
                 return;
             }
 
