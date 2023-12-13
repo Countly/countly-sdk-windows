@@ -237,12 +237,12 @@ namespace CountlySDK.CountlyCommon
             }
             UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
 
-            double elapsedTime = DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
-
             //report the duration of current view
             reportViewDuration();
 
             SessionTimerStop();
+            double elapsedTime = DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
+
 
             if (elapsedTime > int.MaxValue) {
                 UtilityHelper.CountlyLogging("[EndSessionInternal] about to be reported duration exceed max data type size. Setting to 0", LogLevel.ERROR);

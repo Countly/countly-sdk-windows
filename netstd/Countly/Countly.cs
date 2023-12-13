@@ -154,7 +154,7 @@ namespace CountlySDK
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private async void OnTimer(object sender, object e)
+        private async void UpdateSession(object sender, object e)
         {
             if (Configuration.backendMode) {
                 moduleBackendMode.OnTimer();
@@ -164,7 +164,7 @@ namespace CountlySDK
 
         protected override void SessionTimerStart()
         {
-            Timer = new TimerHelper(OnTimer, null, sessionUpdateInterval * 1000, sessionUpdateInterval * 1000);
+            Timer = new TimerHelper(UpdateSession, null, sessionUpdateInterval * 1000, sessionUpdateInterval * 1000);
         }
 
         protected override void SessionTimerStop()
