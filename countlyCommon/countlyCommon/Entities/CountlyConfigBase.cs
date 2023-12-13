@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Entities
@@ -91,6 +92,10 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         internal int EventQueueThreshold = 10;
 
+        internal int BackendModeAppEQSize = 1000;
+
+        internal int BackendModeServerEQSize = 10000;
+
         // <summary>
         /// Maximum request queue size
         /// </summary>
@@ -158,6 +163,30 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase SetEventQueueSizeToSend(int eventsQueueSize)
         {
             EventQueueThreshold = eventsQueueSize;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the maximum size of the event queue size for an app, default value is 1000
+        /// This will only work for backend mode
+        /// </summary>
+        /// <param name="appEQSize"></param>
+        /// <returns></returns>
+        public CountlyConfigBase SetBackendModeAppEQSizeToSend(int appEQSize)
+        {
+            BackendModeAppEQSize = appEQSize;
+            return this;
+        }
+
+        /// <summary>
+        /// Changes the maximum size of the event queue size for all of the event queues, default value is 10000
+        /// This will only work for backend mode 
+        /// </summary>
+        /// <param name="serverEQSize"></param>
+        /// <returns></returns>
+        public CountlyConfigBase SetBackendModeServerEQSizeToSend(int serverEQSize)
+        {
+            BackendModeServerEQSize = serverEQSize;
             return this;
         }
     }

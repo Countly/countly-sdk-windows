@@ -17,12 +17,12 @@ namespace CountlySDK.CountlyCommon
         private readonly Func<string, string, List<CountlyEvent>, Task> bufferCallback;
         private int globalEventCount;
 
-        internal EventPool(int eventCacheSize, Func<string, string, List<CountlyEvent>, Task> bufferCallback)
+        internal EventPool(int eventCacheSize, int appEQSize, int serverEQSize, Func<string, string, List<CountlyEvent>, Task> bufferCallback)
         {
             this.eventCacheSize = eventCacheSize;
             this.bufferCallback = bufferCallback;
-            appEventCacheSize = eventCacheSize * 100;
-            globalEventCacheSize = appEventCacheSize * 10;
+            appEventCacheSize = appEQSize;
+            globalEventCacheSize = serverEQSize;
 
             perAppKeyEventCache = new Dictionary<string, Dictionary<string, List<CountlyEvent>>>();
             appEventCacheCounts = new Dictionary<string, int>();

@@ -15,11 +15,10 @@ namespace CountlySDK.CountlyCommon
         private readonly IRequestHelperImpl requestHelper;
         private readonly CountlyBase _cly;
 
-
         public ModuleBackendMode(CountlyBase countly)
         {
             _cly = countly;
-            eventPool = new EventPool(_cly.Configuration.EventQueueThreshold, ProcessQueue);
+            eventPool = new EventPool(_cly.Configuration.EventQueueThreshold, _cly.Configuration.BackendModeAppEQSize, _cly.Configuration.BackendModeServerEQSize, ProcessQueue);
             requestHelper = new IRequestHelperImpl(Countly.Instance);
         }
 
