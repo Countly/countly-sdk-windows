@@ -139,6 +139,7 @@ namespace CountlySDK.CountlyCommon.Entities
 
         /// <summary>
         /// Sets maximum size of the request queue, default value is 1000
+        /// This will currently works for only backend mode
         /// </summary>
         /// <param name="requestQueueMaxSize">new request queue size</param> 
         /// <returns>Config for the call chaining</returns>
@@ -150,6 +151,7 @@ namespace CountlySDK.CountlyCommon.Entities
 
         /// <summary>
         /// Changes the maximum size of the event queue, default value is 10
+        /// This will currently works for only backend mode
         /// </summary>
         /// <param name="eventsQueueSize">new event queue size</param>
         /// <returns>Config for the call chaining</returns>

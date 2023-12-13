@@ -352,7 +352,7 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, failing 'StoredRequests.Dequeue()'");
                         }
                         Debug.Assert(srd != null);
-                        //Debug.Assert(srd == sr);
+                        Debug.Assert(srd == sr);
 
                         if (!Configuration.backendMode) {
                             bool success = SaveStoredRequests().Result;//todo, handle this in the future
@@ -1336,9 +1336,12 @@ namespace CountlySDK.CountlyCommon
 
             lock (sync) {
                 StoredRequest sr = new StoredRequest(networkRequest, isIdMerge);
-                if (StoredRequests.Count >= Configuration.RequestQueueMaxSize) {
-                    StoredRequests.Dequeue();
+                if (Configuration.backendMode) {
+                    if (StoredRequests.Count >= Configuration.RequestQueueMaxSize) {
+                        StoredRequests.Dequeue();
+                    }
                 }
+
                 StoredRequests.Enqueue(sr);
                 if (!Configuration.backendMode) {
                     SaveStoredRequests();
