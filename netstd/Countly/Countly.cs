@@ -156,9 +156,6 @@ namespace CountlySDK
         /// <param name="e"></param>
         private async void UpdateSession(object sender, object e)
         {
-            if (Configuration.backendMode) {
-                moduleBackendMode.OnTimer();
-            }
             await UpdateSessionInternal();
         }
 
