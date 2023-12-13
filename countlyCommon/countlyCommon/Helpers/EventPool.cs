@@ -21,7 +21,7 @@ namespace CountlySDK.CountlyCommon
         {
             this.eventCacheSize = eventCacheSize;
             this.bufferCallback = bufferCallback;
-            appEventCacheSize = eventCacheSize * 10;
+            appEventCacheSize = eventCacheSize * 100;
             globalEventCacheSize = appEventCacheSize * 10;
 
             perAppKeyEventCache = new Dictionary<string, Dictionary<string, List<CountlyEvent>>>();

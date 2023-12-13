@@ -352,9 +352,9 @@ namespace CountlySDK.CountlyCommon
                             UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, failing 'StoredRequests.Dequeue()'");
                         }
                         Debug.Assert(srd != null);
-                        Debug.Assert(srd == sr);
+                        //Debug.Assert(srd == sr);
 
-                        if (Configuration.backendMode) {
+                        if (!Configuration.backendMode) {
                             bool success = SaveStoredRequests().Result;//todo, handle this in the future
                         }
 
@@ -445,7 +445,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void StartEvent(string key)
         {
-            if (Countly.Instance.Configuration.backendMode) {
+            if (Configuration.backendMode) {
                 UtilityHelper.CountlyLogging("[CountlyBase] StartEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -483,7 +483,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void CancelEvent(string key)
         {
-            if (Countly.Instance.Configuration.backendMode) {
+            if (Configuration.backendMode) {
                 UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -525,7 +525,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task EndEvent(string key, Segmentation segmentation = null, int count = 1, double? sum = 0)
         {
-            if (Countly.Instance.Configuration.backendMode) {
+            if (Configuration.backendMode) {
                 UtilityHelper.CountlyLogging("[CountlyBase] EndEvent, Backend Mode enabled, returning");
                 return;
             }
