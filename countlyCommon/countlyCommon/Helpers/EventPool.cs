@@ -118,5 +118,29 @@ namespace CountlySDK.CountlyCommon
                 CallCallbackForAppKey(key);
             }
         }
+
+        internal void PrintState()
+        {
+            lock (perAppKeyEventCache) {
+                Debug.WriteLine("Current Event Sizes For each APP and DEVICE");
+                int totalCount = 0;
+                foreach (string key in perAppKeyEventCache.Keys) {
+                    Debug.WriteLine($"APP {key}");
+                    int totalForApp = 0;
+                    foreach (string device in perAppKeyEventCache[key].Keys) {
+                        int count = perAppKeyEventCache[key][device].Count;
+                        totalForApp += count;
+                        Debug.WriteLine($"Event count for the device {device}: {count}");
+                    }
+
+                    Debug.WriteLine("Event count for this app " + totalForApp);
+                    Debug.WriteLine("Calculated internal event count " + appEventCacheCounts[key]);
+                    totalCount += totalForApp;
+                }
+
+                Debug.WriteLine("Total calculated count " + totalCount);
+                Debug.WriteLine("Total internal count " + globalEventCount);
+            }
+        }
     }
 }
