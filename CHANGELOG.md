@@ -1,3 +1,12 @@
+## 23.10.0
+* Backend mode added and accesible through "Countly.Instance.BackendMode()" interface
+* The following methods added to the "CountlyConfig":
+    * "EnableBackendMode" function added to enable backend mode
+    * "SetMaxRequestQueueSize" to change maximum request queue size, can be used only with backend mode for now
+    * "SetMaxRequestQueueSize" to change maximum event queue size, can be used only with backend mode for now
+    * "SetBackendModeAppEQSizeToSend" to change backend mode per app event cache maximum size
+    * "SetBackendModeServerEQSizeToSend" to change backend mode global event cache maximum size
+
 ## 23.02.0
 * !! Major breaking change !! Explicit support (and an SDK flavor) for "Portable Class Library Profile 259 (.NETFramework 4.5, Windows 8.0, WindowsPhone 8.0, WindowsPhoneApp 8.1)" has been removed.
 * !! Major breaking change !! Explicit support (and an SDK flavor) for ".NET Framework 4.0 Client library" has been removed.
