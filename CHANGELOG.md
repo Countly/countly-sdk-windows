@@ -1,4 +1,4 @@
-## 23.10.0
+## 23.12.0
 * Backend mode added and accesible through "Countly.Instance.BackendMode()" interface
 * The following methods added to the "CountlyConfig":
     * "EnableBackendMode" function added to enable backend mode

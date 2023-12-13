@@ -48,7 +48,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "23.10.0";
+        protected const string sdkVersion = "23.12.0";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
