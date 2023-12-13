@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
@@ -57,7 +58,7 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 if (events.Count() >= eventCacheSize) {
-                    bufferCallback.Invoke(deviceId, appKey, events);
+                    bufferCallback.Invoke(deviceId, appKey, RemoveAndGet(appKey, deviceId, events));
                     events = InitEventList(appKey, deviceId);
                 }
 
@@ -76,11 +77,14 @@ namespace CountlySDK.CountlyCommon
             return events;
         }
 
-        private List<CountlyEvent> RemoveAndGet(string appKey, string deviceId)
+        private List<CountlyEvent> RemoveAndGet(string appKey, string deviceId, List<CountlyEvent> events = null)
         {
             lock (perAppKeyEventCache) {
                 perAppKeyEventCache.TryGetValue(appKey, out Dictionary<string, List<CountlyEvent>> eventCache);
-                eventCache.TryGetValue(deviceId, out List<CountlyEvent> events);
+                if (events == null) {
+                    eventCache.TryGetValue(deviceId, out events);
+
+                }
                 eventCache.Remove(deviceId);
                 appEventCacheCounts[appKey] -= events.Count();
                 globalEventCount -= events.Count();
@@ -97,7 +101,7 @@ namespace CountlySDK.CountlyCommon
             } else if (appCount >= appEventCacheSize) {
                 CallCallbackForAppKey(appKey);
             } else if (events.Count() >= eventCacheSize) {
-                bufferCallback.Invoke(deviceId, appKey, events);
+                bufferCallback.Invoke(deviceId, appKey, RemoveAndGet(appKey, deviceId, events));
             }
         }
 
