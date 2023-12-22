@@ -406,6 +406,11 @@ namespace TestProject_common
             return CountlyImpl.CreateCountlyConfig();
         }
 
+        public static CountlyConfig GetConfig(string server = "https://xxx.server.ly", string appKey = "APP_KEY", string appVersion = "1.0")
+        {
+            return new CountlyConfig() { serverUrl = server, appKey = appKey, appVersion = appVersion };
+        }
+
         public static Dictionary<ConsentFeatures, bool> AllConsentValues(bool IsGiven)
         {
             Dictionary<ConsentFeatures, bool> consent = new Dictionary<ConsentFeatures, bool>();
