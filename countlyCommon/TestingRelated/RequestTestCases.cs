@@ -60,7 +60,7 @@ namespace TestProject_common
             await Countly.Instance.Init(cc);
             Dictionary<string, object> baseParams = await Countly.Instance.requestHelper.GetBaseParams();
 
-            Assert.Equal(9, baseParams.Count);
+            Assert.Equal(10, baseParams.Count);
 
             Assert.Equal("YOUR_APP_KEY", baseParams["app_key"]);
             Assert.Equal("test device id", baseParams["device_id"]);
