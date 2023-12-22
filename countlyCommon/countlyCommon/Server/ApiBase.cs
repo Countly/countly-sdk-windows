@@ -74,12 +74,15 @@ namespace CountlySDK.CountlyCommon.Server
             return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}&t={10}", serverUrl, appKey, did, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, deviceId.Type()), imageStream);
         }
 
-        public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request)
+        public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request, int rr)
         {
+            if (rr < 0) {
+                rr = 0;
+            }
             Debug.Assert(serverUrl != null);
             Debug.Assert(request != null);
 
-            return await Call(string.Format("{0}{1}", serverUrl, request.Request));
+            return await Call(string.Format("{0}{1}&rr={2}", serverUrl, request.Request, rr));
         }
 
         /// <summary>

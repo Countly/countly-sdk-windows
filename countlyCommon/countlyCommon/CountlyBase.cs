@@ -345,7 +345,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (sr != null) {
-                RequestResult requestResult = await Api.Instance.SendStoredRequest(ServerUrl, sr);
+                RequestResult requestResult = await Api.Instance.SendStoredRequest(ServerUrl, sr, StoredRequests.Count() - 1);
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
