@@ -31,6 +31,7 @@ namespace CountlySDK.Entities.EntityBase
     abstract internal class DeviceBase
     {
         internal enum DeviceIdMethodInternal { none = 0, cpuId = 1, multipleWindowsFields = 2, windowsGUID = 3, winHardwareToken = 4, developerSupplied = 100 };
+        protected static string PREFIX = "CLY_";
 
         internal const string deviceFilename = "device.xml";
 
@@ -169,7 +170,7 @@ namespace CountlySDK.Entities.EntityBase
         protected DeviceId CreateGUIDDeviceId()
         {
             Guid guid = Guid.NewGuid();
-            string newId = guid.ToString().Replace("-", "").ToUpper();
+            string newId = PREFIX + guid.ToString().Replace("-", "").ToUpper();
 
             return new DeviceId(newId, DeviceIdMethodInternal.windowsGUID);
         }
