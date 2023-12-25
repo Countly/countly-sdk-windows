@@ -174,7 +174,7 @@ namespace CountlySDK.CountlyCommon
 
         public void RecordDirectRequest(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null)
         {
-            RecordDirectRequestInternal(deviceId, appKey, paramaters);
+            RecordDirectRequestInternal(paramaters, deviceId, appKey);
         }
 
     }
