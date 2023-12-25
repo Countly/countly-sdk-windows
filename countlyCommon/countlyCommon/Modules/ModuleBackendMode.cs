@@ -73,6 +73,18 @@ namespace CountlySDK.CountlyCommon
             await _cly.Upload();
         }
 
+        public async void RecordDirectRequestInternal(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null)
+        {
+            if (paramaters == null || paramaters.Count < 1) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequestInternal, parameters are empty or null, ignoring");
+                return;
+            }
+
+            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, CreateQueryParamsFromDictionary(paramaters) + "&dr=1"));
+            await _cly.Upload();
+        }
+
         private async Task<Tuple<string, string>> GetDeviceIdAppKey(string deviceId, string appKey)
         {
             string extractedDeviceID = deviceId;
@@ -103,6 +115,17 @@ namespace CountlySDK.CountlyCommon
             lock (eventPool) {
                 eventPool.Dump();
             }
+        }
+
+        private string CreateQueryParamsFromDictionary(Dictionary<string, string> parameters)
+        {
+            string query = string.Empty;
+
+            foreach (KeyValuePair<string, string> kvp in parameters) {
+                query += string.Format("&{}={}", kvp.Key, UtilityHelper.EncodeDataForURL(kvp.Value));
+            }
+
+            return query;
         }
 
         private string CreateEventRequest(string deviceId, string appKey, List<CountlyEvent> events)
@@ -148,6 +171,12 @@ namespace CountlySDK.CountlyCommon
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
         }
+
+        public void RecordDirectRequest(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null)
+        {
+            RecordDirectRequestInternal(deviceId, appKey, paramaters);
+        }
+
     }
 
     public interface BackendMode
@@ -187,6 +216,14 @@ namespace CountlySDK.CountlyCommon
         /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         void EndSession(int duration = 0, string deviceId = null, string appKey = null);
+
+        /// <summary>
+        /// Send direct request to the server
+        /// </summary>
+        /// <param name="paramaters">Should not be null or empty, otherwise ignored</param>
+        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        void RecordDirectRequest(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null);
     }
 
 }
