@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization;
@@ -29,6 +30,13 @@ namespace TestProject_common
         public static double[] dv = new double[] { 123.43, 456.43, 678.543, 456.23, 765.34, 3.232323, 7.5345435, 878.5452, 98.00496, 35.15766 };
 
         public static string[] locales = new string[] { "pt-BR", "en-US", "nl-NL", "fr-CA", "de-DE", "th-TH", "ja-JP" };
+
+        public static string APP_KEY = "APP_KEY";
+        public static string SERVER_URL = "https://domin.com";
+        public static string APP_VERSION = "1.0";
+        public static string DEVICE_ID = "TEST_DEVICE_ID";
+        public static string SDK_VERSION = "23.12.0";
+
 
         public static BeginSession CreateBeginSession(int indexData, int indexMetrics, TimeInstant timeInstant)
         {
@@ -406,9 +414,9 @@ namespace TestProject_common
             return CountlyImpl.CreateCountlyConfig();
         }
 
-        public static CountlyConfig GetConfig(string server = "https://xxx.server.ly", string appKey = "APP_KEY", string appVersion = "1.0")
+        public static CountlyConfig GetConfig()
         {
-            return new CountlyConfig() { serverUrl = server, appKey = appKey, appVersion = appVersion };
+            return new CountlyConfig() { serverUrl = SERVER_URL, appKey = APP_KEY, appVersion = APP_VERSION, developerProvidedDeviceId = DEVICE_ID };
         }
 
         public static Dictionary<ConsentFeatures, bool> AllConsentValues(bool IsGiven)
@@ -440,6 +448,25 @@ namespace TestProject_common
             }
 
             return steps;
+        }
+
+        public static Dictionary<string, string> GetParams(string query)
+        {
+            string[] queryParams = query.Split('?')[1].Split('&');
+            Dictionary<string, string> result = new Dictionary<string, string>();
+
+            if (queryParams.Length < 1) {
+                return result;
+            }
+
+            foreach (string param in queryParams) {
+                string[] kv = param.Split('=');
+                if (kv.Length > 0) {
+                    result[kv[0]] = Uri.UnescapeDataString(kv[1]);
+                }
+            }
+
+            return result;
         }
     }
 }
