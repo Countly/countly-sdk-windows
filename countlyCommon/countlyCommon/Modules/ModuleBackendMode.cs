@@ -52,6 +52,11 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
+        private void BeginSessionInternal(string deviceId = null, string appKey = null)
+        {
+
+        }
+
         private async Task ProcessQueue(string deviceId, string appKey, List<CountlyEvent> events)
         {
             UtilityHelper.CountlyLogging($"[ModuleBackendMode] ProcessQueue, deviceId:[{deviceId}] appKey:[{appKey}] eventsCount:[{events.Count}]");
@@ -77,6 +82,7 @@ namespace CountlySDK.CountlyCommon
             return string.Format("/i?app_key={0}&device_id={1}&events={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&timestamp={8}&t={9}", appKey, did, UtilityHelper.EncodeDataForURL(eventsJson), requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, 0);
         }
 
+
         public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
@@ -85,7 +91,44 @@ namespace CountlySDK.CountlyCommon
 
     public interface BackendMode
     {
+        /// <summary>
+        /// Record event with multiple app and device support
+        /// </summary>
+        /// <param name="deviceId">Device Id, required</param>
+        /// <param name="appKey">App Key, required</param>
+        /// <param name="eventKey">Event key, required</param>
+        /// <param name="eventSum">Defaults to null</param>
+        /// <param name="eventCount">Defaults to 1</param>
+        /// <param name="eventDuration">Defaults to null</param>
+        /// <param name="segmentations">Defaults to null</param>
+        /// <param name="timestamp">Defaults to current timestamp</param>
         void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+
+        /// <summary>
+        /// Begin session with multiple apps and devices
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">If lower than 0 defaults to current timestamp</param>
+        void BeginSession(string deviceId = null, string appKey = null, long timestamp = 0);
+
+        /// <summary>
+        /// Update session with multiple apps and devices
+        /// </summary>
+        /// <param name="duration">Session duration in seconds, required</param>
+        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">If lower than 0 defaults to current timestamp</param>
+        void UpdateSession(int duration, string deviceId = null, string appKey = null, long timestamp = 0);
+
+        /// <summary>
+        /// End session with multiple apps and devices
+        /// </summary>
+        /// <param name="duration">Session duration in seconds, required</param>
+        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">If lower than 0 defaults to current timestamp</param>
+        void EndSession(int duration, string deviceId = null, string appKey = null, long timestamp = 0);
     }
 
 }
