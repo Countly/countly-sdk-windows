@@ -88,8 +88,52 @@ namespace TestProject_common
             cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
 
             Countly.Instance.Init(cc).Wait();
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", "EVENT_KEY", timestamp: -1);
-            ValidateEventInRequestQueue("EVENT_KEY", "DEVICE_ID", "APP_KEY");
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", TestHelper.v[0], timestamp: -1);
+            ValidateEventInRequestQueue(TestHelper.v[0], "DEVICE_ID", "APP_KEY");
+
+        }
+
+        [Fact]
+        /// <summary>
+        /// Validate that "RecordEvent" function of the BackenMode does create positive count event even if it is given as negative
+        /// All event queue sizes are given as 1 to trigger request creation.
+        /// Validating that an events request is generated with positive count
+        /// </summary>
+        public async void RecordEvent_NegativeCount()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", TestHelper.v[0], eventCount: -1);
+            ValidateEventInRequestQueue(TestHelper.v[0], "DEVICE_ID", "APP_KEY");
+
+        }
+
+        [Fact]
+        /// <summary>
+        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// All event queue sizes are given as 1 to trigger request creation.
+        /// Validating that an events request is generated and same with expected values
+        /// </summary>
+        public async void RecordEvent()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Segmentation segmentation = new Segmentation();
+            segmentation.Add(TestHelper.v[0], "true");
+            segmentation.Add(TestHelper.v[1], "683");
+            segmentation.Add(TestHelper.v[2], "68.99");
+
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", TestHelper.v[3], 0.56, 6, 65, segmentation);
+            ValidateEventInRequestQueue(TestHelper.v[3], "DEVICE_ID", "APP_KEY", 6, 0.56, segmentation);
 
         }
 
