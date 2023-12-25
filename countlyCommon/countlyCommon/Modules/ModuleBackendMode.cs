@@ -52,9 +52,40 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        private void BeginSessionInternal(string deviceId = null, string appKey = null)
+        private async void BeginSessionInternal(string deviceId = null, string appKey = null)
         {
+            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, paramOverload: "&begin_session=1"));
+            await _cly.Upload();
+        }
 
+        private async void EndSessionInternal(string deviceId = null, string appKey = null, int duration = 0)
+        {
+            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, duration, "&end_session=1"));
+            await _cly.Upload();
+        }
+
+        private async void UpdateSessionInternal(string deviceId = null, string appKey = null, int duration = 0)
+        {
+            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, duration));
+            await _cly.Upload();
+        }
+
+        private async Task<Tuple<string, string>> GetDeviceIdAppKey(string deviceId, string appKey)
+        {
+            string extractedDeviceID = deviceId;
+            string extractedAppKey = appKey;
+            if (string.IsNullOrEmpty(deviceId)) {
+                extractedDeviceID = (await _cly.DeviceData.GetDeviceId()).deviceId;
+            }
+
+            if (string.IsNullOrEmpty(appKey)) {
+                extractedAppKey = requestHelper.GetAppKey();
+            }
+
+            return new Tuple<string, string>(extractedDeviceID, extractedAppKey);
         }
 
         private async Task ProcessQueue(string deviceId, string appKey, List<CountlyEvent> events)
@@ -76,12 +107,42 @@ namespace CountlySDK.CountlyCommon
 
         private string CreateEventRequest(string deviceId, string appKey, List<CountlyEvent> events)
         {
+            //&events={2}
             string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-            TimeInstant timeInstant = _cly.timeHelper.GetUniqueInstant();
-            string did = UtilityHelper.EncodeDataForURL(deviceId);
-            return string.Format("/i?app_key={0}&device_id={1}&events={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&timestamp={8}&t={9}", appKey, did, UtilityHelper.EncodeDataForURL(eventsJson), requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, 0);
+            return CreateBaseRequest(deviceId, appKey, string.Format("&events={0}", UtilityHelper.EncodeDataForURL(eventsJson)));
         }
 
+        private string CreateSessionRequest(string deviceId, string appKey, int duration = -1, string paramOverload = "")
+        {
+            if (duration >= 0) {
+                paramOverload += "&session_duration=" + duration;
+            }
+            return CreateBaseRequest(deviceId, appKey, paramOverload);
+        }
+
+        private string CreateBaseRequest(string deviceId, string appKey, string extraParams)
+        {
+            TimeInstant timeInstant = _cly.timeHelper.GetUniqueInstant();
+            string did = UtilityHelper.EncodeDataForURL(deviceId);
+            string app = UtilityHelper.EncodeDataForURL(appKey);
+            return string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&sdk_name={3}&hour={4}&dow={5}&tz={6}&timestamp={7}&t=0{8}", app, did, requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, extraParams);
+        }
+
+        public void BeginSession(string deviceId = null, string appKey = null)
+        {
+            BeginSessionInternal(deviceId, appKey);
+        }
+
+
+        public void UpdateSession(int duration, string deviceId = null, string appKey = null)
+        {
+            UpdateSessionInternal(deviceId, appKey, duration);
+        }
+
+        public void EndSession(int duration = 0, string deviceId = null, string appKey = null)
+        {
+            EndSessionInternal(deviceId, appKey, duration);
+        }
 
         public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
@@ -109,8 +170,7 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
-        /// <param name="timestamp">If lower than 0 defaults to current timestamp</param>
-        void BeginSession(string deviceId = null, string appKey = null, long timestamp = 0);
+        void BeginSession(string deviceId = null, string appKey = null);
 
         /// <summary>
         /// Update session with multiple apps and devices
@@ -118,17 +178,15 @@ namespace CountlySDK.CountlyCommon
         /// <param name="duration">Session duration in seconds, required</param>
         /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
-        /// <param name="timestamp">If lower than 0 defaults to current timestamp</param>
-        void UpdateSession(int duration, string deviceId = null, string appKey = null, long timestamp = 0);
+        void UpdateSession(int duration, string deviceId = null, string appKey = null);
 
         /// <summary>
         /// End session with multiple apps and devices
         /// </summary>
-        /// <param name="duration">Session duration in seconds, required</param>
+        /// <param name="duration">Session duration in seconds, default is 0 seconds</param>
         /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
-        /// <param name="timestamp">If lower than 0 defaults to current timestamp</param>
-        void EndSession(int duration, string deviceId = null, string appKey = null, long timestamp = 0);
+        void EndSession(int duration = 0, string deviceId = null, string appKey = null);
     }
 
 }
