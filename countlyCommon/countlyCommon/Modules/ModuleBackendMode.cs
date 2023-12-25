@@ -52,10 +52,17 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        private async void BeginSessionInternal(string deviceId = null, string appKey = null)
+        private async void BeginSessionInternal(string deviceId = null, string appKey = null, Dictionary<string, string> metrics = null)
         {
             Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
-            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, paramOverload: "&begin_session=1"));
+            string beginSessionParams = "&begin_session=1";
+            if (metrics == null) {
+                beginSessionParams += "&metrics=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(_cly.GetSessionMetrics(), Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+            } else {
+                beginSessionParams += "&metrics=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(metrics, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+            }
+
+            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, paramOverload: beginSessionParams));
             await _cly.Upload();
         }
 
@@ -122,7 +129,7 @@ namespace CountlySDK.CountlyCommon
             string query = string.Empty;
 
             foreach (KeyValuePair<string, string> kvp in parameters) {
-                query += string.Format("&{}={}", kvp.Key, UtilityHelper.EncodeDataForURL(kvp.Value));
+                query += string.Format("&{0}={1}", kvp.Key, UtilityHelper.EncodeDataForURL(kvp.Value));
             }
 
             return query;
@@ -151,9 +158,10 @@ namespace CountlySDK.CountlyCommon
             return string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&sdk_name={3}&hour={4}&dow={5}&tz={6}&timestamp={7}&t=0{8}", app, did, requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, extraParams);
         }
 
-        public void BeginSession(string deviceId = null, string appKey = null)
+        public void BeginSession(string deviceId = null, string appKey = null, Dictionary<string, string> metrics = null)
         {
-            BeginSessionInternal(deviceId, appKey);
+            //this needs metric override or custom metrics from the user, because it is a custom made things
+            BeginSessionInternal(deviceId, appKey, metrics);
         }
 
 
@@ -199,7 +207,8 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
-        void BeginSession(string deviceId = null, string appKey = null);
+        /// <param name="metrics">If it is not provided, internal metrics will be used</param>
+        void BeginSession(string deviceId = null, string appKey = null, Dictionary<string, string> metrics = null);
 
         /// <summary>
         /// Update session with multiple apps and devices
