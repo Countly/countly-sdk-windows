@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using CountlySDK;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace TestProject_common
@@ -137,6 +139,89 @@ namespace TestProject_common
 
         }
 
+        [Fact]
+        /// <summary>
+        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// Event queue size is given as 2 to check that if size is exceeded request is generated
+        /// Validating that an events request is generated 2 events exist for device id and app key and other device id is not generates request
+        /// </summary>
+        public async void RecordEvent_EQSize()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetEventQueueSizeToSend(2);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Segmentation segmentation = new Segmentation();
+            segmentation.Add(TestHelper.v[0], "true");
+            segmentation.Add(TestHelper.v[1], "683");
+            segmentation.Add(TestHelper.v[2], "68.99");
+
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[6], TestHelper.v[7], TestHelper.v[3], 0.56, 6, 65, segmentation);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[8], TestHelper.v[7], TestHelper.v[4]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[6], TestHelper.v[7], TestHelper.v[5], 0.72, 3);
+
+            ValidateEventInRequestQueue(TestHelper.v[3], TestHelper.v[6], TestHelper.v[7], 6, 0.56, segmentation, eventQCount: 2);
+            ValidateEventInRequestQueue(TestHelper.v[5], TestHelper.v[6], TestHelper.v[7], 3, 0.72, eventIdx: 1, eventQCount: 2);
+        }
+
+        [Fact]
+        /// <summary>
+        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// App Event queue size is given as 2 to check that if size is exceeded events requests are generated for that app
+        /// Validating that events request is generated, and none request is generated for not exceeded app keys
+        /// </summary>
+        public async void RecordEvent_AppEQSize()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetBackendModeAppEQSizeToSend(2);
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[0], TestHelper.v[1], TestHelper.v[3], 0.56, 6);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[2], TestHelper.v[6], TestHelper.v[7]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[4], TestHelper.v[1], TestHelper.v[5]);
+
+            ValidateEventInRequestQueue(TestHelper.v[3], TestHelper.v[0], TestHelper.v[1], 6, 0.56, reqCount: 2);
+            ValidateEventInRequestQueue(TestHelper.v[5], TestHelper.v[4], TestHelper.v[1], rqIdx: 1, reqCount: 2);
+        }
+
+        [Fact]
+        /// <summary>
+        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// Server Event queue size is given as 2 to check that if size is exceeded events requests are generated for whole apps and devices
+        /// Validating that events requests are generated for the whole apps and devices, after flushed next recorded event should not be recorded
+        /// </summary>
+        public async void RecordEvent_ServerEQSize()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetBackendModeServerEQSizeToSend(2);
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[0], TestHelper.v[1], TestHelper.v[3], 0.56, 6);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[2], TestHelper.v[6], TestHelper.v[7]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 2);
+            Countly.Instance.BackendMode().RecordEvent(TestHelper.v[4], TestHelper.v[8], TestHelper.v[5]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 2);
+
+            ValidateEventInRequestQueue(TestHelper.v[3], TestHelper.v[0], TestHelper.v[1], 6, 0.56, reqCount: 2);
+            ValidateEventInRequestQueue(TestHelper.v[7], TestHelper.v[2], TestHelper.v[6], rqIdx: 1, reqCount: 2);
+        }
+
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
@@ -186,9 +271,6 @@ namespace TestProject_common
             Assert.Equal(queryParams["app_key"], appKey);
             Assert.Equal("0", queryParams["t"]);
             //Assert.True(int.Parse(queryParams["rr"]) >= 0); TODO enable after merge
-
-
-
         }
     }
 }
