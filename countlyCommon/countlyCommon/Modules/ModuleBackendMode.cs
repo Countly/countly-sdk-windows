@@ -74,7 +74,7 @@ namespace CountlySDK.CountlyCommon
             await _cly.Upload();
         }
 
-        private async void EndSessionInternal(string deviceId = null, string appKey = null, int duration = 0, long timestamp = 0)
+        private async void EndSessionInternal(string deviceId = null, string appKey = null, int duration = -1, long timestamp = 0)
         {
             Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
             await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, duration, "&end_session=1", timestamp));
@@ -265,7 +265,7 @@ namespace CountlySDK.CountlyCommon
             UpdateSessionInternal(deviceId, appKey, duration, timestamp);
         }
 
-        public void EndSession(int duration = 0, string deviceId = null, string appKey = null, long timestamp = 0)
+        public void EndSession(int duration = -1, string deviceId = null, string appKey = null, long timestamp = 0)
         {
             EndSessionInternal(deviceId, appKey, duration, timestamp);
         }
@@ -381,11 +381,11 @@ namespace CountlySDK.CountlyCommon
         /// <summary>
         /// End session with multiple apps and devices
         /// </summary>
-        /// <param name="duration">Session duration in seconds, default is 0 seconds</param>
+        /// <param name="duration">Session duration in seconds, default is -1</param>
         /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void EndSession(int duration = 0, string deviceId = null, string appKey = null, long timestamp = 0);
+        void EndSession(int duration = -1, string deviceId = null, string appKey = null, long timestamp = 0);
 
         /// <summary>
         /// Send direct request to the server

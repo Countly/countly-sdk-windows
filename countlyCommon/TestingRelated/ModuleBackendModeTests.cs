@@ -290,6 +290,39 @@ namespace TestProject_common
             ValidateRequestInQueue(TestHelper.v[1], TestHelper.v[2], Dict("old_device_id", TestHelper.v[0]), 2, 3);
         }
 
+        [Fact]
+        /// <summary>
+        /// "EndSession" with different device id and app keys
+        /// Validate that a session end request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key
+        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
+        /// 3. If both of them are given values should be match
+        /// 4. None of them given, both values fallback to the init generated/given values
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void EndSession_DeviceIdAndAppKeyFallbacks()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().EndSession(deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1));
+
+            Countly.Instance.BackendMode().EndSession(appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("end_session", 1), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().EndSession(45, TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("end_session", 1, "session_duration", 45), 2, 3);
+
+            Countly.Instance.BackendMode().EndSession(67);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("end_session", 1, "session_duration", 67), 3, 4);
+        }
+
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
@@ -312,7 +345,6 @@ namespace TestProject_common
         {
             Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
             string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
-
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
             ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(9 + paramaters.Count, queryParams.Count); //TODO 11 after merge
