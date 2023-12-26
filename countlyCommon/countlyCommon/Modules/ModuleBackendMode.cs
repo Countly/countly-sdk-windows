@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using static CountlySDK.CountlyCommon.CountlyBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -14,6 +16,7 @@ namespace CountlySDK.CountlyCommon
         private readonly EventPool eventPool;
         private readonly IRequestHelperImpl requestHelper;
         private readonly CountlyBase _cly;
+        internal static string[] crashMetricKeys = new string[] { "_os", "_os_version", "_ram_total", "_ram_current", "_disk_total", "_disk_current", "_online", "_muted", "_resolution", "_app_version", "_manufacture", "_device", "_orientation", "_run" };
 
         public ModuleBackendMode(CountlyBase countly)
         {
@@ -52,7 +55,7 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        private async void BeginSessionInternal(string deviceId = null, string appKey = null, Dictionary<string, string> metrics = null, Dictionary<string, string> location = null, long timestamp = 0)
+        private async void BeginSessionInternal(string deviceId = null, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0)
         {
             Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
             string beginSessionParams = "&begin_session=1&metrics=";
@@ -83,15 +86,38 @@ namespace CountlySDK.CountlyCommon
             await _cly.Upload();
         }
 
-        public async void RecordDirectRequestInternal(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0)
+        public async void RecordDirectRequestInternal(IDictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0)
         {
-            if (paramaters == null || paramaters.Count < 1) {
-                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequestInternal, parameters are empty or null, ignoring");
-                return;
-            }
-
             Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
             await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, CreateQueryParamsFromDictionary(paramaters) + "&dr=1", timestamp));
+            await _cly.Upload();
+        }
+
+        private async void RecordExceptionInternal(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, string> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
+        {
+            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            IDictionary<string, object> crashData = new Dictionary<string, object> {
+                { "_name", error },
+                { "_nonfatal", !unhandled }
+            };
+            if (breadcrumbs != null && breadcrumbs.Count > 0) {
+                crashData.Add("_logs", string.Join("\n", breadcrumbs));
+            }
+            if (!string.IsNullOrEmpty(stackTrace)) {
+                crashData.Add("_error", stackTrace);
+            }
+            if (customInfo != null && customInfo.Count > 0) {
+                crashData.Add("_custom", customInfo);
+            }
+            if (metrics != null && metrics.Count > 0) {
+                foreach (KeyValuePair<string, string> kv in metrics) {
+                    if (crashMetricKeys.Contains(kv.Key)) {
+                        crashData.Add(kv.Key, kv.Value);
+                    }
+                }
+            }
+
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&crash=" + GetURLEncodedJson(crashData), timestamp));
             await _cly.Upload();
         }
 
@@ -132,7 +158,7 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        private string CreateQueryParamsFromDictionary(Dictionary<string, string> parameters)
+        private string CreateQueryParamsFromDictionary(IDictionary<string, string> parameters)
         {
             string query = string.Empty;
 
@@ -145,7 +171,6 @@ namespace CountlySDK.CountlyCommon
 
         private string CreateEventRequest(string deviceId, string appKey, List<CountlyEvent> events)
         {
-            //&events={2}
             string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
             return CreateBaseRequest(deviceId, appKey, string.Format("&events={0}", UtilityHelper.EncodeDataForURL(eventsJson)));
         }
@@ -171,9 +196,8 @@ namespace CountlySDK.CountlyCommon
             return string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&sdk_name={3}&hour={4}&dow={5}&tz={6}&timestamp={7}&t=0{8}", app, did, requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, extraParams);
         }
 
-        public void BeginSession(string deviceId = null, string appKey = null, Dictionary<string, string> metrics = null, Dictionary<string, string> location = null, long timestamp = 0)
+        public void BeginSession(string deviceId, string appKey, IDictionary<string, string> metrics, IDictionary<string, string> location, long timestamp)
         {
-            //this needs metric override or custom metrics from the user, because it is a custom made things
             BeginSessionInternal(deviceId, appKey, metrics, location, timestamp);
         }
 
@@ -193,7 +217,7 @@ namespace CountlySDK.CountlyCommon
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
         }
 
-        public async void RecordView(string deviceId, string appKey, string name, Segmentation segmentations, long timestamp)
+        public void RecordView(string deviceId, string appKey, string name, Segmentation segmentations, long timestamp)
         {
 
             if (string.IsNullOrEmpty(name)) {
@@ -209,11 +233,25 @@ namespace CountlySDK.CountlyCommon
             RecordEventInternal(deviceId, appKey, "[CLY]_view", null, 1, null, segmentations, timestamp);
         }
 
-        public void RecordDirectRequest(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0)
+        public void RecordDirectRequest(IDictionary<string, string> paramaters, string deviceId, string appKey, long timestamp)
         {
+            if (paramaters == null || paramaters.Count < 1) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequest, parameters are empty or null, ignoring");
+                return;
+            }
             RecordDirectRequestInternal(paramaters, deviceId, appKey, timestamp);
         }
 
+        public void RecordException(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, string> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
+        {
+            if (string.IsNullOrEmpty(error)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, error is empty or null, ignoring");
+                return;
+            }
+
+            RecordExceptionInternal(deviceId, appKey, error, stackTrace, breadcrumbs, customInfo, metrics, unhandled, timestamp);
+
+        }
     }
 
     public interface BackendMode
@@ -253,7 +291,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="metrics">If it is not provided, internal metrics will be used</param>
         /// <param name="location">If not given, will not be added</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void BeginSession(string deviceId = null, string appKey = null, Dictionary<string, string> metrics = null, Dictionary<string, string> location = null, long timestamp = 0);
+        void BeginSession(string deviceId = null, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0);
 
         /// <summary>
         /// Update session with multiple apps and devices
@@ -280,7 +318,19 @@ namespace CountlySDK.CountlyCommon
         /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void RecordDirectRequest(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0);
+        void RecordDirectRequest(IDictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0);
+
+        /// <summary>
+        /// Record an exception
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        /// <param name="customInfo">Custom info about exception, default null</param>
+        /// <param name="error">name of the error, required</param>
+        /// <param name="stackTrace">trace of the error, defaults to null</param>
+        /// <param name="unhandled">bool indicates is exception is fatal or not, default is false</param>
+        void RecordException(string deviceId = null, string appKey = null, string error = null, string stackTrace = null, IList<string> breadcrumbs = null, IDictionary<string, string> customInfo = null, IDictionary<string, string> metrics = null, bool unhandled = false, long timestamp = 0);
     }
 
 }
