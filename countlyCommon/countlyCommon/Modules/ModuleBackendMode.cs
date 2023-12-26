@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
@@ -16,7 +17,8 @@ namespace CountlySDK.CountlyCommon
         private readonly EventPool eventPool;
         private readonly IRequestHelperImpl requestHelper;
         private readonly CountlyBase _cly;
-        internal static string[] crashMetricKeys = new string[] { "_os", "_os_version", "_ram_total", "_ram_current", "_disk_total", "_disk_current", "_online", "_muted", "_resolution", "_app_version", "_manufacture", "_device", "_orientation", "_run" };
+        internal static string[] crashMetricKeys = { "_os", "_os_version", "_ram_total", "_ram_current", "_disk_total", "_disk_current", "_online", "_muted", "_resolution", "_app_version", "_manufacture", "_device", "_orientation", "_run" };
+        internal static string[] userPredefinedKeys = { "name", "username", "email", "organization", "phone", "gender", "byear", "picture" };
 
         public ModuleBackendMode(CountlyBase countly)
         {
@@ -93,7 +95,7 @@ namespace CountlySDK.CountlyCommon
             await _cly.Upload();
         }
 
-        private async void RecordExceptionInternal(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, string> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
+        private async void RecordExceptionInternal(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, object> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
         {
             Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
             IDictionary<string, object> crashData = new Dictionary<string, object> {
@@ -107,6 +109,7 @@ namespace CountlySDK.CountlyCommon
                 crashData.Add("_error", stackTrace);
             }
             if (customInfo != null && customInfo.Count > 0) {
+                RemoveInvalidDataFromDictionary(customInfo);
                 crashData.Add("_custom", customInfo);
             }
             if (metrics != null && metrics.Count > 0) {
@@ -118,6 +121,34 @@ namespace CountlySDK.CountlyCommon
             }
 
             await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&crash=" + GetURLEncodedJson(crashData), timestamp));
+            await _cly.Upload();
+        }
+
+        private async void RecordUserPropertiesInternal(IDictionary<string, object> userProperties, string deviceId, string appKey, long timestamp)
+        {
+            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            RemoveInvalidDataFromDictionary(userProperties);
+
+            IDictionary<string, object> userDetails = new Dictionary<string, object> { };
+            IDictionary<string, object> customDetail = new Dictionary<string, object> { };
+
+            foreach (KeyValuePair<string, object> item in userProperties) {
+                if (userPredefinedKeys.Contains(item.Key)) {
+                    userDetails.Add(item.Key, item.Value);
+                } else {
+                    object v = item.Value;
+                    if (v is string) {
+                        string value = (string)v;
+                        if (!string.IsNullOrEmpty(value) && value.ElementAt(0) == '{') {
+                            v = new JObject(value);
+                        }
+                    }
+                    customDetail.Add(item.Key, v);
+                }
+            }
+
+
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
             await _cly.Upload();
         }
 
@@ -148,6 +179,26 @@ namespace CountlySDK.CountlyCommon
         private string GetURLEncodedJson(object obj)
         {
             return UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+        }
+
+        private void RemoveInvalidDataFromDictionary(IDictionary<string, object> dict)
+        {
+            int i = 0;
+            List<string> toRemove = new List<string>();
+            foreach (KeyValuePair<string, object> item in dict) {
+                object type = item.Value;
+
+                bool isValidDataType = (type is bool || type is int || type is long || type is string || type is double || type is float);
+
+                if (!isValidDataType) {
+                    toRemove.Add(item.Key);
+                    UtilityHelper.CountlyLogging("[ModuleBackendMode] RemoveInvalidDataFromDictionary, In segmentation Data type '" + type + "' of item '" + item.Value + "' isn't valid.", LogLevel.WARNING);
+                }
+            }
+
+            foreach (string k in toRemove) {
+                dict.Remove(k);
+            }
         }
 
         internal async void OnTimer()
@@ -236,21 +287,31 @@ namespace CountlySDK.CountlyCommon
         public void RecordDirectRequest(IDictionary<string, string> paramaters, string deviceId, string appKey, long timestamp)
         {
             if (paramaters == null || paramaters.Count < 1) {
-                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequest, parameters are empty or null, ignoring");
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequest, parameters are empty or null, ignoring", LogLevel.WARNING);
                 return;
             }
             RecordDirectRequestInternal(paramaters, deviceId, appKey, timestamp);
         }
 
-        public void RecordException(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, string> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
+        public void RecordException(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, object> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
         {
             if (string.IsNullOrEmpty(error)) {
-                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, error is empty or null, ignoring");
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, error is empty or null, ignoring", LogLevel.WARNING);
                 return;
             }
 
             RecordExceptionInternal(deviceId, appKey, error, stackTrace, breadcrumbs, customInfo, metrics, unhandled, timestamp);
 
+        }
+
+        public void RecordUserProperties(IDictionary<string, object> userProperties, string deviceId, string appKey, long timestamp)
+        {
+            if (userProperties == null || userProperties.Count < 1) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, error is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            RecordUserPropertiesInternal(userProperties, deviceId, appKey, timestamp);
         }
     }
 
@@ -329,7 +390,16 @@ namespace CountlySDK.CountlyCommon
         /// <param name="unhandled">bool indicates is exception is fatal or not, default is false</param>
         /// <param name="breadcrumbs">breadcrumbs if any</param>
         /// <param name="metrics">if any. otherwise null</param>
-        void RecordException(string deviceId = null, string appKey = null, string error = null, string stackTrace = null, IList<string> breadcrumbs = null, IDictionary<string, string> customInfo = null, IDictionary<string, string> metrics = null, bool unhandled = false, long timestamp = 0);
+        void RecordException(string deviceId = null, string appKey = null, string error = null, string stackTrace = null, IList<string> breadcrumbs = null, IDictionary<string, object> customInfo = null, IDictionary<string, string> metrics = null, bool unhandled = false, long timestamp = 0);
+
+        /// <summary>
+        /// Record user properties
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        /// <param name="userProperties">properties to set, should not be empty or null</param>
+        void RecordUserProperties(IDictionary<string, object> userProperties, string deviceId = null, string appKey = null, long timestamp = 0);
     }
 
 }
