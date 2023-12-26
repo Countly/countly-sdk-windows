@@ -299,6 +299,7 @@ namespace TestProject_common
         /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
         /// 3. If both of them are given values should be match
         /// 4. None of them given, both values fallback to the init generated/given values
+        /// 5. Both of them are given as empty string, defaults to init generated/given values, duration given as negative, should not exist in the request
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
@@ -321,6 +322,9 @@ namespace TestProject_common
 
             Countly.Instance.BackendMode().EndSession(67);
             ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("end_session", 1, "session_duration", 67), 3, 4);
+
+            Countly.Instance.BackendMode().EndSession(-4, "", "");
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("end_session", 1), 4, 5);
         }
 
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1)
