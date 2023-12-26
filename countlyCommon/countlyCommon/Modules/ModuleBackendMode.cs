@@ -275,9 +275,6 @@ namespace CountlySDK.CountlyCommon
         /// <param name="deviceId">Device Id, required</param>
         /// <param name="appKey">App Key, required</param>
         /// <param name="name">View name, required</param>
-        /// <param name="eventSum">Defaults to null</param>
-        /// <param name="eventCount">Defaults to 1</param>
-        /// <param name="eventDuration">Defaults to null</param>
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         void RecordView(string deviceId, string appKey, string name, Segmentation segmentations = null, long timestamp = 0);
@@ -330,6 +327,8 @@ namespace CountlySDK.CountlyCommon
         /// <param name="error">name of the error, required</param>
         /// <param name="stackTrace">trace of the error, defaults to null</param>
         /// <param name="unhandled">bool indicates is exception is fatal or not, default is false</param>
+        /// <param name="breadcrumbs">breadcrumbs if any</param>
+        /// <param name="metrics">if any. otherwise null</param>
         void RecordException(string deviceId = null, string appKey = null, string error = null, string stackTrace = null, IList<string> breadcrumbs = null, IDictionary<string, string> customInfo = null, IDictionary<string, string> metrics = null, bool unhandled = false, long timestamp = 0);
     }
 
