@@ -201,7 +201,7 @@ namespace TestProject_common
         /// Server Event queue size is given as 2 to check that if size is exceeded events requests are generated for whole apps and devices
         /// Validating that events requests are generated for the whole apps and devices, after flushed next recorded event should not be recorded
         /// </summary>
-        public async void RecordEvent_ServerEQSize()
+        public void RecordEvent_ServerEQSize()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -222,6 +222,73 @@ namespace TestProject_common
             ValidateEventInRequestQueue(TestHelper.v[7], TestHelper.v[2], TestHelper.v[6], rqIdx: 1, reqCount: 2);
         }
 
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with init given deivce id
+        /// Validate that a device id merge request is generated and exists with the init given device id
+        /// RQ size must be 1 and expected values should match
+        /// </summary>
+        public void ChangeDeviceIdWithMerge()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[0]));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with null or empty old device id
+        /// Validate that a device id merge request is not generated
+        /// RQ size must be 0 after each call
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_NullOrEmpty()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge("");
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(null);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with different device id and app keys
+        /// Validate that a device id merge request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key
+        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
+        /// 3. If both of them are given values should be match
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_DeviceIdAndAppKeyFallbacks()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[1], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[0]));
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], appKey: TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("old_device_id", TestHelper.v[0]), 1, 2);
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1], TestHelper.v[2]);
+            ValidateRequestInQueue(TestHelper.v[1], TestHelper.v[2], Dict("old_device_id", TestHelper.v[0]), 2, 3);
+        }
+
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
@@ -238,7 +305,31 @@ namespace TestProject_common
             }
             Assert.Equal(segmentation, events[eventIdx].Segmentation);
             Assert.True(events[eventIdx].Timestamp > 0);
+        }
 
+        private void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1)
+        {
+            Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
+            string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
+
+            Dictionary<string, string> queryParams = TestHelper.GetParams(request);
+            ValidateBaseParams(queryParams, deviceId, appKey);
+            Assert.Equal(9 + paramaters.Count, queryParams.Count); //TODO 11 after merge
+            foreach (KeyValuePair<string, object> item in paramaters) {
+                Assert.Equal(queryParams[item.Key], paramaters[item.Key].ToString());
+            }
+        }
+
+        private IDictionary<string, object> Dict(params object[] values)
+        {
+            IDictionary<string, object> result = new Dictionary<string, object>();
+            if (values == null || values.Length == 0 || values.Length % 2 != 0) { return result; }
+
+            for (int i = 0; i < values.Length; i += 2) {
+                result[values[i].ToString()] = values[i + 1];
+            }
+
+            return result;
         }
 
         private List<CountlyEvent> ParseEventsFromRequestQueue(int idx, int count, string deviceId, string appKey)
