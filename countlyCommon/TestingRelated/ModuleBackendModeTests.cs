@@ -283,8 +283,8 @@ namespace TestProject_common
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
             ValidateRequestInQueue(TestHelper.v[1], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[0]));
 
-            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], appKey: TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("old_device_id", TestHelper.v[0]), 1, 2);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("old_device_id", TestHelper.v[0]), 1, 2, 1044151383000);
 
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1], TestHelper.v[2]);
             ValidateRequestInQueue(TestHelper.v[1], TestHelper.v[2], Dict("old_device_id", TestHelper.v[0]), 2, 3);
