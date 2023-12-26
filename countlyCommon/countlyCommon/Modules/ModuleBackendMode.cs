@@ -152,6 +152,14 @@ namespace CountlySDK.CountlyCommon
             await _cly.Upload();
         }
 
+        private async void ChangeDeviceIdWithMergeInternal(string deviceId, string appKey, long timestamp, string oldDeviceId)
+        {
+            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&old_device_id=" + UtilityHelper.EncodeDataForURL(oldDeviceId), timestamp));
+            await _cly.Upload();
+        }
+
         private async Task<Tuple<string, string>> GetDeviceIdAppKey(string deviceId, string appKey)
         {
             string extractedDeviceID = deviceId;
@@ -183,7 +191,6 @@ namespace CountlySDK.CountlyCommon
 
         private void RemoveInvalidDataFromDictionary(IDictionary<string, object> dict)
         {
-            int i = 0;
             List<string> toRemove = new List<string>();
             foreach (KeyValuePair<string, object> item in dict) {
                 object type = item.Value;
@@ -313,6 +320,17 @@ namespace CountlySDK.CountlyCommon
 
             RecordUserPropertiesInternal(userProperties, deviceId, appKey, timestamp);
         }
+
+        public void ChangeDeviceIdWithMerge(string oldDeviceId, string deviceId = null, string appKey = null, long timestamp = 0)
+        {
+            if (string.IsNullOrEmpty(oldDeviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, old device id is empty or null, ignoring", LogLevel.WARNING);
+                return;
+
+            }
+
+            ChangeDeviceIdWithMergeInternal(deviceId, appKey, timestamp, oldDeviceId);
+        }
     }
 
     public interface BackendMode
@@ -400,6 +418,15 @@ namespace CountlySDK.CountlyCommon
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         /// <param name="userProperties">properties to set, should not be empty or null</param>
         void RecordUserProperties(IDictionary<string, object> userProperties, string deviceId = null, string appKey = null, long timestamp = 0);
+
+        /// <summary>
+        /// Change device id with server merge
+        /// </summary>
+        /// <param name="oldDeviceId">The id that will going to be merged with the provided device id, should not be null or empty</param>
+        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void ChangeDeviceIdWithMerge(string oldDeviceId, string deviceId = null, string appKey = null, long timestamp = 0);
     }
 
 }
