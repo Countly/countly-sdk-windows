@@ -262,6 +262,10 @@ namespace CountlySDK.CountlyCommon
 
         public void UpdateSession(int duration, string deviceId = null, string appKey = null, long timestamp = 0)
         {
+            if (duration < 1) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] UpdateSession, duration could not be negative, returning");
+                return;
+            }
             UpdateSessionInternal(deviceId, appKey, duration, timestamp);
         }
 

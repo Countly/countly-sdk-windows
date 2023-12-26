@@ -310,7 +310,6 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-
             Countly.Instance.BackendMode().EndSession(deviceId: TestHelper.v[0]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1));
 
@@ -325,6 +324,76 @@ namespace TestProject_common
 
             Countly.Instance.BackendMode().EndSession(-4, "", "");
             ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("end_session", 1), 4, 5);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "UpdateSession" with different device id and app keys
+        /// Validate that an update session request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
+        /// 3. If both of them are given values should be match
+        /// 4. None of them given, both values fallback to the init generated/given values
+        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void UpdateSession_DeviceIdAndAppKeyFallbacks()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().UpdateSession(1, deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("session_duration", 1));
+
+            Countly.Instance.BackendMode().UpdateSession(1, appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("session_duration", 1), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().UpdateSession(1, TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 1), 2, 3);
+
+            Countly.Instance.BackendMode().UpdateSession(1);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("session_duration", 1), 3, 4);
+
+            Countly.Instance.BackendMode().UpdateSession(1, "", "");
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("session_duration", 1), 4, 5);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "UpdateSession" with negative duration
+        /// Validate that an update session request is not generated with negative duration
+        /// RQ must be empty
+        /// </summary>
+        public void UpdateSession_NegativeDuration()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().UpdateSession(-11, deviceId: TestHelper.v[0]);
+            Assert.Empty(Countly.Instance.StoredRequests);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "UpdateSession"
+        /// Validate that an update session request is generated and exists in the queue
+        /// RQ size must be 1 and it should be a session update request
+        /// </summary>
+        public void UpdateSession()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().UpdateSession(78, TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 78));
         }
 
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1)
