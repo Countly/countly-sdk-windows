@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using CountlySDK;
 using CountlySDK.CountlyCommon.Entities;
@@ -307,13 +308,13 @@ namespace TestProject_common
             Assert.True(events[eventIdx].Timestamp > 0);
         }
 
-        private void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1)
+        private void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1, long timestamp = 0)
         {
             Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
             string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
 
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
-            ValidateBaseParams(queryParams, deviceId, appKey);
+            ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(9 + paramaters.Count, queryParams.Count); //TODO 11 after merge
             foreach (KeyValuePair<string, object> item in paramaters) {
                 Assert.Equal(queryParams[item.Key], paramaters[item.Key].ToString());
@@ -346,13 +347,27 @@ namespace TestProject_common
 
         }
 
-        private void ValidateBaseParams(Dictionary<string, string> queryParams, string deviceId, string appKey)
+        private void ValidateBaseParams(Dictionary<string, string> queryParams, string deviceId, string appKey, long timestamp = 0)
         {
             //Time related params
-            Assert.True(int.Parse(queryParams["tz"]) >= 0);
-            Assert.True(int.Parse(queryParams["hour"]) >= 0);
-            Assert.True(int.Parse(queryParams["dow"]) >= 0);
-            Assert.True(long.Parse(queryParams["timestamp"]) > 0);
+            if (timestamp > 0) {
+                TimeSpan time = TimeSpan.FromMilliseconds(timestamp);
+                DateTime dateTime = new DateTime(1970, 1, 1) + time;
+
+                int dow = (int)dateTime.DayOfWeek;
+                int hour = dateTime.TimeOfDay.Hours;
+                string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+
+                Assert.Equal(queryParams["tz"], timezone);
+                Assert.Equal(int.Parse(queryParams["hour"]), hour);
+                Assert.Equal(int.Parse(queryParams["dow"]), dow);
+                Assert.Equal(long.Parse(queryParams["timestamp"]), timestamp);
+            } else {
+                Assert.True(int.Parse(queryParams["tz"]) >= 0);
+                Assert.True(int.Parse(queryParams["hour"]) >= 0);
+                Assert.True(int.Parse(queryParams["dow"]) >= 0);
+                Assert.True(long.Parse(queryParams["timestamp"]) > 0);
+            }
 
             //sdk related params
             //Assert.Equal(queryParams["av"], TestHelper.APP_VERSION); TODO enable after merge
