@@ -193,6 +193,22 @@ namespace CountlySDK.CountlyCommon
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
         }
 
+        public async void RecordView(string deviceId, string appKey, string name, Segmentation segmentations, long timestamp)
+        {
+
+            if (string.IsNullOrEmpty(name)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordView, name is empty or null returning", LogLevel.WARNING);
+                return;
+            }
+
+            if (segmentations == null) {
+                segmentations = new Segmentation();
+            }
+
+            segmentations.Add("name", name);
+            RecordEventInternal(deviceId, appKey, "[CLY]_view", null, 1, null, segmentations, timestamp);
+        }
+
         public void RecordDirectRequest(Dictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0)
         {
             RecordDirectRequestInternal(paramaters, deviceId, appKey, timestamp);
@@ -214,6 +230,20 @@ namespace CountlySDK.CountlyCommon
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+
+        /// <summary>
+        /// Record event with multiple app and device support
+        /// </summary>
+        /// <param name="deviceId">Device Id, required</param>
+        /// <param name="appKey">App Key, required</param>
+        /// <param name="name">View name, required</param>
+        /// <param name="eventSum">Defaults to null</param>
+        /// <param name="eventCount">Defaults to 1</param>
+        /// <param name="eventDuration">Defaults to null</param>
+        /// <param name="segmentations">Defaults to null</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void RecordView(string deviceId, string appKey, string name, Segmentation segmentations = null, long timestamp = 0);
+
 
         /// <summary>
         /// Begin session with multiple apps and devices
