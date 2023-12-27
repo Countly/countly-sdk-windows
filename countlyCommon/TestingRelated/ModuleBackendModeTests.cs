@@ -3,13 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using CountlySDK;
-using CountlySDK.CountlyCommon;
-using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace TestProject_common
@@ -693,6 +689,164 @@ namespace TestProject_common
 
         }
 
+        [Fact]
+        /// <summary>
+        /// "BeginSession" with different device id and app keys
+        /// Validate that an begin session request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
+        /// 3. If both of them are given values should be match
+        /// 4. None of them given, both values fallback to the init generated/given values
+        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void BeginSession_DeviceIdAndAppKeyFallbacks()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()));
+
+            Countly.Instance.BackendMode().BeginSession(appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("begin_session", "1", "metrics", GetSessionMetrics()), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", GetSessionMetrics()), 2, 3);
+
+            Countly.Instance.BackendMode().BeginSession();
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()), 3, 4);
+
+            Countly.Instance.BackendMode().BeginSession();
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()), 4, 5);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "BeginSession"
+        /// Validate that an begin session request is generated and given params should be in the request
+        /// RQ size must be 1 and all given values should exists in the request
+        /// </summary>
+        public void BeginSession()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], DictS("_device_model", "Laptop", "c", "a"), DictS("loc", "1", "location", "1,2"), 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", Json("_device_model", "Laptop", "c", "a"), "loc", "1", "location", "1,2"), 0, 1, 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordUserProperties" with different device id and app keys
+        /// Validate that a user properties request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
+        /// 3. If both of them are given values should be match
+        /// 4. None of them given, both values fallback to the init generated/given values
+        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordUserProperties_DeviceIdAndAppKeyFallbacks()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John")));
+
+            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("user_details", Json("name", "John")), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("user_details", Json("name", "John")), 2, 3);
+
+            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"));
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("user_details", Json("name", "John")), 3, 4);
+
+            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"));
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("user_details", Json("name", "John")), 4, 5);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordUserProperties" with different user properties
+        /// Validate that a user properties request is generated after each call and expected parameters should be added
+        /// RQ size must be 1 and parameters should match
+        /// </summary>
+        public void RecordUserProperties()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            IDictionary<string, object> userProperties = Dict(
+                 "int", 5,
+                 "long", 1044151383000,
+                 "float", 56.45678,
+                 "string", "value",
+                 "bool", true,
+                 "double", -5.4E-79,
+                 "invalid", Dict("test", "out"),
+                 "name", "John",
+                 "username", "Dohn",
+                 "organization", "Fohn",
+                 "email", "johnjohn@john.jo",
+                 "phone", "+123456789",
+                 "gender", "Unkown",
+                 "byear", 1969,
+                 "picture", "http://someurl.png",
+                 "nullable", null,
+                 "action", "{$push: \"black\"}"
+             );
+
+            Countly.Instance.BackendMode().RecordUserProperties(userProperties, deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John", "username", "Dohn",
+                 "organization", "Fohn",
+                 "email", "johnjohn@john.jo",
+                 "phone", "+123456789",
+                 "gender", "Unkown",
+                 "byear", 1969,
+                 "picture", "http://someurl.png", "custom", Dict("int", 5,
+                 "long", 1044151383000,
+                 "float", 56.45678,
+                 "string", "value",
+                 "bool", true,
+                 "double", -5.4E-79,
+                 "action", Dict("$push", "black")))));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordUserProperties" with null and empty properties
+        /// Validate that a user properties request is not generated after each call
+        /// RQ size must increase 0 after each call
+        /// </summary>
+        public void RecordUserProperties_NullAndEmptyProperties()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordUserProperties(null, TestHelper.v[0], TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+
+            Countly.Instance.BackendMode().RecordUserProperties(Dict(), TestHelper.v[0], TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1, long timestamp = 0)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
@@ -730,13 +884,17 @@ namespace TestProject_common
         {
             Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
             string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
-            Debug.WriteLine(request);
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
             ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(9 + paramaters.Count, queryParams.Count); //TODO 11 after merge
             foreach (KeyValuePair<string, object> item in paramaters) {
-                Assert.Equal(queryParams[item.Key], paramaters[item.Key].ToString());
+                Assert.Equal(queryParams[item.Key], item.Value.ToString());
             }
+        }
+
+        private string GetSessionMetrics()
+        {
+            return Json("_os", Countly.Instance.DeviceData.OS, "_os_version", Countly.Instance.DeviceData.OSVersion, "_app_version", TestHelper.APP_VERSION, "_locale", CultureInfo.CurrentUICulture.Name);
         }
 
         private IDictionary<string, T> DictGeneric<T>(params T[] values)

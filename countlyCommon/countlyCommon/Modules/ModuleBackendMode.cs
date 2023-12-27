@@ -140,12 +140,13 @@ namespace CountlySDK.CountlyCommon
                     if (v is string) {
                         string value = (string)v;
                         if (!string.IsNullOrEmpty(value) && value.ElementAt(0) == '{') {
-                            v = new JObject(value);
+                            v = JObject.Parse(value);
                         }
                     }
                     customDetail.Add(item.Key, v);
                 }
             }
+            userDetails.Add("custom", customDetail);
 
 
             await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
@@ -349,7 +350,7 @@ namespace CountlySDK.CountlyCommon
         public void RecordUserProperties(IDictionary<string, object> userProperties, string deviceId, string appKey, long timestamp)
         {
             if (userProperties == null || userProperties.Count < 1) {
-                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, error is empty or null, ignoring", LogLevel.WARNING);
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordUserProperties, userProperties is empty or null, ignoring", LogLevel.WARNING);
                 return;
             }
 
