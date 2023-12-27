@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using CountlySDK;
+using CountlySDK.CountlyCommon;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Newtonsoft.Json;
@@ -396,7 +398,302 @@ namespace TestProject_common
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 78));
         }
 
-        private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1)
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest" with null and empty parameters
+        /// Validate that a direct request is not generated with both calls, empty and null parameters
+        /// RQ size must be 0 after each "RecordDirectRequest" call
+        /// </summary>
+        public void RecordDirectRequest_NullOrEmpty()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(null, TestHelper.v[0], TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordDirectRequest(new Dictionary<string, string>(), TestHelper.v[0]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest" with different device id and app keys
+        /// Validate that a direct request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
+        /// 3. If both of them are given values should be match
+        /// 4. None of them given, both values fallback to the init generated/given values
+        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordDirectRequest_DeviceIdAndAppKeyFallbacks()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("test", "true"), deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("test", "true", "dr", 1));
+
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("gender", "M"), appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("gender", "M", "dr", 1), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("level", "5", "class", "Knight"), TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("level", "5", "class", "Knight", "dr", 1), 2, 3);
+
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("boss", "Utyirko"));
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("boss", "Utyirko", "dr", 1), 3, 4);
+
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("pk", "yes"), "", "");
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("pk", "yes", "dr", 1), 4, 5);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest"
+        /// Validate that given parameters to the function exists in the request and dr param exists.
+        /// RQ size must be 1 and request should contain "dr" parameter
+        /// </summary>
+        public void RecordDirectRequest()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("name", "SDK", "module", "Backend"), deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("name", "SDK", "module", "Backend", "dr", 1), rqSize: 1);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StartView"
+        /// Validate that given parameters to the function exists in the request and visit and start params exists.
+        /// RQ size must be 2 and first request should contain start and visit params, second one should contain visit param only
+        ///
+        /// Flow is this, also per app EQ size is 1 to generate request for every view
+        /// 1. Start view with first view as true
+        /// 2. Start view with non first view, provide custom segment and segmentation and timestamp
+        /// </summary>
+        public void StartView()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeAppEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[1], TestHelper.v[3], null, true);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[2], TestHelper.v[4], "Android", segmentations: Segm("bip", "boop"), timestamp: 1044151383000);
+
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", TestHelper.v[3], "start", "1", "visit", "1", "segment", "Windows"), reqCount: 2);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "visit", "1", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StartView" with null and empty name, device id and app key, server EQ size is 1 to trigger request generation after each call
+        /// Validate that no request exists in the RQ after each call
+        /// RQ size must be zero after each call
+        /// </summary>
+        public void StartView_NullEmpty()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[1], null, null, true);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[1], "", null, true);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], null, "t", null, true);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], "", "t", null, true);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StartView(null, TestHelper.v[1], "t", null, true);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StartView("", TestHelper.v[1], "t", null, true);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StopView" with null and empty name, device id and app key, server EQ size is 1 to trigger request generation after each call
+        /// Validate that no request exists in the RQ after each call
+        /// RQ size must be zero after each call
+        /// </summary>
+        public void StopView_NullEmpty()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[1], null, null, 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[1], "", null, 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], null, "t", null, 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], "", "t", null, 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StopView(null, TestHelper.v[1], "t", null, 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StopView("", TestHelper.v[1], "t", null, 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StopView"
+        /// Validate that given parameters to the function exists in the request
+        /// RQ size must be 2 and requests should contain view related segment and duration
+        ///
+        /// Flow is this, also server EQ size is 1 to generate request for every view
+        /// 1. Stop view with positive duration, validate event in RQ first request
+        /// 2. Stop view with positive duration, provide custom segment and segmentation and timestamp, validate event in rq second request
+        /// 3. Stop view with negative duration, no request should be created
+        /// </summary>
+        public void StopView()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[1], TestHelper.v[3], null, 45);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], duration: 45, segmentation: Segm("name", TestHelper.v[3], "segment", "Windows"));
+
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[2], TestHelper.v[4], "Android", 180, segmentations: Segm("bip", "boop"), timestamp: 1044151383000);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], duration: 180, segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
+
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[2], TestHelper.v[5], null, -56);
+            Assert.Equal(2, Countly.Instance.StoredRequests.Count);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordException" with different device id and app keys
+        /// Validate that an exception request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
+        /// 3. If both of them are given values should be match
+        /// 4. None of them given, both values fallback to the init generated/given values
+        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordException_DeviceIdAndAppKeyFallbacks()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordException(error: "Test", deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", true)));
+
+            Countly.Instance.BackendMode().RecordException(error: "Test", appKey: TestHelper.v[1], timestamp: 1044151383000, unhandled: true);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("crash", Json("_name", "Test", "_nonfatal", false)), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], TestHelper.v[1], "Test");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Test", "_nonfatal", true)), 2, 3);
+
+            Countly.Instance.BackendMode().RecordException(error: "Test", unhandled: true);
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", false)), 3, 4);
+
+            Countly.Instance.BackendMode().RecordException("", "", "Test");
+            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", true)), 4, 5);
+        }
+
+
+        [Fact]
+        /// <summary>
+        /// "RecordException"
+        /// Validate that an exception request is generated and expected values should match, and unsupported custom data type should be erased
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordException()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+            IList<string> breadcrumbs = new List<string> {
+                "Given",
+                "Breadcrumb"
+            };
+
+            IDictionary<string, object> customInfo = Dict(
+                "int", 5,
+                "long", 1044151383000,
+                "float", 56.45678,
+                "string", "value",
+                "bool", true,
+                "double", -5.4E-79,
+                "invalid", Dict("test", "out")
+                );
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], TestHelper.v[1], "Crashed", "Trace", breadcrumbs, customInfo, null, true, 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Crashed", "_nonfatal", false,
+                "_logs", string.Join("\n", breadcrumbs), "_error", "Trace",
+                "_custom", Dict("int", 5, "long", 1044151383000, "float", 56.45678, "string", "value", "bool", true, "double", -5.4E-79))));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordException" with null and empty error
+        /// Validate that an exception request is not generated after each call
+        /// RQ size must increase 0 after each call
+        /// </summary>
+        public void RecordException_NullAndEmptyError()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], TestHelper.v[1], "");
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], TestHelper.v[1], null);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordException" with metrics
+        /// Validate that an exception request is generated with provided supported metrics
+        /// RQ size must be 1 and supported metrics should exist in the request
+        /// </summary>
+        public void RecordException_Metrics()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            IDictionary<string, string> metrics = DictS("_device_brand", "Mac", "_user", "localhost", "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
+                "_ram_current", "512", "_disk_total", "1024", "_disk_current", "512", "_online", "false", "_muted", "false", "_orientation", "Portrait",
+                "_resolution", "1x1", "_app_version", "1.2", "_manufacture", "MyCompany", "_device", "MyDevice");
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], TestHelper.v[1], "Error", metrics: metrics);
+            metrics.Remove("_device_brand");
+            metrics.Remove("_user");
+
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Error", "_nonfatal", true, "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
+                "_ram_current", "512", "_disk_total", "1024", "_disk_current", "512", "_online", "false", "_muted", "false", "_orientation", "Portrait",
+                "_resolution", "1x1", "_app_version", "1.2", "_manufacture", "MyCompany", "_device", "MyDevice")));
+
+        }
+
+        private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1, long timestamp = 0)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
             Assert.Equal(eventQCount, events.Count);
@@ -410,7 +707,22 @@ namespace TestProject_common
             if (duration > 0) {
                 Assert.Equal(duration, events[eventIdx].Duration);
             }
-            Assert.Equal(segmentation, events[eventIdx].Segmentation);
+
+            foreach (SegmentationItem item in events[eventIdx].Segmentation.segmentation) {
+                Debug.WriteLine(item.Key + " " + item.Value);
+            }
+
+            Assert.Equal(segmentation.segmentation.Count, events[eventIdx].Segmentation.segmentation.Count);
+
+            foreach (SegmentationItem item in segmentation.segmentation) {
+                SegmentationItem itemK = events[eventIdx].Segmentation.segmentation.Find((itemT) => itemT.Key == item.Key);
+                Assert.Equal(itemK.Value, item.Value);
+            }
+
+            if (timestamp > 0) {
+                Assert.Equal(timestamp, events[eventIdx].Timestamp);
+
+            }
             Assert.True(events[eventIdx].Timestamp > 0);
         }
 
@@ -418,6 +730,7 @@ namespace TestProject_common
         {
             Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
             string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
+            Debug.WriteLine(request);
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
             ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(9 + paramaters.Count, queryParams.Count); //TODO 11 after merge
@@ -426,9 +739,9 @@ namespace TestProject_common
             }
         }
 
-        private IDictionary<string, object> Dict(params object[] values)
+        private IDictionary<string, T> DictGeneric<T>(params T[] values)
         {
-            IDictionary<string, object> result = new Dictionary<string, object>();
+            IDictionary<string, T> result = new Dictionary<string, T>();
             if (values == null || values.Length == 0 || values.Length % 2 != 0) { return result; }
 
             for (int i = 0; i < values.Length; i += 2) {
@@ -436,6 +749,33 @@ namespace TestProject_common
             }
 
             return result;
+        }
+
+        private Segmentation Segm(params string[] values)
+        {
+            Segmentation result = new Segmentation();
+            if (values == null || values.Length == 0 || values.Length % 2 != 0) { return result; }
+
+            for (int i = 0; i < values.Length; i += 2) {
+                result.Add(values[i], values[i + 1]);
+            }
+
+            return result;
+        }
+
+        private string Json(params object[] values)
+        {
+            return JsonConvert.SerializeObject(Dict(values), Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+        }
+
+        private IDictionary<string, object> Dict(params object[] values)
+        {
+            return DictGeneric(values);
+        }
+
+        private IDictionary<string, string> DictS(params string[] values)
+        {
+            return DictGeneric(values);
         }
 
         private List<CountlyEvent> ParseEventsFromRequestQueue(int idx, int count, string deviceId, string appKey)
