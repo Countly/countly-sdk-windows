@@ -146,7 +146,9 @@ namespace CountlySDK.CountlyCommon
                     customDetail.Add(item.Key, v);
                 }
             }
-            userDetails.Add("custom", customDetail);
+            if (customDetail.Count > 0) {
+                userDetails.Add("custom", customDetail);
+            }
 
 
             await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
