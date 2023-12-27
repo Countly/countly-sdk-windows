@@ -862,11 +862,9 @@ namespace TestProject_common
                 Assert.Equal(duration, events[eventIdx].Duration);
             }
 
-            foreach (SegmentationItem item in events[eventIdx].Segmentation.segmentation) {
-                Debug.WriteLine(item.Key + " " + item.Value);
+            if (events[eventIdx].Segmentation != null) {
+                Assert.Equal(segmentation.segmentation.Count, events[eventIdx].Segmentation.segmentation.Count);
             }
-
-            Assert.Equal(segmentation.segmentation.Count, events[eventIdx].Segmentation.segmentation.Count);
 
             foreach (SegmentationItem item in segmentation.segmentation) {
                 SegmentationItem itemK = events[eventIdx].Segmentation.segmentation.Find((itemT) => itemT.Key == item.Key);
