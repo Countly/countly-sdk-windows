@@ -862,13 +862,13 @@ namespace TestProject_common
                 Assert.Equal(duration, events[eventIdx].Duration);
             }
 
-            if (events[eventIdx].Segmentation != null) {
+            if (segmentation != null) {
                 Assert.Equal(segmentation.segmentation.Count, events[eventIdx].Segmentation.segmentation.Count);
-            }
 
-            foreach (SegmentationItem item in segmentation.segmentation) {
-                SegmentationItem itemK = events[eventIdx].Segmentation.segmentation.Find((itemT) => itemT.Key == item.Key);
-                Assert.Equal(itemK.Value, item.Value);
+                foreach (SegmentationItem item in segmentation.segmentation) {
+                    SegmentationItem itemK = events[eventIdx].Segmentation.segmentation.Find((itemT) => itemT.Key == item.Key);
+                    Assert.Equal(itemK.Value, item.Value);
+                }
             }
 
             if (timestamp > 0) {
