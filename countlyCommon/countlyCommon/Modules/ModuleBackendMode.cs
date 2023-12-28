@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -155,11 +155,11 @@ namespace CountlySDK.CountlyCommon
             await _cly.Upload();
         }
 
-        private async void ChangeDeviceIdWithMergeInternal(string deviceId, string appKey, long timestamp, string oldDeviceId)
+        private async void ChangeDeviceIdWithMergeInternal(string newDeviceId, string appKey, long timestamp, string oldDeviceId)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(oldDeviceId, appKey);
 
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, "&old_device_id=" + UtilityHelper.EncodeDataForURL(oldDeviceId), timestamp));
+            await _cly.AddRequest(CreateBaseRequest(newDeviceId, deviceIdAppKey._appKey, "&old_device_id=" + UtilityHelper.EncodeDataForURL(deviceIdAppKey._deviceId), timestamp));
             await _cly.Upload();
         }
 
@@ -370,15 +370,15 @@ namespace CountlySDK.CountlyCommon
             RecordUserPropertiesInternal(userProperties, deviceId, appKey, timestamp);
         }
 
-        public void ChangeDeviceIdWithMerge(string oldDeviceId, string deviceId = null, string appKey = null, long timestamp = 0)
+        public void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId = null, string appKey = null, long timestamp = 0)
         {
-            if (string.IsNullOrEmpty(oldDeviceId)) {
-                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, old device id is empty or null, ignoring", LogLevel.WARNING);
+            if (string.IsNullOrEmpty(newDeviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, new device id is empty or null, ignoring", LogLevel.WARNING);
                 return;
 
             }
 
-            ChangeDeviceIdWithMergeInternal(deviceId, appKey, timestamp, oldDeviceId);
+            ChangeDeviceIdWithMergeInternal(newDeviceId, appKey, timestamp, oldDeviceId);
         }
     }
 
@@ -486,12 +486,11 @@ namespace CountlySDK.CountlyCommon
         /// <summary>
         /// Change device id with server merge
         /// </summary>
-        /// <param name="oldDeviceId">The id that will going to be merged with the provided device id, should not be null or empty</param>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="newDeviceId">The id that will going to be merged with the provided device id, should not be null or empty</param>
+        /// <param name="oldDeviceId">If it is empty or null, defaults to device id given or generated internal</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void ChangeDeviceIdWithMerge(string oldDeviceId, string deviceId = null, string appKey = null, long timestamp = 0);
+        void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId = null, string appKey = null, long timestamp = 0);
     }
 
 }
-
