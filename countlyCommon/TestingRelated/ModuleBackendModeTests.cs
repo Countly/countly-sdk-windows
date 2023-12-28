@@ -638,7 +638,7 @@ namespace TestProject_common
 
             Countly.Instance.BackendMode().RecordException(TestHelper.v[0], TestHelper.v[1], "Crashed", "Trace", breadcrumbs, customInfo, null, true, 1044151383000);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Crashed", "_nonfatal", false,
-                "_logs", string.Join("\n", breadcrumbs), "_error", "Trace",
+                "_logs", string.Join("\n", breadcrumbs.ToArray()), "_error", "Trace",
                 "_custom", Dict("int", 5, "long", 1044151383000, "float", 56.45678, "string", "value", "bool", true, "double", -5.4E-79))));
         }
 
@@ -892,7 +892,7 @@ namespace TestProject_common
 
         private string GetSessionMetrics()
         {
-            return Json("_os", Countly.Instance.DeviceData.OS, "_os_version", Countly.Instance.DeviceData.OSVersion, "_app_version", TestHelper.APP_VERSION, "_locale", CultureInfo.CurrentUICulture.Name);
+            return Json("_os", Countly.Instance.DeviceData.OS, "_os_version", Countly.Instance.DeviceData.OSVersion, "_resolution", Countly.Instance.DeviceData.Resolution, "_app_version", TestHelper.APP_VERSION, "_locale", CultureInfo.CurrentUICulture.Name);
         }
 
         private IDictionary<string, T> DictGeneric<T>(params T[] values)
@@ -921,7 +921,8 @@ namespace TestProject_common
 
         private string Json(params object[] values)
         {
-            return JsonConvert.SerializeObject(Dict(values), Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            return JsonConvert.SerializeObject(Dict(values).Where(p => p.Value != null)
+                .ToDictionary(p => p.Key, p => p.Value), Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
         }
 
         private IDictionary<string, object> Dict(params object[] values)

@@ -59,7 +59,7 @@ namespace CountlySDK.CountlyCommon
 
         private async void BeginSessionInternal(string deviceId = null, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0)
         {
-            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
             string beginSessionParams = "&begin_session=1&metrics=";
             if (metrics == null) {
                 beginSessionParams += GetURLEncodedJson(_cly.GetSessionMetrics());
@@ -70,40 +70,40 @@ namespace CountlySDK.CountlyCommon
                 beginSessionParams += CreateQueryParamsFromDictionary(location);
             }
 
-            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, paramOverload: beginSessionParams, timestamp: timestamp));
+            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, paramOverload: beginSessionParams, timestamp: timestamp));
             await _cly.Upload();
         }
 
         private async void EndSessionInternal(string deviceId = null, string appKey = null, int duration = -1, long timestamp = 0)
         {
-            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
-            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, duration, "&end_session=1", timestamp));
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, duration, "&end_session=1", timestamp));
             await _cly.Upload();
         }
 
         private async void UpdateSessionInternal(string deviceId = null, string appKey = null, int duration = 0, long timestamp = 0)
         {
-            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
-            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, duration, timestamp: timestamp));
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, duration, timestamp: timestamp));
             await _cly.Upload();
         }
 
         public async void RecordDirectRequestInternal(IDictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0)
         {
-            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, CreateQueryParamsFromDictionary(paramaters) + "&dr=1", timestamp));
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, CreateQueryParamsFromDictionary(paramaters) + "&dr=1", timestamp));
             await _cly.Upload();
         }
 
         private async void RecordExceptionInternal(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, object> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
         {
-            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
             IDictionary<string, object> crashData = new Dictionary<string, object> {
                 { "_name", error },
                 { "_nonfatal", !unhandled }
             };
             if (breadcrumbs != null && breadcrumbs.Count > 0) {
-                crashData.Add("_logs", string.Join("\n", breadcrumbs));
+                crashData.Add("_logs", string.Join("\n", breadcrumbs.ToArray()));
             }
             if (!string.IsNullOrEmpty(stackTrace)) {
                 crashData.Add("_error", stackTrace);
@@ -120,13 +120,13 @@ namespace CountlySDK.CountlyCommon
                 }
             }
 
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&crash=" + GetURLEncodedJson(crashData), timestamp));
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, "&crash=" + GetURLEncodedJson(crashData), timestamp));
             await _cly.Upload();
         }
 
         private async void RecordUserPropertiesInternal(IDictionary<string, object> userProperties, string deviceId, string appKey, long timestamp)
         {
-            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
             RemoveInvalidDataFromDictionary(userProperties);
 
             IDictionary<string, object> userDetails = new Dictionary<string, object> { };
@@ -151,19 +151,30 @@ namespace CountlySDK.CountlyCommon
             }
 
 
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
             await _cly.Upload();
         }
 
         private async void ChangeDeviceIdWithMergeInternal(string deviceId, string appKey, long timestamp, string oldDeviceId)
         {
-            Tuple<string, string> deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
 
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey.Item1, deviceIdAppKey.Item2, "&old_device_id=" + UtilityHelper.EncodeDataForURL(oldDeviceId), timestamp));
+            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, "&old_device_id=" + UtilityHelper.EncodeDataForURL(oldDeviceId), timestamp));
             await _cly.Upload();
         }
 
-        private async Task<Tuple<string, string>> GetDeviceIdAppKey(string deviceId, string appKey)
+        private class DeviceIdAppKey
+        {
+            internal string _deviceId;
+            internal string _appKey;
+            internal DeviceIdAppKey(string deviceId, string appKey)
+            {
+                _deviceId = deviceId;
+                _appKey = appKey;
+            }
+        }
+
+        private async Task<DeviceIdAppKey> GetDeviceIdAppKey(string deviceId, string appKey)
         {
             string extractedDeviceID = deviceId;
             string extractedAppKey = appKey;
@@ -175,7 +186,7 @@ namespace CountlySDK.CountlyCommon
                 extractedAppKey = requestHelper.GetAppKey();
             }
 
-            return new Tuple<string, string>(extractedDeviceID, extractedAppKey);
+            return new DeviceIdAppKey(extractedDeviceID, extractedAppKey);
         }
 
         private async Task ProcessQueue(string deviceId, string appKey, List<CountlyEvent> events)

@@ -79,6 +79,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\FlowControlTestCases.cs">
       <Link>FlowControlTestCases.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleBackendModeTests.cs">
+      <Link>ModuleBackendModeTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
     </Compile>
