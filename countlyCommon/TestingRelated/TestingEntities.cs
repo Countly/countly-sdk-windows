@@ -462,68 +462,20 @@ namespace TestProject_common
                 Metrics m2 = TestHelper.CreateMetrics(i);
                 Metrics m3 = TestHelper.CreateMetrics(i + 1);
 
-                Assert.Equal(m1, m2);
-                Assert.NotEqual(m1, m3);
+                Assert.Equal(m1.ToString(), m2.ToString());
+                Assert.NotEqual(m1.ToString(), m3.ToString());
             }
         }
 
         [Fact]
-        public void ComparingEntitiesMetricsNull()
+        public void ComparingEntitiesMetricsOverride()
         {
             Metrics m1 = TestHelper.CreateMetrics(0);
             Metrics m2 = TestHelper.CreateMetrics(0);
 
-            Assert.Equal(m1, m2);
-            m1.AppVersion = null;
-            m2.AppVersion = null;
-            Assert.Equal(m1, m2);
-            m1.Carrier = null;
-            m2.Carrier = null;
-            Assert.Equal(m1, m2);
-            m1.Device = null;
-            m2.Device = null;
-            Assert.Equal(m1, m2);
-            m1.OS = null;
-            m2.OS = null;
-            Assert.Equal(m1, m2);
-            m1.OSVersion = null;
-            m2.OSVersion = null;
-            Assert.Equal(m1, m2);
-            m1.Resolution = null;
-            m2.Resolution = null;
-            Assert.Equal(m1, m2);
-
-            m1 = TestHelper.CreateMetrics(0);
-            m2 = TestHelper.CreateMetrics(0);
-
-            m2.AppVersion = null;
-            Assert.NotEqual(m1, m2);
-            Assert.NotEqual(m2, m1);
-
-            m2 = TestHelper.CreateMetrics(0);
-            m2.Carrier = null;
-            Assert.NotEqual(m1, m2);
-            Assert.NotEqual(m2, m1);
-
-            m2 = TestHelper.CreateMetrics(0);
-            m2.Device = null;
-            Assert.NotEqual(m1, m2);
-            Assert.NotEqual(m2, m1);
-
-            m2 = TestHelper.CreateMetrics(0);
-            m2.OS = null;
-            Assert.NotEqual(m1, m2);
-            Assert.NotEqual(m2, m1);
-
-            m2 = TestHelper.CreateMetrics(0);
-            m2.OSVersion = null;
-            Assert.NotEqual(m1, m2);
-            Assert.NotEqual(m2, m1);
-
-            m2 = TestHelper.CreateMetrics(0);
-            m2.Resolution = null;
-            Assert.NotEqual(m1, m2);
-            Assert.NotEqual(m2, m1);
+            Assert.Equal(m1.ToString(), m2.ToString());
+            m1.SetMetricOverride(new Dictionary<string, string> { { "_device", "Test" } });
+            Assert.NotEqual(m1.ToString(), m2.ToString());
         }
 
         [Fact]
@@ -754,16 +706,6 @@ namespace TestProject_common
             ExceptionEvent ee2 = JsonConvert.DeserializeObject<ExceptionEvent>(s);
 
             Assert.Equal(ee1, ee2);
-        }
-
-        [Fact]
-        public void SerializingEntitiesMetrics()
-        {
-            Metrics m1 = TestHelper.CreateMetrics(0);
-            String s = JsonConvert.SerializeObject(m1);
-            Metrics m2 = JsonConvert.DeserializeObject<Metrics>(s);
-
-            Assert.Equal(m1, m2);
         }
 
         [Fact]

@@ -107,6 +107,7 @@ namespace CountlySDK.CountlyCommon.Entities
         internal string IPAddress = null;
         internal string CountryCode = null;
         internal bool IsLocationDisabled = false;
+        internal IDictionary<string, string> MetricOverride = null;
 
         /// <summary>
         /// Disabled the location tracking on the Countly server
@@ -187,6 +188,15 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase SetBackendModeServerEQSizeToSend(int serverEQSize)
         {
             BackendModeServerEQSize = serverEQSize;
+            return this;
+        }
+
+        public CountlyConfigBase SetMetricOverride(IDictionary<string, string> metricOverride)
+        {
+            if (metricOverride != null && metricOverride.Count > 0) {
+                MetricOverride = metricOverride;
+            }
+
             return this;
         }
     }

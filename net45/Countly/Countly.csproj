@@ -166,7 +166,7 @@
     <Compile Include="Server\Api.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\EventPool.cs" Link="Helpers\EventPool.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Modules\**\*.*">
-        <Link>Modules\%(FileName)%(Extension)</Link>
+      <Link>Modules\%(FileName)%(Extension)</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>
