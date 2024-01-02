@@ -53,18 +53,20 @@ namespace TestProject_common
                 serverUrl = "https://try.count.ly/",
                 appKey = "YOUR_APP_KEY",
                 developerProvidedDeviceId = "test device id",
-                deviceIdMethod = Countly.DeviceIdMethod.developerSupplied
+                deviceIdMethod = Countly.DeviceIdMethod.developerSupplied,
+                appVersion = "1.0",
             };
 
             await Countly.Instance.Init(cc);
             Dictionary<string, object> baseParams = await Countly.Instance.requestHelper.GetBaseParams();
 
-            Assert.Equal(9, baseParams.Count);
+            Assert.Equal(10, baseParams.Count);
 
             Assert.Equal("YOUR_APP_KEY", baseParams["app_key"]);
             Assert.Equal("test device id", baseParams["device_id"]);
             Assert.Equal("23.12.0", baseParams["sdk_version"]);
             Assert.Equal(0, baseParams["t"]);
+            Assert.Equal("1.0", baseParams["av"]);
 
             Assert.True(baseParams.ContainsKey("sdk_name"));
             Assert.True(baseParams.ContainsKey("timestamp"));
@@ -104,6 +106,7 @@ namespace TestProject_common
             Assert.Equal("sdk-name", collection.Get("sdk_name"));
             Assert.Equal("sdk-version", collection.Get("sdk_version"));
             Assert.Equal("device-id", collection.Get("device_id"));
+            Assert.Equal("1.0", collection.Get("av"));
 
             Assert.Equal(timeInstantForRequest.Timezone, collection.Get("tz"));
             Assert.Equal("2", collection.Get("dow"));
@@ -145,6 +148,11 @@ namespace TestProject_common
             public TimeInstant GetTimeInstant()
             {
                 return usedInstance;
+            }
+
+            public string GetAppVersion()
+            {
+                return "1.0";
             }
         }
     }

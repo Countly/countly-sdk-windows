@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
+using Newtonsoft.Json;
 using static CountlySDK.CountlyCommon.CountlyBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -18,6 +20,7 @@ namespace CountlySDK.CountlyCommon.Helpers
             string GetAppKey();
             string GetSDKName();
             string GetSDKVersion();
+            string GetAppVersion();
             Task<DeviceId> GetDeviceId();
             TimeInstant GetTimeInstant();
         }
@@ -45,6 +48,9 @@ namespace CountlySDK.CountlyCommon.Helpers
                 {"hour", timeInstant.Hour},
                 {"tz", timeInstant.Timezone},
             };
+            if (!string.IsNullOrEmpty(_interface.GetAppVersion())) {
+                baseParams.Add("av", _interface.GetAppVersion());
+            }
 
             return baseParams;
         }
@@ -112,15 +118,15 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// </summary>
         /// <param name="queryParams"></param>
         /// <returns></returns>
-        internal async Task<string> BuildRequest(IDictionary<string, object> queryParams)
+        internal async Task<string> BuildRequest(IDictionary<string, object> queryParams = null)
         {
-            IDictionary<string, object> baseParams = await GetBaseParams();
+            IDictionary<string, object> requestData = await GetBaseParams();
 
-            //Metrics added to each request
-            IDictionary<string, object> requestData = baseParams;
-            foreach (KeyValuePair<string, object> item in queryParams) {
-                if (!requestData.ContainsKey(item.Key)) {
-                    requestData.Add(item.Key, item.Value);
+            if (queryParams != null && queryParams.Count() > 0) {
+                foreach (KeyValuePair<string, object> item in queryParams) {
+                    if (!requestData.ContainsKey(item.Key)) {
+                        requestData.Add(item.Key, item.Value);
+                    }
                 }
             }
 
@@ -150,6 +156,17 @@ namespace CountlySDK.CountlyCommon.Helpers
             string result = "/i?" + requestStringBuilder.ToString();
 
             return Uri.EscapeUriString(result);
+        }
+
+        /// <summary>
+        /// Converts and object that has JsonSerializer annotations to String
+        /// No formatting and null values are ignored
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        internal static string Json(object obj)
+        {
+            return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
         }
     }
 }
