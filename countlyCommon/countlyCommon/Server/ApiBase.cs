@@ -19,7 +19,7 @@ namespace CountlySDK.CountlyCommon.Server
 
         protected abstract Task DoSleep(int sleepTime);
 
-        public async Task<RequestResult> SendSession(string serverUrl, SessionEvent sessionEvent, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendSession(string serverUrl, int rr, SessionEvent sessionEvent, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;
 
@@ -27,10 +27,10 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            return await Call(serverUrl + sessionEvent.Content + userDetailsJson);
+            return await Call(serverUrl + sessionEvent.Content + userDetailsJson + "&rr=" + rr);
         }
 
-        public async Task<RequestResult> SendEvents(string serverUrl, RequestHelper requestHelper, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendEvents(string serverUrl, RequestHelper requestHelper, int rr, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
         {
             string eventsJson = RequestHelper.Json(events);
 
@@ -40,16 +40,16 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            return await Call(string.Format("{0}{1}&events={2}{3}", serverUrl, await requestHelper.BuildRequest(), UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson));
+            return await Call(string.Format("{0}{1}&events={2}{3}&rr={4}", serverUrl, await requestHelper.BuildRequest(), UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson, rr));
         }
 
-        public async Task<RequestResult> SendException(string serverUrl, RequestHelper requestHelper, ExceptionEvent exception)
+        public async Task<RequestResult> SendException(string serverUrl, RequestHelper requestHelper, int rr, ExceptionEvent exception)
         {
             string exceptionJson = RequestHelper.Json(exception);
-            return await Call(string.Format("{0}{1}&crash={2}", serverUrl, await requestHelper.BuildRequest(), exceptionJson));
+            return await Call(string.Format("{0}{1}&crash={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), exceptionJson, rr));
         }
 
-        public async Task<RequestResult> UploadUserDetails(string serverUrl, RequestHelper requestHelper, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserDetails(string serverUrl, RequestHelper requestHelper, int rr, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;
 
@@ -57,10 +57,10 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = RequestHelper.Json(userDetails);
             }
 
-            return await Call(string.Format("{0}{1}&user_details={2}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson));
+            return await Call(string.Format("{0}{1}&user_details={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr));
         }
 
-        public async Task<RequestResult> UploadUserPicture(string serverUrl, RequestHelper requestHelper, Stream imageStream, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserPicture(string serverUrl, RequestHelper requestHelper, int rr, Stream imageStream, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;
 
@@ -68,14 +68,11 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "=" + RequestHelper.Json(userDetails);
             }
 
-            return await Call(string.Format("{0}{1}&user_details{2}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson), imageStream);
+            return await Call(string.Format("{0}{1}&user_details{2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr), imageStream);
         }
 
         public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request, int rr)
         {
-            if (rr < 0) {
-                rr = 0;
-            }
             Debug.Assert(serverUrl != null);
             Debug.Assert(request != null);
 
