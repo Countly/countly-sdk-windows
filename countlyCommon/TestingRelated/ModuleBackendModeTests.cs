@@ -46,7 +46,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that every call to "RecordEvent" function of the BackenMode do not create a request in the queue
+        /// Validate that every call to "RecordEvent" function of the BackendMode do not create a request in the queue
         /// All event queue sizes are given as 1 to trigger request creation.
         /// After each call validating that request queue size is 0
         /// </summary>
@@ -76,7 +76,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that "RecordEvent" function of the BackenMode does create positive timestamp event even if it is given as negative
+        /// Validate that "RecordEvent" function of the BackendMode does create positive timestamp event even if it is given as negative
         /// All event queue sizes are given as 1 to trigger request creation.
         /// Validating that an events request is generated with positive timestamp
         /// </summary>
@@ -95,7 +95,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that "RecordEvent" function of the BackenMode does create positive count event even if it is given as negative
+        /// Validate that "RecordEvent" function of the BackendMode does create positive count event even if it is given as negative
         /// All event queue sizes are given as 1 to trigger request creation.
         /// Validating that an events request is generated with positive count
         /// </summary>
@@ -114,7 +114,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// Validate that "RecordEvent" function of the BackendMode with bunch of valid parameters
         /// All event queue sizes are given as 1 to trigger request creation.
         /// Validating that an events request is generated and same with expected values
         /// </summary>
@@ -139,7 +139,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// Validate that "RecordEvent" function of the BackendMode with bunch of valid parameters
         /// Event queue size is given as 2 to check that if size is exceeded request is generated
         /// Validating that an events request is generated 2 events exist for device id and app key and other device id is not generates request
         /// </summary>
@@ -169,7 +169,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// Validate that "RecordEvent" function of the BackendMode with bunch of valid parameters
         /// App Event queue size is given as 2 to check that if size is exceeded events requests are generated for that app
         /// Validating that events request is generated, and none request is generated for not exceeded app keys
         /// </summary>
@@ -195,7 +195,7 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that "RecordEvent" function of the BackenMode with bunch of valid parameters
+        /// Validate that "RecordEvent" function of the BackendMode with bunch of valid parameters
         /// Server Event queue size is given as 2 to check that if size is exceeded events requests are generated for whole apps and devices
         /// Validating that events requests are generated for the whole apps and devices, after flushed next recorded event should not be recorded
         /// </summary>
