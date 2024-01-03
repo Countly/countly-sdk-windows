@@ -40,13 +40,13 @@ namespace CountlySDK.Entities
             if (preferredIdMethod == DeviceIdMethodInternal.cpuId) {
                 String cpuIDValue = OpenUDID.value;
                 if (cpuIDValue != null) {
-                    dId = new DeviceId(PREFIX + cpuIDValue, DeviceIdMethodInternal.cpuId);
+                    dId = new DeviceId(cpuIDValue, DeviceIdMethodInternal.cpuId);
                 } else {
                     //fallback
-                    dId = new DeviceId(PREFIX + DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
+                    dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
                 }
             } else if (preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields) {
-                dId = new DeviceId(PREFIX + DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
+                dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
             } else if (preferredIdMethod == DeviceIdMethodInternal.windowsGUID) {
                 dId = CreateGUIDDeviceId();
             } else {
