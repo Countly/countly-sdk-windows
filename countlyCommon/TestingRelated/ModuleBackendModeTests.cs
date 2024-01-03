@@ -34,15 +34,13 @@ namespace TestProject_common
         [Fact]
         /// <summary>
         /// It validates that if backend mode disabled call to interface functions return null
-        /// and this causes NullReferenceException
         /// </summary>
         public async void RecordEvent_BackendModeNotEnabled()
         {
             CountlyConfig cc = TestHelper.CreateConfig();
             Countly.Instance.Init(cc).Wait();
 
-            Assert.Throws<NullReferenceException>(() => Countly.Instance.BackendMode().RecordEvent("", "", ""));
-
+            Assert.Equal(null, Countly.Instance.BackendMode());
         }
 
 
