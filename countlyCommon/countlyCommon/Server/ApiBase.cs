@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
@@ -23,55 +24,51 @@ namespace CountlySDK.CountlyCommon.Server
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+                userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
             return await Call(serverUrl + sessionEvent.Content + userDetailsJson);
         }
 
-        public async Task<RequestResult> SendEvents(string serverUrl, string appKey, DeviceId deviceId, string sdkVersion, string sdkName, List<CountlyEvent> events, TimeInstant timeInstant, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendEvents(string serverUrl, RequestHelper requestHelper, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
         {
-            string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            string eventsJson = RequestHelper.Json(events);
 
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+                userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&events={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}{10}&t={11}", serverUrl, appKey, did, UtilityHelper.EncodeDataForURL(eventsJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, userDetailsJson, deviceId.Type()));
+            return await Call(string.Format("{0}{1}&events={2}{3}", serverUrl, await requestHelper.BuildRequest(), UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson));
         }
 
-        public async Task<RequestResult> SendException(string serverUrl, string appKey, DeviceId deviceId, string sdkVersion, string sdkName, ExceptionEvent exception, TimeInstant timeInstant)
+        public async Task<RequestResult> SendException(string serverUrl, RequestHelper requestHelper, ExceptionEvent exception)
         {
-            string exceptionJson = JsonConvert.SerializeObject(exception, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-            string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&crash={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}&t={10}", serverUrl, appKey, did, UtilityHelper.EncodeDataForURL(exceptionJson), sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, deviceId.Type()));
+            string exceptionJson = RequestHelper.Json(exception);
+            return await Call(string.Format("{0}{1}&crash={2}", serverUrl, await requestHelper.BuildRequest(), exceptionJson));
         }
 
-        public async Task<RequestResult> UploadUserDetails(string serverUrl, string appKey, DeviceId deviceId, string sdkVersion, string sdkName, TimeInstant timeInstant, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserDetails(string serverUrl, RequestHelper requestHelper, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                userDetailsJson = RequestHelper.Json(userDetails);
             }
 
-            string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details={3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}&t={10}", serverUrl, appKey, did, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, deviceId.Type()));
+            return await Call(string.Format("{0}{1}&user_details={2}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson));
         }
 
-        public async Task<RequestResult> UploadUserPicture(string serverUrl, string appKey, DeviceId deviceId, string sdkVersion, string sdkName, Stream imageStream, TimeInstant timeInstant, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> UploadUserPicture(string serverUrl, RequestHelper requestHelper, Stream imageStream, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = "=" + JsonConvert.SerializeObject(userDetails, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+                userDetailsJson = "=" + RequestHelper.Json(userDetails);
             }
 
-            string did = UtilityHelper.EncodeDataForURL(deviceId.deviceId);
-            return await Call(string.Format("{0}/i?app_key={1}&device_id={2}&user_details{3}&sdk_version={4}&sdk_name={5}&hour={6}&dow={7}&tz={8}&timestamp={9}&t={10}", serverUrl, appKey, did, userDetailsJson, sdkVersion, sdkName, timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, deviceId.Type()), imageStream);
+            return await Call(string.Format("{0}{1}&user_details{2}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson), imageStream);
         }
 
         public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request, int rr)

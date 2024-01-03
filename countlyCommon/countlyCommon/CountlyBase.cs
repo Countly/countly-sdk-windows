@@ -45,6 +45,11 @@ namespace CountlySDK.CountlyCommon
 
             public TimeInstant GetTimeInstant() { return _base.timeHelper.GetUniqueInstant(); }
 
+            public string GetAppVersion()
+            {
+                return _base.AppVersion;
+            }
+
         }
 
         // Current version of the Count.ly SDK as a displayable string.
@@ -740,7 +745,7 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
+                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, requestHelper, eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -945,7 +950,7 @@ namespace CountlySDK.CountlyCommon
 
                 //do the exception upload
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent, timeInstant);
+                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, requestHelper, exEvent);
 
                 //check if we got a response and that it was a success
                 if (requestResult != null && requestResult.IsSuccess()) {
@@ -1012,7 +1017,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, UserDetails);
+            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, requestHelper, UserDetails);
 
             lock (sync) {
                 uploadInProgress = false;
@@ -1072,7 +1077,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), imageStream, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
+            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, requestHelper, imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
             return (requestResult != null && requestResult.IsSuccess());
         }
