@@ -42,7 +42,6 @@ namespace TestProject_common
             Assert.Equal(null, Countly.Instance.BackendMode());
         }
 
-
         [Fact]
         /// <summary>
         /// Validate that every call to "RecordEvent" function of the BackendMode create a request in the queue
@@ -58,19 +57,19 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
             Countly.Instance.BackendMode().RecordEvent("", "APP_KEY", TestHelper.v[0]);
-            ValidateEventInRequestQueue(TestHelper.v[0], TestHelper.DEVICE_ID, "APP_KEY");
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
             Countly.Instance.BackendMode().RecordEvent(null, "APP_KEY", TestHelper.v[1]);
-            ValidateEventInRequestQueue(TestHelper.v[1], TestHelper.DEVICE_ID, "APP_KEY", reqCount: 2, rqIdx: 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
 
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", "");
-            Assert.True(Countly.Instance.StoredRequests.Count == 2);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", null);
-            Assert.True(Countly.Instance.StoredRequests.Count == 2);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
 
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", TestHelper.v[2]);
-            ValidateEventInRequestQueue(TestHelper.v[2], "DEVICE_ID", TestHelper.APP_KEY, reqCount: 3, rqIdx: 2);
+            ValidateEventInRequestQueue(TestHelper.v[2], "DEVICE_ID", TestHelper.APP_KEY);
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", null, TestHelper.v[3]);
-            ValidateEventInRequestQueue(TestHelper.v[3], "DEVICE_ID", TestHelper.APP_KEY, reqCount: 4, rqIdx: 3);
+            ValidateEventInRequestQueue(TestHelper.v[3], "DEVICE_ID", TestHelper.APP_KEY, reqCount: 2, rqIdx: 1);
         }
 
         [Fact]
@@ -233,8 +232,8 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
 
-            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.DEVICE_ID));
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
         }
 
         [Fact]
@@ -250,10 +249,9 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-
-            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge("");
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge("", TestHelper.v[0]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(null);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(null, TestHelper.v[0]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
         }
 
@@ -263,27 +261,22 @@ namespace TestProject_common
         /// Validate that a device id merge request is generated after each call and expected behaviour should happen
         /// 
         /// 1. If device id is given but app key not given, app key should fallback to init given app key
-        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
-        /// 3. If both of them are given values should be match
+        /// 2. If both of them are given values should be match
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
-        public void ChangeDeviceIdWithMerge_DeviceIdAndAppKeyFallbacks()
+        public void ChangeDeviceIdWithMerge_AppKeyFallback()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
 
             Countly.Instance.Init(cc).Wait();
 
-
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
 
-            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("old_device_id", TestHelper.DEVICE_ID), 1, 2, 1044151383000);
-
-            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1], TestHelper.v[2]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[2], Dict("old_device_id", TestHelper.v[1]), 2, 3);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[2], Dict("old_device_id", TestHelper.v[1]), 1, 2, 1044151383000);
         }
 
         [Fact]
@@ -291,35 +284,27 @@ namespace TestProject_common
         /// "EndSession" with different device id and app keys
         /// Validate that a session end request is generated after each call and expected behaviour should happen
         /// 
-        /// 1. If device id is given but app key not given, app key should fallback to init given app key
-        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
-        /// 3. If both of them are given values should be match
-        /// 4. None of them given, both values fallback to the init generated/given values
-        /// 5. Both of them are given as empty string, defaults to init generated/given values, duration given as negative, should not exist in the request
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
-        public void EndSession_DeviceIdAndAppKeyFallbacks()
+        public void EndSession_AppKeyFallback()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().EndSession(deviceId: TestHelper.v[0]);
+            Countly.Instance.BackendMode().EndSession(-1, deviceId: TestHelper.v[0]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1));
 
-            Countly.Instance.BackendMode().EndSession(appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("end_session", 1), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().EndSession(45, appKey: TestHelper.v[1], timestamp: 1044151383000, deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("end_session", 1, "session_duration", 45), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().EndSession(45, TestHelper.v[0], TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("end_session", 1, "session_duration", 45), 2, 3);
-
-            Countly.Instance.BackendMode().EndSession(67);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("end_session", 1, "session_duration", 67), 3, 4);
-
-            Countly.Instance.BackendMode().EndSession(-4, "", "");
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("end_session", 1), 4, 5);
+            Countly.Instance.BackendMode().EndSession(67, TestHelper.v[0], "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1, "session_duration", 67), 2, 3);
         }
 
         [Fact]
@@ -328,14 +313,12 @@ namespace TestProject_common
         /// Validate that an update session request is generated after each call and expected behaviour should happen
         /// 
         /// 1. If device id is given but app key not given, app key should fallback to init given app key,
-        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
-        /// 3. If both of them are given values should be match
-        /// 4. None of them given, both values fallback to the init generated/given values
-        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
-        public void UpdateSession_DeviceIdAndAppKeyFallbacks()
+        public void UpdateSession_AppKeyFallback()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -345,17 +328,11 @@ namespace TestProject_common
             Countly.Instance.BackendMode().UpdateSession(1, deviceId: TestHelper.v[0]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("session_duration", 1));
 
-            Countly.Instance.BackendMode().UpdateSession(1, appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("session_duration", 1), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().UpdateSession(1, appKey: TestHelper.v[1], timestamp: 1044151383000, deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 1), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().UpdateSession(1, TestHelper.v[0], TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 1), 2, 3);
-
-            Countly.Instance.BackendMode().UpdateSession(1);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("session_duration", 1), 3, 4);
-
-            Countly.Instance.BackendMode().UpdateSession(1, "", "");
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("session_duration", 1), 4, 5);
+            Countly.Instance.BackendMode().UpdateSession(1, TestHelper.v[0], "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("session_duration", 1), 2, 3);
         }
 
         [Fact]
@@ -417,14 +394,12 @@ namespace TestProject_common
         /// Validate that a direct request is generated after each call and expected behaviour should happen
         /// 
         /// 1. If device id is given but app key not given, app key should fallback to init given app key,
-        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
-        /// 3. If both of them are given values should be match
-        /// 4. None of them given, both values fallback to the init generated/given values
-        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
-        public void RecordDirectRequest_DeviceIdAndAppKeyFallbacks()
+        public void RecordDirectRequest_AppKeyFallback()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -434,17 +409,11 @@ namespace TestProject_common
             Countly.Instance.BackendMode().RecordDirectRequest(DictS("test", "true"), deviceId: TestHelper.v[0]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("test", "true", "dr", 1));
 
-            Countly.Instance.BackendMode().RecordDirectRequest(DictS("gender", "M"), appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("gender", "M", "dr", 1), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("gender", "M"), deviceId: TestHelper.v[0], appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("gender", "M", "dr", 1), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().RecordDirectRequest(DictS("level", "5", "class", "Knight"), TestHelper.v[0], TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("level", "5", "class", "Knight", "dr", 1), 2, 3);
-
-            Countly.Instance.BackendMode().RecordDirectRequest(DictS("boss", "Utyirko"));
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("boss", "Utyirko", "dr", 1), 3, 4);
-
-            Countly.Instance.BackendMode().RecordDirectRequest(DictS("pk", "yes"), "", "");
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("pk", "yes", "dr", 1), 4, 5);
+            Countly.Instance.BackendMode().RecordDirectRequest(DictS("level", "5", "class", "Knight"), TestHelper.v[0], "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("level", "5", "class", "Knight", "dr", 1), 2, 3);
         }
 
         [Fact]
@@ -521,9 +490,9 @@ namespace TestProject_common
 
             // device id null empty
             Countly.Instance.BackendMode().StartView("t", null, null, TestHelper.v[1], true);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", "Windows"), reqCount: 5, rqIdx: 4);
+            Assert.True(Countly.Instance.StoredRequests.Count == 4);
             Countly.Instance.BackendMode().StartView("t", null, "", TestHelper.v[1], true);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", "Windows"), reqCount: 6, rqIdx: 5);
+            Assert.True(Countly.Instance.StoredRequests.Count == 4);
         }
 
         [Fact]
@@ -559,9 +528,9 @@ namespace TestProject_common
 
             // device id null empty
             Countly.Instance.BackendMode().StopView("t", null, 1, null, TestHelper.v[1]);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 5, rqIdx: 4, duration: 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 4);
             Countly.Instance.BackendMode().StopView("t", null, 1, "", TestHelper.v[1]);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 6, rqIdx: 5, duration: 1);
+            Assert.True(Countly.Instance.StoredRequests.Count == 4);
         }
 
         [Fact]
@@ -598,14 +567,12 @@ namespace TestProject_common
         /// Validate that an exception request is generated after each call and expected behaviour should happen
         /// 
         /// 1. If device id is given but app key not given, app key should fallback to init given app key,
-        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
-        /// 3. If both of them are given values should be match
-        /// 4. None of them given, both values fallback to the init generated/given values
-        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
-        public void RecordException_DeviceIdAndAppKeyFallbacks()
+        public void RecordException_AppKeyFallback()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -615,17 +582,11 @@ namespace TestProject_common
             Countly.Instance.BackendMode().RecordException(error: "Test", deviceId: TestHelper.v[0]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", true)));
 
-            Countly.Instance.BackendMode().RecordException(error: "Test", appKey: TestHelper.v[1], timestamp: 1044151383000, unhandled: true);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("crash", Json("_name", "Test", "_nonfatal", false)), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().RecordException(deviceId: TestHelper.v[0], error: "Test", appKey: TestHelper.v[1], timestamp: 1044151383000, unhandled: true);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Test", "_nonfatal", false)), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], TestHelper.v[1], "Test");
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Test", "_nonfatal", true)), 2, 3);
-
-            Countly.Instance.BackendMode().RecordException(error: "Test", unhandled: true);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", false)), 3, 4);
-
-            Countly.Instance.BackendMode().RecordException("", "", "Test");
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", true)), 4, 5);
+            Countly.Instance.BackendMode().RecordException(deviceId: TestHelper.v[0], error: "Test", appKey: "", timestamp: 1044151383000, unhandled: true);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", false)), 2, 3, 1044151383000);
         }
 
 
@@ -715,14 +676,12 @@ namespace TestProject_common
         /// Validate that an begin session request is generated after each call and expected behaviour should happen
         /// 
         /// 1. If device id is given but app key not given, app key should fallback to init given app key,
-        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
-        /// 3. If both of them are given values should be match
-        /// 4. None of them given, both values fallback to the init generated/given values
-        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
-        public void BeginSession_DeviceIdAndAppKeyFallbacks()
+        public void BeginSession_AppKeyFallback()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -732,17 +691,11 @@ namespace TestProject_common
             Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()));
 
-            Countly.Instance.BackendMode().BeginSession(appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("begin_session", "1", "metrics", GetSessionMetrics()), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(deviceId: TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", GetSessionMetrics()), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", GetSessionMetrics()), 2, 3);
-
-            Countly.Instance.BackendMode().BeginSession();
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()), 3, 4);
-
-            Countly.Instance.BackendMode().BeginSession();
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()), 4, 5);
+            Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: "", timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()), 2, 3, 1044151383000);
         }
 
         [Fact]
@@ -768,14 +721,12 @@ namespace TestProject_common
         /// Validate that a user properties request is generated after each call and expected behaviour should happen
         /// 
         /// 1. If device id is given but app key not given, app key should fallback to init given app key,
-        /// 2. If app key is given but device id not given, device id should fallback to generated/init given device id
-        /// 3. If both of them are given values should be match
-        /// 4. None of them given, both values fallback to the init generated/given values
-        /// 5. Both of them are given as empty string, defaults to init generated/given values,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
         /// 
         /// RQ size must increase by 1 after each call, and expected values should match
         /// </summary>
-        public void RecordUserProperties_DeviceIdAndAppKeyFallbacks()
+        public void RecordUserProperties_AppKeyFallback()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -785,17 +736,11 @@ namespace TestProject_common
             Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), deviceId: TestHelper.v[0]);
             ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John")));
 
-            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.v[1], Dict("user_details", Json("name", "John")), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), appKey: TestHelper.v[1], deviceId: TestHelper.v[0], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("user_details", Json("name", "John")), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), TestHelper.v[0], TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("user_details", Json("name", "John")), 2, 3);
-
-            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"));
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("user_details", Json("name", "John")), 3, 4);
-
-            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"));
-            ValidateRequestInQueue(TestHelper.DEVICE_ID, TestHelper.APP_KEY, Dict("user_details", Json("name", "John")), 4, 5);
+            Countly.Instance.BackendMode().RecordUserProperties(Dict("name", "John"), TestHelper.v[0], "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John")), 2, 3);
         }
 
         [Fact]

@@ -8,6 +8,7 @@ using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static CountlySDK.CountlyCommon.CountlyBase;
+using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon
@@ -29,7 +30,12 @@ namespace CountlySDK.CountlyCommon
 
         private async void RecordEventInternal(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, deviceId is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            string _appKey = GetAppKey(appKey);
 
             if (string.IsNullOrEmpty(eventKey)) {
                 UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, eventKey cannot be null or empty, returning");
@@ -45,13 +51,13 @@ namespace CountlySDK.CountlyCommon
             }
 
             lock (eventPool) {
-                eventPool.Put(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, new CountlyEvent(eventKey, eventCount, eventSum, eventDuration, segmentations, timestamp));
+                eventPool.Put(deviceId, _appKey, new CountlyEvent(eventKey, eventCount, eventSum, eventDuration, segmentations, timestamp));
             }
         }
 
-        private async void BeginSessionInternal(string deviceId = null, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0)
+        private async void BeginSessionInternal(string deviceId, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            string _appKey = GetAppKey(appKey);
             string beginSessionParams = "&begin_session=1&metrics=";
             if (metrics == null) {
                 beginSessionParams += GetURLEncodedJson(_cly.GetSessionMetrics());
@@ -62,34 +68,34 @@ namespace CountlySDK.CountlyCommon
                 beginSessionParams += CreateQueryParamsFromDictionary(location);
             }
 
-            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, paramOverload: beginSessionParams, timestamp: timestamp));
+            await _cly.AddRequest(CreateSessionRequest(deviceId, _appKey, paramOverload: beginSessionParams, timestamp: timestamp));
             await _cly.Upload();
         }
 
-        private async void EndSessionInternal(string deviceId = null, string appKey = null, int duration = -1, long timestamp = 0)
+        private async void EndSessionInternal(string deviceId, string appKey, int duration, long timestamp = 0)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
-            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, duration, "&end_session=1", timestamp));
+            string _appKey = GetAppKey(appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceId, _appKey, duration, "&end_session=1", timestamp));
             await _cly.Upload();
         }
 
-        private async void UpdateSessionInternal(string deviceId = null, string appKey = null, int duration = 0, long timestamp = 0)
+        private async void UpdateSessionInternal(string deviceId, string appKey = null, int duration = 0, long timestamp = 0)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
-            await _cly.AddRequest(CreateSessionRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, duration, timestamp: timestamp));
+            string _appKey = GetAppKey(appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceId, _appKey, duration, timestamp: timestamp));
             await _cly.Upload();
         }
 
-        public async void RecordDirectRequestInternal(IDictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0)
+        public async void RecordDirectRequestInternal(IDictionary<string, string> paramaters, string deviceId, string appKey = null, long timestamp = 0)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, CreateQueryParamsFromDictionary(paramaters) + "&dr=1", timestamp));
+            string _appKey = GetAppKey(appKey);
+            await _cly.AddRequest(CreateBaseRequest(deviceId, _appKey, CreateQueryParamsFromDictionary(paramaters) + "&dr=1", timestamp));
             await _cly.Upload();
         }
 
         private async void RecordExceptionInternal(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, object> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            string _appKey = GetAppKey(appKey);
             IDictionary<string, object> crashData = new Dictionary<string, object> {
                 { "_name", error },
                 { "_nonfatal", !unhandled }
@@ -112,13 +118,13 @@ namespace CountlySDK.CountlyCommon
                 }
             }
 
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, "&crash=" + GetURLEncodedJson(crashData), timestamp));
+            await _cly.AddRequest(CreateBaseRequest(deviceId, _appKey, "&crash=" + GetURLEncodedJson(crashData), timestamp));
             await _cly.Upload();
         }
 
         private async void RecordUserPropertiesInternal(IDictionary<string, object> userProperties, string deviceId, string appKey, long timestamp)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(deviceId, appKey);
+            string _appKey = GetAppKey(appKey);
             RemoveInvalidDataFromDictionary(userProperties);
 
             IDictionary<string, object> userDetails = new Dictionary<string, object> { };
@@ -143,42 +149,29 @@ namespace CountlySDK.CountlyCommon
             }
 
 
-            await _cly.AddRequest(CreateBaseRequest(deviceIdAppKey._deviceId, deviceIdAppKey._appKey, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
+            await _cly.AddRequest(CreateBaseRequest(deviceId, _appKey, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
             await _cly.Upload();
         }
 
         private async void ChangeDeviceIdWithMergeInternal(string newDeviceId, string appKey, long timestamp, string oldDeviceId)
         {
-            DeviceIdAppKey deviceIdAppKey = await GetDeviceIdAppKey(oldDeviceId, appKey);
+            await _cly.DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
 
-            await _cly.AddRequest(CreateBaseRequest(newDeviceId, deviceIdAppKey._appKey, "&old_device_id=" + UtilityHelper.EncodeDataForURL(deviceIdAppKey._deviceId), timestamp));
+            string _appKey = GetAppKey(appKey);
+
+            await _cly.AddRequest(CreateBaseRequest(newDeviceId, _appKey, "&old_device_id=" + UtilityHelper.EncodeDataForURL(oldDeviceId), timestamp));
             await _cly.Upload();
         }
 
-        private class DeviceIdAppKey
+        private string GetAppKey(string appKey)
         {
-            internal string _deviceId;
-            internal string _appKey;
-            internal DeviceIdAppKey(string deviceId, string appKey)
-            {
-                _deviceId = deviceId;
-                _appKey = appKey;
-            }
-        }
-
-        private async Task<DeviceIdAppKey> GetDeviceIdAppKey(string deviceId, string appKey)
-        {
-            string extractedDeviceID = deviceId;
             string extractedAppKey = appKey;
-            if (string.IsNullOrEmpty(deviceId)) {
-                extractedDeviceID = (await _cly.DeviceData.GetDeviceId()).deviceId;
-            }
 
             if (string.IsNullOrEmpty(appKey)) {
                 extractedAppKey = requestHelper.GetAppKey();
             }
 
-            return new DeviceIdAppKey(extractedDeviceID, extractedAppKey);
+            return extractedAppKey;
         }
 
         private async Task ProcessQueue(string deviceId, string appKey, List<CountlyEvent> events)
@@ -338,6 +331,12 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequest, parameters are empty or null, ignoring", LogLevel.WARNING);
                 return;
             }
+
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequest, deviceId is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
             RecordDirectRequestInternal(paramaters, deviceId, appKey, timestamp);
         }
 
@@ -345,6 +344,11 @@ namespace CountlySDK.CountlyCommon
         {
             if (string.IsNullOrEmpty(error)) {
                 UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, error is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, deviceId is empty or null, ignoring", LogLevel.WARNING);
                 return;
             }
 
@@ -359,15 +363,31 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordUserProperties, deviceId is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
             RecordUserPropertiesInternal(userProperties, deviceId, appKey, timestamp);
         }
 
-        public void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId = null, string appKey = null, long timestamp = 0)
+        public void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId, string appKey = null, long timestamp = 0)
         {
             if (string.IsNullOrEmpty(newDeviceId)) {
                 UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, new device id is empty or null, ignoring", LogLevel.WARNING);
                 return;
 
+            }
+
+            if (string.IsNullOrEmpty(oldDeviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, old device id is empty or null, ignoring", LogLevel.WARNING);
+                return;
+
+            }
+
+            if (newDeviceId == oldDeviceId) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, new device id is equal to the old one, ignoring", LogLevel.WARNING);
+                return;
             }
 
             ChangeDeviceIdWithMergeInternal(newDeviceId, appKey, timestamp, oldDeviceId);
@@ -379,7 +399,7 @@ namespace CountlySDK.CountlyCommon
         /// <summary>
         /// Record event with multiple app and device support
         /// </summary>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="eventKey">Event key, required</param>
         /// <param name="eventSum">Defaults to null</param>
@@ -387,19 +407,19 @@ namespace CountlySDK.CountlyCommon
         /// <param name="eventDuration">Defaults to null</param>
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void RecordEvent(string deviceId = null, string appKey = null, string eventKey = null, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+        void RecordEvent(string deviceId, string appKey = null, string eventKey = null, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
 
         /// <summary>
         /// Start view with multiple app and device support
         /// 
         /// <param name="name">View name, required</param>
         /// <param name="segment">Platform of the device or domain, required</param>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="firstView">To indicate wheter or not view is the first view of the session or flow, default false</param>
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void StartView(string name, string segment, string deviceId = null, string appKey = null, bool firstView = false, Segmentation segmentations = null, long timestamp = 0);
+        void StartView(string name, string segment, string deviceId, string appKey = null, bool firstView = false, Segmentation segmentations = null, long timestamp = 0);
 
         /// <summary>
         /// Stop view with multiple app and device support
@@ -408,53 +428,53 @@ namespace CountlySDK.CountlyCommon
         /// <param name="name">View name, required</param>
         /// <param name="segment">Platform of the device or domain, required</param>
         /// <param name="duration">Duration of the view, required</param>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void StopView(string name, string segment, long duration, string deviceId = null, string appKey = null, Segmentation segmentations = null, long timestamp = 0);
+        void StopView(string name, string segment, long duration, string deviceId, string appKey = null, Segmentation segmentations = null, long timestamp = 0);
 
         /// <summary>
         /// Begin session with multiple apps and devices
         /// </summary>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="metrics">If it is not provided, internal metrics will be used</param>
         /// <param name="location">If not given, will not be added</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void BeginSession(string deviceId = null, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0);
+        void BeginSession(string deviceId, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0);
 
         /// <summary>
         /// Update session with multiple apps and devices
         /// </summary>
         /// <param name="duration">Session duration in seconds, required</param>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void UpdateSession(int duration, string deviceId = null, string appKey = null, long timestamp = 0);
+        void UpdateSession(int duration, string deviceId, string appKey = null, long timestamp = 0);
 
         /// <summary>
         /// End session with multiple apps and devices
         /// </summary>
-        /// <param name="duration">Session duration in seconds, default is -1</param>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="duration">Session duration in seconds,required</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void EndSession(int duration = -1, string deviceId = null, string appKey = null, long timestamp = 0);
+        void EndSession(int duration, string deviceId, string appKey = null, long timestamp = 0);
 
         /// <summary>
         /// Send direct request to the server
         /// </summary>
         /// <param name="paramaters">Should not be null or empty, otherwise ignored</param>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void RecordDirectRequest(IDictionary<string, string> paramaters, string deviceId = null, string appKey = null, long timestamp = 0);
+        void RecordDirectRequest(IDictionary<string, string> paramaters, string deviceId, string appKey = null, long timestamp = 0);
 
         /// <summary>
         /// Record an exception
         /// </summary>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         /// <param name="customInfo">Custom info about exception, default null</param>
@@ -463,25 +483,25 @@ namespace CountlySDK.CountlyCommon
         /// <param name="unhandled">bool indicates is exception is fatal or not, default is false</param>
         /// <param name="breadcrumbs">breadcrumbs if any</param>
         /// <param name="metrics">if any. otherwise null</param>
-        void RecordException(string deviceId = null, string appKey = null, string error = null, string stackTrace = null, IList<string> breadcrumbs = null, IDictionary<string, object> customInfo = null, IDictionary<string, string> metrics = null, bool unhandled = false, long timestamp = 0);
+        void RecordException(string deviceId, string appKey = null, string error = null, string stackTrace = null, IList<string> breadcrumbs = null, IDictionary<string, object> customInfo = null, IDictionary<string, string> metrics = null, bool unhandled = false, long timestamp = 0);
 
         /// <summary>
         /// Record user properties
         /// </summary>
-        /// <param name="deviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         /// <param name="userProperties">properties to set, should not be empty or null</param>
-        void RecordUserProperties(IDictionary<string, object> userProperties, string deviceId = null, string appKey = null, long timestamp = 0);
+        void RecordUserProperties(IDictionary<string, object> userProperties, string deviceId, string appKey = null, long timestamp = 0);
 
         /// <summary>
         /// Change device id with server merge
         /// </summary>
         /// <param name="newDeviceId">The id that will going to be merged with the provided device id, should not be null or empty</param>
-        /// <param name="oldDeviceId">If it is empty or null, defaults to device id given or generated internal</param>
+        /// <param name="oldDeviceId">If it is empty or null, returns. required</param>
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
-        void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId = null, string appKey = null, long timestamp = 0);
+        void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId, string appKey = null, long timestamp = 0);
     }
 
 }
