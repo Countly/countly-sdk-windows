@@ -45,9 +45,9 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// Validate that every call to "RecordEvent" function of the BackendMode do not create a request in the queue
+        /// Validate that every call to "RecordEvent" function of the BackendMode create a request in the queue
         /// All event queue sizes are given as 1 to trigger request creation.
-        /// After each call validating that request queue size is 0
+        /// After each call validating that request queue size is increase
         /// </summary>
         public async void RecordEvent_NullOrEmpty_AppKey_DeviceID_EventKey()
         {
@@ -57,20 +57,20 @@ namespace TestProject_common
             cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
 
             Countly.Instance.Init(cc).Wait();
-            Countly.Instance.BackendMode().RecordEvent("", "APP_KEY", "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent(null, "APP_KEY", "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordEvent("", "APP_KEY", TestHelper.v[0]);
+            ValidateEventInRequestQueue(TestHelper.v[0], TestHelper.DEVICE_ID, "APP_KEY");
+            Countly.Instance.BackendMode().RecordEvent(null, "APP_KEY", TestHelper.v[1]);
+            ValidateEventInRequestQueue(TestHelper.v[1], TestHelper.DEVICE_ID, "APP_KEY", reqCount: 2, rqIdx: 1);
 
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", "");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Assert.True(Countly.Instance.StoredRequests.Count == 2);
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", null);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Assert.True(Countly.Instance.StoredRequests.Count == 2);
 
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", null, "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", TestHelper.v[2]);
+            ValidateEventInRequestQueue(TestHelper.v[2], "DEVICE_ID", TestHelper.APP_KEY, reqCount: 3, rqIdx: 2);
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", null, TestHelper.v[3]);
+            ValidateEventInRequestQueue(TestHelper.v[3], "DEVICE_ID", TestHelper.APP_KEY, reqCount: 4, rqIdx: 3);
         }
 
         [Fact]
@@ -481,8 +481,8 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[1], TestHelper.v[3], null, true);
-            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[2], TestHelper.v[4], "Android", segmentations: Segm("bip", "boop"), timestamp: 1044151383000);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[3], null, TestHelper.v[0], TestHelper.v[1], true);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[4], "Android", TestHelper.v[0], TestHelper.v[2], segmentations: Segm("bip", "boop"), timestamp: 1044151383000);
 
             ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", TestHelper.v[3], "start", "1", "visit", "1", "segment", "Windows"), reqCount: 2);
             ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "visit", "1", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
@@ -490,9 +490,9 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// "StartView" with null and empty name, device id and app key, server EQ size is 1 to trigger request generation after each call
-        /// Validate that no request exists in the RQ after each call
-        /// RQ size must be zero after each call
+        /// "StartView" with null and empty name, device id, app key and segment server EQ size is 1 to trigger request generation after each call
+        /// Validate that request exists in the RQ after each call and count is increased
+        /// RQ size must be increased after each call
         /// </summary>
         public void StartView_NullEmpty()
         {
@@ -501,23 +501,34 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[1], null, null, true);
+            // name null empty
+            Countly.Instance.BackendMode().StartView(null, null, TestHelper.v[0], TestHelper.v[1], true);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[1], "", null, true);
+            Countly.Instance.BackendMode().StartView("", null, TestHelper.v[0], TestHelper.v[1], true);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StartView(TestHelper.v[0], null, "t", null, true);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StartView(TestHelper.v[0], "", "t", null, true);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StartView(null, TestHelper.v[1], "t", null, true);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StartView("", TestHelper.v[1], "t", null, true);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+
+            // segment null empty
+            Countly.Instance.BackendMode().StartView("t", null, TestHelper.v[0], TestHelper.v[1], true);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", "Windows"));
+            Countly.Instance.BackendMode().StartView("t", "", TestHelper.v[0], TestHelper.v[1], true);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", "Windows"), reqCount: 2, rqIdx: 1);
+
+            // app key null empty
+            Countly.Instance.BackendMode().StartView("t", TestHelper.v[0], TestHelper.v[1], null, true);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", TestHelper.v[0]), reqCount: 3, rqIdx: 2);
+            Countly.Instance.BackendMode().StartView("t", TestHelper.v[0], TestHelper.v[1], "", true);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", TestHelper.v[0]), reqCount: 4, rqIdx: 3);
+
+            // device id null empty
+            Countly.Instance.BackendMode().StartView("t", null, null, TestHelper.v[1], true);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", "Windows"), reqCount: 5, rqIdx: 4);
+            Countly.Instance.BackendMode().StartView("t", null, "", TestHelper.v[1], true);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "start", "1", "visit", "1", "segment", "Windows"), reqCount: 6, rqIdx: 5);
         }
 
         [Fact]
         /// <summary>
-        /// "StopView" with null and empty name, device id and app key, server EQ size is 1 to trigger request generation after each call
+        /// "StopView" with null and empty name, device id ,app key, and segment server EQ size is 1 to trigger request generation after each call
         /// Validate that no request exists in the RQ after each call
         /// RQ size must be zero after each call
         /// </summary>
@@ -528,18 +539,29 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[1], null, null, 1);
+            // name null empty
+            Countly.Instance.BackendMode().StopView(null, null, 1, TestHelper.v[0], TestHelper.v[1]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[1], "", null, 1);
+            Countly.Instance.BackendMode().StopView("", null, 1, TestHelper.v[0], TestHelper.v[1]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], null, "t", null, 1);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], "", "t", null, 1);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StopView(null, TestHelper.v[1], "t", null, 1);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().StopView("", TestHelper.v[1], "t", null, 1);
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+
+            // segment null empty
+            Countly.Instance.BackendMode().StopView("t", null, 1, TestHelper.v[0], TestHelper.v[1]);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), duration: 1);
+            Countly.Instance.BackendMode().StopView("t", "", 1, TestHelper.v[0], TestHelper.v[1]);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 2, rqIdx: 1, duration: 1);
+
+            // app key null empty
+            Countly.Instance.BackendMode().StopView("t", TestHelper.v[0], 1, TestHelper.v[1], null);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "segment", TestHelper.v[0]), reqCount: 3, rqIdx: 2, duration: 1);
+            Countly.Instance.BackendMode().StopView("t", TestHelper.v[0], 1, TestHelper.v[1], "");
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "segment", TestHelper.v[0]), reqCount: 4, rqIdx: 3, duration: 1);
+
+            // device id null empty
+            Countly.Instance.BackendMode().StopView("t", null, 1, null, TestHelper.v[1]);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 5, rqIdx: 4, duration: 1);
+            Countly.Instance.BackendMode().StopView("t", null, 1, "", TestHelper.v[1]);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.DEVICE_ID, TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 6, rqIdx: 5, duration: 1);
         }
 
         [Fact]
@@ -560,13 +582,13 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[1], TestHelper.v[3], null, 45);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[3], null, 45, TestHelper.v[0], TestHelper.v[1]);
             ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], duration: 45, segmentation: Segm("name", TestHelper.v[3], "segment", "Windows"));
 
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[2], TestHelper.v[4], "Android", 180, segmentations: Segm("bip", "boop"), timestamp: 1044151383000);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[4], "Android", 180, TestHelper.v[0], TestHelper.v[2], segmentations: Segm("bip", "boop"), timestamp: 1044151383000);
             ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], duration: 180, segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
 
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[2], TestHelper.v[5], null, -56);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[5], null, -56, TestHelper.v[0], TestHelper.v[2]);
             Assert.Equal(2, Countly.Instance.StoredRequests.Count);
         }
 
