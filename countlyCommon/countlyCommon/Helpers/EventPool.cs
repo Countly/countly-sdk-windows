@@ -108,12 +108,10 @@ namespace CountlySDK.CountlyCommon
         private void CallCallbackForAppKey(string appKey)
         {
             lock (perAppKeyEventCache) {
-                for (int i = 0; i < perAppKeyEventCache[appKey].Count; i++) {
-                    KeyValuePair<string, List<CountlyEvent>> kp = perAppKeyEventCache[appKey].ElementAt(i);
+                while (perAppKeyEventCache[appKey].Count > 0) {
+                    KeyValuePair<string, List<CountlyEvent>> kp = perAppKeyEventCache[appKey].ElementAt(0);
                     bufferCallback.Invoke(kp.Key, appKey, RemoveAndGet(appKey, kp.Key, kp.Value));
-
                 }
-
             }
         }
 
