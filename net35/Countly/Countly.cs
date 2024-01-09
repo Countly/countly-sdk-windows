@@ -121,6 +121,7 @@ namespace CountlySDK
         internal override Metrics GetSessionMetrics()
         {
             Metrics metrics = new Metrics(DeviceData.OS, DeviceData.OSVersion, DeviceData.DeviceName, DeviceData.Resolution, null, AppVersion, DeviceData.Locale);
+            metrics.SetMetricOverride(Configuration.MetricOverride);
             return metrics;
         }
 

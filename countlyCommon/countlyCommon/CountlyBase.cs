@@ -1524,10 +1524,10 @@ namespace CountlySDK.CountlyCommon
             Metrics metrics = GetSessionMetrics();
 
             // Adding location into session request
-            Dictionary<string, object> requestParams = new Dictionary<string, object>(GetLocationParams());
-
-            requestParams.Add("begin_session", 1);
-            requestParams.Add("metrics", metrics.ToString());
+            Dictionary<string, object> requestParams = new Dictionary<string, object>(GetLocationParams()) {
+                { "begin_session", 1 },
+                { "metrics", metrics.ToString() }
+            };
 
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);

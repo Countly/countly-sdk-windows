@@ -1,3 +1,6 @@
+## XX.XX.XX
+* Metric override is added and accessible through "CountlyConfig.SetMetricOverride()"
+
 ## 23.12.0
 * Backend mode added and accesible through "Countly.Instance.BackendMode()" interface
 * The following methods added to the "CountlyConfig":
