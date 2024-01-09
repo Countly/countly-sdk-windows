@@ -31,16 +31,16 @@ namespace CountlySDK.CountlyCommon.Entities
             int type = 9;
             switch (deviceIdMethod) {
                 case DeviceBase.DeviceIdMethodInternal.cpuId:
-                    type = 3;
+                    type = 1;
                     break;
                 case DeviceBase.DeviceIdMethodInternal.multipleWindowsFields:
-                    type = 3;
+                    type = 2;
                     break;
                 case DeviceBase.DeviceIdMethodInternal.windowsGUID:
                     type = 3;
                     break;
                 case DeviceBase.DeviceIdMethodInternal.winHardwareToken:
-                    type = 3;
+                    type = 4;
                     break;
                 case DeviceBase.DeviceIdMethodInternal.developerSupplied:
                     type = 0;

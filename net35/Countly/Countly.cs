@@ -116,8 +116,7 @@ namespace CountlySDK
             }
 
             if (config.deviceIdMethod == DeviceIdMethod.multipleFields || config.deviceIdMethod == DeviceIdMethod.cpuId) {
-                UtilityHelper.CountlyLogging("[Countly] Init, multipleFields and cpuId are deprecated, falling back to the windowsGUID");
-                config.deviceIdMethod = DeviceIdMethod.windowsGUID;
+                UtilityHelper.CountlyLogging("[Countly] Init, multipleFields and cpuId are deprecated, please use windowsGUID");
             }
 
             await InitBase(config);
@@ -161,12 +160,10 @@ namespace CountlySDK
             }
         }
 
-        [Obsolete("This function is deprecated and will return a random GUID")]
+        [Obsolete("This function is deprecated")]
         public String GenerateDeviceIdMultipleFields()
         {
-            Guid guid = Guid.NewGuid();
-            string newId = DeviceBase.PREFIX + guid.ToString().Replace("-", "").ToUpper();
-            return newId;
+            return DeviceIdHelper.GenerateId();
         }
     }
 }
