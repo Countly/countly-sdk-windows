@@ -45,6 +45,10 @@ namespace CountlySDK.CountlyCommon
 
             public TimeInstant GetTimeInstant() { return _base.timeHelper.GetUniqueInstant(); }
 
+            public string GetAppVersion()
+            {
+                return _base.AppVersion;
+            }
         }
 
         // Current version of the Count.ly SDK as a displayable string.
@@ -345,7 +349,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (sr != null) {
-                RequestResult requestResult = await Api.Instance.SendStoredRequest(ServerUrl, sr);
+                RequestResult requestResult = await Api.Instance.SendStoredRequest(ServerUrl, sr, GetRemainingRequestCount());
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -402,7 +406,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (sessionEvent != null) {
-                RequestResult requestResult = await Api.Instance.SendSession(ServerUrl, sessionEvent, (UserDetails.isChanged) ? UserDetails : null);
+                RequestResult requestResult = await Api.Instance.SendSession(ServerUrl, GetRemainingRequestCount(), sessionEvent, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -711,6 +715,21 @@ namespace CountlySDK.CountlyCommon
 
         }
 
+        private int GetRemainingRequestCount()
+        {
+            int sC, exC, evC, rC, uC;
+
+            lock (sync) {
+                sC = Sessions.Count;
+                exC = Exceptions.Count;
+                evC = (int)Math.Floor((double)(Events.Count / 15)); // in UploadEvents() function Math.Min is used to send events by 15 chunks
+                rC = StoredRequests.Count;
+                uC = UserDetails.isChanged ? 1 : 0;
+            }
+
+            return Math.Max(sC + exC + evC + rC + uC - 1, 0);
+        }
+
         /// <summary>
         /// Uploads event queue to Countly server
         /// </summary>
@@ -740,7 +759,7 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), eventsToSend, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
+                RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, requestHelper, GetRemainingRequestCount(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -945,7 +964,7 @@ namespace CountlySDK.CountlyCommon
 
                 //do the exception upload
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), exEvent, timeInstant);
+                RequestResult requestResult = await Api.Instance.SendException(ServerUrl, requestHelper, GetRemainingRequestCount(), exEvent);
 
                 //check if we got a response and that it was a success
                 if (requestResult != null && requestResult.IsSuccess()) {
@@ -1012,7 +1031,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), timeInstant, UserDetails);
+            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, requestHelper, GetRemainingRequestCount(), UserDetails);
 
             lock (sync) {
                 uploadInProgress = false;
@@ -1072,7 +1091,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, AppKey, await DeviceData.GetDeviceId(), sdkVersion, sdkName(), imageStream, timeInstant, (UserDetails.isChanged) ? UserDetails : null);
+            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, requestHelper, GetRemainingRequestCount(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
             return (requestResult != null && requestResult.IsSuccess());
         }
@@ -1505,10 +1524,10 @@ namespace CountlySDK.CountlyCommon
             Metrics metrics = GetSessionMetrics();
 
             // Adding location into session request
-            Dictionary<string, object> requestParams = new Dictionary<string, object>(GetLocationParams());
-
-            requestParams.Add("begin_session", 1);
-            requestParams.Add("metrics", metrics.ToString());
+            Dictionary<string, object> requestParams = new Dictionary<string, object>(GetLocationParams()) {
+                { "begin_session", 1 },
+                { "metrics", metrics.ToString() }
+            };
 
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);

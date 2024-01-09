@@ -6,6 +6,8 @@ using System.Linq;
 using CountlySDK;
 using CountlySDK.Entities;
 using Newtonsoft.Json;
+using CountlySDK.CountlyCommon.Entities;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace TestProject_common
@@ -42,11 +44,12 @@ namespace TestProject_common
             Assert.Equal(null, Countly.Instance.BackendMode());
         }
 
+
         [Fact]
         /// <summary>
-        /// Validate that every call to "RecordEvent" function of the BackendMode create a request in the queue
+        /// Validate that every call to "RecordEvent" function of the BackendMode do not create a request in the queue
         /// All event queue sizes are given as 1 to trigger request creation.
-        /// After each call validating that request queue size is increase
+        /// After each call validating that request queue size is 0
         /// </summary>
         public async void RecordEvent_NullOrEmpty_AppKey_DeviceID_EventKey()
         {
