@@ -21,6 +21,7 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
@@ -29,57 +30,10 @@ namespace CountlySDK.Entities
     /// <summary>
     /// Holds device-specific info in json-ready format
     /// </summary>
-    [DataContractAttribute]
-    internal class Metrics : IComparable<Metrics>
+    internal class Metrics
     {
-        /// <summary>
-        /// Name of the current operating system
-        /// </summary>
-        [JsonProperty("_os")]
-        [DataMemberAttribute]
-        public string OS { get; set; }
 
-        /// <summary>
-        /// Current operating system version
-        /// </summary>
-        [JsonProperty("_os_version")]
-        [DataMemberAttribute]
-        public string OSVersion { get; set; }
-
-        /// <summary>
-        /// Local machine name (windows) or current device model (mobile)
-        /// </summary>
-        [JsonProperty("_device")]
-        [DataMemberAttribute]
-        public string Device { get; set; }
-
-        /// <summary>
-        /// Device resolution
-        /// </summary>
-        [JsonProperty("_resolution")]
-        [DataMemberAttribute]
-        public string Resolution { get; set; }
-
-        /// <summary>
-        /// Cellular mobile operator (where applicable)
-        /// </summary>
-        [JsonProperty("_carrier")]
-        [DataMemberAttribute]
-        public string Carrier { get; set; }
-
-        /// <summary>
-        /// Application version
-        /// </summary>
-        [JsonProperty("_app_version")]
-        [DataMemberAttribute]
-        public string AppVersion { get; set; }
-
-        /// <summary>
-        /// Locale
-        /// </summary>
-        [JsonProperty("_locale")]
-        [DataMemberAttribute]
-        public string Locale { get; set; }
+        public IDictionary<string, string> MetricsDict = new Dictionary<string, string>();
 
         /// <summary>
         /// Creates Metrics object with provided values
@@ -92,13 +46,37 @@ namespace CountlySDK.Entities
         /// <param name="AppVersion">Application version</param>
         public Metrics(string OS, string OSVersion, string Device, string Resolution, string Carrier, string AppVersion, string Locale)
         {
-            this.OS = OS;
-            this.OSVersion = OSVersion;
-            this.Device = Device;
-            this.Resolution = Resolution;
-            this.Carrier = Carrier;
-            this.AppVersion = AppVersion;
-            this.Locale = Locale;
+            AddToMetrics("_os", OS);
+            AddToMetrics("_os_version", OSVersion);
+            AddToMetrics("_device", Device);
+            AddToMetrics("_resolution", Resolution);
+            AddToMetrics("_carrier", Carrier);
+            AddToMetrics("_app_version", AppVersion);
+            AddToMetrics("_locale", Locale);
+        }
+
+        public void SetMetricOverride(IDictionary<string, string> metricOverride)
+        {
+            if (metricOverride == null || metricOverride.Count < 1) {
+                return;
+            }
+            foreach (KeyValuePair<string, string> item in metricOverride) {
+                AddToMetrics(item.Key, item.Value);
+            }
+        }
+
+        private void AddToMetrics(string key, string value)
+        {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(value)) {
+                return;
+            }
+
+            MetricsDict[key] = value;
+        }
+
+        public string GetMetric(string key)
+        {
+            return MetricsDict[key];
         }
 
         /// <summary>
@@ -107,48 +85,7 @@ namespace CountlySDK.Entities
         /// <returns></returns>
         public override string ToString()
         {
-            return JsonConvert.SerializeObject(this, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-        }
-
-        public int CompareTo(Metrics other)
-        {
-            if (!(OS == null && other.OS == null)) {
-                if (OS == null) { return -1; }
-                if (other.OS == null) { return 1; }
-                if (!OS.Equals(other.OS)) { return OS.CompareTo(other.OS); }
-            }
-
-            if (!(OSVersion == null && other.OSVersion == null)) {
-                if (OSVersion == null) { return -1; }
-                if (other.OSVersion == null) { return 1; }
-                if (!OSVersion.Equals(other.OSVersion)) { return OSVersion.CompareTo(other.OSVersion); }
-            }
-
-            if (!(Device == null && other.Device == null)) {
-                if (Device == null) { return -1; }
-                if (other.Device == null) { return 1; }
-                if (!Device.Equals(other.Device)) { return Device.CompareTo(other.Device); }
-            }
-
-            if (!(Resolution == null && other.Resolution == null)) {
-                if (Resolution == null) { return -1; }
-                if (other.Resolution == null) { return 1; }
-                if (!Resolution.Equals(other.Resolution)) { return Resolution.CompareTo(other.Resolution); }
-            }
-
-            if (!(Carrier == null && other.Carrier == null)) {
-                if (Carrier == null) { return -1; }
-                if (other.Carrier == null) { return 1; }
-                if (!Carrier.Equals(other.Carrier)) { return Carrier.CompareTo(other.Carrier); }
-            }
-
-            if (!(AppVersion == null && other.AppVersion == null)) {
-                if (AppVersion == null) { return -1; }
-                if (other.AppVersion == null) { return 1; }
-                if (!AppVersion.Equals(other.AppVersion)) { return AppVersion.CompareTo(other.AppVersion); }
-            }
-
-            return 0;
+            return JsonConvert.SerializeObject(MetricsDict);
         }
     }
 }
