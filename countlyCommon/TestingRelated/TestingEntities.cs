@@ -473,9 +473,52 @@ namespace TestProject_common
             Metrics m1 = TestHelper.CreateMetrics(0);
             Metrics m2 = TestHelper.CreateMetrics(0);
 
+            CompareMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+            CompareMetrics(m2, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
             Assert.Equal(m1.ToString(), m2.ToString());
-            m1.SetMetricOverride(new Dictionary<string, string> { { "_device", "Test" } });
+
+
+            m1.SetMetricOverride(new Dictionary<string, string> { { "_device", "Test" }, { "_os", "OS" }, { "_os_version", "OS_V" }, { "_app_version", "AV" }, { "_resolution", "100x100" }, { "_locale", "LOCALE" }, { "_carrier", "CARRIER" }, { "_build_version", "1.0" }, { "", "1.0" }, { "empty", "" } });
+
+            CompareMetrics(m1, new string[] { "OS", "OS_V", "Test", "100x100", "CARRIER", "AV", "LOCALE" }, new Dictionary<string, string> { { "_build_version", "1.0" } });
+            CompareMetrics(m2, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
             Assert.NotEqual(m1.ToString(), m2.ToString());
+        }
+
+        [Fact]
+        public void ComparingEntitiesMetricsOverride_EmptyKeyValue()
+        {
+            Metrics m1 = TestHelper.CreateMetrics(0);
+
+            CompareMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+
+            m1.SetMetricOverride(new Dictionary<string, string> { { "", "1.0" }, { "empty", "" } });
+
+            CompareMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+        }
+
+        /// <summary>
+        /// OS, OSVersion, Device, Resolution, Carrier, AppVersion, Locale
+        /// </summary>
+        private void CompareMetrics(Metrics metrics, string[] expectedValues, Dictionary<string, string> additionalMetrics)
+        {
+            int addSize = 0;
+            if (additionalMetrics != null) {
+                addSize += additionalMetrics.Count;
+                foreach (var item in additionalMetrics) {
+                    Assert.Equal(metrics.GetMetric(item.Key), item.Value);
+                }
+            }
+
+            Assert.Equal(expectedValues.Length + addSize, metrics.MetricsDict.Count());
+            Assert.Equal(metrics.GetMetric("_os"), expectedValues[0]);
+            Assert.Equal(metrics.GetMetric("_os_version"), expectedValues[1]);
+            Assert.Equal(metrics.GetMetric("_device"), expectedValues[2]);
+            Assert.Equal(metrics.GetMetric("_resolution"), expectedValues[3]);
+            Assert.Equal(metrics.GetMetric("_carrier"), expectedValues[4]);
+            Assert.Equal(metrics.GetMetric("_app_version"), expectedValues[5]);
+            Assert.Equal(metrics.GetMetric("_locale"), expectedValues[6]);
+
         }
 
         [Fact]
