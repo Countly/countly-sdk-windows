@@ -60,7 +60,7 @@ namespace CountlySDK.CountlyCommon
             string _appKey = GetAppKey(appKey);
             string beginSessionParams = "&begin_session=1&metrics=";
             if (metrics == null) {
-                beginSessionParams += GetURLEncodedJson(_cly.GetSessionMetrics());
+                beginSessionParams += GetURLEncodedJson(_cly.GetSessionMetrics().MetricsDict);
             } else {
                 beginSessionParams += GetURLEncodedJson(metrics);
             }
