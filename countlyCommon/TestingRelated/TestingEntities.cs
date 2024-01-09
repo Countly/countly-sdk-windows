@@ -459,8 +459,14 @@ namespace TestProject_common
         {
             for (int i = 0; i < 3; i++) {
                 Metrics m1 = TestHelper.CreateMetrics(i);
+                ValidateMetrics(m1, new string[] { TestHelper.v[i], TestHelper.v[i + 1], TestHelper.v[i + 2], TestHelper.v[i + 3], TestHelper.v[i + 4], TestHelper.v[i + 5], TestHelper.locales[i % TestHelper.locales.Length] }, null);
+
                 Metrics m2 = TestHelper.CreateMetrics(i);
+                ValidateMetrics(m2, new string[] { TestHelper.v[i], TestHelper.v[i + 1], TestHelper.v[i + 2], TestHelper.v[i + 3], TestHelper.v[i + 4], TestHelper.v[i + 5], TestHelper.locales[i % TestHelper.locales.Length] }, null);
+
                 Metrics m3 = TestHelper.CreateMetrics(i + 1);
+                ValidateMetrics(m3, new string[] { TestHelper.v[i + 1], TestHelper.v[i + 2], TestHelper.v[i + 3], TestHelper.v[i + 4], TestHelper.v[i + 5], TestHelper.v[i + 6], TestHelper.locales[(i + 1) % TestHelper.locales.Length] }, null);
+
 
                 Assert.Equal(m1.ToString(), m2.ToString());
                 Assert.NotEqual(m1.ToString(), m3.ToString());
@@ -473,15 +479,14 @@ namespace TestProject_common
             Metrics m1 = TestHelper.CreateMetrics(0);
             Metrics m2 = TestHelper.CreateMetrics(0);
 
-            CompareMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
-            CompareMetrics(m2, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+            ValidateMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+            ValidateMetrics(m2, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
             Assert.Equal(m1.ToString(), m2.ToString());
-
 
             m1.SetMetricOverride(new Dictionary<string, string> { { "_device", "Test" }, { "_os", "OS" }, { "_os_version", "OS_V" }, { "_app_version", "AV" }, { "_resolution", "100x100" }, { "_locale", "LOCALE" }, { "_carrier", "CARRIER" }, { "_build_version", "1.0" }, { "", "1.0" }, { "empty", "" } });
 
-            CompareMetrics(m1, new string[] { "OS", "OS_V", "Test", "100x100", "CARRIER", "AV", "LOCALE" }, new Dictionary<string, string> { { "_build_version", "1.0" } });
-            CompareMetrics(m2, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+            ValidateMetrics(m1, new string[] { "OS", "OS_V", "Test", "100x100", "CARRIER", "AV", "LOCALE" }, new Dictionary<string, string> { { "_build_version", "1.0" } });
+            ValidateMetrics(m2, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
             Assert.NotEqual(m1.ToString(), m2.ToString());
         }
 
@@ -490,17 +495,15 @@ namespace TestProject_common
         {
             Metrics m1 = TestHelper.CreateMetrics(0);
 
-            CompareMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
-
+            ValidateMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
             m1.SetMetricOverride(new Dictionary<string, string> { { "", "1.0" }, { "empty", "" } });
-
-            CompareMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+            ValidateMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
         }
 
         /// <summary>
         /// OS, OSVersion, Device, Resolution, Carrier, AppVersion, Locale
         /// </summary>
-        private void CompareMetrics(Metrics metrics, string[] expectedValues, Dictionary<string, string> additionalMetrics)
+        private void ValidateMetrics(Metrics metrics, string[] expectedValues, Dictionary<string, string> additionalMetrics)
         {
             int addSize = 0;
             if (additionalMetrics != null) {
@@ -518,7 +521,28 @@ namespace TestProject_common
             Assert.Equal(metrics.GetMetric("_carrier"), expectedValues[4]);
             Assert.Equal(metrics.GetMetric("_app_version"), expectedValues[5]);
             Assert.Equal(metrics.GetMetric("_locale"), expectedValues[6]);
+            Assert.Equal(metrics.ToString(), MetricsJson(expectedValues, additionalMetrics));
+        }
 
+        private string MetricsJson(string[] expectedValues, Dictionary<string, string> additionalMetrics)
+        {
+            Dictionary<string, string> metrics = new Dictionary<string, string>() {
+                {"_os",expectedValues[0] },
+                {"_os_version",expectedValues[1] },
+                {"_device",expectedValues[2] },
+                {"_resolution",expectedValues[3] },
+                {"_carrier",expectedValues[4] },
+                {"_app_version",expectedValues[5] },
+                {"_locale",expectedValues[6] }
+            };
+
+            if (additionalMetrics != null) {
+                foreach (var item in additionalMetrics) {
+                    metrics[item.Key] = item.Value;
+                }
+            }
+
+            return JsonConvert.SerializeObject(metrics);
         }
 
         [Fact]
