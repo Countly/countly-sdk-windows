@@ -31,7 +31,7 @@ namespace CountlySDK.Entities.EntityBase
     abstract internal class DeviceBase
     {
         internal enum DeviceIdMethodInternal { none = 0, cpuId = 1, multipleWindowsFields = 2, windowsGUID = 3, winHardwareToken = 4, developerSupplied = 100 };
-        public const string PREFIX = "CLY_";
+        protected static string PREFIX = "CLY_";
 
         internal const string deviceFilename = "device.xml";
 
