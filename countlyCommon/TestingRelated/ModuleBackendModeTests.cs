@@ -66,7 +66,7 @@ namespace TestProject_common
 
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", "");
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", null);
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", eventKey: null);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
 
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", TestHelper.v[2]);

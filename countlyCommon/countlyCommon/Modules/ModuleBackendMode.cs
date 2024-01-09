@@ -278,6 +278,11 @@ namespace CountlySDK.CountlyCommon
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
         }
 
+        public void RecordEvent(string deviceId, string eventKey, Segmentation segmentations, int count, double? sum, long? duration, string appKey, long timestamp)
+        {
+            RecordEventInternal(deviceId, appKey, eventKey, sum, count, duration, segmentations, timestamp);
+        }
+
         private void RecordView(string deviceId, string appKey, string name, string segment, long? dur, Segmentation segmentations, long timestamp)
         {
 
@@ -408,6 +413,20 @@ namespace CountlySDK.CountlyCommon
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         void RecordEvent(string deviceId, string appKey = null, string eventKey = null, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+
+        /// <summary>
+        /// Record event with multiple app and device support
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="eventKey">Event key, required</param>
+        /// <param name="sum">Defaults to null</param>
+        /// <param name="count">Defaults to 1</param>
+        /// <param name="duration">Defaults to null</param>
+        /// <param name="segmentations">Defaults to null</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void RecordEvent(string deviceId, string eventKey, Segmentation segmentations = null, int count = 1, double? sum = null, long? duration = null, string appKey = null, long timestamp = 0);
+
 
         /// <summary>
         /// Start view with multiple app and device support
