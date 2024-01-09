@@ -35,25 +35,7 @@ namespace CountlySDK.Entities
     {
         protected override DeviceId ComputeDeviceID()
         {
-            DeviceId dId;
-
-            if (preferredIdMethod == DeviceIdMethodInternal.cpuId) {
-                String cpuIDValue = OpenUDID.value;
-                if (cpuIDValue != null) {
-                    dId = new DeviceId(cpuIDValue, DeviceIdMethodInternal.cpuId);
-                } else {
-                    //fallback
-                    dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
-                }
-            } else if (preferredIdMethod == DeviceIdMethodInternal.multipleWindowsFields) {
-                dId = new DeviceId(DeviceIdHelper.GenerateId(), DeviceIdMethodInternal.multipleWindowsFields);
-            } else if (preferredIdMethod == DeviceIdMethodInternal.windowsGUID) {
-                dId = CreateGUIDDeviceId();
-            } else {
-                dId = CreateGUIDDeviceId();
-            }
-
-            return dId;
+            return CreateGUIDDeviceId();
         }
 
         protected override string GetOS()

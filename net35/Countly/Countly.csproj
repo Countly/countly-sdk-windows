@@ -141,7 +141,6 @@
     <Compile Include="Countly.cs" />
     <Compile Include="Entities\CountlyConfig.cs" />
     <Compile Include="Entities\Device.cs" />
-    <Compile Include="Helpers\DeviceIdHelper.cs" />
     <Compile Include="Helpers\OpenUDID.cs" />
     <Compile Include="Helpers\OSInfo.cs" />
     <Compile Include="Helpers\Storage.cs" />
