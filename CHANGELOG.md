@@ -1,4 +1,15 @@
 ## XX.XX.XX
+
+* New BackendMode features added and accesible through "Countly.Instance.BackendMode()" interface:
+    * "ChangeDeviceIdWithMerge"
+    * "RecordUserProperties"
+    * "RecordException"
+    * "RecordDirectRequest"
+    * "EndSession"
+    * "UpdateSession"
+    * "BeginSession"
+    * "StopView"
+    * "StartView"
 * Metric override is added and accessible through "CountlyConfig.SetMetricOverride()"
 
 ## 23.12.0
