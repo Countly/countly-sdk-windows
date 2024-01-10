@@ -251,6 +251,35 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// "BeginSession" with metric override
+        /// Validate that an begin session request is generated and given metrics should be in the request
+        /// RQ size must be 1 and all given values should exists in the request
+        /// </summary>
+        public void BeginSession_MetricOverride()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            cc.SetMetricOverride(new Dictionary<string, string> {
+                { "_os", "OS" },
+                { "_os_version", "OS_V" },
+                { "_app_version", "AV" },
+                { "_resolution", "100x100" },
+                { "_locale", "LOCALE" },
+                 { "_device", "Test" },
+                { "_carrier", "CARRIER" },
+                { "_build_version", "1.0" },
+                { "", "1.0" },
+                { "empty", "" } }
+            );
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", Json("_os", "OS", "_os_version", "OS_V", "_resolution", "100x100", "_app_version", "AV", "_locale", "LOCALE", "_device", "Test", "_carrier", "CARRIER", "_build_version", "1.0")), 0, 1, 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
         /// "BeginSession"
         /// Validate that an begin session request is generated and given params should be in the request
         /// RQ size must be 1 and all given values should exists in the request
@@ -412,7 +441,7 @@ namespace TestProject_common
             ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(10 + paramaters.Count, queryParams.Count); //TODO 11 after merge
             foreach (KeyValuePair<string, object> item in paramaters) {
-                Assert.Equal(queryParams[item.Key], item.Value.ToString());
+                Assert.Equal(item.Value.ToString(), queryParams[item.Key]);
             }
         }
 
