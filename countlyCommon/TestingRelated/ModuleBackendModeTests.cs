@@ -852,7 +852,7 @@ namespace TestProject_common
             string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
             ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
-            Assert.Equal(9 + paramaters.Count, queryParams.Count); //TODO 11 after merge
+            Assert.Equal(10 + paramaters.Count, queryParams.Count); //TODO 11 after merge
             foreach (KeyValuePair<string, object> item in paramaters) {
                 Assert.Equal(queryParams[item.Key], item.Value.ToString());
             }
@@ -911,7 +911,7 @@ namespace TestProject_common
 
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
             ValidateBaseParams(queryParams, deviceId, appKey);
-            Assert.Equal(10, queryParams.Count); //TODO 12 after merge
+            Assert.Equal(11, queryParams.Count); //TODO 12 after merge
 
             return JsonConvert.DeserializeObject<List<CountlyEvent>>(queryParams["events"]);
 
@@ -940,7 +940,7 @@ namespace TestProject_common
             }
 
             //sdk related params
-            //Assert.Equal(queryParams["av"], TestHelper.APP_VERSION); TODO enable after merge
+            Assert.Equal(queryParams["av"], TestHelper.APP_VERSION);
             Assert.Equal(queryParams["sdk_name"], Countly.Instance.sdkName());
             Assert.Equal(queryParams["sdk_version"], TestHelper.SDK_VERSION);
             Assert.Equal(queryParams["device_id"], deviceId);
