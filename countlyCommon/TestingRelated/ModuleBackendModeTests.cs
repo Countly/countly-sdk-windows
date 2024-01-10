@@ -221,6 +221,103 @@ namespace TestProject_common
             ValidateEventInRequestQueue(TestHelper.v[7], TestHelper.v[2], TestHelper.v[6], rqIdx: 1, reqCount: 2);
         }
 
+        [Fact]
+        /// <summary>
+        /// "RecordUserProperties" with different device id and app keys
+        /// Validate that a user properties request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordUserProperties_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict("name", "John"));
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John")));
+
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict("name", "John"), appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("user_details", Json("name", "John")), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict("name", "John"), "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John")), 2, 3);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordUserProperties" with different user properties
+        /// Validate that a user properties request is generated after each call and expected parameters should be added
+        /// RQ size must be 1 and parameters should match
+        /// </summary>
+        public void RecordUserProperties()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            IDictionary<string, object> userProperties = Dict(
+                 "int", 5,
+                 "long", 1044151383000,
+                 "float", 56.45678,
+                 "string", "value",
+                 "bool", true,
+                 "double", -5.4E-79,
+                 "invalid", Dict("test", "out"),
+                 "name", "John",
+                 "username", "Dohn",
+                 "organization", "Fohn",
+                 "email", "johnjohn@john.jo",
+                 "phone", "+123456789",
+                 "gender", "Unkown",
+                 "byear", 1969,
+                 "picture", "http://someurl.png",
+                 "nullable", null,
+                 "action", "{$push: \"black\"}"
+             );
+
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], userProperties);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John", "username", "Dohn",
+                 "organization", "Fohn",
+                 "email", "johnjohn@john.jo",
+                 "phone", "+123456789",
+                 "gender", "Unkown",
+                 "byear", 1969,
+                 "picture", "http://someurl.png", "custom", Dict("int", 5,
+                 "long", 1044151383000,
+                 "float", 56.45678,
+                 "string", "value",
+                 "bool", true,
+                 "double", -5.4E-79,
+                 "action", Dict("$push", "black")))));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordUserProperties" with null and empty properties
+        /// Validate that a user properties request is not generated after each call
+        /// RQ size must increase 0 after each call
+        /// </summary>
+        public void RecordUserProperties_NullAndEmptyProperties()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], null, TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict(), TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1, long timestamp = 0)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);

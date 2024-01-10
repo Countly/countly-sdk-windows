@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using static CountlySDK.CountlyCommon.CountlyBase;
 using static CountlySDK.Helpers.TimeHelper;
 
@@ -14,6 +16,8 @@ namespace CountlySDK.CountlyCommon
         private readonly EventPool eventPool;
         private readonly IRequestHelperImpl requestHelper;
         private readonly CountlyBase _cly;
+        internal static string[] userPredefinedKeys = { "name", "username", "email", "organization", "phone", "gender", "byear", "picture" };
+
 
         public ModuleBackendMode(CountlyBase countly)
         {
@@ -135,16 +139,70 @@ namespace CountlySDK.CountlyCommon
 
             return query;
         }
+        private async void RecordUserPropertiesInternal(IDictionary<string, object> userProperties, string deviceId, string appKey, long timestamp)
+        {
+            string _appKey = GetAppKey(appKey);
+            RemoveInvalidDataFromDictionary(userProperties);
+
+            IDictionary<string, object> userDetails = new Dictionary<string, object> { };
+            IDictionary<string, object> customDetail = new Dictionary<string, object> { };
+
+            foreach (KeyValuePair<string, object> item in userProperties) {
+                if (userPredefinedKeys.Contains(item.Key)) {
+                    userDetails.Add(item.Key, item.Value);
+                } else {
+                    object v = item.Value;
+                    if (v is string) {
+                        string value = (string)v;
+                        if (!string.IsNullOrEmpty(value) && value.ElementAt(0) == '{') {
+                            v = JObject.Parse(value);
+                        }
+                    }
+                    customDetail.Add(item.Key, v);
+                }
+            }
+            if (customDetail.Count > 0) {
+                userDetails.Add("custom", customDetail);
+            }
+
+
+            await _cly.AddRequest(CreateBaseRequest(deviceId, _appKey, "&user_details=" + GetURLEncodedJson(userDetails), timestamp));
+            await _cly.Upload();
+        }
 
         public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
+        }
+
+        public void RecordUserProperties(string deviceId, IDictionary<string, object> userProperties, string appKey, long timestamp)
+        {
+            if (userProperties == null || userProperties.Count < 1) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordUserProperties, userProperties is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordUserProperties, deviceId is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            RecordUserPropertiesInternal(userProperties, deviceId, appKey, timestamp);
         }
     }
 
     public interface BackendMode
     {
         void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+
+        /// <summary>
+        /// Record user properties
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        /// <param name="userProperties">properties to set, should not be empty or null</param>
+        void RecordUserProperties(string deviceId, IDictionary<string, object> userProperties, string appKey = null, long timestamp = 0);
     }
 
 }
