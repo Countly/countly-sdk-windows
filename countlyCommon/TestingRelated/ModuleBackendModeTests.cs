@@ -241,11 +241,11 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
-        /// "ChangeDeviceIdWithMerge" with null or empty old device id
+        /// "ChangeDeviceIdWithMerge" with null or empty new device id
         /// Validate that a device id merge request is not generated
         /// RQ size must be 0 after each call
         /// </summary>
-        public void ChangeDeviceIdWithMerge_NullOrEmpty()
+        public void ChangeDeviceIdWithMerge_NullOrEmpty_NewDeviceId()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -255,6 +255,42 @@ namespace TestProject_common
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge("", TestHelper.v[0]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(null, TestHelper.v[0]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with null or empty old device id
+        /// Validate that a device id merge request is not generated
+        /// RQ size must be 0 after each call
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_NullOrEmpty_OldDeviceId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], "");
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], null);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with same device ids
+        /// Validate that a device id merge request is not generated
+        /// RQ size must be 0 after each call
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_SameDeviceId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[0]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
         }
 
