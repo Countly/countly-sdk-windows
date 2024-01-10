@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using CountlySDK;
 using CountlySDK.CountlyCommon.Entities;
@@ -220,7 +221,7 @@ namespace TestProject_common
             ValidateEventInRequestQueue(TestHelper.v[7], TestHelper.v[2], TestHelper.v[6], rqIdx: 1, reqCount: 2);
         }
 
-        private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1)
+        private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1, long timestamp = 0)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
             Assert.Equal(eventQCount, events.Count);
@@ -234,9 +235,78 @@ namespace TestProject_common
             if (duration > 0) {
                 Assert.Equal(duration, events[eventIdx].Duration);
             }
-            Assert.Equal(segmentation, events[eventIdx].Segmentation);
-            Assert.True(events[eventIdx].Timestamp > 0);
 
+            if (segmentation != null) {
+                Assert.Equal(segmentation.segmentation.Count, events[eventIdx].Segmentation.segmentation.Count);
+
+                foreach (SegmentationItem item in segmentation.segmentation) {
+                    SegmentationItem itemK = events[eventIdx].Segmentation.segmentation.Find((itemT) => itemT.Key == item.Key);
+                    Assert.Equal(itemK.Value, item.Value);
+                }
+            }
+
+            if (timestamp > 0) {
+                Assert.Equal(timestamp, events[eventIdx].Timestamp);
+
+            }
+            Assert.True(events[eventIdx].Timestamp > 0);
+        }
+
+        private void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1, long timestamp = 0)
+        {
+            Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
+            string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
+            Dictionary<string, string> queryParams = TestHelper.GetParams(request);
+            ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
+            Assert.Equal(10 + paramaters.Count, queryParams.Count); //TODO 11 after merge
+            foreach (KeyValuePair<string, object> item in paramaters) {
+                Assert.Equal(queryParams[item.Key], item.Value.ToString());
+            }
+        }
+
+        private string GetSessionMetrics()
+        {
+            return Json("_os", Countly.Instance.DeviceData.OS, "_os_version", Countly.Instance.DeviceData.OSVersion, "_resolution", Countly.Instance.DeviceData.Resolution, "_app_version", TestHelper.APP_VERSION, "_locale", CultureInfo.CurrentUICulture.Name);
+        }
+
+        private IDictionary<string, T> DictGeneric<T>(params T[] values)
+        {
+            IDictionary<string, T> result = new Dictionary<string, T>();
+            if (values == null || values.Length == 0 || values.Length % 2 != 0) { return result; }
+
+            for (int i = 0; i < values.Length; i += 2) {
+                result[values[i].ToString()] = values[i + 1];
+            }
+
+            return result;
+        }
+
+        private Segmentation Segm(params string[] values)
+        {
+            Segmentation result = new Segmentation();
+            if (values == null || values.Length == 0 || values.Length % 2 != 0) { return result; }
+
+            for (int i = 0; i < values.Length; i += 2) {
+                result.Add(values[i], values[i + 1]);
+            }
+
+            return result;
+        }
+
+        private string Json(params object[] values)
+        {
+            return JsonConvert.SerializeObject(Dict(values).Where(p => p.Value != null)
+                .ToDictionary(p => p.Key, p => p.Value), Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+        }
+
+        private IDictionary<string, object> Dict(params object[] values)
+        {
+            return DictGeneric(values);
+        }
+
+        private IDictionary<string, string> DictS(params string[] values)
+        {
+            return DictGeneric(values);
         }
 
         private List<CountlyEvent> ParseEventsFromRequestQueue(int idx, int count, string deviceId, string appKey)
@@ -247,22 +317,36 @@ namespace TestProject_common
 
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
             ValidateBaseParams(queryParams, deviceId, appKey);
-            Assert.Equal(10, queryParams.Count); //TODO 12 after merge
+            Assert.Equal(11, queryParams.Count); //TODO 12 after merge
 
             return JsonConvert.DeserializeObject<List<CountlyEvent>>(queryParams["events"]);
 
         }
 
-        private void ValidateBaseParams(Dictionary<string, string> queryParams, string deviceId, string appKey)
+        private void ValidateBaseParams(Dictionary<string, string> queryParams, string deviceId, string appKey, long timestamp = 0)
         {
             //Time related params
-            Assert.True(int.Parse(queryParams["tz"]) >= 0);
-            Assert.True(int.Parse(queryParams["hour"]) >= 0);
-            Assert.True(int.Parse(queryParams["dow"]) >= 0);
-            Assert.True(long.Parse(queryParams["timestamp"]) > 0);
+            if (timestamp > 0) {
+                TimeSpan time = TimeSpan.FromMilliseconds(timestamp);
+                DateTime dateTime = new DateTime(1970, 1, 1) + time;
+
+                int dow = (int)dateTime.DayOfWeek;
+                int hour = dateTime.TimeOfDay.Hours;
+                string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
+
+                Assert.Equal(queryParams["tz"], timezone);
+                Assert.Equal(int.Parse(queryParams["hour"]), hour);
+                Assert.Equal(int.Parse(queryParams["dow"]), dow);
+                Assert.Equal(long.Parse(queryParams["timestamp"]), timestamp);
+            } else {
+                Assert.True(int.Parse(queryParams["tz"]) >= 0);
+                Assert.True(int.Parse(queryParams["hour"]) >= 0);
+                Assert.True(int.Parse(queryParams["dow"]) >= 0);
+                Assert.True(long.Parse(queryParams["timestamp"]) > 0);
+            }
 
             //sdk related params
-            //Assert.Equal(queryParams["av"], TestHelper.APP_VERSION); TODO enable after merge
+            Assert.Equal(queryParams["av"], TestHelper.APP_VERSION);
             Assert.Equal(queryParams["sdk_name"], Countly.Instance.sdkName());
             Assert.Equal(queryParams["sdk_version"], TestHelper.SDK_VERSION);
             Assert.Equal(queryParams["device_id"], deviceId);
