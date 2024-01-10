@@ -221,6 +221,131 @@ namespace TestProject_common
             ValidateEventInRequestQueue(TestHelper.v[7], TestHelper.v[2], TestHelper.v[6], rqIdx: 1, reqCount: 2);
         }
 
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with init given deivce id
+        /// Validate that a device id merge request is generated and exists with the init given device id
+        /// RQ size must be 1 and expected values should match
+        /// </summary>
+        public void ChangeDeviceIdWithMerge()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with null or empty old device id
+        /// Validate that a device id merge request is not generated
+        /// RQ size must be 0 after each call
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_NullOrEmpty()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge("", TestHelper.v[0]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(null, TestHelper.v[0]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with different device id and app keys
+        /// Validate that a device id merge request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key
+        /// 2. If both of them are given values should be match
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[2], Dict("old_device_id", TestHelper.v[1]), 1, 2, 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest" with null and empty parameters
+        /// Validate that a direct request is not generated with both calls, empty and null parameters
+        /// RQ size must be 0 after each "RecordDirectRequest" call
+        /// </summary>
+        public void RecordDirectRequest_NullOrEmpty()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], null, TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], new Dictionary<string, string>());
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest" with different device id and app keys
+        /// Validate that a direct request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordDirectRequest_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("test", "true"));
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("test", "true", "dr", 1));
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("gender", "M"), TestHelper.v[1], 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("gender", "M", "dr", 1), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("level", "5", "class", "Knight"), "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("level", "5", "class", "Knight", "dr", 1), 2, 3);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest"
+        /// Validate that given parameters to the function exists in the request and dr param exists.
+        /// RQ size must be 1 and request should contain "dr" parameter
+        /// </summary>
+        public void RecordDirectRequest()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("name", "SDK", "module", "Backend"));
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("name", "SDK", "module", "Backend", "dr", 1), rqSize: 1);
+        }
+
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1, long timestamp = 0)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
