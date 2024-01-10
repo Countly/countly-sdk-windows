@@ -51,7 +51,7 @@ namespace TestProject_common
         /// All event queue sizes are given as 1 to trigger request creation.
         /// After each call validating that request queue size is 0
         /// </summary>
-        public async void RecordEvent_NullOrEmpty_AppKey_DeviceID_EventKey()
+        public async void RecordEvent_NullOrEmpty_DeviceID()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -59,20 +59,49 @@ namespace TestProject_common
             cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
 
             Countly.Instance.Init(cc).Wait();
-            Countly.Instance.BackendMode().RecordEvent("", "APP_KEY", "EVENT_KEY");
+            Countly.Instance.BackendMode().RecordEvent("", "APP_KEY", TestHelper.v[0]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent(null, "APP_KEY", "EVENT_KEY");
+            Countly.Instance.BackendMode().RecordEvent(null, "APP_KEY", TestHelper.v[1]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
 
+        [Fact]
+        /// <summary>
+        /// Validate that every call to "RecordEvent" function of the BackendMode do not create a request in the queue
+        /// All event queue sizes are given as 1 to trigger request creation.
+        /// After each call validating that request queue size is 0
+        /// </summary>
+        public async void RecordEvent_NullOrEmpty_EventKey()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", "");
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", null);
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", eventKey: null);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
 
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", null, "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        [Fact]
+        /// <summary>
+        /// Validate that every call to "RecordEvent" function of the BackendMode create a request in the queue
+        /// All event queue sizes are given as 1 to trigger request creation.
+        /// After each call validating that request queue size increases and app key defaults to init given
+        /// </summary>
+        public async void RecordEvent_NullOrEmpty_AppKey()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", TestHelper.v[2]);
+            ValidateEventInRequestQueue(TestHelper.v[2], "DEVICE_ID", TestHelper.APP_KEY);
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", null, TestHelper.v[3]);
+            ValidateEventInRequestQueue(TestHelper.v[3], "DEVICE_ID", TestHelper.APP_KEY, reqCount: 2, rqIdx: 1);
         }
 
         [Fact]
@@ -200,7 +229,7 @@ namespace TestProject_common
         /// Server Event queue size is given as 2 to check that if size is exceeded events requests are generated for whole apps and devices
         /// Validating that events requests are generated for the whole apps and devices, after flushed next recorded event should not be recorded
         /// </summary>
-        public async void RecordEvent_ServerEQSize()
+        public void RecordEvent_ServerEQSize()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();

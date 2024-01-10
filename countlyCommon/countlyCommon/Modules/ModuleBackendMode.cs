@@ -22,17 +22,14 @@ namespace CountlySDK.CountlyCommon
             requestHelper = new IRequestHelperImpl(Countly.Instance);
         }
 
-        private void RecordEventInternal(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0)
+        private async void RecordEventInternal(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0)
         {
             if (string.IsNullOrEmpty(deviceId)) {
-                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, deviceId cannot be null or empty, returning");
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, deviceId is empty or null, ignoring", LogLevel.WARNING);
                 return;
             }
 
-            if (string.IsNullOrEmpty(appKey)) {
-                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, appKey cannot be null or empty, returning");
-                return;
-            }
+            string _appKey = GetAppKey(appKey);
 
             if (string.IsNullOrEmpty(eventKey)) {
                 UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordEventInternal, eventKey cannot be null or empty, returning");
@@ -48,7 +45,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             lock (eventPool) {
-                eventPool.Put(deviceId, appKey, new CountlyEvent(eventKey, eventCount, eventSum, eventDuration, segmentations, timestamp));
+                eventPool.Put(deviceId, _appKey, new CountlyEvent(eventKey, eventCount, eventSum, eventDuration, segmentations, timestamp));
             }
         }
 
@@ -67,14 +64,6 @@ namespace CountlySDK.CountlyCommon
             lock (eventPool) {
                 eventPool.Dump();
             }
-        }
-
-        private string CreateEventRequest(string deviceId, string appKey, List<CountlyEvent> events)
-        {
-            string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-            TimeInstant timeInstant = _cly.timeHelper.GetUniqueInstant();
-            string did = UtilityHelper.EncodeDataForURL(deviceId);
-            return string.Format("/i?app_key={0}&device_id={1}&events={2}&sdk_version={3}&sdk_name={4}&hour={5}&dow={6}&tz={7}&timestamp={8}&t={9}", appKey, did, UtilityHelper.EncodeDataForURL(eventsJson), requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, 0);
         }
 
         private string GetAppKey(string appKey)
@@ -136,15 +125,50 @@ namespace CountlySDK.CountlyCommon
             return query;
         }
 
-        public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
+        private string CreateEventRequest(string deviceId, string appKey, List<CountlyEvent> events)
+        {
+            string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            return CreateBaseRequest(deviceId, appKey, string.Format("&events={0}", UtilityHelper.EncodeDataForURL(eventsJson)));
+        }
+
+        public void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
+        }
+
+        public void RecordEvent(string deviceId, string eventKey, Segmentation segmentations, int count, double? sum, long? duration, string appKey, long timestamp)
+        {
+            RecordEventInternal(deviceId, appKey, eventKey, sum, count, duration, segmentations, timestamp);
         }
     }
 
     public interface BackendMode
     {
-        void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+        /// <summary>
+        /// Record event with multiple app and device support
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="eventKey">Event key, required</param>
+        /// <param name="eventSum">Defaults to null</param>
+        /// <param name="eventCount">Defaults to 1</param>
+        /// <param name="eventDuration">Defaults to null</param>
+        /// <param name="segmentations">Defaults to null</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void RecordEvent(string deviceId, string appKey = null, string eventKey = null, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+
+        /// <summary>
+        /// Record event with multiple app and device support
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="eventKey">Event key, required</param>
+        /// <param name="sum">Defaults to null</param>
+        /// <param name="count">Defaults to 1</param>
+        /// <param name="duration">Defaults to null</param>
+        /// <param name="segmentations">Defaults to null</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void RecordEvent(string deviceId, string eventKey, Segmentation segmentations = null, int count = 1, double? sum = null, long? duration = null, string appKey = null, long timestamp = 0);
     }
 
 }
