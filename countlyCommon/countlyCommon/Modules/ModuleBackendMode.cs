@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
@@ -14,6 +15,7 @@ namespace CountlySDK.CountlyCommon
         private readonly EventPool eventPool;
         private readonly IRequestHelperImpl requestHelper;
         private readonly CountlyBase _cly;
+        internal static string[] crashMetricKeys = { "_os", "_os_version", "_ram_total", "_ram_current", "_disk_total", "_disk_current", "_online", "_muted", "_resolution", "_app_version", "_manufacture", "_device", "_orientation", "_run" };
 
         public ModuleBackendMode(CountlyBase countly)
         {
@@ -136,15 +138,75 @@ namespace CountlySDK.CountlyCommon
             return query;
         }
 
+        private async void RecordExceptionInternal(string deviceId, string appKey, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, object> customInfo, IDictionary<string, string> metrics, bool unhandled, long timestamp)
+        {
+            string _appKey = GetAppKey(appKey);
+            IDictionary<string, object> crashData = new Dictionary<string, object> {
+                { "_name", error },
+                { "_nonfatal", !unhandled }
+            };
+            if (breadcrumbs != null && breadcrumbs.Count > 0) {
+                crashData.Add("_logs", string.Join("\n", breadcrumbs.ToArray()));
+            }
+            if (!string.IsNullOrEmpty(stackTrace)) {
+                crashData.Add("_error", stackTrace);
+            }
+            if (customInfo != null && customInfo.Count > 0) {
+                RemoveInvalidDataFromDictionary(customInfo);
+                crashData.Add("_custom", customInfo);
+            }
+            if (metrics != null && metrics.Count > 0) {
+                foreach (KeyValuePair<string, string> kv in metrics) {
+                    if (crashMetricKeys.Contains(kv.Key)) {
+                        crashData.Add(kv.Key, kv.Value);
+                    }
+                }
+            }
+
+            await _cly.AddRequest(CreateBaseRequest(deviceId, _appKey, "&crash=" + GetURLEncodedJson(crashData), timestamp));
+            await _cly.Upload();
+        }
+
         public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
+        }
+
+        public void RecordException(string deviceId, string error, string stackTrace, IList<string> breadcrumbs, IDictionary<string, object> customInfo, IDictionary<string, string> metrics, bool unhandled, string appKey, long timestamp)
+        {
+            if (string.IsNullOrEmpty(error)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, error is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordException, deviceId is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            RecordExceptionInternal(deviceId, appKey, error, stackTrace, breadcrumbs, customInfo, metrics, unhandled, timestamp);
+
         }
     }
 
     public interface BackendMode
     {
         void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+
+        /// <summary>
+        /// Record an exception
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        /// <param name="customInfo">Custom info about exception, default null</param>
+        /// <param name="error">name of the error, required</param>
+        /// <param name="stackTrace">trace of the error, defaults to null</param>
+        /// <param name="unhandled">bool indicates is exception is fatal or not, default is false</param>
+        /// <param name="breadcrumbs">breadcrumbs if any</param>
+        /// <param name="metrics">if any. otherwise null</param>
+        void RecordException(string deviceId, string error, string stackTrace = null, IList<string> breadcrumbs = null, IDictionary<string, object> customInfo = null, IDictionary<string, string> metrics = null, bool unhandled = false, string appKey = null, long timestamp = 0);
+
     }
 
 }
