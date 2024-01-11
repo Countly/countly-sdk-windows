@@ -5,6 +5,7 @@ using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using static CountlySDK.CountlyCommon.CountlyBase;
+using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon
@@ -125,6 +126,23 @@ namespace CountlySDK.CountlyCommon
             return query;
         }
 
+        private async void ChangeDeviceIdWithMergeInternal(string newDeviceId, string appKey, long timestamp, string oldDeviceId)
+        {
+            await _cly.DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
+
+            string _appKey = GetAppKey(appKey);
+
+            await _cly.AddRequest(CreateBaseRequest(newDeviceId, _appKey, "&old_device_id=" + UtilityHelper.EncodeDataForURL(oldDeviceId), timestamp));
+            await _cly.Upload();
+        }
+
+        public async void RecordDirectRequestInternal(IDictionary<string, string> paramaters, string deviceId, string appKey = null, long timestamp = 0)
+        {
+            string _appKey = GetAppKey(appKey);
+            await _cly.AddRequest(CreateBaseRequest(deviceId, _appKey, CreateQueryParamsFromDictionary(paramaters) + "&dr=1", timestamp));
+            await _cly.Upload();
+        }
+
         private string CreateEventRequest(string deviceId, string appKey, List<CountlyEvent> events)
         {
             string eventsJson = JsonConvert.SerializeObject(events, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
@@ -173,6 +191,43 @@ namespace CountlySDK.CountlyCommon
         public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
+        }
+
+        public void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId, string appKey = null, long timestamp = 0)
+        {
+            if (string.IsNullOrEmpty(newDeviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, new device id is empty or null, ignoring", LogLevel.WARNING);
+                return;
+
+            }
+
+            if (string.IsNullOrEmpty(oldDeviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, old device id is empty or null, ignoring", LogLevel.WARNING);
+                return;
+
+            }
+
+            if (newDeviceId == oldDeviceId) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] ChangeDeviceIdWithMerge, new device id is equal to the old one, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            ChangeDeviceIdWithMergeInternal(newDeviceId, appKey, timestamp, oldDeviceId);
+        }
+
+        public void RecordDirectRequest(string deviceId, IDictionary<string, string> paramaters, string appKey, long timestamp)
+        {
+            if (paramaters == null || paramaters.Count < 1) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequest, parameters are empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(deviceId)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordDirectRequest, deviceId is empty or null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            RecordDirectRequestInternal(paramaters, deviceId, appKey, timestamp);
         }
 
         private void RecordView(string deviceId, string appKey, string name, string segment, long? dur, Segmentation segmentations, long timestamp)
@@ -261,6 +316,24 @@ namespace CountlySDK.CountlyCommon
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         void RecordEvent(string deviceId, string appKey = null, string eventKey = null, double? eventSum = null, int eventCount = 1, long? eventDuration = null, Segmentation segmentations = null, long timestamp = 0);
+
+        /// <summary>
+        /// Change device id with server merge
+        /// </summary>
+        /// <param name="newDeviceId">The id that will going to be merged with the provided device id, should not be null or empty</param>
+        /// <param name="oldDeviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void ChangeDeviceIdWithMerge(string newDeviceId, string oldDeviceId, string appKey = null, long timestamp = 0);
+
+        /// <summary>
+        /// Send direct request to the server
+        /// </summary>
+        /// <param name="paramaters">Should not be null or empty, otherwise ignored</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void RecordDirectRequest(string deviceId, IDictionary<string, string> paramaters, string appKey = null, long timestamp = 0);
 
         /// <summary>
         /// Start view with multiple app and device support
