@@ -131,7 +131,46 @@ namespace CountlySDK.CountlyCommon
             return CreateBaseRequest(deviceId, appKey, string.Format("&events={0}", UtilityHelper.EncodeDataForURL(eventsJson)));
         }
 
-        public void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
+        private string CreateSessionRequest(string deviceId, string appKey, int duration = -1, string paramOverload = "", long timestamp = 0)
+        {
+            if (duration >= 0) {
+                paramOverload += "&session_duration=" + duration;
+            }
+            return CreateBaseRequest(deviceId, appKey, paramOverload, timestamp);
+        }
+
+        private async void BeginSessionInternal(string deviceId, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0)
+        {
+            string _appKey = GetAppKey(appKey);
+            string beginSessionParams = "&begin_session=1&metrics=";
+            if (metrics == null) {
+                beginSessionParams += GetURLEncodedJson(_cly.GetSessionMetrics().MetricsDict);
+            } else {
+                beginSessionParams += GetURLEncodedJson(metrics);
+            }
+            if (location != null && location.Count > 0) {
+                beginSessionParams += CreateQueryParamsFromDictionary(location);
+            }
+
+            await _cly.AddRequest(CreateSessionRequest(deviceId, _appKey, paramOverload: beginSessionParams, timestamp: timestamp));
+            await _cly.Upload();
+        }
+
+        private async void EndSessionInternal(string deviceId, string appKey, int duration, long timestamp = 0)
+        {
+            string _appKey = GetAppKey(appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceId, _appKey, duration, "&end_session=1", timestamp));
+            await _cly.Upload();
+        }
+
+        private async void UpdateSessionInternal(string deviceId, string appKey = null, int duration = 0, long timestamp = 0)
+        {
+            string _appKey = GetAppKey(appKey);
+            await _cly.AddRequest(CreateSessionRequest(deviceId, _appKey, duration, timestamp: timestamp));
+            await _cly.Upload();
+        }
+
+        public async void RecordEvent(string deviceId, string appKey, string eventKey, double? eventSum, int eventCount, long? eventDuration, Segmentation segmentations, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, eventSum, eventCount, eventDuration, segmentations, timestamp);
         }
@@ -139,6 +178,25 @@ namespace CountlySDK.CountlyCommon
         public void RecordEvent(string deviceId, string eventKey, Segmentation segmentations, int count, double? sum, long? duration, string appKey, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, sum, count, duration, segmentations, timestamp);
+        }
+        
+        public void BeginSession(string deviceId, string appKey, IDictionary<string, string> metrics, IDictionary<string, string> location, long timestamp)
+        {
+            BeginSessionInternal(deviceId, appKey, metrics, location, timestamp);
+        }
+
+        public void UpdateSession(string deviceId, int duration, string appKey = null, long timestamp = 0)
+        {
+            if (duration < 1) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] UpdateSession, duration could not be negative, returning");
+                return;
+            }
+            UpdateSessionInternal(deviceId, appKey, duration, timestamp);
+        }
+
+        public void EndSession(string deviceId = null, int duration = -1, string appKey = null, long timestamp = 0)
+        {
+            EndSessionInternal(deviceId, appKey, duration, timestamp);
         }
     }
 
@@ -169,6 +227,34 @@ namespace CountlySDK.CountlyCommon
         /// <param name="segmentations">Defaults to null</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         void RecordEvent(string deviceId, string eventKey, Segmentation segmentations = null, int count = 1, double? sum = null, long? duration = null, string appKey = null, long timestamp = 0);
+
+        // <summary>
+        /// Begin session with multiple apps and devices
+        /// </summary>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="metrics">If it is not provided, internal metrics will be used</param>
+        /// <param name="location">If not given, will not be added</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void BeginSession(string deviceId, string appKey = null, IDictionary<string, string> metrics = null, IDictionary<string, string> location = null, long timestamp = 0);
+
+        /// <summary>
+        /// Update session with multiple apps and devices
+        /// </summary>
+        /// <param name="duration">Session duration in seconds, required</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void UpdateSession(string deviceId, int duration, string appKey = null, long timestamp = 0);
+
+        /// <summary>
+        /// End session with multiple apps and devices
+        /// </summary>
+        /// <param name="duration">Session duration in seconds,required</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void EndSession(string deviceId, int duration, string appKey = null, long timestamp = 0);
     }
 
 }

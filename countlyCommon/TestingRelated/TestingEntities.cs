@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using CountlySDK;
 using CountlySDK.CountlyCommon.Entities;
@@ -488,6 +489,16 @@ namespace TestProject_common
             ValidateMetrics(m1, new string[] { "OS", "OS_V", "Test", "100x100", "CARRIER", "AV", "LOCALE" }, new Dictionary<string, string> { { "_build_version", "1.0" } });
             ValidateMetrics(m2, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
             Assert.NotEqual(m1.ToString(), m2.ToString());
+        }
+
+        [Fact]
+        public void ComparingEntitiesMetricsOverride_HardCodedString()
+        {
+            Metrics m1 = TestHelper.CreateMetrics(0);
+
+            ValidateMetrics(m1, new string[] { TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0] }, null);
+            Assert.Equal(m1.ToString(), "{" + string.Format("\"_os\":\"{0}\",\"_os_version\":\"{1}\",\"_device\":\"{2}\",\"_resolution\":\"{3}\",\"_carrier\":\"{4}\",\"_app_version\":\"{5}\",\"_locale\":\"{6}\"",
+               TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], TestHelper.v[3], TestHelper.v[4], TestHelper.v[5], TestHelper.locales[0]) + "}");
         }
 
         [Fact]
