@@ -51,7 +51,7 @@ namespace TestProject_common
         /// All event queue sizes are given as 1 to trigger request creation.
         /// After each call validating that request queue size is 0
         /// </summary>
-        public async void RecordEvent_NullOrEmpty_AppKey_DeviceID_EventKey()
+        public async void RecordEvent_NullOrEmpty_DeviceID()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -59,20 +59,49 @@ namespace TestProject_common
             cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
 
             Countly.Instance.Init(cc).Wait();
-            Countly.Instance.BackendMode().RecordEvent("", "APP_KEY", "EVENT_KEY");
+            Countly.Instance.BackendMode().RecordEvent("", "APP_KEY", TestHelper.v[0]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent(null, "APP_KEY", "EVENT_KEY");
+            Countly.Instance.BackendMode().RecordEvent(null, "APP_KEY", TestHelper.v[1]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
 
+        [Fact]
+        /// <summary>
+        /// Validate that every call to "RecordEvent" function of the BackendMode do not create a request in the queue
+        /// All event queue sizes are given as 1 to trigger request creation.
+        /// After each call validating that request queue size is 0
+        /// </summary>
+        public async void RecordEvent_NullOrEmpty_EventKey()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", "");
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", null);
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "APP_KEY", eventKey: null);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
 
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
-            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", null, "EVENT_KEY");
-            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        [Fact]
+        /// <summary>
+        /// Validate that every call to "RecordEvent" function of the BackendMode create a request in the queue
+        /// All event queue sizes are given as 1 to trigger request creation.
+        /// After each call validating that request queue size increases and app key defaults to init given
+        /// </summary>
+        public async void RecordEvent_NullOrEmpty_AppKey()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            // made all queues 1 to look to the queue to detect eq changes
+            cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", TestHelper.v[2]);
+            ValidateEventInRequestQueue(TestHelper.v[2], "DEVICE_ID", TestHelper.APP_KEY);
+            Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", null, TestHelper.v[3]);
+            ValidateEventInRequestQueue(TestHelper.v[3], "DEVICE_ID", TestHelper.APP_KEY, reqCount: 2, rqIdx: 1);
         }
 
         [Fact]
@@ -200,7 +229,7 @@ namespace TestProject_common
         /// Server Event queue size is given as 2 to check that if size is exceeded events requests are generated for whole apps and devices
         /// Validating that events requests are generated for the whole apps and devices, after flushed next recorded event should not be recorded
         /// </summary>
-        public async void RecordEvent_ServerEQSize()
+        public void RecordEvent_ServerEQSize()
         {
             CountlyConfig cc = TestHelper.GetConfig();
             cc.EnableBackendMode();
@@ -328,6 +357,299 @@ namespace TestProject_common
                 "_ram_current", "512", "_disk_total", "1024", "_disk_current", "512", "_online", "false", "_muted", "false", "_orientation", "Portrait",
                 "_resolution", "1x1", "_app_version", "1.2", "_manufacture", "MyCompany", "_device", "MyDevice")));
 
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with init given deivce id
+        /// Validate that a device id merge request is generated and exists with the init given device id
+        /// RQ size must be 1 and expected values should match
+        /// </summary>
+        public void ChangeDeviceIdWithMerge()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with null or empty new device id
+        /// Validate that a device id merge request is not generated
+        /// RQ size must be 0 after each call
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_NullOrEmpty_NewDeviceId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge("", TestHelper.v[0]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(null, TestHelper.v[0]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with null or empty old device id
+        /// Validate that a device id merge request is not generated
+        /// RQ size must be 0 after each call
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_NullOrEmpty_OldDeviceId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], "");
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], null);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with same device ids
+        /// Validate that a device id merge request is not generated
+        /// RQ size must be 0 after each call
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_SameDeviceId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[0]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "ChangeDeviceIdWithMerge" with different device id and app keys
+        /// Validate that a device id merge request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key
+        /// 2. If both of them are given values should be match
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void ChangeDeviceIdWithMerge_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
+
+            Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[2], Dict("old_device_id", TestHelper.v[1]), 1, 2, 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest" with null and empty parameters
+        /// Validate that a direct request is not generated with both calls, empty and null parameters
+        /// RQ size must be 0 after each "RecordDirectRequest" call
+        /// </summary>
+        public void RecordDirectRequest_NullOrEmpty()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], null, TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], new Dictionary<string, string>());
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest" with different device id and app keys
+        /// Validate that a direct request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordDirectRequest_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("test", "true"));
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("test", "true", "dr", 1));
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("gender", "M"), TestHelper.v[1], 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("gender", "M", "dr", 1), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("level", "5", "class", "Knight"), "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("level", "5", "class", "Knight", "dr", 1), 2, 3);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordDirectRequest"
+        /// Validate that given parameters to the function exists in the request and dr param exists.
+        /// RQ size must be 1 and request should contain "dr" parameter
+        /// </summary>
+        public void RecordDirectRequest()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("name", "SDK", "module", "Backend"));
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("name", "SDK", "module", "Backend", "dr", 1), rqSize: 1);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StartView"
+        /// Validate that given parameters to the function exists in the request and visit and start params exists.
+        /// RQ size must be 2 and first request should contain start and visit params, second one should contain visit param only
+        ///
+        /// Flow is this, also per app EQ size is 1 to generate request for every view
+        /// 1. Start view with first view as true
+        /// 2. Start view with non first view, provide custom segment and segmentation and timestamp
+        /// </summary>
+        public void StartView()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeAppEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[3], appKey: TestHelper.v[1], firstView: true);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[4], Segm("bip", "boop"), "Android", TestHelper.v[2], timestamp: 1044151383000);
+
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", TestHelper.v[3], "start", "1", "visit", "1", "segment", "Windows"), reqCount: 2);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "visit", "1", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StopView" with null and empty name server EQ size is 1 to trigger request generation after each call
+        /// Validate that no request exists in the RQ after each call
+        /// RQ size must be zero after each call
+        /// </summary>
+        public void StopView_NullEmpty_Name()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            // name null empty
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], null, 1, appKey: TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], "", 1, appKey: TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StopView" with null and empty segment server EQ size is 1 to trigger request generation after each call
+        /// Validate that RQ size increase by 1 after each call and segment fallbacks to OS
+        /// RQ size must be increase by 1
+        /// </summary>
+        public void StopView_NullEmpty_Segment()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            // segment null empty
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], "t", 1, segment: null, appKey: TestHelper.v[1]);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), duration: 1);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], "t", 1, segment: "", appKey: TestHelper.v[1]);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 2, rqIdx: 1, duration: 1);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StopView" with null and empty app key server EQ size is 1 to trigger request generation after each call
+        /// Validate that no request exists in the RQ after each call
+        /// RQ size must increase by 1 after each call because app key fallbacks to init given
+        /// </summary>
+        public void StopView_NullEmpty_AppKey()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            // app key null empty
+            Countly.Instance.BackendMode().StopView(TestHelper.v[1], "t", 1, appKey: null);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "segment", "Windows"), duration: 1);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[1], "t", 1, appKey: "");
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 2, rqIdx: 1, duration: 1);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StopView" with null and empty device id server EQ size is 1 to trigger request generation after each call
+        /// Validate that no request exists in the RQ after each call
+        /// RQ size must be zero after each call
+        /// </summary>
+        public void StopView_NullEmpty_DeviceID()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            // device id null empty
+            Countly.Instance.BackendMode().StopView(null, "t", 1, appKey: TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+            Countly.Instance.BackendMode().StopView("", "t", 1, appKey: TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "StopView"
+        /// Validate that given parameters to the function exists in the request
+        /// RQ size must be 2 and requests should contain view related segment and duration
+        ///
+        /// Flow is this, also server EQ size is 1 to generate request for every view
+        /// 1. Stop view with positive duration, validate event in RQ first request
+        /// 2. Stop view with positive duration, provide custom segment and segmentation and timestamp, validate event in rq second request
+        /// 3. Stop view with negative duration, no request should be created
+        /// </summary>
+        public void StopView()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode().SetBackendModeServerEQSizeToSend(1);
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[3], 45, appKey: TestHelper.v[1]);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], duration: 45, segmentation: Segm("name", TestHelper.v[3], "segment", "Windows"));
+
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[4], 180, Segm("bip", "boop"), "Android", TestHelper.v[2], 1044151383000);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], duration: 180, segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
+
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[5], -56, appKey: TestHelper.v[-56]);
+            Assert.Equal(2, Countly.Instance.StoredRequests.Count);
         }
 
         [Fact]
