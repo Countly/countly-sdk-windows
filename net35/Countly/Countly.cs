@@ -111,8 +111,12 @@ namespace CountlySDK
             if (IsInitialized()) { return; }
 
             if (config == null) {
-                UtilityHelper.CountlyLogging("Configuration object can not be null while initializing Countly");
+                UtilityHelper.CountlyLogging("[Countly] Init, object can not be null while initializing Countly");
                 return;
+            }
+
+            if (config.deviceIdMethod == DeviceIdMethod.multipleFields || config.deviceIdMethod == DeviceIdMethod.cpuId) {
+                UtilityHelper.CountlyLogging("[Countly] Init, multipleFields and cpuId are deprecated, please use windowsGUID");
             }
 
             await InitBase(config);
@@ -157,6 +161,7 @@ namespace CountlySDK
             }
         }
 
+        [Obsolete("This function is deprecated")]
         public String GenerateDeviceIdMultipleFields()
         {
             return DeviceIdHelper.GenerateId();
