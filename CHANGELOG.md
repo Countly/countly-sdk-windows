@@ -10,7 +10,9 @@
     * "BeginSession"
     * "StopView"
     * "StartView"
+
 * Metric override is added and accessible through "CountlyConfig.SetMetricOverride()"
+* "cpuId" and "multipleFields" device id generation methods are deprecated from Net Framework 3.5 and 4.5 versions
 
 ## 23.12.0
 * Backend mode added and accesible through "Countly.Instance.BackendMode()" interface
