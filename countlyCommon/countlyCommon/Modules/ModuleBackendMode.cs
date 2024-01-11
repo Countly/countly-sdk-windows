@@ -230,6 +230,53 @@ namespace CountlySDK.CountlyCommon
             RecordDirectRequestInternal(paramaters, deviceId, appKey, timestamp);
         }
 
+        private void RecordView(string deviceId, string appKey, string name, string segment, long? dur, Segmentation segmentations, long timestamp)
+        {
+
+            if (string.IsNullOrEmpty(name)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordView, name is empty or null returning", LogLevel.WARNING);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(segment)) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] RecordView, segment is empty or null, defaulting to Windows", LogLevel.WARNING);
+                segment = "Windows";
+            }
+
+            segmentations.Add("segment", segment);
+            segmentations.Add("name", name);
+            RecordEventInternal(deviceId, appKey, "[CLY]_view", null, 1, dur, segmentations, timestamp);
+        }
+
+        public void StartView(string deviceId, string name, Segmentation segmentations, string segment, string appKey, bool firstView, long timestamp)
+        {
+            if (segmentations == null) {
+                segmentations = new Segmentation();
+            }
+            if (firstView) {
+                segmentations.Add("start", "1");
+            }
+
+            segmentations.Add("visit", "1");
+
+            RecordView(deviceId, appKey, name, segment, null, segmentations, timestamp);
+
+        }
+
+        public void StopView(string deviceId, string name, long duration, Segmentation segmentations, string segment, string appKey, long timestamp)
+        {
+            if (duration < 0) {
+                UtilityHelper.CountlyLogging("[ModuleBackendMode] StopView, dur should not be negative, returning", LogLevel.WARNING);
+                return;
+            }
+
+            if (segmentations == null) {
+                segmentations = new Segmentation();
+            }
+
+            RecordView(deviceId, appKey, name, segment, duration, segmentations, timestamp);
+        }
+
         public void RecordEvent(string deviceId, string eventKey, Segmentation segmentations, int count, double? sum, long? duration, string appKey, long timestamp)
         {
             RecordEventInternal(deviceId, appKey, eventKey, sum, count, duration, segmentations, timestamp);
@@ -287,6 +334,31 @@ namespace CountlySDK.CountlyCommon
         /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         void RecordDirectRequest(string deviceId, IDictionary<string, string> paramaters, string appKey = null, long timestamp = 0);
+
+        /// <summary>
+        /// Start view with multiple app and device support
+        /// 
+        /// <param name="name">View name, required</param>
+        /// <param name="segment">Platform of the device or domain, required</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="firstView">To indicate wheter or not view is the first view of the session or flow, default false</param>
+        /// <param name="segmentations">Defaults to null</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void StartView(string deviceId, string name, Segmentation segmentations = null, string segment = null, string appKey = null, bool firstView = false, long timestamp = 0);
+
+        /// <summary>
+        /// Stop view with multiple app and device support
+        /// 
+        /// </summary>
+        /// <param name="name">View name, required</param>
+        /// <param name="segment">Platform of the device or domain, required</param>
+        /// <param name="duration">Duration of the view, required</param>
+        /// <param name="deviceId">If it is empty or null, returns. required</param>
+        /// <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+        /// <param name="segmentations">Defaults to null</param>
+        /// <param name="timestamp">Defaults to current timestamp if not provided</param>
+        void StopView(string deviceId, string name, long duration, Segmentation segmentations = null, string segment = null, string appKey = null, long timestamp = 0);
 
         /// <summary>
         /// Record event with multiple app and device support
