@@ -9,7 +9,7 @@ namespace CountlySDK.Entities
         /// <summary>
         /// Which method for deviceId generation is used
         /// </summary>
-        public DeviceIdMethod deviceIdMethod = DeviceIdMethod.multipleFields;
+        public DeviceIdMethod deviceIdMethod = DeviceIdMethod.windowsGUID;
 
         /// <summary>
         /// Sets the custom data path for temporary caching files
