@@ -1,5 +1,16 @@
 ## XX.XX.XX
 
+* New BackendMode features added and accesible through "Countly.Instance.BackendMode()" interface:
+    * "ChangeDeviceIdWithMerge"
+    * "RecordUserProperties"
+    * "RecordException"
+    * "RecordDirectRequest"
+    * "EndSession"
+    * "UpdateSession"
+    * "BeginSession"
+    * "StopView"
+    * "StartView"
+
 * Metric override is added and accessible through "CountlyConfig.SetMetricOverride()"
 * "cpuId" and "multipleFields" device id generation methods are deprecated from Net Framework 3.5 and 4.5 versions
 
