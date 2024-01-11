@@ -252,6 +252,115 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// "RecordException" with different device id and app keys
+        /// Validate that an exception request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordException_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordException(error: "Test", deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", true)));
+
+            Countly.Instance.BackendMode().RecordException(deviceId: TestHelper.v[0], error: "Test", appKey: TestHelper.v[1], timestamp: 1044151383000, unhandled: true);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Test", "_nonfatal", false)), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().RecordException(deviceId: TestHelper.v[0], error: "Test", appKey: "", timestamp: 1044151383000, unhandled: true);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", false)), 2, 3, 1044151383000);
+        }
+
+
+        [Fact]
+        /// <summary>
+        /// "RecordException"
+        /// Validate that an exception request is generated and expected values should match, and unsupported custom data type should be erased
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void RecordException()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+            IList<string> breadcrumbs = new List<string> {
+                "Given",
+                "Breadcrumb"
+            };
+
+            IDictionary<string, object> customInfo = Dict(
+                "int", 5,
+                "long", 1044151383000,
+                "float", 56.45678,
+                "string", "value",
+                "bool", true,
+                "double", -5.4E-79,
+                "invalid", Dict("test", "out")
+                );
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], "Crashed", "Trace", breadcrumbs, customInfo, null, true, TestHelper.v[1], 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Crashed", "_nonfatal", false,
+                "_logs", string.Join("\n", breadcrumbs.ToArray()), "_error", "Trace",
+                "_custom", Dict("int", 5, "long", 1044151383000, "float", 56.45678, "string", "value", "bool", true, "double", -5.4E-79))));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordException" with null and empty error
+        /// Validate that an exception request is not generated after each call
+        /// RQ size must increase 0 after each call
+        /// </summary>
+        public void RecordException_NullAndEmptyError()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], "", appKey: TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], null, appKey: TestHelper.v[1]);
+            Assert.True(Countly.Instance.StoredRequests.Count == 0);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordException" with metrics
+        /// Validate that an exception request is generated with provided supported metrics
+        /// RQ size must be 1 and supported metrics should exist in the request
+        /// </summary>
+        public void RecordException_Metrics()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            IDictionary<string, string> metrics = DictS("_device_brand", "Mac", "_user", "localhost", "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
+                "_ram_current", "512", "_disk_total", "1024", "_disk_current", "512", "_online", "false", "_muted", "false", "_orientation", "Portrait",
+                "_resolution", "1x1", "_app_version", "1.2", "_manufacture", "MyCompany", "_device", "MyDevice");
+
+            Countly.Instance.BackendMode().RecordException(TestHelper.v[0], "Error", metrics: metrics, appKey: TestHelper.v[1]);
+            metrics.Remove("_device_brand");
+            metrics.Remove("_user");
+
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Error", "_nonfatal", true, "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
+                "_ram_current", "512", "_disk_total", "1024", "_disk_current", "512", "_online", "false", "_muted", "false", "_orientation", "Portrait",
+                "_resolution", "1x1", "_app_version", "1.2", "_manufacture", "MyCompany", "_device", "MyDevice")));
+
+        }
+
+        [Fact]
+        /// <summary>
         /// "ChangeDeviceIdWithMerge" with init given deivce id
         /// Validate that a device id merge request is generated and exists with the init given device id
         /// RQ size must be 1 and expected values should match
