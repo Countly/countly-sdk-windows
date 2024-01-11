@@ -330,6 +330,187 @@ namespace TestProject_common
 
         }
 
+        [Fact]
+        /// <summary>
+        /// "BeginSession" with different device id and app keys
+        /// Validate that an begin session request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void BeginSession_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()));
+
+            Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(deviceId: TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", GetSessionMetrics()), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: "", timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()), 2, 3, 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "BeginSession" with metric override
+        /// Validate that an begin session request is generated and given metrics should be in the request
+        /// RQ size must be 1 and all given values should exists in the request
+        /// </summary>
+        public void BeginSession_MetricOverride()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            cc.SetMetricOverride(new Dictionary<string, string> {
+                { "_os", "OS" },
+                { "_os_version", "OS_V" },
+                { "_app_version", "AV" },
+                { "_resolution", "100x100" },
+                { "_locale", "LOCALE" },
+                 { "_device", "Test" },
+                { "_carrier", "CARRIER" },
+                { "_build_version", "1.0" },
+                { "", "1.0" },
+                { "empty", "" } }
+            );
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", Json("_os", "OS", "_os_version", "OS_V", "_resolution", "100x100", "_app_version", "AV", "_locale", "LOCALE", "_device", "Test", "_carrier", "CARRIER", "_build_version", "1.0")), 0, 1, 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "BeginSession"
+        /// Validate that an begin session request is generated and given params should be in the request
+        /// RQ size must be 1 and all given values should exists in the request
+        /// </summary>
+        public void BeginSession()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], DictS("_device_model", "Laptop", "c", "a"), DictS("loc", "1", "location", "1,2"), 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", Json("_device_model", "Laptop", "c", "a"), "loc", "1", "location", "1,2"), 0, 1, 1044151383000);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "EndSession" with different device id and app keys
+        /// Validate that a session end request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void EndSession_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().EndSession(TestHelper.v[0], -1);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1));
+
+            Countly.Instance.BackendMode().EndSession(TestHelper.v[0], 45, appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("end_session", 1, "session_duration", 45), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().EndSession(TestHelper.v[0], 67, "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1, "session_duration", 67), 2, 3);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "EndSession" with different negative duration
+        /// Validate that session duration is not sent with it
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void EndSession_NegativeDuration()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().EndSession(TestHelper.v[0], -1);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "UpdateSession" with different device id and app keys
+        /// Validate that an update session request is generated after each call and expected behaviour should happen
+        /// 
+        /// 1. If device id is given but app key not given, app key should fallback to init given app key,
+        /// 2. If both of them are given values should be match
+        /// 3. If app key is given as empty string it fallbacks to default one
+        /// 
+        /// RQ size must increase by 1 after each call, and expected values should match
+        /// </summary>
+        public void UpdateSession_AppKeyFallback()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 1);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("session_duration", 1));
+
+            Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 1, appKey: TestHelper.v[1], timestamp: 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 1), 1, 2, 1044151383000);
+
+            Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 1, "");
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("session_duration", 1), 2, 3);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "UpdateSession" with negative duration
+        /// Validate that an update session request is not generated with negative duration
+        /// RQ must be empty
+        /// </summary>
+        public void UpdateSession_NegativeDuration()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], -11);
+            Assert.Empty(Countly.Instance.StoredRequests);
+        }
+
+        [Fact]
+        /// <summary>
+        /// "UpdateSession"
+        /// Validate that an update session request is generated and exists in the queue
+        /// RQ size must be 1 and it should be a session update request
+        /// </summary>
+        public void UpdateSession()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 78, TestHelper.v[1]);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 78));
+        }
+
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1, long timestamp = 0)
         {
             List<CountlyEvent> events = ParseEventsFromRequestQueue(rqIdx, reqCount, deviceId, appKey);
@@ -369,7 +550,7 @@ namespace TestProject_common
             ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(10 + paramaters.Count, queryParams.Count); //TODO 11 after merge
             foreach (KeyValuePair<string, object> item in paramaters) {
-                Assert.Equal(queryParams[item.Key], item.Value.ToString());
+                Assert.Equal(item.Value.ToString(), queryParams[item.Key]);
             }
         }
 
