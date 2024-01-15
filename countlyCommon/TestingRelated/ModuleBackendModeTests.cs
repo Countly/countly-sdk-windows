@@ -97,6 +97,7 @@ namespace TestProject_common
             cc.EnableBackendMode();
             // made all queues 1 to look to the queue to detect eq changes
             cc.SetEventQueueSizeToSend(1).SetBackendModeAppEQSizeToSend(1).SetBackendModeServerEQSizeToSend(1);
+            Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().RecordEvent("DEVICE_ID", "", TestHelper.v[2]);
             ValidateEventInRequestQueue(TestHelper.v[2], "DEVICE_ID", TestHelper.APP_KEY);
@@ -325,6 +326,43 @@ namespace TestProject_common
                  "bool", true,
                  "double", -5.4E-79,
                  "action", Dict("$push", "black")))));
+        }
+
+        [Fact]
+        /// <summary>
+        /// "RecordUserProperties" with different user properties
+        /// Validate that a user properties request is generated after each call and expected parameters should be added
+        /// RQ size must be 1 and parameters should match
+        /// </summary>
+        public void RecordUserProperties_Modificators()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+
+            Countly.Instance.Init(cc).Wait();
+
+            IDictionary<string, object> userProperties = Dict();
+
+            userProperties["marks"] = "{$inc: 1}";
+            userProperties["point"] = "{$mul: 1.89}";
+            userProperties["gpa"] = "{$min: 1.89}";
+            userProperties["gpa"] = "{$max: 1.89}";
+            userProperties["fav"] = "{$setOnce: \"FAV\"}";
+            userProperties["permissions"] = "{$pull: [\"Create\", \"Update\"]}";
+            userProperties["langs"] = "{$push: [\"Python\", \"Ruby\", \"Ruby\"]}";
+            userProperties["langs"] = "{$addToSet: [\"Python\", \"Python\"]}";
+
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], userProperties);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json(
+                "custom", Dict(
+                    "marks", Dict("$inc", 1),
+                    "point", Dict("$mul", 1.89),
+                    "gpa", Dict("$max", 1.89),
+                    "fav", Dict("$setOnce", "FAV"),
+                    "fav", Dict("$setOnce", "FAV"),
+                    "permissions", Dict("$pull", new string[] { "Create", "Update" }),
+                    "langs", Dict("$addToSet", new string[] { "Python", "Python" })
+                 ))));
         }
 
         [Fact]
@@ -745,7 +783,7 @@ namespace TestProject_common
             Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[4], 180, Segm("bip", "boop"), "Android", TestHelper.v[2], 1044151383000);
             ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], duration: 180, segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
 
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[5], -56, appKey: TestHelper.v[-56]);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[5], -56, appKey: TestHelper.v[6]);
             Assert.Equal(2, Countly.Instance.StoredRequests.Count);
         }
 
@@ -791,9 +829,9 @@ namespace TestProject_common
                 { "_os", "OS" },
                 { "_os_version", "OS_V" },
                 { "_app_version", "AV" },
-                { "_resolution", "100x100" },
                 { "_locale", "LOCALE" },
-                 { "_device", "Test" },
+                { "_resolution", "100x100" },
+                { "_device", "Test" },
                 { "_carrier", "CARRIER" },
                 { "_build_version", "1.0" },
                 { "", "1.0" },
@@ -803,7 +841,18 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", Json("_os", "OS", "_os_version", "OS_V", "_resolution", "100x100", "_app_version", "AV", "_locale", "LOCALE", "_device", "Test", "_carrier", "CARRIER", "_build_version", "1.0")), 0, 1, 1044151383000);
+            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", "CUSTOM_VALIDATED"), 0, 1, 1044151383000,
+                new Dictionary<string, Action<string, object>>(){{"metrics", (actual, expected) => {
+                    Dictionary<string,object> convertedMetrics = JsonConvert.DeserializeObject<Dictionary<string,object>>(actual);
+                    IDictionary<string, object> expectedDict = Dict("_os", "OS", "_os_version", "OS_V", "_app_version", "AV", "_locale", "LOCALE", "_resolution", "100x100", "_device", "Test", "_carrier", "CARRIER", "_build_version", "1.0");
+                    Assert.Equal(convertedMetrics.Count, expectedDict.Count);
+
+                    foreach(KeyValuePair<string, object> pair in expectedDict)
+                    {
+                        Assert.Equal(pair.Value,convertedMetrics[pair.Key]);
+                    }
+
+                } } });
         }
 
         [Fact]
@@ -961,7 +1010,7 @@ namespace TestProject_common
             Assert.True(events[eventIdx].Timestamp > 0);
         }
 
-        private void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1, long timestamp = 0)
+        private void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1, long timestamp = 0, IDictionary<string, Action<string, object>> customValidators = null)
         {
             Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
             string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
@@ -969,7 +1018,11 @@ namespace TestProject_common
             ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(10 + paramaters.Count, queryParams.Count); //TODO 11 after merge
             foreach (KeyValuePair<string, object> item in paramaters) {
-                Assert.Equal(item.Value.ToString(), queryParams[item.Key]);
+                if (customValidators != null && customValidators.ContainsKey(item.Key)) {
+                    customValidators[item.Key].Invoke(queryParams[item.Key], item.Value);
+                } else {
+                    Assert.Equal(item.Value.ToString(), queryParams[item.Key]);
+                }
             }
         }
 
