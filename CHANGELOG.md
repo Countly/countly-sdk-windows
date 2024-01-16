@@ -1,4 +1,4 @@
-## XX.XX.XX
+## 24.1.0
 
 * New BackendMode features added and accesible through "Countly.Instance.BackendMode()" interface:
     * "ChangeDeviceIdWithMerge"
