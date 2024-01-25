@@ -10,10 +10,13 @@ namespace CountlySampleAspNetMVC
 {
     public class MvcApplication : System.Web.HttpApplication
     {
-        const String serverURL = "https://master.count.ly/";//put your server URL here
-        const String appKey = "5e20d03806255d314eb6679b26fda6e580b3d899";//put your server APP key here   
+        public const string serverURL = "https://your.server.ly";
+        public const string appKey = "YOUR_APP_KEY";
         protected async void Application_Start()
         {
+            if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
+                throw new Exception("Please do not use default set of app key and server url");
+            }
             AreaRegistration.RegisterAllAreas();
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);

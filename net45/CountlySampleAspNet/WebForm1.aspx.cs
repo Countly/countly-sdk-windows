@@ -10,8 +10,8 @@ namespace CountlySampleAspNet
 {
     public partial class WebForm1 : System.Web.UI.Page
     {
-        const String serverURL = "https://master.count.ly/";//put your server URL here
-        const String appKey = "5e20d03806255d314eb6679b26fda6e580b3d899";//put your server APP key here   
+        public const string serverURL = "https://your.server.ly";
+        public const string appKey = "YOUR_APP_KEY";
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -24,6 +24,9 @@ namespace CountlySampleAspNet
 
         public async Task StartCountly()
         {
+            if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
+                throw new Exception("Please do not use default set of app key and server url");
+            }
             Debug.WriteLine("Before init");
 
             Countly.IsLoggingEnabled = true;
