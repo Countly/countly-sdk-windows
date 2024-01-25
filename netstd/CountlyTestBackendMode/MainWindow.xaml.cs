@@ -68,8 +68,10 @@ namespace CountlyTestBackendMode
                 devices.Add(new(apps[random.Next(2)], $"NewDevice_{random.Next(deviceCount)}"));
             }
 
+            RecordEvents(devices, deviceCount, appCount, eventCount);
+
             for (int i = 0; i < 20; i++) {
-                RecordSomething(8, devices);
+                RecordUserProfiles(8, devices);
             }
         }
 
@@ -77,12 +79,10 @@ namespace CountlyTestBackendMode
          new() { { "city", "Batman" }, { "country_code", "TR" } },
         new() { { "ip", "103.88.235.255" } } };
 
-        private void RecordSomething(int selection, List<StringPair> devices)
+        private void RecordUserProfiles(int selection, List<StringPair> devices)
         {
             Random random = new Random();
 
-            for (int i = 0; i < deviceCount; i++) {
-                devices.Add(new($"App_{random.Next(appCount)}", $"Device_{random.Next(deviceCount)}"));
             switch (selection) {
                 case 0:
                     StringPair pair = devices[Math.Abs(random.Next(20) - 1)];
@@ -203,10 +203,19 @@ namespace CountlyTestBackendMode
             }
         }
 
+        private void RecordEvents(List<StringPair> devices, int deviceCount, int appCount, int eventCount)
+        {
+            Random random = new Random();
+
             DateTime startTime = DateTime.Now;
             for (int i = 0; i < eventCount; i++) {
                 StringPair pair = devices[Math.Abs(random.Next(deviceCount) - 1)];
                 Countly.Instance.BackendMode().RecordEvent(pair.two, pair.one, $"Event_{i}", 0, 1, 0, null, 1);
+            }
+            DateTime endTime = DateTime.Now;
+            testResult.Text = $"Testing took: {endTime - startTime} minutes";
+        }
+
         private IDictionary<string, object> Dict(params object[] values)
         {
             IDictionary<string, object> result = new Dictionary<string, object>();
@@ -216,8 +225,7 @@ namespace CountlyTestBackendMode
                 result[values[i].ToString()] = values[i + 1];
             }
 
-            DateTime endTime = DateTime.Now;
-            testResult.Text = $"Testing took: {endTime - startTime} minutes";
+
             return result;
         }
     }
