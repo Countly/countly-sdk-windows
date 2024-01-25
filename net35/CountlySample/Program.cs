@@ -11,8 +11,8 @@ namespace CountlySample
 {
     class Program
     {
-        const string serverURL = "http://try.count.ly";//put your server URL here
-        const string appKey = "YOUR_APP_KEY";//put your server APP key here       
+        public const string serverURL = "https://your.server.ly";
+        public const string appKey = "YOUR_APP_KEY";
 
         public int threadIterations = 100;
         int threadWaitStart = 100;
@@ -21,6 +21,9 @@ namespace CountlySample
 
         static void Main(string[] args)
         {
+            if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
+                throw new Exception("Please do not use default set of app key and server url");
+            }
             //to use TLS 1.2
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
 
