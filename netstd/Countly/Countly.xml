@@ -296,41 +296,6 @@
             Holds device-specific info in json-ready format
             </summary>
         </member>
-        <member name="P:CountlySDK.Entities.Metrics.OS">
-            <summary>
-            Name of the current operating system
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Entities.Metrics.OSVersion">
-            <summary>
-            Current operating system version
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Entities.Metrics.Device">
-            <summary>
-            Local machine name (windows) or current device model (mobile)
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Entities.Metrics.Resolution">
-            <summary>
-            Device resolution
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Entities.Metrics.Carrier">
-            <summary>
-            Cellular mobile operator (where applicable)
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Entities.Metrics.AppVersion">
-            <summary>
-            Application version
-            </summary>
-        </member>
-        <member name="P:CountlySDK.Entities.Metrics.Locale">
-            <summary>
-            Locale
-            </summary>
-        </member>
         <member name="M:CountlySDK.Entities.Metrics.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
             <summary>
             Creates Metrics object with provided values
@@ -905,6 +870,14 @@
             <param name="queryParams"></param>
             <returns></returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.Json(System.Object)">
+            <summary>
+            Converts and object that has JsonSerializer annotations to String
+            No formatting and null values are ignored
+            </summary>
+            <param name="obj"></param>
+            <returns></returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Helpers.StorageBase.SaveToFile``1(System.String,System.Object)">
             <summary>
             Saves object into file
@@ -964,6 +937,106 @@
             <param name="requestData"></param>
             <param name="imageData"></param>
             <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.RecordEvent(System.String,System.String,System.String,System.Nullable{System.Double},System.Int32,System.Nullable{System.Int64},CountlySDK.Segmentation,System.Int64)">
+            <summary>
+            Record event with multiple app and device support
+            </summary>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="eventKey">Event key, required</param>
+            <param name="eventSum">Defaults to null</param>
+            <param name="eventCount">Defaults to 1</param>
+            <param name="eventDuration">Defaults to null</param>
+            <param name="segmentations">Defaults to null</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.RecordUserProperties(System.String,System.Collections.Generic.IDictionary{System.String,System.Object},System.String,System.Int64)">
+            <summary>
+            Record user properties
+            </summary>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+            <param name="userProperties">properties to set, should not be empty or null</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.RecordException(System.String,System.String,System.String,System.Collections.Generic.IList{System.String},System.Collections.Generic.IDictionary{System.String,System.Object},System.Collections.Generic.IDictionary{System.String,System.String},System.Boolean,System.String,System.Int64)">
+            <summary>
+            Record an exception
+            </summary>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+            <param name="customInfo">Custom info about exception, default null</param>
+            <param name="error">name of the error, required</param>
+            <param name="stackTrace">trace of the error, defaults to null</param>
+            <param name="unhandled">bool indicates is exception is fatal or not, default is false</param>
+            <param name="breadcrumbs">breadcrumbs if any</param>
+            <param name="metrics">if any. otherwise null</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.ChangeDeviceIdWithMerge(System.String,System.String,System.String,System.Int64)">
+            <summary>
+            Change device id with server merge
+            </summary>
+            <param name="newDeviceId">The id that will going to be merged with the provided device id, should not be null or empty</param>
+            <param name="oldDeviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.RecordDirectRequest(System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.String,System.Int64)">
+            <summary>
+            Send direct request to the server
+            </summary>
+            <param name="paramaters">Should not be null or empty, otherwise ignored</param>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.BackendMode.StartView(System.String,System.String,CountlySDK.Segmentation,System.String,System.String,System.Boolean,System.Int64)" -->
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.StopView(System.String,System.String,System.Int64,CountlySDK.Segmentation,System.String,System.String,System.Int64)">
+            <summary>
+            Stop view with multiple app and device support
+            
+            </summary>
+            <param name="name">View name, required</param>
+            <param name="segment">Platform of the device or domain, required</param>
+            <param name="duration">Duration of the view, required</param>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="segmentations">Defaults to null</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.RecordEvent(System.String,System.String,CountlySDK.Segmentation,System.Int32,System.Nullable{System.Double},System.Nullable{System.Int64},System.String,System.Int64)">
+            <summary>
+            Record event with multiple app and device support
+            </summary>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="eventKey">Event key, required</param>
+            <param name="sum">Defaults to null</param>
+            <param name="count">Defaults to 1</param>
+            <param name="duration">Defaults to null</param>
+            <param name="segmentations">Defaults to null</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.BackendMode.BeginSession(System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String},System.Int64)" -->
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.UpdateSession(System.String,System.Int32,System.String,System.Int64)">
+            <summary>
+            Update session with multiple apps and devices
+            </summary>
+            <param name="duration">Session duration in seconds, required</param>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.EndSession(System.String,System.Int32,System.String,System.Int64)">
+            <summary>
+            End session with multiple apps and devices
+            </summary>
+            <param name="duration">Session duration in seconds,required</param>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
         </member>
         <member name="T:CountlySDK.Segmentation">
             <summary>

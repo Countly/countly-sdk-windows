@@ -17,8 +17,6 @@ namespace CountlySDK.CountlyCommon.Server
     {
         internal const int maxLengthForDataInUrl = 2000;
 
-        protected abstract Task DoSleep(int sleepTime);
-
         public async Task<RequestResult> SendSession(string serverUrl, int rr, SessionEvent sessionEvent, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;

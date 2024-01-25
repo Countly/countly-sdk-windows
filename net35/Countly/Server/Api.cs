@@ -96,10 +96,5 @@ namespace CountlySDK
                 targetStream.Write(buffer, 0, n);
             }
         }
-
-        protected override async Task DoSleep(int sleepTime)
-        {
-            Thread.Sleep(sleepTime);
-        }
     }
 }

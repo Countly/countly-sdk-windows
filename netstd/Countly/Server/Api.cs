@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
@@ -71,11 +72,6 @@ namespace CountlySDK
                 UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());
                 return requestResult;
             }
-        }
-
-        protected override async Task DoSleep(int sleepTime)
-        {
-            System.Threading.Tasks.Task.Delay(sleepTime).Wait();
         }
     }
 }
