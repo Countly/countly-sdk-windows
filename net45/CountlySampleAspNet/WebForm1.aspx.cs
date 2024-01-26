@@ -10,8 +10,8 @@ namespace CountlySampleAspNet
 {
     public partial class WebForm1 : System.Web.UI.Page
     {
-        public const string serverURL = "https://your.server.ly";
-        public const string appKey = "YOUR_APP_KEY";
+        private const string serverURL = "https://your.server.ly";
+        private const string appKey = "YOUR_APP_KEY";
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -25,7 +25,7 @@ namespace CountlySampleAspNet
         public async Task StartCountly()
         {
             if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
-                throw new Exception("Please do not use default set of app key and server url");
+                Debug.WriteLine("Please do not use default set of app key and server url");
             }
             Debug.WriteLine("Before init");
 
