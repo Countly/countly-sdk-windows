@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
@@ -11,8 +12,8 @@ namespace CountlySample
 {
     class Program
     {
-        public const string serverURL = "https://your.server.ly";
-        public const string appKey = "YOUR_APP_KEY";
+        private const string serverURL = "https://your.server.ly";
+        private const string appKey = "YOUR_APP_KEY";
 
         public int threadIterations = 100;
         int threadWaitStart = 100;
@@ -22,7 +23,7 @@ namespace CountlySample
         static void Main(string[] args)
         {
             if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
-                throw new Exception("Please do not use default set of app key and server url");
+                Debug.WriteLine("Please do not use default set of app key and server url");
             }
             //to use TLS 1.2
             ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072;
