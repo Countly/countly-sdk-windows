@@ -80,13 +80,13 @@ namespace CountlySampleUWP
             Launched();
         }
 
-        public const string serverURL = "https://your.server.ly";
-        public const string appKey = "YOUR_APP_KEY";
+        private const string serverURL = "https://your.server.ly";
+        private const string appKey = "YOUR_APP_KEY";
 
         private async void Launched()
         {
             if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
-                throw new Exception("Please do not use default set of app key and server url");
+                Debug.WriteLine("Please do not use default set of app key and server url");
             }
 
             Debug.WriteLine("Calling [Launched]");
