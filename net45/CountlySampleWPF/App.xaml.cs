@@ -11,11 +11,14 @@ namespace CountlySampleWPF
     /// </summary>
     public partial class App : Application
     {
-        const String serverURL = "";//put your server URL here
-        const String appKey = "";//put your server APP key here   
+        private const string serverURL = "https://your.server.ly";
+        private const string appKey = "YOUR_APP_KEY";
 
         protected async override void OnStartup(StartupEventArgs e)
         {
+            if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
+                Debug.WriteLine("Please do not use default set of app key and server url");
+            }
             base.OnStartup(e);
 
             Debug.WriteLine("Before init");
