@@ -1640,6 +1640,26 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
+        
+        /// <summary>
+        /// Set the device id
+        /// </summary>
+        /// <param name="newDeviceId">New Id that should be used</param>
+        /// <returns></returns>
+        public async Task SetId(string newDeviceId)
+        {
+            bool withMerge = true;
+
+            if (GetDeviceIDType().Equals(DeviceIdType.DeveloperProvided)) {
+                // an ID was provided by the host app previously
+                // we can assume that a device ID change with merge was executed previously
+                // now we change it without merging
+                withMerge = false;
+            }
+
+            await ChangeDeviceId(newDeviceId, withMerge);
+        }
+
         internal bool IsConsentGiven(ConsentFeatures feature)
         {
             Debug.Assert(givenConsent != null);
