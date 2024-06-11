@@ -26,6 +26,7 @@ THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
@@ -299,6 +300,13 @@ namespace CountlySDK.Helpers
             }
 
             return result;
+        }
+
+        internal static string ComputeChecksum(string content)
+        {
+            using (var sha256 = new SHA256Managed()) {
+                return BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes(content))).Replace("-", "");
+            }
         }
     }
 }
