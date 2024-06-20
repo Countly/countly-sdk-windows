@@ -136,8 +136,6 @@ namespace CountlySDK
             }
 
             await InitBase(config);
-
-            CatchUnhandledExceptions();
         }
 
         internal override Metrics GetSessionMetrics()
@@ -173,46 +171,6 @@ namespace CountlySDK
                 Timer.Dispose();
                 Timer = null;
             }
-        }
-
-        protected void CatchUnhandledExceptions()
-        {
-            // This is the normal event expected, and should still be used.
-            // It will fire for exceptions from iOS and Mac Catalyst,
-            // and for exceptions on background threads from WinUI 3.
-
-            AppDomain.CurrentDomain.UnhandledException += async (sender, args) => {
-                var exception = (Exception)args.ExceptionObject;
-                await RecordUnhandledException(exception.Message, exception.StackTrace);
-            };
-
-            TaskScheduler.UnobservedTaskException += async (sender, args) => {
-                await RecordUnhandledException(args.Exception.Message, args.Exception.StackTrace);
-            };
-
-#if IOS || MACCATALYST
-
-            // For iOS and Mac Catalyst
-            // Exceptions will flow through AppDomain.CurrentDomain.UnhandledException,
-            // but we need to set UnwindNativeCode to get it to work correctly. 
-            // 
-            // See: https://github.com/xamarin/xamarin-macios/issues/15252
-
-            ObjCRuntime.Runtime.MarshalManagedException += async (_, args) => {
-                args.ExceptionMode = ObjCRuntime.MarshalManagedExceptionMode.UnwindNativeCode;
-            };
-
-#elif ANDROID
-
-            // For Android:
-            // All exceptions will flow through Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser,
-            // and NOT through AppDomain.CurrentDomain.UnhandledException
-
-            Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += async (sender, args) => {
-                args.Handled = true;
-                await RecordUnhandledException(args.Exception.Message, args.Exception.StackTrace);
-            };
-#endif
         }
     }
 }
