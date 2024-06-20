@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiSampleApp.MainPage">
@@ -40,6 +40,76 @@
                 Text="Crash the App"
                 SemanticProperties.Hint="Counts the number of times you click"
                 Clicked="OnCrashAppClicked"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="HCrashBtn"
+                Text="Record handled Exception"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnHandledCrash"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="ViewBtn"
+                Text="Record a view"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnRecordView"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="BgnSessionBtn"
+                Text="Begin session"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnBeginSession"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="UpdSessionBtn"
+                Text="Update session"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnUpdateSession"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="EndSessionBtn"
+                Text="End session"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnEndSession"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="AddBreadcrumbBtn"
+                Text="Add breadcrumb"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnAddBreadCrumb"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="CngWithDeviceId"
+                Text="Change Device ID With Merge"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnChangeDeviceIDWithMerge"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="CngWithoutDeviceId"
+                Text="Change Device ID Without Merge"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnChangeDeviceIDWithoutMerge"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="UserProfile"
+                Text="Set User Profile"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnUserProfile"
+                HorizontalOptions="Center" />
+
+            <Button
+                x:Name="UserLocation"
+                Text="Set User Location"
+                SemanticProperties.Hint="Counts the number of times you click"
+                Clicked="OnLocation"
                 HorizontalOptions="Center" />
 
         </VerticalStackLayout>
