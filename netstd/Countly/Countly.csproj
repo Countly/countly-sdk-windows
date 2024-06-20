@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net7.0-android;net7.0-ios;net7.0-maccatalyst;net7.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Countly Windows SDK targeting net standard 2.0</Description>
     <Product>Countly SDK</Product>
     <AssemblyVersion>24.1.0.0</AssemblyVersion>
@@ -10,7 +10,6 @@
     <Version>24.1.0</Version>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
-    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
 
