@@ -52,7 +52,7 @@ namespace CountlySDK.CountlyCommon.Server
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = RequestHelper.Json(userDetails);
+                userDetailsJson = UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
             return await Call(string.Format("{0}{1}&user_details={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr));
@@ -63,7 +63,7 @@ namespace CountlySDK.CountlyCommon.Server
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = "=" + RequestHelper.Json(userDetails);
+                userDetailsJson = "=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
             return await Call(string.Format("{0}{1}&user_details{2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr), imageStream);
