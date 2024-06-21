@@ -31,84 +31,84 @@
             <Button
                 x:Name="CounterBtn"
                 Text="Record Event"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Records an Event"
                 Clicked="OnCounterClicked"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="CrashBtn"
                 Text="Crash the App"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Creates an unhandled crash"
                 Clicked="OnCrashAppClicked"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="HCrashBtn"
                 Text="Record handled Exception"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Records a handled exception"
                 Clicked="OnHandledCrash"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="ViewBtn"
                 Text="Record a view"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Starts a view"
                 Clicked="OnRecordView"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="BgnSessionBtn"
                 Text="Begin session"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Starts a session"
                 Clicked="OnBeginSession"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="UpdSessionBtn"
                 Text="Update session"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Upadates a session"
                 Clicked="OnUpdateSession"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="EndSessionBtn"
                 Text="End session"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Ends a session"
                 Clicked="OnEndSession"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="AddBreadcrumbBtn"
                 Text="Add breadcrumb"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Adds a breadcrumb"
                 Clicked="OnAddBreadCrumb"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="CngWithDeviceId"
                 Text="Change Device ID With Merge"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Changes the device ID with merge"
                 Clicked="OnChangeDeviceIDWithMerge"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="CngWithoutDeviceId"
                 Text="Change Device ID Without Merge"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Changes the device ID without merge"
                 Clicked="OnChangeDeviceIDWithoutMerge"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="UserProfile"
                 Text="Set User Profile"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Records user profile info"
                 Clicked="OnUserProfile"
                 HorizontalOptions="Center" />
 
             <Button
                 x:Name="UserLocation"
                 Text="Set User Location"
-                SemanticProperties.Hint="Counts the number of times you click"
+                SemanticProperties.Hint="Sets user location info"
                 Clicked="OnLocation"
                 HorizontalOptions="Center" />
 
