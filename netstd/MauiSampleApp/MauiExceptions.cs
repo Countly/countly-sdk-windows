@@ -13,8 +13,15 @@
         // It will fire for exceptions from iOS and Mac Catalyst,
         // and for exceptions on background threads from WinUI 3.
 
-        AppDomain.CurrentDomain.UnhandledException += (sender, args) => {
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) => 
+        {
             UnhandledException?.Invoke(sender, args);
+        };
+
+        // Events fired by the TaskScheduler. That is calls like Task.Run(...)     
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+             UnhandledException?.Invoke(sender, new UnhandledExceptionEventArgs(args.Exception, false));
         };
 
 #if IOS || MACCATALYST
@@ -35,10 +42,11 @@
         // All exceptions will flow through Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser,
         // and NOT through AppDomain.CurrentDomain.UnhandledException
 
-        //Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (sender, args) =>
-        //{
-        //    UnhandledException?.Invoke(sender, new UnhandledExceptionEventArgs(args.Exception, true));
-        //};
+        Android.Runtime.AndroidEnvironment.UnhandledExceptionRaiser += (sender, args) =>
+        {
+            args.Handled = true;
+            UnhandledException?.Invoke(sender, new UnhandledExceptionEventArgs(args.Exception, true));
+        };
 
 #elif WINDOWS
 

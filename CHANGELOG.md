@@ -1,5 +1,7 @@
-## 24.1.0
+## XX.XX.XX
+* Fixed an issue where some requests are not url encoded.
 
+## 24.1.0
 * New BackendMode features added and accesible through "Countly.Instance.BackendMode()" interface:
     * "ChangeDeviceIdWithMerge"
     * "RecordUserProperties"
