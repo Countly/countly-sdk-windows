@@ -1,8 +1,9 @@
 ## XX.XX.XX
 * Added a new function "SetId(newDeviceId)" for managing device id changes according to the device ID Type.
 
-## 24.1.0
+* Fixed an issue where some requests are not url encoded.
 
+## 24.1.0
 * New BackendMode features added and accesible through "Countly.Instance.BackendMode()" interface:
     * "ChangeDeviceIdWithMerge"
     * "RecordUserProperties"

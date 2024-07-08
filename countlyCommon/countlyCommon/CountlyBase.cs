@@ -1200,7 +1200,7 @@ namespace CountlySDK.CountlyCommon
             Debug.Assert(breadCrumb != null);
             string validLog = breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize ? breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize) : breadCrumb;
 
-            if (Countly.Instance.CrashBreadcrumbs.Count == Countly.Instance.Configuration.MaxBreadcrumbCount) {
+            if (Countly.Instance.CrashBreadcrumbs.Count >= Countly.Instance.Configuration.MaxBreadcrumbCount) {
                 Countly.Instance.CrashBreadcrumbs.Dequeue();
             }
 

@@ -9,11 +9,14 @@ namespace CountlySampleWindowsForm
 {
     public partial class Form1 : Form
     {
-        const string serverURL = "http://try.count.ly";//put your server URL here
-        const string appKey = "APP_KEY";//put your server APP key here       
+        private const string serverURL = "https://your.server.ly";
+        private const string appKey = "YOUR_APP_KEY";
 
         public Form1()
         {
+            if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
+                Debug.WriteLine("Please do not use default set of app key and server url");
+            }
             InitializeComponent();
             Countly.IsLoggingEnabled = true;
         }
