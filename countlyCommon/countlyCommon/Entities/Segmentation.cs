@@ -53,7 +53,18 @@ namespace CountlySDK
         /// <param name="Value">Segmenation value</param>
         public void Add(string Key, string Value)
         {
-            segmentation.Add(new SegmentationItem(Key, Value));
+            // Check if a segmentation item with the same key already exists
+            var existingItem = segmentation.Find(item => item.Key == Key);
+            if (existingItem != null)
+            {
+                // Update the value if the key exists
+                existingItem.Value = Value;
+            }
+            else
+            {
+                // Add a new item if the key doesn't exist
+                segmentation.Add(new SegmentationItem(Key, Value));
+            }
         }
 
         public int CompareTo(Segmentation other)
