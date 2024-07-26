@@ -1,4 +1,6 @@
 ## XX.XX.XX
+* Added a new function "SetId(newDeviceId)" for managing device id changes according to the device ID Type.
+
 * Fixed an issue where some requests are not url encoded.
 
 ## 24.1.0
