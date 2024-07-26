@@ -1,6 +1,5 @@
 ## 24.1.1
-* !! Major breaking change !! Same, null, and empty keys are now prohibited for Segmentation.
-
+* Fixed a bug where same, null, and empty keys were permitted in the Segmentation, not anymore.
 * Fixed an issue where some requests are not url encoded.
 
 ## 24.1.0
