@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Countly</id>
-        <version>24.1.0</version>
+        <version>24.1.1</version>
         <title>Countly Analytics</title>
         <authors>Countly</authors>
         <iconUrl>https://raw.githubusercontent.com/Countly/countly-sdk-windows/master/icon.png</iconUrl>

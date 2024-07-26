@@ -4,10 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Countly Windows SDK targeting net standard 2.0</Description>
     <Product>Countly SDK</Product>
-    <AssemblyVersion>24.1.0.0</AssemblyVersion>
+    <AssemblyVersion>24.1.1.0</AssemblyVersion>
     <Copyright>Copyright © Countly 2022</Copyright>
-    <FileVersion>24.1.0.0</FileVersion>
-    <Version>24.1.0</Version>
+    <FileVersion>24.1.1.0</FileVersion>
+    <Version>24.1.1</Version>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
