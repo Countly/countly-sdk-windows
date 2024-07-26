@@ -96,6 +96,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\SegmentationTests.cs">
+      <Link>SegmentationTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\SessionTests.cs">
       <Link>SessionTests.cs</Link>
     </Compile>

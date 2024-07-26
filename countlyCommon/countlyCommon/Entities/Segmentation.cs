@@ -47,21 +47,22 @@ namespace CountlySDK
         }
 
         /// <summary>
-        /// Add new segmentation value
+        /// Add new segmentation value, omits the null keys
+        /// overrides the same keys
         /// </summary>
         /// <param name="Key">Segmenation key</param>
         /// <param name="Value">Segmenation value</param>
         public void Add(string Key, string Value)
         {
+            if (string.IsNullOrEmpty(Key)) {
+                return;
+            }
             // Check if a segmentation item with the same key already exists
-            var existingItem = segmentation.Find(item => item.Key == Key);
-            if (existingItem != null)
-            {
+            SegmentationItem existingItem = segmentation.Find(item => item.Key == Key);
+            if (existingItem != null) {
                 // Update the value if the key exists
                 existingItem.Value = Value;
-            }
-            else
-            {
+            } else {
                 // Add a new item if the key doesn't exist
                 segmentation.Add(new SegmentationItem(Key, Value));
             }
