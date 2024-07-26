@@ -93,6 +93,11 @@ namespace TestProject_common
             segm.Add("key2", "value2");
             segm.Add("key2", "value3");
 
+            Assert.Equal("key1", segm.segmentation[0].Key);
+            Assert.Equal("value1", segm.segmentation[0].Value);
+            Assert.Equal("key2", segm.segmentation[1].Key);
+            Assert.Equal("value3", segm.segmentation[1].Value);
+
             Assert.True(segm.segmentation.Count == 2); // not 3 becasue key 2 overridden and segmentation does not permit same keys
             bool res = await Countly.RecordEvent("test_event", 1, 23, 5.0, Segmentation: segm);
             Assert.True(res);
