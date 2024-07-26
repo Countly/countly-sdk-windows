@@ -1,4 +1,6 @@
-## XX.XX.XX
+## 24.1.1
+* !! Major breaking change !! Same, null, and empty keys are now prohibited for Segmentation.
+
 * Fixed an issue where some requests are not url encoded.
 
 ## 24.1.0
