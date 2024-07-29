@@ -1,5 +1,5 @@
 ## 24.1.1
-* Fixed a bug where same, null, and empty keys were permitted in the Segmentation, not anymore.
+* Fixed a bug where same, null, and empty keys were permitted in the Segmentation.
 * Fixed an issue where some requests are not url encoded.
 
 ## 24.1.0
