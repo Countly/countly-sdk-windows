@@ -49,6 +49,11 @@ namespace CountlySDK.CountlyCommon
             {
                 return _base.AppVersion;
             }
+
+            public string GetSalt()
+            {
+                return _base.Configuration.salt;
+            }
         }
 
         // Current version of the Count.ly SDK as a displayable string.

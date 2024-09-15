@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
+using CountlySDK.Helpers;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Entities
@@ -109,6 +111,7 @@ namespace CountlySDK.CountlyCommon.Entities
         internal bool IsLocationDisabled = false;
         internal IDictionary<string, string> MetricOverride = null;
 
+        internal string salt;
         /// <summary>
         /// Disabled the location tracking on the Countly server
         /// </summary>
@@ -197,6 +200,21 @@ namespace CountlySDK.CountlyCommon.Entities
                 MetricOverride = metricOverride;
             }
 
+            return this;
+        }
+
+        /// <summary>
+        /// Enable parameter tampering protection
+        /// </summary>
+        /// <param name="salt">to add to each request before calculating checksum</param>
+        /// <returns>instance for method chaining</returns>
+        public CountlyConfigBase EnableParameterTamperingProtection(string salt)
+        {
+            if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(salt)) {
+                UtilityHelper.CountlyLogging("[Config] Salt cannot be empty in enableParameterTamperingProtection");
+            } else {
+                this.salt = salt;
+            }
             return this;
         }
     }

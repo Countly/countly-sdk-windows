@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
+using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using static CountlySDK.CountlyCommon.CountlyBase;
 using static CountlySDK.Helpers.TimeHelper;
@@ -23,6 +24,7 @@ namespace CountlySDK.CountlyCommon.Helpers
             string GetAppVersion();
             Task<DeviceId> GetDeviceId();
             TimeInstant GetTimeInstant();
+            string GetSalt();
         }
 
         private readonly IRequestHelper _interface;
@@ -131,6 +133,9 @@ namespace CountlySDK.CountlyCommon.Helpers
             }
 
             string data = BuildQueryString(requestData);
+            if (!UtilityHelper.IsNullOrEmptyOrWhiteSpace(_interface.GetSalt())) {
+                data = data + "&checksum256=" + UtilityHelper.ComputeChecksum(data + _interface.GetSalt());
+            }
 
             return data;
         }
