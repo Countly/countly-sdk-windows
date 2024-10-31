@@ -52,7 +52,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "24.1.0";
+        protected const string sdkVersion = "24.1.1";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
@@ -1200,7 +1200,7 @@ namespace CountlySDK.CountlyCommon
             Debug.Assert(breadCrumb != null);
             string validLog = breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize ? breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize) : breadCrumb;
 
-            if (Countly.Instance.CrashBreadcrumbs.Count == Countly.Instance.Configuration.MaxBreadcrumbCount) {
+            if (Countly.Instance.CrashBreadcrumbs.Count >= Countly.Instance.Configuration.MaxBreadcrumbCount) {
                 Countly.Instance.CrashBreadcrumbs.Dequeue();
             }
 

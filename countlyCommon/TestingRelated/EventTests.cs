@@ -75,6 +75,38 @@ namespace TestProject_common
             Countly.Instance.SessionEnd().Wait();
         }
 
+        [Fact]
+        /// <summary>
+        /// It validates that segmentation cannot have same keys
+        /// </summary>
+        public async void TestEventSameSegmentationKey()
+        {
+            CountlyConfig cc = TestHelper.CreateConfig();
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.SessionBegin().Wait();
+
+            Countly.Instance.deferUpload = true;
+
+            Segmentation segm = new Segmentation();
+            segm.Add("key1", "value1");
+            segm.Add("key2", "value2");
+            segm.Add("key2", "value3");
+
+            Assert.Equal("key1", segm.segmentation[0].Key);
+            Assert.Equal("value1", segm.segmentation[0].Value);
+            Assert.Equal("key2", segm.segmentation[1].Key);
+            Assert.Equal("value3", segm.segmentation[1].Value);
+
+            Assert.True(segm.segmentation.Count == 2); // not 3 becasue key 2 overridden and segmentation does not permit same keys
+            bool res = await Countly.RecordEvent("test_event", 1, 23, 5.0, Segmentation: segm);
+            Assert.True(res);
+
+            CountlyEvent countlyEvent = Countly.Instance.Events[0];
+            validateEventData(countlyEvent, "test_event", 1, 23, 5, segm);
+            Countly.Instance.SessionEnd().Wait();
+        }
+
         /// <summary>
         /// It validates the cancellation of timed events on changing device id without merge.
         ///

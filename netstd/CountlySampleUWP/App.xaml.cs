@@ -80,14 +80,21 @@ namespace CountlySampleUWP
             Launched();
         }
 
+        private const string serverURL = "https://your.server.ly";
+        private const string appKey = "YOUR_APP_KEY";
+
         private async void Launched()
         {
+            if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
+                Debug.WriteLine("Please do not use default set of app key and server url");
+            }
+
             Debug.WriteLine("Calling [Launched]");
             //create the Countly init object
             Countly.IsLoggingEnabled = true;
             var cc = new CountlyConfig {
-                serverUrl = "https://try.count.ly",
-                appKey = "YOUR_APP_KEY",
+                serverUrl = serverURL,
+                appKey = appKey,
                 appVersion = "1.2.3",
             };
 

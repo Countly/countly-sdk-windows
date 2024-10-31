@@ -1,5 +1,8 @@
-## 24.1.0
+## 24.1.1
+* Fixed a bug where same, null, and empty keys were permitted in the Segmentation.
+* Fixed an issue where some requests are not url encoded.
 
+## 24.1.0
 * New BackendMode features added and accesible through "Countly.Instance.BackendMode()" interface:
     * "ChangeDeviceIdWithMerge"
     * "RecordUserProperties"

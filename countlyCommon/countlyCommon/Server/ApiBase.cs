@@ -43,7 +43,7 @@ namespace CountlySDK.CountlyCommon.Server
 
         public async Task<RequestResult> SendException(string serverUrl, RequestHelper requestHelper, int rr, ExceptionEvent exception)
         {
-            string exceptionJson = RequestHelper.Json(exception);
+            string exceptionJson = UtilityHelper.EncodeDataForURL(RequestHelper.Json(exception));
             return await Call(string.Format("{0}{1}&crash={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), exceptionJson, rr));
         }
 
@@ -52,7 +52,7 @@ namespace CountlySDK.CountlyCommon.Server
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = RequestHelper.Json(userDetails);
+                userDetailsJson = UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
             return await Call(string.Format("{0}{1}&user_details={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr));
@@ -63,7 +63,7 @@ namespace CountlySDK.CountlyCommon.Server
             string userDetailsJson = string.Empty;
 
             if (userDetails != null) {
-                userDetailsJson = "=" + RequestHelper.Json(userDetails);
+                userDetailsJson = "=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
             return await Call(string.Format("{0}{1}&user_details{2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr), imageStream);

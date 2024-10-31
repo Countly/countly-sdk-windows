@@ -1,5 +1,6 @@
 ﻿using CountlySDK;
 using CountlySDK.Entities;
+using System.Diagnostics;
 
 namespace MauiSampleApp
 {
@@ -27,8 +28,9 @@ namespace MauiSampleApp
     public class SampleApp : Application
     {
 
-        public const string serverURL = "https://try.count.ly";
-        public const string appKey = "YOUR_APP_KEY";
+        private const string serverURL = "https://your.server.ly";
+        private const string appKey = "YOUR_APP_KEY";
+
         public SampleApp(ICrashTester crashTester)
         {
             InitCountlySDK();
@@ -37,6 +39,10 @@ namespace MauiSampleApp
 
         private async void InitCountlySDK()
         {
+            if (serverURL.Equals("https://your.server.ly") || appKey.Equals("YOUR_APP_KEY")) {
+                Debug.WriteLine("Please do not use default set of app key and server url");
+            }
+
             Countly.IsLoggingEnabled = true;
 
             CountlyConfig countlyConfig = new CountlyConfig();
