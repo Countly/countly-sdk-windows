@@ -960,7 +960,6 @@ namespace CountlySDK.CountlyCommon
                 ExceptionEvent exEvent;//the exception event that will be uploaded
                 lock (sync) {
                     exEvent = Exceptions[0];
-
                 }
 
                 //do the exception upload
