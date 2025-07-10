@@ -43,6 +43,7 @@ namespace CountlySDK.CountlyCommon.Server
 
         public async Task<RequestResult> SendException(string serverUrl, RequestHelper requestHelper, int rr, ExceptionEvent exception)
         {
+            exception.Name = exception.Name.Substring(0, Math.Min(exception.Name.Length-1, 2000));
             string exceptionJson = UtilityHelper.EncodeDataForURL(RequestHelper.Json(exception));
             return await Call(string.Format("{0}{1}&crash={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), exceptionJson, rr));
         }

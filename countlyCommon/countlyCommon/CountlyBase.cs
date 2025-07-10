@@ -911,7 +911,7 @@ namespace CountlySDK.CountlyCommon
             Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues);
             segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
+            ExceptionEvent eEvent = new ExceptionEvent(error.Substring(0, Math.Min(error.Length - 1, 2000)), UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -960,6 +960,7 @@ namespace CountlySDK.CountlyCommon
                 ExceptionEvent exEvent;//the exception event that will be uploaded
                 lock (sync) {
                     exEvent = Exceptions[0];
+
                 }
 
                 //do the exception upload
