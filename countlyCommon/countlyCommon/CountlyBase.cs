@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
@@ -1408,6 +1409,7 @@ namespace CountlySDK.CountlyCommon
             timeHelper = new TimeHelper();
             IRequestHelperImpl exposed = new IRequestHelperImpl(this);
             requestHelper = new RequestHelper(exposed);
+            Api.Instance.customNetworkRequestHeaders = config.CustomNetworkRequestHeaders;
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {

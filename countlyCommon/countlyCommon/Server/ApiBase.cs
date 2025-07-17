@@ -8,14 +8,14 @@ using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
-using Newtonsoft.Json;
-using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon.Server
 {
     abstract class ApiBase
     {
         internal const int maxLengthForDataInUrl = 2000;
+        internal const string sdkEndpoint = "/i";
+        internal IDictionary<string, string> customNetworkRequestHeaders = null;
 
         public async Task<RequestResult> SendSession(string serverUrl, int rr, SessionEvent sessionEvent, CountlyUserDetails userDetails = null)
         {
@@ -25,7 +25,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            return await Call(serverUrl, string.Format("{0}{1}&rr={2}", sessionEvent.Content + userDetailsJson, rr));
+            return await Call(serverUrl, string.Format("{0}{1}&rr={2}", sessionEvent.Content, userDetailsJson, rr));
         }
 
         public async Task<RequestResult> SendEvents(string serverUrl, RequestHelper requestHelper, int rr, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
@@ -47,7 +47,7 @@ namespace CountlySDK.CountlyCommon.Server
             return await Call(serverUrl, string.Format("{0}&crash={1}&rr={2}", await requestHelper.BuildRequest(), exceptionJson, rr));
         }
 
-        public async Task<RequestResult> UploadUserDetails(string serverUrl, RequestHelper requestHelper, int rr, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendUserDetails(string serverUrl, RequestHelper requestHelper, int rr, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;
 
@@ -58,7 +58,7 @@ namespace CountlySDK.CountlyCommon.Server
             return await Call(serverUrl, string.Format("{0}&user_details={1}&rr={2}", await requestHelper.BuildRequest(), userDetailsJson, rr));
         }
 
-        public async Task<RequestResult> UploadUserPicture(string serverUrl, RequestHelper requestHelper, int rr, Stream imageStream, CountlyUserDetails userDetails = null)
+        public async Task<RequestResult> SendUserPicture(string serverUrl, RequestHelper requestHelper, int rr, Stream imageStream, CountlyUserDetails userDetails = null)
         {
             string userDetailsJson = string.Empty;
 
@@ -92,14 +92,19 @@ namespace CountlySDK.CountlyCommon.Server
         /// <param name="address"></param>
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
+        /// <param name="customHeaders"></param>
         /// <returns></returns>
         protected async Task<RequestResult> CallJob(string address, string requestData, Stream imageData = null)
         {
             Debug.Assert(address != null);
             TaskCompletionSource<RequestResult> tcs = new TaskCompletionSource<RequestResult>();
+            if (requestData.StartsWith("/i?")) { // for migrating old requests
+                requestData = requestData.Replace("/i?", "");
+            }
+            UtilityHelper.CountlyLogging(string.Format("[ApiBase] CallJob, address: [{0}], endpoint: [{1}] requestData: [{2}]", address, sdkEndpoint, requestData));
 
             try {
-                RequestResult requestResult = await RequestAsync(address, requestData, imageData);
+                RequestResult requestResult = await RequestAsync(address + sdkEndpoint, requestData, imageData, customNetworkRequestHeaders);
                 tcs.SetResult(requestResult);
 
                 if (requestResult.responseText != null) {
@@ -122,7 +127,8 @@ namespace CountlySDK.CountlyCommon.Server
         /// <param name="address"></param>
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
+        /// <param name="customHeaders"></param>
         /// <returns></returns>
-        protected abstract Task<RequestResult> RequestAsync(string address, string requestData, Stream imageData = null);
+        protected abstract Task<RequestResult> RequestAsync(string address, string requestData, Stream imageData = null, IDictionary<string, string> customHeaders = null);
     }
 }

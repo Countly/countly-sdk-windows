@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
@@ -42,20 +42,25 @@ namespace CountlySDK
         /// <param name="address"></param>
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
+        /// <param name="customHeaders"></param>
         /// <returns></returns>
-        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null)
+        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null, IDictionary<string, string> customHeaders = null)
         {
             Stream dataStream = null;
             RequestResult requestResult = new RequestResult();
             try {
-                UtilityHelper.CountlyLogging("POST " + address);
-
                 //make sure stream is at start
                 imageData?.Seek(0, SeekOrigin.Begin);
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
                 request.Method = "POST";
                 request.ContentType = "application/json";
+                if (customHeaders != null && customHeaders.Count > 0) {
+                    foreach (KeyValuePair<string, string> kv in customHeaders) {
+                        request.Headers.Add(kv.Key, kv.Value);
+                    }
+
+                }
 
                 if (imageData != null) {
                     dataStream = imageData;
