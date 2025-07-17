@@ -26,12 +26,13 @@ namespace CountlySDK
         /// Platform specific task wrapper
         /// </summary>
         /// <param name="address"></param>
-        /// <param name="data"></param>
+        /// <param name="requestData"></param>
+        /// <param name="imageData"></param>
         /// <returns></returns>
-        protected override async Task<RequestResult> Call(string address, Stream data = null)
+        protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null)
         {
             return await Task.Run(async () => {
-                return await CallJob(address, data);
+                return await CallJob(address, requestData, imageData);
             }).ConfigureAwait(false);
         }
 
