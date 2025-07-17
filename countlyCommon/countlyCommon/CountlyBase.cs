@@ -1221,7 +1221,7 @@ namespace CountlySDK.CountlyCommon
 
         protected bool IsServerURLCorrect(string url)
         {
-            if (string.IsNullOrWhiteSpace(url)) {
+            if (string.IsNullOrEmpty(url)) {
                 return false;
             }
             return true;
@@ -1229,7 +1229,7 @@ namespace CountlySDK.CountlyCommon
 
         protected bool IsAppKeyCorrect(string appKey)
         {
-            if (string.IsNullOrWhiteSpace(appKey)) {
+            if (string.IsNullOrEmpty(appKey)) {
                 return false;
             }
             return true;
