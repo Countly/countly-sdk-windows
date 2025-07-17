@@ -1,7 +1,9 @@
 ## XX.XX.XX
 * Added a new function "SetId(newDeviceId)" for managing device id changes according to the device ID Type.
+* Added e new configuration function "addCustomNetworkRequestHeaders(IDictionary<string, string>)" to add custom request headers to each request.
 
 * Mitigated an issue where changing to same previous id was permitted, not anymore.
+* Mitigated an issue where post request were not really a post request.
 
 ## 24.1.1
 * Fixed a bug where same, null, and empty keys were permitted in the Segmentation.
