@@ -25,7 +25,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            return await Call(serverUrl + sessionEvent.Content + userDetailsJson + "&rr=" + rr);
+            return await Call(serverUrl, string.Format("{0}{1}&rr={2}", sessionEvent.Content + userDetailsJson, rr));
         }
 
         public async Task<RequestResult> SendEvents(string serverUrl, RequestHelper requestHelper, int rr, List<CountlyEvent> events, CountlyUserDetails userDetails = null)
@@ -38,13 +38,13 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "&user_details=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            return await Call(string.Format("{0}{1}&events={2}{3}&rr={4}", serverUrl, await requestHelper.BuildRequest(), UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson, rr));
+            return await Call(serverUrl, string.Format("{0}&events={1}{2}&rr={3}", await requestHelper.BuildRequest(), UtilityHelper.EncodeDataForURL(eventsJson), userDetailsJson, rr));
         }
 
         public async Task<RequestResult> SendException(string serverUrl, RequestHelper requestHelper, int rr, ExceptionEvent exception)
         {
             string exceptionJson = UtilityHelper.EncodeDataForURL(RequestHelper.Json(exception));
-            return await Call(string.Format("{0}{1}&crash={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), exceptionJson, rr));
+            return await Call(serverUrl, string.Format("{0}&crash={1}&rr={2}", await requestHelper.BuildRequest(), exceptionJson, rr));
         }
 
         public async Task<RequestResult> UploadUserDetails(string serverUrl, RequestHelper requestHelper, int rr, CountlyUserDetails userDetails = null)
@@ -55,7 +55,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            return await Call(string.Format("{0}{1}&user_details={2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr));
+            return await Call(serverUrl, string.Format("{0}&user_details={1}&rr={2}", await requestHelper.BuildRequest(), userDetailsJson, rr));
         }
 
         public async Task<RequestResult> UploadUserPicture(string serverUrl, RequestHelper requestHelper, int rr, Stream imageStream, CountlyUserDetails userDetails = null)
@@ -66,7 +66,7 @@ namespace CountlySDK.CountlyCommon.Server
                 userDetailsJson = "=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(userDetails));
             }
 
-            return await Call(string.Format("{0}{1}&user_details{2}&rr={3}", serverUrl, await requestHelper.BuildRequest(), userDetailsJson, rr), imageStream);
+            return await Call(serverUrl, string.Format("{0}&user_details={1}&rr={2}", await requestHelper.BuildRequest(), userDetailsJson, rr), imageStream);
         }
 
         public async Task<RequestResult> SendStoredRequest(string serverUrl, StoredRequest request, int rr)
@@ -74,39 +74,32 @@ namespace CountlySDK.CountlyCommon.Server
             Debug.Assert(serverUrl != null);
             Debug.Assert(request != null);
 
-            return await Call(string.Format("{0}{1}&rr={2}", serverUrl, request.Request, rr));
+            return await Call(serverUrl, string.Format("{0}&rr={1}", request.Request, rr));
         }
 
         /// <summary>
         /// Platform specific task wrapper
         /// </summary>
         /// <param name="address"></param>
+        /// <param name="requestData"></param>
         /// <param name="imageData"></param>
         /// <returns></returns>
-        protected abstract Task<RequestResult> Call(string address, Stream imageData = null);
+        protected abstract Task<RequestResult> Call(string address, string requestData, Stream imageData = null);
 
         /// <summary>
         /// Common job handler
         /// </summary>
         /// <param name="address"></param>
+        /// <param name="requestData"></param>
         /// <param name="imageData"></param>
         /// <returns></returns>
-        protected async Task<RequestResult> CallJob(string address, Stream imageData = null)
+        protected async Task<RequestResult> CallJob(string address, string requestData, Stream imageData = null)
         {
             Debug.Assert(address != null);
             TaskCompletionSource<RequestResult> tcs = new TaskCompletionSource<RequestResult>();
 
             try {
-                string rData = null;
-
-                if (address.Length > maxLengthForDataInUrl) {
-                    //request url was too long, split off the data and pass it as form data
-                    string[] splitData = address.Split('?');
-                    address = splitData[0];
-                    rData = splitData[1];
-                }
-
-                RequestResult requestResult = await RequestAsync(address, rData, imageData);
+                RequestResult requestResult = await RequestAsync(address, requestData, imageData);
                 tcs.SetResult(requestResult);
 
                 if (requestResult.responseText != null) {

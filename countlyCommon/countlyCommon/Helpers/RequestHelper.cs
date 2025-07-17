@@ -153,9 +153,7 @@ namespace CountlySDK.CountlyCommon.Helpers
                 }
             }
 
-            string result = "/i?" + requestStringBuilder.ToString();
-
-            return Uri.EscapeUriString(result);
+            return Uri.EscapeUriString(requestStringBuilder.ToString());
         }
 
         /// <summary>
