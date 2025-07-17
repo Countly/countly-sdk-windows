@@ -29,7 +29,7 @@ namespace CountlySDK
             }).ConfigureAwait(false);
         }
 
-        protected override async Task<RequestResult> RequestAsync(string address, string requestData = null, Stream imageData = null)
+        protected override async Task<RequestResult> RequestAsync(string address, string requestData = null, Stream imageData = null, IDictionary<string, string> customNetworkHeaders = null)
         {
             RequestResult requestResult = new RequestResult();
             try {
@@ -56,6 +56,12 @@ namespace CountlySDK
                     }
 
                     httpContent = new FormUrlEncodedContent(pairs);
+                }
+
+                if (httpContent != null && customNetworkHeaders != null && customNetworkHeaders.Count > 0) {
+                    foreach (KeyValuePair<string, string> pair in customNetworkHeaders) {
+                        httpContent.Headers.Add(pair.Key, pair.Value);
+                    }
                 }
 
                 HttpClient httpClient = new HttpClient();
