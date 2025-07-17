@@ -964,6 +964,7 @@ namespace CountlySDK.CountlyCommon
 
                 //do the exception upload
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                exEvent.Name = UtilityHelper.TrimKey(exEvent.Name, Configuration.MaxKeyLength); // this is here because already saved exceptions need to be truncated too
                 RequestResult requestResult = await Api.Instance.SendException(ServerUrl, requestHelper, GetRemainingRequestCount(), exEvent);
 
                 //check if we got a response and that it was a success
