@@ -1,7 +1,7 @@
 ## XX.XX.XX
 * Added a new function "SetId(newDeviceId)" for managing device id changes according to the device ID Type.
 
-* Mitigated an issue where changing to same previous id was permitted, not anymore. 
+* Mitigated an issue where changing to same ID was permitted. 
 * Mitigated an issue where internal limits were not applied to error names.
 
 ## 24.1.1
