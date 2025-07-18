@@ -38,7 +38,7 @@ namespace TestProject_common
         public static string SERVER_URL = "https://domin.com";
         public static string APP_VERSION = "1.0";
         public static string DEVICE_ID = "TEST_DEVICE_ID";
-        public static string SDK_VERSION = "24.1.1";
+        public static string SDK_VERSION = "25.4.0";
 
 
         public static BeginSession CreateBeginSession(int indexData, int indexMetrics, TimeInstant timeInstant)

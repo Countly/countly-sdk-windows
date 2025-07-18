@@ -1,4 +1,4 @@
-## XX.XX.XX
+## 25.4.0
 * Added a new function "SetId(newDeviceId)" for managing device id changes according to the device ID Type.
 * Added e new configuration function "addCustomNetworkRequestHeaders(IDictionary<string, string>)" to add custom request headers to each request.
 * Added a new configuration function "SetParamaterTamperingProtectionSalt(string)" to enhance SDK security.
