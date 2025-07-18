@@ -127,7 +127,7 @@ namespace CountlySDK.CountlyCommon.Server
 
         private string AddChekcsum(string data)
         {
-            if (salt == null || salt.Length == 0) {
+            if (tamperingProtectionSalt == null || tamperingProtectionSalt.Length == 0) {
                 return data;
             }
             string decodedData = data;

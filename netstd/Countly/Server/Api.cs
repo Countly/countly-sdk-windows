@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
@@ -38,24 +40,9 @@ namespace CountlySDK
                 HttpContent httpContent = (imageData != null) ? new StreamContent(imageData) : null;
 
                 if (requestData != null) {
-                    //if there is request data to stream, that means it was too long
-                    string[] pairsS = requestData.Split('&');
-
-                    KeyValuePair<string, string>[] pairs = new KeyValuePair<string, string>[pairsS.Length];
-                    for (int a = 0; a < pairsS.Length; a++) {
-                        string[] splitPair = pairsS[a].Split('=');
-
-                        if (splitPair.Length <= 1) {
-                            //string did not contain a '=', skip it
-                            UtilityHelper.CountlyLogging("Encountered a faulty request param, skipping it: [" + pairsS[a] + "]");
-                            continue;
-                        }
-
-                        string decodedValue = UtilityHelper.DecodeDataForURL(splitPair[1]);
-                        pairs[a] = new KeyValuePair<string, string>(splitPair[0], decodedValue);
-                    }
-
-                    httpContent = new FormUrlEncodedContent(pairs);
+                    Stream requestStream = new MemoryStream(Encoding.UTF8.GetBytes(requestData));
+                    httpContent = new StreamContent(requestStream);
+                    httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
                 }
 
                 if (httpContent != null && customNetworkHeaders != null && customNetworkHeaders.Count > 0) {
