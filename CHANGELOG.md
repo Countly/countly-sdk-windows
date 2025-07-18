@@ -2,7 +2,7 @@
 * Added a new function "SetId(newDeviceId)" for managing device id changes according to the device ID Type.
 
 * Mitigated an issue where changing to same previous id was permitted, not anymore. 
-* Mitigated an issue where very long error names could cause problems by trimming them to fit within the max key length.
+* Mitigated an issue where internal limits were not applied to error names.
 
 ## 24.1.1
 * Fixed a bug where same, null, and empty keys were permitted in the Segmentation.
