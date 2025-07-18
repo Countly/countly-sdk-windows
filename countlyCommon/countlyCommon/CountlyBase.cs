@@ -1410,6 +1410,7 @@ namespace CountlySDK.CountlyCommon
             IRequestHelperImpl exposed = new IRequestHelperImpl(this);
             requestHelper = new RequestHelper(exposed);
             Api.Instance.customNetworkRequestHeaders = config.CustomNetworkRequestHeaders;
+            Api.Instance.tamperingProtectionSalt = config.TamperingProtectionSalt;
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {

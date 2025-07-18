@@ -100,6 +100,7 @@ namespace CountlySDK.CountlyCommon.Entities
         /// Maximum request queue size
         /// </summary>
         internal int RequestQueueMaxSize = 1000;
+        internal string TamperingProtectionSalt = null;
 
 
         internal string City = null;
@@ -217,6 +218,19 @@ namespace CountlySDK.CountlyCommon.Entities
                 CustomNetworkRequestHeaders = customNetworkRequestHeaders;
             }
 
+            return this;
+        }
+
+        /// <summary>
+        /// Salt to hash all requests
+        /// </summary>
+        /// <param name="paramaterTamperingProtectionSalt"></param>
+        /// <returns></returns>
+        public CountlyConfigBase SetParamaterTamperingProtectionSalt(string paramaterTamperingProtectionSalt)
+        {
+            if (!string.IsNullOrEmpty(paramaterTamperingProtectionSalt)) {
+                TamperingProtectionSalt = paramaterTamperingProtectionSalt;
+            }
             return this;
         }
     }

@@ -17,6 +17,7 @@ namespace CountlySDK.CountlyCommon.Server
     {
         internal const int maxLengthForDataInUrl = 2000;
         internal const string sdkEndpoint = "/i";
+        internal string tamperingProtectionSalt = null;
         internal IDictionary<string, string> customNetworkRequestHeaders = null;
 
         public async Task<RequestResult> SendSession(string serverUrl, int rr, SessionEvent sessionEvent, CountlyUserDetails userDetails = null)
@@ -132,7 +133,7 @@ namespace CountlySDK.CountlyCommon.Server
             string decodedData = data;
             UtilityHelper.CountlyLogging(decodedData);
             using (SHA256 sha256 = SHA256.Create()) {
-                byte[] bytes = Encoding.UTF8.GetBytes(decodedData + salt);
+                byte[] bytes = Encoding.UTF8.GetBytes(decodedData + tamperingProtectionSalt);
                 byte[] hash = sha256.ComputeHash(bytes);
 
                 var sb = new StringBuilder();
