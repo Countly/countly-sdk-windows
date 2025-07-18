@@ -1,10 +1,12 @@
 ## 25.4.0
-* Added a new function "SetId(newDeviceId)" for managing device id changes according to the device ID Type.
-* Added e new configuration function "addCustomNetworkRequestHeaders(IDictionary<string, string>)" to add custom request headers to each request.
-* Added a new configuration function "SetParamaterTamperingProtectionSalt(string)" to enhance SDK security.
+* Added a new function "SetId(newDeviceId)" for managing device ID changes according to the device ID Type.
+* Added a new configuration function "addCustomNetworkRequestHeaders(IDictionary<string, string>)" to add custom request headers to each request.
+* Added support for parameter tamper protection:
+    * Added a new configuration function "SetParamaterTamperingProtectionSalt(string)" to provide salt value for checksums.
 
-* Mitigated an issue where changing to same previous id was permitted, not anymore.
-* Mitigated an issue where post request were not really a post request.
+* Mitigated an issue where changing to same ID was permitted. 
+* Mitigated an issue where internal limits were not applied to error names.
+* Mitigated an issue where POST requests were not formed correctly.
 
 ## 24.1.1
 * Fixed a bug where same, null, and empty keys were permitted in the Segmentation.
