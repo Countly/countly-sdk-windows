@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.CountlyCommon.Helpers;
@@ -101,6 +103,7 @@ namespace CountlySDK.CountlyCommon.Server
             if (requestData.StartsWith("/i?")) { // for migrating old requests
                 requestData = requestData.Replace("/i?", "");
             }
+            requestData = AddChekcsum(requestData);
             UtilityHelper.CountlyLogging(string.Format("[ApiBase] CallJob, address: [{0}], endpoint: [{1}] requestData: [{2}]", address, sdkEndpoint, requestData));
 
             try {
@@ -119,6 +122,27 @@ namespace CountlySDK.CountlyCommon.Server
             }
 
             return await tcs.Task;
+        }
+
+        private string AddChekcsum(string data)
+        {
+            if (salt == null || salt.Length == 0) {
+                return data;
+            }
+            string decodedData = data;
+            UtilityHelper.CountlyLogging(decodedData);
+            using (SHA256 sha256 = SHA256.Create()) {
+                byte[] bytes = Encoding.UTF8.GetBytes(decodedData + salt);
+                byte[] hash = sha256.ComputeHash(bytes);
+
+                var sb = new StringBuilder();
+                foreach (byte b in hash) {
+                    sb.Append(b.ToString("x2"));
+
+                }
+                data = data + "&checksum256=" + sb.ToString();
+                return data;
+            }
         }
 
         /// <summary>
