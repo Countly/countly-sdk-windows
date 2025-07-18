@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
@@ -52,7 +53,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "24.1.1";
+        protected const string sdkVersion = "25.4.0";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
@@ -226,9 +227,9 @@ namespace CountlySDK.CountlyCommon
             lastSessionUpdateTime = DateTime.Now;
 
             Dictionary<string, object> requestParams =
-               new Dictionary<string, object>();
-
-            requestParams.Add("session_duration", elapsedTime.Value);
+               new Dictionary<string, object> {
+                   { "session_duration", elapsedTime.Value }
+               };
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -262,10 +263,10 @@ namespace CountlySDK.CountlyCommon
                 elapsedTimeSeconds = 0;
             }
 
-            Dictionary<string, object> requestParams = new Dictionary<string, object>();
-
-            requestParams.Add("end_session", 1);
-            requestParams.Add("session_duration", elapsedTimeSeconds);
+            Dictionary<string, object> requestParams = new Dictionary<string, object> {
+                { "end_session", 1 },
+                { "session_duration", elapsedTimeSeconds }
+            };
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -1032,7 +1033,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, requestHelper, GetRemainingRequestCount(), UserDetails);
+            RequestResult requestResult = await Api.Instance.SendUserDetails(ServerUrl, requestHelper, GetRemainingRequestCount(), UserDetails);
 
             lock (sync) {
                 uploadInProgress = false;
@@ -1092,7 +1093,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, requestHelper, GetRemainingRequestCount(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            RequestResult requestResult = await Api.Instance.SendUserPicture(ServerUrl, requestHelper, GetRemainingRequestCount(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
             return (requestResult != null && requestResult.IsSuccess());
         }
@@ -1220,19 +1221,17 @@ namespace CountlySDK.CountlyCommon
             return did.deviceId;
         }
 
-        protected bool IsServerURLCorrect(String url)
+        protected bool IsServerURLCorrect(string url)
         {
-            if (String.IsNullOrEmpty(url))//todo, in future replace with "String.IsNullOrWhiteSpace"
-            {
+            if (string.IsNullOrEmpty(url)) {
                 return false;
             }
             return true;
         }
 
-        protected bool IsAppKeyCorrect(String appKey)
+        protected bool IsAppKeyCorrect(string appKey)
         {
-            if (String.IsNullOrEmpty(appKey))//todo, in future replace with "String.IsNullOrWhiteSpace"
-            {
+            if (string.IsNullOrEmpty(appKey)) {
                 return false;
             }
             return true;
@@ -1411,6 +1410,8 @@ namespace CountlySDK.CountlyCommon
             timeHelper = new TimeHelper();
             IRequestHelperImpl exposed = new IRequestHelperImpl(this);
             requestHelper = new RequestHelper(exposed);
+            Api.Instance.customNetworkRequestHeaders = config.CustomNetworkRequestHeaders;
+            Api.Instance.tamperingProtectionSalt = config.TamperingProtectionSalt;
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {

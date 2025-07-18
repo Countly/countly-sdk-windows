@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
-using System.Threading;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
@@ -23,46 +24,35 @@ namespace CountlySDK
         public static Api Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        protected override async Task<RequestResult> Call(string address, Stream imageData = null)
+        protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null)
         {
             return await Task.Run<RequestResult>(async () => {
-                return await CallJob(address, imageData);
+                return await CallJob(address, requestData, imageData);
             }).ConfigureAwait(false);
         }
 
-        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null)
+        protected override async Task<RequestResult> RequestAsync(string address, string requestData = null, Stream imageData = null, IDictionary<string, string> customNetworkHeaders = null)
         {
             RequestResult requestResult = new RequestResult();
             try {
-                UtilityHelper.CountlyLogging("POST " + address);
-
                 //make sure stream is at start
                 imageData?.Seek(0, SeekOrigin.Begin);
                 HttpContent httpContent = (imageData != null) ? new StreamContent(imageData) : null;
 
                 if (requestData != null) {
-                    //if there is request data to stream, that means it was too long
-                    String[] pairsS = requestData.Split('&');
-
-                    KeyValuePair<string, string>[] pairs = new KeyValuePair<string, string>[pairsS.Length];
-                    for (int a = 0; a < pairsS.Length; a++) {
-                        String[] splitPair = pairsS[a].Split('=');
-
-                        if (splitPair.Length <= 1) {
-                            //string did not contain a '=', skip it
-                            UtilityHelper.CountlyLogging("Encountered a faulty request param, skipping it: [" + pairsS[a] + "]");
-                            continue;
-                        }
-
-                        String decodedValue = UtilityHelper.DecodeDataForURL(splitPair[1]);
-                        pairs[a] = new KeyValuePair<string, string>(splitPair[0], decodedValue);
-                    }
-
-                    httpContent = new FormUrlEncodedContent(pairs);
+                    Stream requestStream = new MemoryStream(Encoding.UTF8.GetBytes(requestData));
+                    httpContent = new StreamContent(requestStream);
+                    httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
                 }
 
-                System.Net.Http.HttpClient httpClient = new System.Net.Http.HttpClient();
-                System.Net.Http.HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, httpContent);
+                if (httpContent != null && customNetworkHeaders != null && customNetworkHeaders.Count > 0) {
+                    foreach (KeyValuePair<string, string> pair in customNetworkHeaders) {
+                        httpContent.Headers.Add(pair.Key, pair.Value);
+                    }
+                }
+
+                HttpClient httpClient = new HttpClient();
+                HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, httpContent);
 
                 requestResult.responseText = await httpResponseMessage.Content.ReadAsStringAsync();
                 requestResult.responseCode = (int)httpResponseMessage.StatusCode;

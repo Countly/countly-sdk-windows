@@ -100,6 +100,7 @@ namespace CountlySDK.CountlyCommon.Entities
         /// Maximum request queue size
         /// </summary>
         internal int RequestQueueMaxSize = 1000;
+        internal string TamperingProtectionSalt = null;
 
 
         internal string City = null;
@@ -108,6 +109,7 @@ namespace CountlySDK.CountlyCommon.Entities
         internal string CountryCode = null;
         internal bool IsLocationDisabled = false;
         internal IDictionary<string, string> MetricOverride = null;
+        internal IDictionary<string, string> CustomNetworkRequestHeaders = null;
 
         /// <summary>
         /// Disabled the location tracking on the Countly server
@@ -191,12 +193,44 @@ namespace CountlySDK.CountlyCommon.Entities
             return this;
         }
 
+        /// <summary>
+        /// Allows you to add custom metric key/value pairs
+        /// </summary>
+        /// <param name="metricOverride"></param>
+        /// <returns></returns>
         public CountlyConfigBase SetMetricOverride(IDictionary<string, string> metricOverride)
         {
             if (metricOverride != null && metricOverride.Count > 0) {
                 MetricOverride = metricOverride;
             }
 
+            return this;
+        }
+
+        /// <summary>
+        /// Allows you to add custom header key/value pairs to each request
+        /// </summary>
+        /// <param name="customNetworkRequestHeaders"></param>
+        /// <returns></returns>
+        public CountlyConfigBase AddCustomNetworkRequestHeaders(IDictionary<string, string> customNetworkRequestHeaders)
+        {
+            if (customNetworkRequestHeaders != null && customNetworkRequestHeaders.Count > 0) {
+                CustomNetworkRequestHeaders = customNetworkRequestHeaders;
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Salt to hash all requests
+        /// </summary>
+        /// <param name="paramaterTamperingProtectionSalt"></param>
+        /// <returns></returns>
+        public CountlyConfigBase SetParamaterTamperingProtectionSalt(string paramaterTamperingProtectionSalt)
+        {
+            if (!string.IsNullOrEmpty(paramaterTamperingProtectionSalt)) {
+                TamperingProtectionSalt = paramaterTamperingProtectionSalt;
+            }
             return this;
         }
     }

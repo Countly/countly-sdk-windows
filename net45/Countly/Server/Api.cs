@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -26,12 +27,13 @@ namespace CountlySDK
         /// Platform specific task wrapper
         /// </summary>
         /// <param name="address"></param>
-        /// <param name="data"></param>
+        /// <param name="requestData"></param>
+        /// <param name="imageData"></param>
         /// <returns></returns>
-        protected override async Task<RequestResult> Call(string address, Stream data = null)
+        protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null)
         {
             return await Task.Run(async () => {
-                return await CallJob(address, data);
+                return await CallJob(address, requestData, imageData);
             }).ConfigureAwait(false);
         }
 
@@ -42,7 +44,7 @@ namespace CountlySDK
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
         /// <returns></returns>
-        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null)
+        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null, IDictionary<string, string> customNetworkHeaders = null)
         {
             Stream dataStream = null;
             RequestResult requestResult = new RequestResult();
@@ -55,6 +57,12 @@ namespace CountlySDK
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(address);
                 request.Method = "POST";
                 request.ContentType = "application/json";
+
+                if (customNetworkHeaders != null) {
+                    foreach (KeyValuePair<string, string> kv in customNetworkHeaders) {
+                        request.Headers.Add(kv.Key, kv.Value);
+                    }
+                }
 
                 if (imageData != null) {
                     dataStream = imageData;
