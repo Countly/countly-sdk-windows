@@ -12,6 +12,7 @@
         <description>Countly Analytics SDK provides a full, open source analytics SDK for Countly Lite, Countly Flex and Countly Enterprise. For more information about Countly, visit https://countly.com</description>
         <copyright>(C) Countly</copyright>
         <tags>countly, analytics</tags>
+        <readme>docs\readme.md</readme>
         <dependencies>
           <group targetFramework="net35-full">
             <dependency id="Newtonsoft.Json" version="13.0.3" />
@@ -33,5 +34,6 @@
         <file src="lib\net45\Countly.xml" target="lib\net45\Countly.xml" />
         <file src="lib\netstandard2.0\Countly.dll" target="lib\netstandard2.0\Countly.dll" />
         <file src="lib\netstandard2.0\Countly.xml" target="lib\netstandard2.0\Countly.xml" />
+        <file src="docs\readme.md" target="docs\readme.md" />
     </files>
 </package>
