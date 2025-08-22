@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2012, 2013, 2014 Countly
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,17 +35,24 @@ namespace CountlySDK.Helpers
         {
             get {
                 try {
-                    var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                    using (var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion")) {
+                        string productName = reg == null ? null : reg.GetValue("ProductName") as string;
+                        string buildStr = reg == null ? null :
+                            (reg.GetValue("CurrentBuildNumber") as string) ?? (reg.GetValue("CurrentBuild") as string);
 
-                    return (string)reg.GetValue("ProductName");
+                        int build;
+                        if (Int32.TryParse(buildStr, out build) && build >= 22000 &&
+                            !string.IsNullOrEmpty(productName) && productName.Contains("Windows 10")) {
+                            productName = productName.Replace("Windows 10", "Windows 11");
+                        }
+                        return productName;
+                    }
                 } catch (Exception ex) {
-                    UtilityHelper.CountlyLogging("OSInfo:OsName, problem while getting LocalMachine information." + ex.ToString());
-
+                    UtilityHelper.CountlyLogging("OSInfo:GetOSProductName failed: " + ex);
                     return null;
                 }
             }
         }
-
         /// <summary>
         /// Returns the current operating system version as a displayable string
         /// </summary>
