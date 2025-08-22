@@ -455,7 +455,12 @@ namespace TestProject_common
 
         public static Dictionary<string, string> GetParams(string query)
         {
-            string[] queryParams = query.Split('?')[1].Split('&');
+            int idx = 1;
+            string[] tempParams = query.Split('?');
+            if (tempParams.Length < 2) {
+                idx = 0;
+            }
+            string[] queryParams = query.Split('?')[idx].Split('&');
             Dictionary<string, string> result = new Dictionary<string, string>();
 
             if (queryParams.Length < 1) {

@@ -94,7 +94,7 @@ namespace TestProject_common
 
             string request = await requestHelper.BuildRequest(param);
 
-            NameValueCollection collection = HttpUtility.ParseQueryString(request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(request);
 
             Assert.Equal("A", collection.Get("a"));
             Assert.Equal("B", collection.Get("b"));
