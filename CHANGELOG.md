@@ -1,3 +1,6 @@
+## 25.4.1
+* Mitigated an issue where Windows 11 Enterprise and other commercial editions were incorrectly reported as Windows 10.
+
 ## 25.4.0
 * Added a new function "SetId(newDeviceId)" for managing device ID changes according to the device ID Type.
 * Added a new configuration function "addCustomNetworkRequestHeaders(IDictionary<string, string>)" to add custom request headers to each request.
