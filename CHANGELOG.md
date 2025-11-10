@@ -1,4 +1,4 @@
-## XX.XX.XX
+## 25.4.2
 * Mitigated an issue where macOS was incorrectly reported as Unix.
 
 ## 25.4.1
