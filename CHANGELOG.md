@@ -1,3 +1,6 @@
+## XX.XX.XX
+* Mitigated an issue where macOS was incorrectly reported as Unix.
+
 ## 25.4.1
 * Mitigated an issue where Windows 11 Enterprise and other commercial editions were incorrectly reported as Windows 10.
 

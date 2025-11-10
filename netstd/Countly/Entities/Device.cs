@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 using System;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
@@ -183,6 +184,8 @@ namespace CountlySDK.Entities
                     default:
                         break;
                 }
+            } else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
+                return "macOS";
             } else {
                 return os.Platform.ToString();
             }
