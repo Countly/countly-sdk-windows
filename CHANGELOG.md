@@ -1,5 +1,5 @@
 ## 25.4.2
-* Mitigated an issue where macOS was incorrectly reported as Unix.
+* Added support for distinguishing macOS as a distinct OS value in metrics.
 
 ## 25.4.1
 * Mitigated an issue where Windows 11 Enterprise and other commercial editions were incorrectly reported as Windows 10.
