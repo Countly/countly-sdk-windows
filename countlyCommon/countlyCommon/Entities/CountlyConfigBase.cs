@@ -111,6 +111,8 @@ namespace CountlySDK.CountlyCommon.Entities
         internal IDictionary<string, string> MetricOverride = null;
         internal IDictionary<string, string> CustomNetworkRequestHeaders = null;
 
+        internal bool manualUserDetailsSave = true;
+
         /// <summary>
         /// Disabled the location tracking on the Countly server
         /// </summary>
@@ -231,6 +233,17 @@ namespace CountlySDK.CountlyCommon.Entities
             if (!string.IsNullOrEmpty(paramaterTamperingProtectionSalt)) {
                 TamperingProtectionSalt = paramaterTamperingProtectionSalt;
             }
+            return this;
+        }
+
+        /// <summary>
+        /// Disables manual user details save. By default manual user details save is enabled.
+        /// This reverts the fix that all edit user details was not saved.
+        /// </summary>
+        /// <returns></returns>
+        public CountlyConfigBase DisableManualUserDetailsSave()
+        {
+            manualUserDetailsSave = false;
             return this;
         }
     }

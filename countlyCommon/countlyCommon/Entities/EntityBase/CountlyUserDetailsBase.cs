@@ -37,6 +37,8 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
     abstract public class CountlyUserDetailsBase : IComparable<CountlyUserDetailsBase>
     {
         internal delegate void UserDetailsChangedEventHandler();
+        internal bool manualUserDetailsSave = true;
+        private bool isUserPropertiesChanged = false;
 
         /// <summary>
         /// raised when any of properties are changed
@@ -69,7 +71,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (name != value) {
                     name = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -88,7 +90,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (username != value) {
                     username = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -107,7 +109,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (email != value) {
                     email = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -126,7 +128,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (organization != value) {
                     organization = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -145,7 +147,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (phone != value) {
                     phone = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -164,7 +166,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (picture != value) {
                     picture = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -183,7 +185,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (gender != value) {
                     gender = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -203,7 +205,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
                 if (birthYear != value) {
                     birthYear = value;
 
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -221,18 +223,18 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (custom != value) {
                     if (custom != null) {
-                        custom.CollectionChanged -= NotifyDetailsChanged;
+                        custom.CollectionChanged -= SaveInternal;
                     }
 
                     if (value != null) {
                         custom = value;
 
-                        custom.CollectionChanged += NotifyDetailsChanged;
+                        custom.CollectionChanged += SaveInternal;
                     } else {
                         custom?.Clear();
                     }
 
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -287,6 +289,26 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         public async Task<bool> UploadUserPicture(Stream imageStream)
         {
             return await Countly.Instance.UploadUserPicture(imageStream);
+        }
+
+        /// <summary>
+        /// Saves user details
+        /// </summary>
+        public async void Save()
+        {
+            if (!isUserPropertiesChanged) {
+                return;
+            }
+            isUserPropertiesChanged = false;
+            NotifyDetailsChanged();
+        }
+
+        private async void SaveInternal()
+        {
+            isUserPropertiesChanged = true;
+            if(manualUserDetailsSave != true) {
+                NotifyDetailsChanged();
+            }
         }
 
         /// <summary>

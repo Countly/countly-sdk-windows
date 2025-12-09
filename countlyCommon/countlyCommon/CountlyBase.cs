@@ -125,6 +125,7 @@ namespace CountlySDK.CountlyCommon
                         }
 
                         userDetails.UserDetailsChanged += Countly.Instance.OnUserDetailsChanged;
+                        userDetails.manualUserDetailsSave = Countly.Instance.Configuration.manualUserDetailsSave;
                     }
                 }
                 return userDetails;
