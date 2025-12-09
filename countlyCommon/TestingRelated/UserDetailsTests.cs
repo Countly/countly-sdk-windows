@@ -35,6 +35,7 @@ namespace TestProject_common
         {
             CountlyConfig cc = TestHelper.CreateConfig();
             cc.MaxValueSize = 3;
+            cc.DisableManualUserDetailsSave();
 
             Countly.Instance.Init(cc).Wait();
 
@@ -69,6 +70,7 @@ namespace TestProject_common
             CountlyConfig cc = TestHelper.CreateConfig();
             cc.MaxKeyLength = 5;
             cc.MaxValueSize = 6;
+            cc.DisableManualUserDetailsSave();
 
             Countly.Instance.Init(cc).Wait();
 

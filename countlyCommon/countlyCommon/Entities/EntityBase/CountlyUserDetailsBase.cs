@@ -306,7 +306,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         private async void SaveInternal()
         {
             isUserPropertiesChanged = true;
-            if(!manualUserDetailsSave) {
+            if (!manualUserDetailsSave) {
                 NotifyDetailsChanged();
             }
         }

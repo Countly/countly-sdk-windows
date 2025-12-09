@@ -231,11 +231,11 @@ namespace CountlySDK.CountlyCommon
                new Dictionary<string, object> {
                    { "session_duration", elapsedTime.Value }
                };
-            
-            if(Configuration.autoSendUserDetails){
-                await UserDetails.Save();
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
             }
-  
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -273,11 +273,11 @@ namespace CountlySDK.CountlyCommon
                 { "end_session", 1 },
                 { "session_duration", elapsedTimeSeconds }
             };
-            
-            if(Configuration.autoSendUserDetails){
-                await UserDetails.Save();
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
             }
-            
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -698,11 +698,11 @@ namespace CountlySDK.CountlyCommon
                 Events.Add(cEvent);
                 saveSuccess = SaveEvents();
             }
-            
-            if(Configuration.autoSendUserDetails){
-                await UserDetails.Save();
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
             }
-            
+
             if (saveSuccess) {
                 //todo rework this
                 saveSuccess = await Upload();
@@ -1545,11 +1545,11 @@ namespace CountlySDK.CountlyCommon
                 { "begin_session", 1 },
                 { "metrics", metrics.ToString() }
             };
-            
-            if(Configuration.autoSendUserDetails){
-                await UserDetails.Save();
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
             }
-            
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
