@@ -524,6 +524,11 @@ namespace TestProject_common
             }
         }
 
+        internal static string GetSessionMetrics()
+        {
+            return Json("_os", Countly.Instance.DeviceData.OS, "_os_version", Countly.Instance.DeviceData.OSVersion, "_resolution", Countly.Instance.DeviceData.Resolution, "_app_version", TestHelper.APP_VERSION, "_locale", CultureInfo.CurrentUICulture.Name);
+        }
+
         internal static IDictionary<string, T> DictGeneric<T>(params T[] values)
         {
             IDictionary<string, T> result = new Dictionary<string, T>();
