@@ -328,6 +328,23 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
                 NotifyDetailsChanged();
             }
         }
+
+        internal void Clear()
+        {
+            UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] Clear, will clear the cache");
+            Custom = null;
+            Name = null;
+            Username = null;
+            Email = null;
+            Organization = null;
+            Phone = null;
+            Picture = null;
+            BirthYear = null;
+            Gender = null;
+            isChanged = false;
+            isUserPropertiesChanged = false;
+        }
+
         /// <summary>
         /// Serializes object into json
         /// </summary>
