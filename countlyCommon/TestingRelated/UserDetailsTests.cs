@@ -3,30 +3,16 @@ using System.Collections.Generic;
 using CountlySDK;
 using CountlySDK.Entities;
 using Xunit;
-#if !RUNNING_ON_35
-using Xunit.Abstractions;
-#endif
 
 namespace TestProject_common
 {
     public class UserDetailsTests : IDisposable
     {
-#if !RUNNING_ON_35
-        private readonly ITestOutputHelper _output;
-#endif
-
         /// <summary>
         /// Test setup
         /// </summary>
-#if !RUNNING_ON_35
-
-        public UserDetailsTests(ITestOutputHelper output)
-        {
-            _output = output;
-#else
         public UserDetailsTests()
         {
-#endif
             CountlyImpl.SetPCLStorageIfNeeded();
             Countly.Halt();
             TestHelper.CleanDataFiles();
@@ -103,11 +89,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionTriggers()
         {
-#if !RUNNING_ON_35
-            var server = new MockHttpServer(_output);
-#else
             var server = new MockHttpServer();
-#endif
             CountlyConfig cc = TestHelper.GetConfig();
             cc.serverUrl = server.Url;
 
@@ -143,11 +125,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionTriggers_Disable()
         {
-#if !RUNNING_ON_35
-            var server = new MockHttpServer(_output);
-#else
             var server = new MockHttpServer();
-#endif
             CountlyConfig cc = TestHelper.GetConfig();
             cc.serverUrl = server.Url;
             cc.DisableAutoSendUserDetails();
@@ -185,11 +163,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionTriggers_Disable_ManualSaveDisabled()
         {
-#if !RUNNING_ON_35
-            var server = new MockHttpServer(_output);
-#else
             var server = new MockHttpServer();
-#endif
             CountlyConfig cc = TestHelper.GetConfig();
             cc.serverUrl = server.Url;
             cc.DisableAutoSendUserDetails();
@@ -229,11 +203,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionEventsTriggers()
         {
-#if !RUNNING_ON_35
-            var server = new MockHttpServer(_output);
-#else
             var server = new MockHttpServer();
-#endif
             CountlyConfig cc = TestHelper.GetConfig();
             cc.serverUrl = server.Url;
 
