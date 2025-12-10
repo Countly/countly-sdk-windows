@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
 using Xunit.Abstractions;
 #endif
 
@@ -15,14 +15,14 @@ namespace TestProject_common
     public class MockHttpServer : IDisposable
     {
         private readonly HttpListener _listener;
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
         private readonly ITestOutputHelper _output;
 #endif
 
         private readonly List<RequestInfo> _requests = new List<RequestInfo>();
 
         public string Url { get; }
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
         public IReadOnlyList<RequestInfo> Requests => _requests;
 #else
         public IList<RequestInfo> Requests => _requests;
@@ -37,7 +37,7 @@ namespace TestProject_common
             int port = GetRandomUnusedPort();
             Url = $"http://localhost:{port}/";
 
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
 
             if (output is ITestOutputHelper) {
                 _output = (ITestOutputHelper)output;
@@ -48,7 +48,7 @@ namespace TestProject_common
             _listener.Prefixes.Add(Url);
             _listener.Start();
 
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
             Task.Run(() => ListenLoop());
 #else
             var thread = new Thread(() => ListenLoop());
@@ -61,7 +61,7 @@ namespace TestProject_common
         {
             while (_listener.IsListening) {
                 try {
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
                     var ctx = await _listener.GetContextAsync();
 #else
                     var ctx = _listener.GetContext();
@@ -69,7 +69,7 @@ namespace TestProject_common
 
                     var reader = new StreamReader(ctx.Request.InputStream);
                     string body = reader.ReadToEnd();
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
                     _output.WriteLine($"[{DateTime.Now:HH:mm:ss}] {ctx.Request.HttpMethod} {ctx.Request.RawUrl} Body: {body}");
 #endif
                     _requests.Add(new RequestInfo {
@@ -85,7 +85,7 @@ namespace TestProject_common
                     ctx.Response.StatusCode = 200;
                     ctx.Response.ContentType = "application/json";
                     ctx.Response.ContentLength64 = resp.Length;
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
                     await ctx.Response.OutputStream.WriteAsync(resp, 0, resp.Length);
 #else
                     ctx.Response.OutputStream.Write(resp, 0, resp.Length);

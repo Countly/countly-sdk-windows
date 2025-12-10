@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using CountlySDK;
 using CountlySDK.Entities;
 using Xunit;
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
 using Xunit.Abstractions;
 #endif
 
@@ -11,14 +11,14 @@ namespace TestProject_common
 {
     public class UserDetailsTests : IDisposable
     {
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
         private readonly ITestOutputHelper _output;
 #endif
 
         /// <summary>
         /// Test setup
         /// </summary>
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
 
         public UserDetailsTests(ITestOutputHelper output)
         {
@@ -103,7 +103,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionTriggers()
         {
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
             var server = new MockHttpServer(_output);
 #else
             var server = new MockHttpServer();
@@ -143,7 +143,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionTriggers_Disable()
         {
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
             var server = new MockHttpServer(_output);
 #else
             var server = new MockHttpServer();
@@ -185,7 +185,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionTriggers_Disable_ManualSaveDisabled()
         {
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
             var server = new MockHttpServer(_output);
 #else
             var server = new MockHttpServer();
@@ -229,7 +229,7 @@ namespace TestProject_common
         /// </summary>
         public void SetUserDetails_SessionEventsTriggers()
         {
-#if RUNNING_ON_40
+#if !RUNNING_ON_35
             var server = new MockHttpServer(_output);
 #else
             var server = new MockHttpServer();
