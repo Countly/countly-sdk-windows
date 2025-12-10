@@ -300,7 +300,14 @@ namespace CountlySDK.CountlyCommon
                     return true;
                 }
 
-                success = await UploadSessions();
+                if (Configuration.autoSendUserDetails) {
+                    success = await UploadStoredRequests();
+                    if (success) {
+                        success = await UploadSessions();
+                    }
+                } else {
+                    success = await UploadSessions();
+                }
 
                 if (success) {
                     success = await UploadEvents();
@@ -310,11 +317,11 @@ namespace CountlySDK.CountlyCommon
                     success = await UploadExceptions();
                 }
 
-                if (success) {
+                if (success && !Configuration.autoSendUserDetails) {
                     success = await UploadUserDetails();
                 }
 
-                if (success) {
+                if (success && Configuration.autoSendUserDetails) {
                     success = await UploadStoredRequests();
                 }
 
@@ -327,7 +334,7 @@ namespace CountlySDK.CountlyCommon
                         exC = Exceptions.Count;
                         evC = Events.Count;
                         rC = StoredRequests.Count;
-                        isChanged = UserDetails.isChanged;
+                        isChanged = !Configuration.autoSendUserDetails && UserDetails.isChanged; // if the auto flushing UPs used, this should not work at all
                     }
 
                     UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
