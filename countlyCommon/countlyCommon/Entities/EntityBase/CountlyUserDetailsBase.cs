@@ -295,7 +295,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         /// <summary>
         /// Saves user details
         /// </summary>
-        public async void Save()
+        public void Save()
         {
             UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] Save, manualUserDetailsSave: [" + manualUserDetailsSave + "], isUserPropertiesChanged: [" + isUserPropertiesChanged + "]");
             if (!manualUserDetailsSave) {
@@ -309,7 +309,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             NotifyDetailsChanged();
         }
 
-        private async void SaveInternal()
+        private void SaveInternal()
         {
             UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] SaveInternal, manualUserDetailsSave: [" + manualUserDetailsSave + "], if true will not call upload immediately");
             isUserPropertiesChanged = true;
