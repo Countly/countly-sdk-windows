@@ -507,6 +507,9 @@ namespace TestProject_common
             Assert.Equal(queryParams["device_id"], deviceId);
             Assert.Equal(queryParams["app_key"], appKey);
             Assert.Equal("0", queryParams["t"]);
+            if (queryParams.ContainsKey("rr")) {
+                Assert.True(int.Parse(queryParams["rr"]) >= 0);
+            }
         }
 
         internal static void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1, long timestamp = 0, IDictionary<string, Action<string, object>> customValidators = null)
@@ -514,7 +517,7 @@ namespace TestProject_common
             Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
             string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
-            TestHelper.ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
+            ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
             Assert.Equal(10 + paramaters.Count, queryParams.Count);
             foreach (KeyValuePair<string, object> item in paramaters) {
                 if (customValidators != null && customValidators.ContainsKey(item.Key)) {
@@ -522,6 +525,15 @@ namespace TestProject_common
                 } else {
                     Assert.Equal(item.Value.ToString(), queryParams[item.Key]);
                 }
+            }
+        }
+
+        internal static void ValidateRequest(Dictionary<string, string> request, IDictionary<string, object> paramaters)
+        {
+            ValidateBaseParams(request, DEVICE_ID, APP_KEY, 0);
+            Assert.Equal(11 + paramaters.Count, request.Count); // + rr
+            foreach (KeyValuePair<string, object> item in paramaters) {
+                Assert.Equal(item.Value.ToString(), request[item.Key]);
             }
         }
 
