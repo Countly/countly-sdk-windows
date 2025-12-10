@@ -1,4 +1,4 @@
-## XX.XX.XX
+## 25.4.3
 * ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
   * When an event is recorded
   * During an internal timer tick
