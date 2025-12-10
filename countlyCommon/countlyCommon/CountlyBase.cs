@@ -701,6 +701,10 @@ namespace CountlySDK.CountlyCommon
                 saveSuccess = SaveEvents();
             }
 
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             if (saveSuccess) {
                 //todo rework this
                 saveSuccess = await Upload();
