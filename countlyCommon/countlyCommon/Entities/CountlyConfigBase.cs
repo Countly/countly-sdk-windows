@@ -112,6 +112,8 @@ namespace CountlySDK.CountlyCommon.Entities
         internal IDictionary<string, string> CustomNetworkRequestHeaders = null;
 
         internal bool manualUserDetailsSave = true;
+        internal bool autoSendUserDetails = true;
+
         /// <summary>
         /// Disabled the location tracking on the Countly server
         /// </summary>
@@ -243,6 +245,20 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase DisableManualUserDetailsSave()
         {
             manualUserDetailsSave = false;
+            return this;
+        }
+
+        /// <summary>
+        /// Disable automatic sending of user properties on
+        /// - When an event is recorded
+        /// - During an internal timer tick
+        /// - Upon flushing the event queue
+        /// - When a session call made
+        /// </summary>
+        /// <returns></returns>
+        public CountlyConfigBase DisableAutoSendUserDetails()
+        {
+            autoSendUserDetails = false;
             return this;
         }
     }
