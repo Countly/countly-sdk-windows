@@ -1091,7 +1091,37 @@ namespace CountlySDK.CountlyCommon
                 SaveUserDetails();
             }
 
-            await Upload();
+            UtilityHelper.CountlyLogging("[Countly] OnUserDetailsChanged, autoSendUserDetails: [" + Configuration.autoSendUserDetails + "], if true they will be added to the RQ");
+
+            if (Configuration.autoSendUserDetails) {
+                await RecordUserDetails();
+            } else {
+                await Upload();
+            }
+        }
+
+        private async Task RecordUserDetails()
+        {
+            if (UserDetails == null) {
+                return;
+            }
+
+            string userDetails = RequestHelper.Json(UserDetails);
+
+            if (string.IsNullOrEmpty(userDetails) || userDetails.Equals("{}")) {
+                return;
+            }
+
+            Dictionary<string, object> requestParams = new Dictionary<string, object>() {
+                { "user_details", RequestHelper.Json(UserDetails) }
+            };
+
+            UserDetails.Clear();
+
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+
+            return;
         }
 
         /// <summary>
