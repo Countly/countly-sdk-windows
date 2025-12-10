@@ -233,6 +233,11 @@ namespace CountlySDK.CountlyCommon
                new Dictionary<string, object> {
                    { "session_duration", elapsedTime.Value }
                };
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -270,6 +275,11 @@ namespace CountlySDK.CountlyCommon
                 { "end_session", 1 },
                 { "session_duration", elapsedTimeSeconds }
             };
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -1534,6 +1544,10 @@ namespace CountlySDK.CountlyCommon
                 { "metrics", metrics.ToString() }
             };
 
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -1559,7 +1573,6 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative");
                 return;
             }
-
             await UpdateSessionInternal(elapsedTimeSeconds);
         }
 
