@@ -1,3 +1,14 @@
+## XX.XX.XX
+* ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
+  * When an event is recorded
+  * During an internal timer tick
+  * Upon flushing the event queue
+  * When a session call made
+
+* Added a new function "UserDetails.Save()" for saving user details manually. User details will now be saved upon with above triggers and manual "Save" call.
+
+* Mitigated an issue while saving user details.
+
 ## 25.4.2
 * Added support for distinguishing macOS as a distinct OS value in metrics.
 
