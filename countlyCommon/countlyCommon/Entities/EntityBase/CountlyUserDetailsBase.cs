@@ -26,6 +26,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using CountlySDK.Entities;
+using CountlySDK.Helpers;
 using Newtonsoft.Json;
 
 namespace CountlySDK.CountlyCommon.Entities.EntityBase
@@ -37,6 +38,8 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
     abstract public class CountlyUserDetailsBase : IComparable<CountlyUserDetailsBase>
     {
         internal delegate void UserDetailsChangedEventHandler();
+        internal bool manualUserDetailsSave = true;
+        private bool isUserPropertiesChanged = false;
 
         /// <summary>
         /// raised when any of properties are changed
@@ -69,7 +72,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (name != value) {
                     name = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -88,7 +91,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (username != value) {
                     username = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -107,7 +110,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (email != value) {
                     email = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -126,7 +129,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (organization != value) {
                     organization = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -145,7 +148,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (phone != value) {
                     phone = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -164,7 +167,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (picture != value) {
                     picture = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -183,7 +186,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (gender != value) {
                     gender = value;
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -203,7 +206,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
                 if (birthYear != value) {
                     birthYear = value;
 
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -221,18 +224,18 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             set {
                 if (custom != value) {
                     if (custom != null) {
-                        custom.CollectionChanged -= NotifyDetailsChanged;
+                        custom.CollectionChanged -= SaveInternal;
                     }
 
                     if (value != null) {
                         custom = value;
 
-                        custom.CollectionChanged += NotifyDetailsChanged;
+                        custom.CollectionChanged += SaveInternal;
                     } else {
                         custom?.Clear();
                     }
 
-                    NotifyDetailsChanged();
+                    SaveInternal();
                 }
             }
         }
@@ -287,6 +290,48 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         public async Task<bool> UploadUserPicture(Stream imageStream)
         {
             return await Countly.Instance.UploadUserPicture(imageStream);
+        }
+
+        /// <summary>
+        /// Saves user details
+        /// </summary>
+        public void Save()
+        {
+            UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] Save, manualUserDetailsSave: [" + manualUserDetailsSave + "], isUserPropertiesChanged: [" + isUserPropertiesChanged + "]");
+            if (!manualUserDetailsSave) {
+                return;
+            }
+
+            if (!isUserPropertiesChanged) {
+                return;
+            }
+            isUserPropertiesChanged = false;
+            NotifyDetailsChanged();
+        }
+
+        private void SaveInternal()
+        {
+            UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] SaveInternal, manualUserDetailsSave: [" + manualUserDetailsSave + "], if true will not call upload immediately");
+            isUserPropertiesChanged = true;
+            if (!manualUserDetailsSave) {
+                NotifyDetailsChanged();
+            }
+        }
+
+        internal void Clear()
+        {
+            UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] Clear, will clear the cache");
+            Custom = null;
+            Name = null;
+            Username = null;
+            Email = null;
+            Organization = null;
+            Phone = null;
+            Picture = null;
+            BirthYear = null;
+            Gender = null;
+            isChanged = false;
+            isUserPropertiesChanged = false;
         }
 
         /// <summary>

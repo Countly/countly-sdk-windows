@@ -125,6 +125,9 @@ namespace CountlySDK.CountlyCommon
                         }
 
                         userDetails.UserDetailsChanged += Countly.Instance.OnUserDetailsChanged;
+                        if (Countly.Instance.Configuration != null) {
+                            userDetails.manualUserDetailsSave = Countly.Instance.Configuration.manualUserDetailsSave;
+                        }
                     }
                 }
                 return userDetails;
@@ -230,6 +233,11 @@ namespace CountlySDK.CountlyCommon
                new Dictionary<string, object> {
                    { "session_duration", elapsedTime.Value }
                };
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -267,6 +275,11 @@ namespace CountlySDK.CountlyCommon
                 { "end_session", 1 },
                 { "session_duration", elapsedTimeSeconds }
             };
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -287,7 +300,14 @@ namespace CountlySDK.CountlyCommon
                     return true;
                 }
 
-                success = await UploadSessions();
+                if (Configuration.autoSendUserDetails) {
+                    success = await UploadStoredRequests();
+                    if (success) {
+                        success = await UploadSessions();
+                    }
+                } else {
+                    success = await UploadSessions();
+                }
 
                 if (success) {
                     success = await UploadEvents();
@@ -297,11 +317,11 @@ namespace CountlySDK.CountlyCommon
                     success = await UploadExceptions();
                 }
 
-                if (success) {
+                if (success && !Configuration.autoSendUserDetails) {
                     success = await UploadUserDetails();
                 }
 
-                if (success) {
+                if (success && Configuration.autoSendUserDetails) {
                     success = await UploadStoredRequests();
                 }
 
@@ -314,7 +334,7 @@ namespace CountlySDK.CountlyCommon
                         exC = Exceptions.Count;
                         evC = Events.Count;
                         rC = StoredRequests.Count;
-                        isChanged = UserDetails.isChanged;
+                        isChanged = !Configuration.autoSendUserDetails && UserDetails.isChanged; // if the auto flushing UPs used, this should not work at all
                     }
 
                     UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
@@ -686,6 +706,10 @@ namespace CountlySDK.CountlyCommon
             lock (sync) {
                 Events.Add(cEvent);
                 saveSuccess = SaveEvents();
+            }
+
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
             }
 
             if (saveSuccess) {
@@ -1078,7 +1102,37 @@ namespace CountlySDK.CountlyCommon
                 SaveUserDetails();
             }
 
-            await Upload();
+            UtilityHelper.CountlyLogging("[Countly] OnUserDetailsChanged, autoSendUserDetails: [" + Configuration.autoSendUserDetails + "], if true they will be added to the RQ");
+
+            if (Configuration.autoSendUserDetails) {
+                await RecordUserDetails();
+            } else {
+                await Upload();
+            }
+        }
+
+        private async Task RecordUserDetails()
+        {
+            if (UserDetails == null) {
+                return;
+            }
+
+            string userDetails = RequestHelper.Json(UserDetails);
+
+            if (string.IsNullOrEmpty(userDetails) || userDetails.Equals("{}")) {
+                return;
+            }
+
+            Dictionary<string, object> requestParams = new Dictionary<string, object>() {
+                { "user_details", RequestHelper.Json(UserDetails) }
+            };
+
+            UserDetails.Clear();
+
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+
+            return;
         }
 
         /// <summary>
@@ -1531,6 +1585,10 @@ namespace CountlySDK.CountlyCommon
                 { "metrics", metrics.ToString() }
             };
 
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -1556,7 +1614,6 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative");
                 return;
             }
-
             await UpdateSessionInternal(elapsedTimeSeconds);
         }
 

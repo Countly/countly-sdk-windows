@@ -111,6 +111,9 @@ namespace CountlySDK.CountlyCommon.Entities
         internal IDictionary<string, string> MetricOverride = null;
         internal IDictionary<string, string> CustomNetworkRequestHeaders = null;
 
+        internal bool manualUserDetailsSave = true;
+        internal bool autoSendUserDetails = true;
+
         /// <summary>
         /// Disabled the location tracking on the Countly server
         /// </summary>
@@ -231,6 +234,31 @@ namespace CountlySDK.CountlyCommon.Entities
             if (!string.IsNullOrEmpty(paramaterTamperingProtectionSalt)) {
                 TamperingProtectionSalt = paramaterTamperingProtectionSalt;
             }
+            return this;
+        }
+
+        /// <summary>
+        /// Disables manual user details save. By default manual user details save is enabled.
+        /// This reverts the fix that all edit user details was not saved. And this is only for testing purposes
+        /// </summary>
+        /// <returns></returns>
+        internal CountlyConfigBase DisableManualUserDetailsSave()
+        {
+            manualUserDetailsSave = false;
+            return this;
+        }
+
+        /// <summary>
+        /// Disable automatic sending of user properties on
+        /// - When an event is recorded
+        /// - During an internal timer tick
+        /// - Upon flushing the event queue
+        /// - When a session call made
+        /// </summary>
+        /// <returns></returns>
+        public CountlyConfigBase DisableAutoSendUserDetails()
+        {
+            autoSendUserDetails = false;
             return this;
         }
     }

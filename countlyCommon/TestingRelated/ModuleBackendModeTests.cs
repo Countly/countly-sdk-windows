@@ -803,13 +803,13 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0]);
-            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("begin_session", "1", "metrics", GetSessionMetrics()));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
 
             Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: TestHelper.v[1], timestamp: 1044151383000);
-            TestHelper.ValidateRequestInQueue(deviceId: TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("begin_session", "1", "metrics", GetSessionMetrics()), 1, 2, 1044151383000);
+            TestHelper.ValidateRequestInQueue(deviceId: TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()), 1, 2, 1044151383000);
 
             Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: "", timestamp: 1044151383000);
-            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("begin_session", "1", "metrics", GetSessionMetrics()), 2, 3, 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()), 2, 3, 1044151383000);
         }
 
         [Fact]
@@ -1005,11 +1005,6 @@ namespace TestProject_common
 
             }
             Assert.True(events[eventIdx].Timestamp > 0);
-        }
-
-        private string GetSessionMetrics()
-        {
-            return TestHelper.Json("_os", Countly.Instance.DeviceData.OS, "_os_version", Countly.Instance.DeviceData.OSVersion, "_resolution", Countly.Instance.DeviceData.Resolution, "_app_version", TestHelper.APP_VERSION, "_locale", CultureInfo.CurrentUICulture.Name);
         }
 
         private List<CountlyEvent> ParseEventsFromRequestQueue(int idx, int count, string deviceId, string appKey)

@@ -45,6 +45,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -104,6 +105,9 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\TestHelper.cs">
       <Link>TestHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\MockHttpServer.cs">
+      <Link>MockHttpServer.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\TestingEntities.cs">
       <Link>TestingEntities.cs</Link>
