@@ -4,9 +4,9 @@
   * During an internal timer tick
   * When a session call made
 
-* Added a new function "UserDetails.Save()" for saving user details manually. User details will now be saved upon with above triggers and manual "Save" call.
+* Added a new function "UserDetails.Save()" for enqueuing cached user details manually. User details will now be saved upon with above triggers and manual "Save" call.
 
-* Mitigated an issue while saving user details.
+* Mitigated an issue preventing recording multiple user details.
 
 ## 25.4.2
 * Added support for distinguishing macOS as a distinct OS value in metrics.
