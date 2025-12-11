@@ -239,10 +239,10 @@ namespace CountlySDK.CountlyCommon.Entities
 
         /// <summary>
         /// Disables manual user details save. By default manual user details save is enabled.
-        /// This reverts the fix that all edit user details was not saved.
+        /// This reverts the fix that all edit user details was not saved. And this is only for testing purposes
         /// </summary>
         /// <returns></returns>
-        public CountlyConfigBase DisableManualUserDetailsSave()
+        internal CountlyConfigBase DisableManualUserDetailsSave()
         {
             manualUserDetailsSave = false;
             return this;
