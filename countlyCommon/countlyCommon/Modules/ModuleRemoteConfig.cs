@@ -1,133 +1,167 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq;
 using System.Threading.Tasks;
-using CountlySDK.Entities;
+using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static CountlySDK.CountlyCommon.CountlyBase;
-using static CountlySDK.Entities.EntityBase.DeviceBase;
-using static CountlySDK.Helpers.TimeHelper;
 
 namespace CountlySDK.CountlyCommon
 {
     internal class ModuleRemoteConfig : RemoteConfig
     {
-        private readonly IRequestHelperImpl requestHelper;
-        private readonly CountlyBase _cly;
-        private IDictionary<string, object> rcValues = new Dictionary<string, object>();
-        private const object rcLock = new object();
-        private bool autoEnrollEnabled = true;
+        private readonly RequestHelper requestHelper;
+        private readonly string ServerUrl;
+        private IDictionary<string, RCData> rcValues = new Dictionary<string, RCData>();
+        private object RCLock = new object();
+        private bool AutoEnrollEnabled = true;
 
-        public ModuleRemoteConfig(CountlyBase countly)
+        public ModuleRemoteConfig(RequestHelper requestHelper, string serverUrl)
         {
-            _cly = countly;
-            requestHelper = new IRequestHelperImpl(Countly.Instance);
+            this.requestHelper = requestHelper;
+            ServerUrl = serverUrl;
         }
 
-        private string GetURLEncodedJson(object obj)
-        {
-            return UtilityHelper.EncodeDataForURL(JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
-        }
-
-        private string CreateBaseRequest(string extraParams)
-        {
-            TimeInstant timeInstant = _cly.timeHelper.GetUniqueInstant();
-            string did = UtilityHelper.EncodeDataForURL(_cly.device.DeviceID);
-            string app = UtilityHelper.EncodeDataForURL(requestHelper.GetAppKey());
-            return string.Format("/i?app_key={0}&device_id={1}&sdk_version={2}&sdk_name={3}&hour={4}&dow={5}&tz={6}&timestamp={7}&t=0&av={8}{9}", app, did, requestHelper.GetSDKVersion(), requestHelper.GetSDKName(), timeInstant.Hour, timeInstant.Dow, timeInstant.Timezone, timeInstant.Timestamp, requestHelper.GetAppVersion(), extraParams);
-        }
-
-        private string CreateQueryParamsFromDictionary(IDictionary<string, string> parameters)
-        {
-            string query = string.Empty;
-
-            foreach (KeyValuePair<string, string> kvp in parameters) {
-                query += string.Format("&{0}={1}", kvp.Key, UtilityHelper.EncodeDataForURL(kvp.Value));
-            }
-
-            return query;
-        }
-
-        public Task FetchRemoteConfig(List<string> includeKeys = null, List<string> omitKeys = null)
+        public Task DownloadKeys(List<string> keysToInclude = null, List<string> keysToOmit = null)
         {
             UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig called");
 
-            IDictionary<string, string> rcParams = new Dictionary<string, string>();
+            IDictionary<string, object> rcParams = new Dictionary<string, object> {
+                { "method", "rc" },
+                { "metrics", Countly.Instance.GetSessionMetrics().ToString() }
+            };
 
-            if (includeKeys != null && includeKeys.Count > 0) {
-                rcParams.Add("keys", JsonConvert.SerializeObject(includeKeys));
+            if (keysToInclude != null && keysToInclude.Count > 0) {
+                rcParams.Add("keys", keysToInclude);
+            } else if (keysToOmit != null && keysToOmit.Count > 0) {
+                rcParams.Add("omit_keys", keysToOmit);
             }
 
-            if (omitKeys != null && omitKeys.Count > 0) {
-                rcParams.Add("omit_keys", JsonConvert.SerializeObject(omitKeys));
-            }
-
-            if(autoEnrollEnabled) {
+            if (AutoEnrollEnabled) {
                 rcParams.Add("oi", "1");
             }
 
-            string extraParams = string.Empty;
-            if (rcParams.Count > 0) {
-                extraParams = CreateQueryParamsFromDictionary(rcParams);
-            }
 
-            string requestUrl = CreateBaseRequest(_cly.device.DeviceID, requestHelper.GetAppKey(), extraParams);
-
-            return Task.Run(async () =>
-            {
-                RequestResult result = await requestHelper.SendRequestAsync(requestUrl);
-                if (result.IsSuccess && result.ResponseData != null) {
+            return Task.Run(async () => {
+                RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(rcParams));
+                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig, got server response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
+                if (requestResult.responseCode == 200 && requestResult.responseText != null) {
                     try {
-                        JObject json = JObject.Parse(result.ResponseData);
-                        JObject rcObj = (JObject)json["rc"];
-                        lock(rcLock) {
+                        Dictionary<string, object> newValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(requestResult.responseText);
+                        lock (RCLock) {
                             rcValues.Clear();
-                            rcValues = rcObj.ToObject<Dictionary<string, object>>();
+                            foreach (KeyValuePair<string, object> kv in newValues) {
+                                rcValues[kv.Key] = new RCData {
+                                    Value = kv.Value,
+                                    IsCurrentUsersData = true
+                                };
+                            }
                         }
                         UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig succeeded, fetched " + rcValues.Count + " keys.");
                     } catch (Exception ex) {
                         UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig failed to parse response: " + ex.Message, LogLevel.ERROR);
                     }
                 } else {
-                    UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed: " + result.ErrorMessage, LogLevel.ERROR);
+                    UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed request is not success ", LogLevel.ERROR);
                 }
             });
         }
 
-        public IDictionary<string, object> GetRemoteConfigValues()
+        public IDictionary<string, RCData> GetValues()
         {
-            lock(rcLock) {
-                return new Dictionary<string, object>(rcValues);
+            lock (RCLock) {
+                return new Dictionary<string, RCData>(rcValues);
             }
+        }
+
+        public RCData GetValue(string key)
+        {
+            GetValues().TryGetValue(key, out RCData value);
+            return value;
         }
     }
 
+    internal class MockRemoteConfig : RemoteConfig
+    {
+        internal MockRemoteConfig()
+        {
+
+        }
+
+        Task RemoteConfig.DownloadKeys(List<string> includeKeys, List<string> omitKeys)
+        {
+            return Task.CompletedTask;
+        }
+
+        RCData RemoteConfig.GetValue(string key)
+        {
+            return new RCData();
+        }
+
+        IDictionary<string, RCData> RemoteConfig.GetValues()
+        {
+            return new Dictionary<string, RCData>();
+        }
+    }
+
+    /// <summary>
+    /// Represents a single Remote Config entry and its associated metadata.
+    /// </summary>
+    public class RCData
+    {
+        /// <summary>
+        /// The value associated with the Remote Config key.
+        /// This is a normalized CLR type (e.g. string, int, bool, double, or null).
+        /// </summary>
+        public object Value { get; internal set; }
+
+        /// <summary>
+        /// Indicates whether this value is specific to the current user
+        /// </summary>
+        public bool IsCurrentUsersData { get; internal set; }
+    }
+
+    /// <summary>
+    /// Defines the contract for accessing and managing Remote Config data.
+    /// </summary>
     public interface RemoteConfig
     {
-        // <summary>
-        /// 
+        /// <summary>
+        /// Downloads Remote Config values from the server.
         /// </summary>
-        /// <param name="includeKeys"></param>
-        /// <param name="omitKeys"></param>
-        Task FetchRemoteConfig(List<string> includeKeys = null, List<string> omitKeys = null);
+        /// <param name="includeKeys">
+        /// Optional list of keys to explicitly include in the download.
+        /// When specified, only these keys will be requested.
+        /// </param>
+        /// <param name="omitKeys">
+        /// Optional list of keys to exclude from the download.
+        /// These keys will be ignored even if they exist on the server.
+        /// </param>
+        /// <returns>
+        /// A task that represents the asynchronous download operation.
+        /// </returns>
+        Task DownloadKeys(List<string> includeKeys = null, List<string> omitKeys = null);
 
-        IDictionary<string, object> GetRemoteConfigValues();
+        /// <summary>
+        /// Returns a snapshot of all available Remote Config values.
+        /// </summary>
+        /// <returns>
+        /// A dictionary mapping Remote Config keys to their corresponding data objects.
+        /// </returns>
+        IDictionary<string, RCData> GetValues();
 
-        object this[string key] {
-            get {
-                lock(rcLock) {
-                    IDictionary<string, object> values = GetRemoteConfigValues();
-                    if (values.ContainsKey(key)) {
-                        return values[key];
-                    }
-                    return null;
-                }
-            }
-        }
+        /// <summary>
+        /// Returns the Remote Config data associated with the specified key.
+        /// </summary>
+        /// <param name="key">
+        /// The Remote Config key to retrieve.
+        /// </param>
+        /// <returns>
+        /// The corresponding <see cref="RCData"/> instance if the key exists;
+        /// otherwise, <c>null</c>.
+        /// </returns>
+        RCData GetValue(string key);
     }
-
 }
-
