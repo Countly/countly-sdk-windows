@@ -59,6 +59,7 @@ namespace CountlySDK.CountlyCommon
 
         internal CountlyConfig Configuration;
         internal ModuleBackendMode moduleBackendMode;
+        internal ModuleRemoteConfig moduleRemoteConfig;
 
         public abstract string sdkName();
 
@@ -1208,6 +1209,7 @@ namespace CountlySDK.CountlyCommon
 
                 // modules
                 moduleBackendMode = null;
+                moduleRemoteConfig = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1508,6 +1510,7 @@ namespace CountlySDK.CountlyCommon
                 await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
             }
 
+            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl);
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
             await OnInitComplete();
@@ -1535,6 +1538,10 @@ namespace CountlySDK.CountlyCommon
                  */
                     await SetLocation(Configuration.Location, Configuration.IPAddress, Configuration.CountryCode, Configuration.City);
                 }
+            }
+
+            if (Configuration.remoteConfigAutomaticDownloadTriggers) {
+                await RemoteConfig().DownloadKeys();
             }
         }
 
@@ -1683,6 +1690,9 @@ namespace CountlySDK.CountlyCommon
                 if (sessionWasStarted) {
                     //restart the session only if an automatic one was started before
                     await SessionBegin();
+                }
+                if (Configuration.remoteConfigAutomaticDownloadTriggers) {
+                    await RemoteConfig().DownloadKeys();
                 }
             } else {
                 //need server merge, therefore send special request
@@ -1845,6 +1855,11 @@ namespace CountlySDK.CountlyCommon
                         break;
                     case ConsentFeatures.Users:
                         break;
+                    case ConsentFeatures.RemoteConfig:
+                        if (isGiven && action == ConsentChangedAction.ConsentUpdated && Configuration.remoteConfigAutomaticDownloadTriggers) {
+                            await RemoteConfig().DownloadKeys();
+                        }
+                        break;
                 }
             }
         }
@@ -1968,6 +1983,33 @@ namespace CountlySDK.CountlyCommon
             }
 
             return moduleBackendMode;
+        }
+
+        /// <summary>
+        /// Provides access to the Remote Config module.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="RemoteConfig"/> instance.
+        /// If backend mode is enabled, required consent is not granted,
+        /// or the Remote Config module is unavailable, a no-op
+        /// (dummy) implementation is returned instead.
+        /// </returns>
+        public RemoteConfig RemoteConfig()
+        {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RemoteConfig, backend mode is enabled, will omit this call");
+                return new MockRemoteConfig();
+            }
+
+            if (moduleRemoteConfig == null) {
+                return new MockRemoteConfig();
+            }
+
+            if (!IsConsentGiven(ConsentFeatures.RemoteConfig)) {
+                return new MockRemoteConfig();
+            }
+
+            return moduleRemoteConfig;
         }
     }
 }
