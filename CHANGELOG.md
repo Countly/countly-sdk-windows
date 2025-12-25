@@ -1,3 +1,13 @@
+## XX.XX.XX
+* New Remote Config features added and accesible through "Countly.Instance.RemoteConfig()" interface:
+  * "DownloadKeys"
+  * "GetValues"
+  * "GetValue"
+* Added configuration function "EnableRemoteConfigAutomaticTriggers" to automatically download remote config values:
+  * After initialization finishes.
+  * RemoteConfig consent is given.
+  * After the device ID is changed to a different user.
+
 ## 25.4.3
 * ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
   * When an event is recorded
