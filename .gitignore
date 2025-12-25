@@ -261,3 +261,5 @@ _Pvt_Extensions
 # for nuget packages
 /nuget/lib/*
 nuget/nuget.exe
+
+.DS_Store

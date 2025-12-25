@@ -28,11 +28,12 @@ namespace CountlySDK
         /// <param name="address"></param>
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
+        /// <param name="endpoint"></param>
         /// <returns></returns>
-        protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null)
+        protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null, string endpoint = sdkEndpoint)
         {
             return await TaskEx.Run(async () => {
-                return await CallJob(address, requestData, imageData);
+                return await CallJob(address, requestData, endpoint, imageData);
             }).ConfigureAwait(false);
         }
 
