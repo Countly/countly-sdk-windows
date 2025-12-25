@@ -24,7 +24,7 @@ namespace CountlySDK.CountlyCommon
             ServerUrl = serverUrl;
         }
 
-        public Task DownloadKeys(List<string> keysToInclude = null, List<string> keysToOmit = null)
+        public async Task DownloadKeys(List<string> keysToInclude = null, List<string> keysToOmit = null)
         {
             UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig called");
 
@@ -33,45 +33,56 @@ namespace CountlySDK.CountlyCommon
                 { "metrics", Countly.Instance.GetSessionMetrics().ToString() }
             };
 
-            if (keysToInclude != null && keysToInclude.Count > 0) {
+            if (keysToInclude != null && keysToInclude.Count > 0)
+            {
                 rcParams.Add("keys", keysToInclude);
-            } else if (keysToOmit != null && keysToOmit.Count > 0) {
+            }
+            else if (keysToOmit != null && keysToOmit.Count > 0)
+            {
                 rcParams.Add("omit_keys", keysToOmit);
             }
 
-            if (AutoEnrollEnabled) {
+            if (AutoEnrollEnabled)
+            {
                 rcParams.Add("oi", "1");
             }
 
-
-            return Task.Run(async () => {
-                RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(rcParams));
-                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig, got server response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
-                if (requestResult.responseCode == 200 && requestResult.responseText != null) {
-                    try {
-                        Dictionary<string, object> newValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(requestResult.responseText);
-                        lock (RCLock) {
-                            rcValues.Clear();
-                            foreach (KeyValuePair<string, object> kv in newValues) {
-                                rcValues[kv.Key] = new RCData {
-                                    Value = kv.Value,
-                                    IsCurrentUsersData = true
-                                };
-                            }
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(rcParams));
+            UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig, got server response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
+            if (requestResult.responseCode == 200 && requestResult.responseText != null)
+            {
+                try
+                {
+                    Dictionary<string, object> newValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(requestResult.responseText);
+                    lock (RCLock)
+                    {
+                        rcValues.Clear();
+                        foreach (KeyValuePair<string, object> kv in newValues)
+                        {
+                            rcValues[kv.Key] = new RCData
+                            {
+                                Value = kv.Value,
+                                IsCurrentUsersData = true
+                            };
                         }
-                        UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig succeeded, fetched " + rcValues.Count + " keys.");
-                    } catch (Exception ex) {
-                        UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig failed to parse response: " + ex.Message, LogLevel.ERROR);
                     }
-                } else {
-                    UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed request is not success ", LogLevel.ERROR);
+                    UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig succeeded, fetched " + rcValues.Count + " keys.");
                 }
-            });
+                catch (Exception ex)
+                {
+                    UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig failed to parse response: " + ex.Message, LogLevel.ERROR);
+                }
+            }
+            else
+            {
+                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed request is not success ", LogLevel.ERROR);
+            }
         }
 
         public IDictionary<string, RCData> GetValues()
         {
-            lock (RCLock) {
+            lock (RCLock)
+            {
                 return new Dictionary<string, RCData>(rcValues);
             }
         }
@@ -90,9 +101,8 @@ namespace CountlySDK.CountlyCommon
 
         }
 
-        Task RemoteConfig.DownloadKeys(List<string> includeKeys, List<string> omitKeys)
+        async Task RemoteConfig.DownloadKeys(List<string> includeKeys, List<string> omitKeys)
         {
-            return Task.CompletedTask;
         }
 
         RCData RemoteConfig.GetValue(string key)
