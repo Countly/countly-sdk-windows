@@ -18,7 +18,7 @@ namespace TestProject_common
         public string Url { get; }
         public IList<RequestInfo> Requests => _requests;
 
-        public MockHttpServer()
+        public MockHttpServer(Func<string, string> customResponse = null)
         {
             int port = GetRandomUnusedPort();
             Url = $"http://localhost:{port}/";
@@ -27,12 +27,12 @@ namespace TestProject_common
             _listener.Prefixes.Add(Url);
             _listener.Start();
 
-            var thread = new Thread(() => ListenLoop());
+            var thread = new Thread(() => ListenLoop(customResponse));
             thread.IsBackground = true;
             thread.Start();
         }
 
-        private async Task ListenLoop()
+        private async Task ListenLoop(Func<string, string> customResponse)
         {
             while (_listener.IsListening) {
                 try {
@@ -47,7 +47,10 @@ namespace TestProject_common
                     });
 
                     // Always respond 200 OK for now
-                    string json = "{\"result\":\"success\"}";
+                    string json = customResponse?.Invoke(body);
+                    if (json == null) {
+                        json = "{\"result\":\"success\"}";
+                    }
                     byte[] resp = Encoding.UTF8.GetBytes(json);
                     ctx.Response.StatusCode = 200;
                     ctx.Response.ContentType = "application/json";
