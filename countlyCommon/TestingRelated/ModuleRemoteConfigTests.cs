@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using CountlySDK;
 using CountlySDK.CountlyCommon;
 using CountlySDK.Entities;
@@ -70,6 +68,21 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// Verifies that remote config keys are downloaded automatically
+        /// when automatic download triggers are enabled and consent is not required,
+        /// and that a device ID change triggers an additional remote config download.
+        /// </summary>
+        public void DownloadKeys_AutomaticDownload_CNR_DeviceId()
+        {
+            RemoteConfigDownloadFlow((config) => {
+                config.EnableRemoteConfigAutomaticTriggers();
+            }, () => {
+                Countly.Instance.SetId("device_id").Wait();
+            }, calledTimesExpected: 2);
+        }
+
+        [Fact]
+        /// <summary>
         /// Verifies that remote config keys are NOT downloaded automatically
         /// when automatic triggers are enabled, consent is required,
         /// but remote config consent is NOT granted.
@@ -79,7 +92,7 @@ namespace TestProject_common
             RemoteConfigDownloadFlow((config) => {
                 config.EnableRemoteConfigAutomaticTriggers();
                 config.consentRequired = true;
-            }, () => { }, false);
+            }, () => { }, false, 0);
         }
 
         [Fact]
@@ -119,7 +132,7 @@ namespace TestProject_common
             }
         }
 
-        private void RemoteConfigDownloadFlow(Action<CountlyConfig> configSetter, Action runnable = null, bool expectDownload = true)
+        private void RemoteConfigDownloadFlow(Action<CountlyConfig> configSetter, Action runnable = null, bool expectDownload = true, int calledTimesExpected = 1)
         {
             IDictionary<string, object> expectedRcValues = new Dictionary<string, object>() {
                 {"rc_1", 1 },
@@ -127,8 +140,10 @@ namespace TestProject_common
                 {"rc_3", false },
                 {"rc_4", 67.797 }
             };
+            int calledTimes = 0;
             MockHttpServer server = new MockHttpServer((body) => {
                 if (body.Contains("method=rc")) {
+                    calledTimes++;
                     return JsonConvert.SerializeObject(expectedRcValues);
                 }
                 return null;
@@ -142,6 +157,7 @@ namespace TestProject_common
             runnable?.Invoke();
 
             IDictionary<string, RCData> rcValues = Countly.Instance.RemoteConfig().GetValues();
+            Assert.Equal(calledTimesExpected, calledTimes);
 
             if (!expectDownload) {
                 Assert.Empty(rcValues);
