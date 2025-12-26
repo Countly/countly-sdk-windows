@@ -32,6 +32,8 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// Verifies that remote config keys are downloaded successfully
+        /// when the download is triggered manually and consent is not required.
         /// </summary>
         public void DownloadKeys_ManualDownload_CNR()
         {
@@ -41,6 +43,8 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// Verifies that remote config keys are downloaded automatically
+        /// when automatic download triggers are enabled and consent is not required.
         /// </summary>
         public void DownloadKeys_AutomaticDownload_CNR()
         {
@@ -49,6 +53,9 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// Verifies that remote config keys are downloaded automatically
+        /// when automatic triggers are enabled, consent is required,
+        /// and remote config consent is explicitly granted.
         /// </summary>
         public void DownloadKeys_AutomaticDownload_CR_CG()
         {
@@ -63,6 +70,9 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// Verifies that remote config keys are NOT downloaded automatically
+        /// when automatic triggers are enabled, consent is required,
+        /// but remote config consent is NOT granted.
         /// </summary>
         public void DownloadKeys_AutomaticDownload_CR_CNG()
         {
@@ -70,6 +80,43 @@ namespace TestProject_common
                 config.EnableRemoteConfigAutomaticTriggers();
                 config.consentRequired = true;
             }, () => { }, false);
+        }
+
+        [Fact]
+        /// <summary>
+        /// Verifies that invalid, malformed, or unsupported JSON responses
+        /// do not populate remote config values and are handled gracefully
+        /// without throwing exceptions or leaving residual state.
+        /// </summary>
+        public void DownloadKeys_Invalid()
+        {
+            List<string> results = new List<string> {
+                "",
+                "{}",
+                "{",
+                "{",
+                "{\"key\":}",
+                "[]",
+                "\"just a string\"",
+                "{\"k\": { \"v\": [}}"
+            };
+            int currentResponse = 0;
+            MockHttpServer server = new MockHttpServer((body) => {
+                if (body.Contains("method=rc")) {
+                    return results[currentResponse];
+                }
+                return null;
+            });
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+
+            Countly.Instance.Init(cc).Wait();
+
+            for (currentResponse = 0; currentResponse < results.Count; currentResponse++) {
+                Countly.Instance.RemoteConfig().DownloadKeys().Wait();
+                IDictionary<string, RCData> rcValues = Countly.Instance.RemoteConfig().GetValues();
+                Assert.Empty(rcValues);
+            }
         }
 
         private void RemoteConfigDownloadFlow(Action<CountlyConfig> configSetter, Action runnable = null, bool expectDownload = true)
