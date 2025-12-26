@@ -1,8 +1,8 @@
 ## XX.XX.XX
 * Added support for Remote Config feature accesible through "Countly.Instance.RemoteConfig()" interface:
   * "DownloadKeys" for fetching RC values from server
-  * "GetValues" for accessing all stored RC values on the device
-  * "GetValue" for accessing the given RC value from device storage
+  * "GetValues" for accessing all RC values
+  * "GetValue" for accessing the given RC value
 * Added configuration option "EnableRemoteConfigAutomaticTriggers" to automatically download remote config values:
   * After initialization finishes.
   * RemoteConfig consent is given.
