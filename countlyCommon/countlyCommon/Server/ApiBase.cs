@@ -80,14 +80,23 @@ namespace CountlySDK.CountlyCommon.Server
             return await Call(serverUrl, string.Format("{0}&rr={1}", request.Request, rr));
         }
 
+        internal async Task<RequestResult> SendDirectRequest(string serverUrl, string requestPayload, string endpoint = "/o/sdk")
+        {
+            Debug.Assert(serverUrl != null);
+            Debug.Assert(requestPayload != null);
+
+            return await Call(serverUrl, string.Format("{0}", requestPayload), endpoint: endpoint);
+        }
+
         /// <summary>
         /// Platform specific task wrapper
         /// </summary>
         /// <param name="address"></param>
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
+        /// <param name="endpoint"></param>
         /// <returns></returns>
-        protected abstract Task<RequestResult> Call(string address, string requestData, Stream imageData = null);
+        protected abstract Task<RequestResult> Call(string address, string requestData, Stream imageData = null, string endpoint = sdkEndpoint);
 
         /// <summary>
         /// Common job handler
@@ -95,9 +104,9 @@ namespace CountlySDK.CountlyCommon.Server
         /// <param name="address"></param>
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
-        /// <param name="customHeaders"></param>
+        /// <param name="endpoint"></param>
         /// <returns></returns>
-        protected async Task<RequestResult> CallJob(string address, string requestData, Stream imageData = null)
+        protected async Task<RequestResult> CallJob(string address, string requestData, string endpoint, Stream imageData = null)
         {
             Debug.Assert(address != null);
             TaskCompletionSource<RequestResult> tcs = new TaskCompletionSource<RequestResult>();
@@ -105,10 +114,10 @@ namespace CountlySDK.CountlyCommon.Server
                 requestData = requestData.Replace("/i?", "");
             }
             requestData = AddChekcsum(requestData);
-            UtilityHelper.CountlyLogging(string.Format("[ApiBase] CallJob, address: [{0}], endpoint: [{1}] requestData: [{2}]", address, sdkEndpoint, requestData));
+            UtilityHelper.CountlyLogging(string.Format("[ApiBase] CallJob, address: [{0}], endpoint: [{1}] requestData: [{2}]", address, endpoint, requestData));
 
             try {
-                RequestResult requestResult = await RequestAsync(address + sdkEndpoint, requestData, imageData, customNetworkRequestHeaders);
+                RequestResult requestResult = await RequestAsync(address + endpoint, requestData, imageData, customNetworkRequestHeaders);
                 tcs.SetResult(requestResult);
 
                 if (requestResult.responseText != null) {

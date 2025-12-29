@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Entities
@@ -113,6 +112,7 @@ namespace CountlySDK.CountlyCommon.Entities
 
         internal bool manualUserDetailsSave = true;
         internal bool autoSendUserDetails = true;
+        internal bool remoteConfigAutomaticDownloadTriggers = false;
 
         /// <summary>
         /// Disabled the location tracking on the Countly server
@@ -259,6 +259,20 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase DisableAutoSendUserDetails()
         {
             autoSendUserDetails = false;
+            return this;
+        }
+
+        /// <summary>
+        /// Enables automatic Remote Config download triggers.
+        /// When enabled, the SDK will automatically initiate Remote Config downloads
+        /// at specific lifecycle points such as SDK initialization completion,
+        /// device ID changes, and consent being granted.
+        /// </summary>
+        /// <returns>
+        /// </returns>
+        public CountlyConfigBase EnableRemoteConfigAutomaticTriggers()
+        {
+            remoteConfigAutomaticDownloadTriggers = true;
             return this;
         }
     }

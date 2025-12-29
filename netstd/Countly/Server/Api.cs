@@ -18,16 +18,17 @@ namespace CountlySDK
         //http://csharpindepth.com/Articles/General/Singleton.aspx
         private static readonly Api instance = new Api();
         // Explicit static constructor to tell C# compiler
-        // not to mark type as beforefieldinit    
+        // not to mark type as
+        // fieldinit    
         static Api() { }
         internal Api() { }
         public static Api Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
-        protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null)
+        protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null, string endpoint = sdkEndpoint)
         {
             return await Task.Run<RequestResult>(async () => {
-                return await CallJob(address, requestData, imageData);
+                return await CallJob(address, requestData, endpoint, imageData);
             }).ConfigureAwait(false);
         }
 
