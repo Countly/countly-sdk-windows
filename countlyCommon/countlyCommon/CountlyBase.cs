@@ -60,6 +60,7 @@ namespace CountlySDK.CountlyCommon
         internal CountlyConfig Configuration;
         internal ModuleBackendMode moduleBackendMode;
         internal ModuleRemoteConfig moduleRemoteConfig;
+        internal ModuleFeedback moduleFeedback;
 
         public abstract string sdkName();
 
@@ -1210,6 +1211,7 @@ namespace CountlySDK.CountlyCommon
                 // modules
                 moduleBackendMode = null;
                 moduleRemoteConfig = null;
+                moduleFeedback = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1511,6 +1513,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl);
+            moduleFeedback = new ModuleFeedback(requestHelper, ServerUrl);
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
             await OnInitComplete();
@@ -2010,6 +2013,29 @@ namespace CountlySDK.CountlyCommon
             }
 
             return moduleRemoteConfig;
+        }
+
+        /// <summary>
+        /// Returns the Feedback interface for retrieving/displaying/reporting feedback widgets.
+        /// If backend mode is enabled, the module is unavailable, or Feedback consent is not
+        /// given, a no-op <see cref="MockFeedback"/> is returned instead.
+        /// </summary>
+        public Feedback Feedback()
+        {
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] Feedback, backend mode is enabled, will omit this call");
+                return new MockFeedback();
+            }
+
+            if (moduleFeedback == null) {
+                return new MockFeedback();
+            }
+
+            if (!IsConsentGiven(ConsentFeatures.Feedback)) {
+                return new MockFeedback();
+            }
+
+            return moduleFeedback;
         }
     }
 }

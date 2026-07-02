@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net462;net8.0-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>CountlySDK.UI</RootNamespace>
+    <AssemblyName>Countly.UI.WebView2</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <SignAssembly>false</SignAssembly>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- References the netstandard core during development. In distribution this becomes a
+         PackageReference to the published Countly SDK NuGet package. -->
+    <ProjectReference Include="..\..\netstd\Countly\Countly.csproj" />
+  </ItemGroup>
+</Project>

@@ -29,6 +29,7 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs" Link="Entities\BeginSession.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyConfigBase.cs" Link="Entities\CountlyConfigBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs" Link="Entities\CountlyEvent.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyFeedbackWidget.cs" Link="Entities\CountlyFeedbackWidget.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyUserDetails.cs" Link="Entities\CountlyUserDetails.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs" Link="Entities\CustomInfo.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs" Link="Entities\CustomInfoItem.cs" />
@@ -46,6 +47,8 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\EventPool.cs" Link="Helpers\EventPool.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs" Link="Helpers\PhoneNameHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\RequestHelper.cs" Link="Helpers\RequestHelper.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\WidgetActionParser.cs" Link="Helpers\WidgetActionParser.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\WidgetUrlBuilder.cs" Link="Helpers\WidgetUrlBuilder.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs" Link="Helpers\StorageBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs" Link="Helpers\TimeHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs" Link="Helpers\UtilityHelper.cs" />

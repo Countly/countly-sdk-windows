@@ -7,6 +7,13 @@
   * After initialization finishes.
   * RemoteConfig consent is given.
   * After the device ID is changed to a different user.
+* Added support for the Feedback Widgets feature (Surveys, NPS, Ratings) accessible through the "Countly.Instance.Feedback()" interface:
+  * "GetAvailableFeedbackWidgets" for fetching the list of available feedback widgets from the server
+  * "GetFeedbackWidgetData" for fetching a widget's definition (for building a custom UI)
+  * "ReportFeedbackWidgetManually" for reporting a widget result, or marking it closed
+  * "ConstructFeedbackWidgetUrl" for building a widget's display URL
+  * This feature uses "Feedback" consent (and "StarRating" consent for rating widgets).
+  * Needs "Countly.UI.WebView2" for displaying feedback widgets on WPF and WinForms.
 
 ## 25.4.3
 * ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
