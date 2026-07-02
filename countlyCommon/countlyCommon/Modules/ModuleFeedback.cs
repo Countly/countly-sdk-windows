@@ -113,10 +113,11 @@ namespace CountlySDK.CountlyCommon
 
     internal class MockFeedback : Feedback
     {
-        public Task<CountlyFeedbackWidget[]> GetAvailableFeedbackWidgets() { return Task.FromResult(new CountlyFeedbackWidget[0]); }
-        public Task<JObject> GetFeedbackWidgetData(CountlyFeedbackWidget widget) { return Task.FromResult<JObject>(null); }
-        public Task ReportFeedbackWidgetManually(CountlyFeedbackWidget widget, JObject widgetData, Dictionary<string, object> widgetResult) { return Task.FromResult(0); }
-        public Task<string> ConstructFeedbackWidgetUrl(CountlyFeedbackWidget widget) { return Task.FromResult<string>(null); }
+        // async-empty (no Task.FromResult, which is unavailable on net35) — mirrors MockRemoteConfig.
+        public async Task<CountlyFeedbackWidget[]> GetAvailableFeedbackWidgets() { return new CountlyFeedbackWidget[0]; }
+        public async Task<JObject> GetFeedbackWidgetData(CountlyFeedbackWidget widget) { return null; }
+        public async Task ReportFeedbackWidgetManually(CountlyFeedbackWidget widget, JObject widgetData, Dictionary<string, object> widgetResult) { }
+        public async Task<string> ConstructFeedbackWidgetUrl(CountlyFeedbackWidget widget) { return null; }
     }
 
     /// <summary>

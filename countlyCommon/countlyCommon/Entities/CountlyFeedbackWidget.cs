@@ -27,7 +27,7 @@ namespace CountlySDK.CountlyCommon
                 foreach (JToken item in arr) {
                     string typeStr = (string)item["type"];
                     if (typeStr == null) { continue; }
-                    if (!System.Enum.TryParse(typeStr, out FeedbackWidgetType type)) { continue; }
+                    if (!TryParseWidgetType(typeStr, out FeedbackWidgetType type)) { continue; }
 
                     CountlyFeedbackWidget w = new CountlyFeedbackWidget {
                         widgetId = (string)item["_id"],
@@ -42,6 +42,18 @@ namespace CountlySDK.CountlyCommon
             } catch { /* malformed response -> empty list */ }
 
             return result.ToArray();
+        }
+
+        // net35-safe replacement for Enum.TryParse<T> (which is .NET 4.0+). The enum member names
+        // are the exact server type strings.
+        private static bool TryParseWidgetType(string value, out FeedbackWidgetType type)
+        {
+            switch (value) {
+                case "survey": type = FeedbackWidgetType.survey; return true;
+                case "nps": type = FeedbackWidgetType.nps; return true;
+                case "rating": type = FeedbackWidgetType.rating; return true;
+                default: type = default(FeedbackWidgetType); return false;
+            }
         }
     }
 }
