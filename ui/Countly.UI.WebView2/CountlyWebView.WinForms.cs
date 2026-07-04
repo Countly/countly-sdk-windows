@@ -35,14 +35,14 @@ namespace CountlySDK.UI
             WinFormsWebView2WidgetHost adapter = new WinFormsWebView2WidgetHost(webView, form);
             FeedbackWidgetPresenter presenter = new FeedbackWidgetPresenter(adapter, CountlySDK.Countly.Instance.Feedback(), isLandscape: false, onClosed);
 
-            form.Load += async (s, e) => {
+            form.Load += async (_, e) => {
                 try {
                     await adapter.InitializeAsync();
                     await presenter.StartAsync(widget);
                 } catch (Exception ex) {
                     // async void: a display failure must never crash the host app.
                     System.Diagnostics.Debug.WriteLine("[CountlyWebView] feedback widget failed: " + ex);
-                    try { form.Close(); } catch { }
+                    try { form.Close(); } catch { /* best-effort close during teardown; not actionable */ }
                     onClosed?.Invoke();
                 }
             };

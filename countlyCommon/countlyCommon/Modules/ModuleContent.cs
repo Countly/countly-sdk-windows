@@ -8,7 +8,7 @@ using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon
 {
-    internal class ModuleContent : Content
+    internal class ModuleContent : Content, IDisposable
     {
         private readonly RequestHelper requestHelper;
         private readonly string ServerUrl;
@@ -58,6 +58,13 @@ namespace CountlySDK.CountlyCommon
                 _generation++;   // invalidate any fetch already in flight so it won't present after we exit
                 if (_timer != null) { _timer.Dispose(); _timer = null; }
             }
+        }
+
+        public void Dispose()
+        {
+            // Standard disposal entry point (satisfies CA1001 for the owned System.Threading.Timer);
+            // ExitContentZone stops polling and disposes the timer.
+            ExitContentZone();
         }
 
         public void RefreshContentZone()

@@ -237,7 +237,7 @@ namespace TestProject_common
             // an exact value to avoid timing flakiness.
             TestHelper.ValidateRequest(server.Requests[6].Params, TestHelper.Dict("end_session", "1", "session_duration", 3),
                 new Dictionary<string, Action<string, object>> {
-                    { "session_duration", (actual, expected) => Assert.True(int.Parse(actual) >= 2 && int.Parse(actual) <= 4, "session_duration was " + actual) }
+                    { "session_duration", (actual, _) => Assert.True(int.Parse(actual) >= 2 && int.Parse(actual) <= 4, "session_duration was " + actual) }
                 });
 
             server.Dispose();

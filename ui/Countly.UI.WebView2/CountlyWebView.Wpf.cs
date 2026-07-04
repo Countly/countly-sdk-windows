@@ -38,14 +38,14 @@ namespace CountlySDK.UI
             bool isLandscape = owner != null && owner.ActualWidth >= owner.ActualHeight;
             FeedbackWidgetPresenter presenter = new FeedbackWidgetPresenter(adapter, CountlySDK.Countly.Instance.Feedback(), isLandscape, onClosed);
 
-            host.Loaded += async (s, e) => {
+            host.Loaded += async (_, e) => {
                 try {
                     await adapter.InitializeAsync();
                     await presenter.StartAsync(widget);
                 } catch (Exception ex) {
                     // async void: a display failure must never crash the host app.
                     System.Diagnostics.Debug.WriteLine("[CountlyWebView] feedback widget failed: " + ex);
-                    try { host.Close(); } catch { }
+                    try { host.Close(); } catch { /* best-effort close during teardown; not actionable */ }
                     onClosed?.Invoke();
                 }
             };

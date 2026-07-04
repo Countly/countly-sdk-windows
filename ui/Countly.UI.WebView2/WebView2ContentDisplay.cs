@@ -47,10 +47,10 @@ namespace CountlySDK.UI
                     WebView2 webView = new WebView2();
                     host.Content = webView;
 
-                    host.Loaded += async (s, e) => {
+                    host.Loaded += async (_, e) => {
                         try {
                             await webView.EnsureCoreWebView2Async(null);
-                            webView.CoreWebView2.NavigationStarting += (s2, e2) => {
+                            webView.CoreWebView2.NavigationStarting += (_, e2) => {
                                 WidgetAction a = WidgetActionParser.Parse(e2.Uri);
                                 if (!a.IsActionEvent) { return; }
 
@@ -71,7 +71,7 @@ namespace CountlySDK.UI
                         } catch (Exception ex) {
                             // async void: a display failure must never crash the host app.
                             System.Diagnostics.Debug.WriteLine("[CountlyWebView] content overlay failed: " + ex);
-                            try { host.Close(); } catch { }
+                            try { host.Close(); } catch { /* best-effort close during teardown; not actionable */ }
                             onClosed?.Invoke();   // return the module to a fetchable state so the zone is not wedged
                         }
                     };

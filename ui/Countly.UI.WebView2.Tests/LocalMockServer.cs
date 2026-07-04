@@ -60,7 +60,7 @@ namespace Countly.UI.WebView2.Tests
             return p;
         }
 
-        public void Dispose() { try { _listener.Stop(); } catch { } }
+        public void Dispose() { try { _listener.Stop(); } catch { /* listener already stopped/disposed; nothing to do */ } }
 
         public sealed class Captured
         {
