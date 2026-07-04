@@ -26,7 +26,7 @@ namespace CountlyFeedbackDemo.Wpf
                     appVersion = "1.0"
                 };
                 await CountlySDK.Countly.Instance.Init(cc);
-
+                await CountlySDK.Countly.Instance.SessionBegin();
                 _widgets = await CountlySDK.Countly.Instance.Feedback().GetAvailableFeedbackWidgets();
                 WidgetList.ItemsSource = _widgets.Select(w => $"{w.type}   {w.name}   ({w.widgetId})").ToArray();
 
@@ -45,6 +45,12 @@ namespace CountlyFeedbackDemo.Wpf
                 return;
             }
             CountlyWebView.PresentFeedbackWidget(this, _widgets[i], () => StatusText.Text = "Widget closed.");
+        }
+
+        private void ContentBtn_Click(object sender, RoutedEventArgs e)
+        {
+            CountlyWebView.EnableContentZone();
+            StatusText.Text = "Content zone enabled (polling). Server must have active content for this device.";
         }
     }
 }

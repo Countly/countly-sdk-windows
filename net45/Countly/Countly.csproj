@@ -81,6 +81,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyFeedbackWidget.cs">
       <Link>Entities\CountlyFeedbackWidget.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\ContentModels.cs">
+      <Link>Entities\ContentModels.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyUserDetails.cs">
       <Link>Entities\CountlyUserDetails.cs</Link>
     </Compile>
@@ -131,6 +134,9 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\WidgetUrlBuilder.cs">
       <Link>Helpers\WidgetUrlBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\ContentRequestBuilder.cs">
+      <Link>Helpers\ContentRequestBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs">
       <Link>Helpers\StorageBase.cs</Link>

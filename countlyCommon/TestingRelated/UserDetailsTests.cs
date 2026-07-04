@@ -232,7 +232,13 @@ namespace TestProject_common
             TestHelper.ValidateRequest(server.Requests[3].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John")));
             Assert.Contains("Test1", server.Requests[4].Params["events"]);
             TestHelper.ValidateRequest(server.Requests[5].Params, TestHelper.Dict("user_details", TestHelper.Json("email", "Doe@doe.com")));
-            TestHelper.ValidateRequest(server.Requests[6].Params, TestHelper.Dict("end_session", "1", "session_duration", 3));
+            // session_duration here is wall-clock derived (~2.4s of sleeps), so it rounds to 2 or 3
+            // depending on machine/CI speed. Validate its presence with a tolerant range instead of
+            // an exact value to avoid timing flakiness.
+            TestHelper.ValidateRequest(server.Requests[6].Params, TestHelper.Dict("end_session", "1", "session_duration", 3),
+                new Dictionary<string, Action<string, object>> {
+                    { "session_duration", (actual, expected) => Assert.True(int.Parse(actual) >= 2 && int.Parse(actual) <= 4, "session_duration was " + actual) }
+                });
 
             server.Dispose();
         }

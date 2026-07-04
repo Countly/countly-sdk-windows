@@ -23,3 +23,20 @@ jobs:
           -p:SignAssembly=false
           -p:DelaySign=false
           -p:GenerateDocumentationFile=false
+
+  core-build:
+    name: Build core (net35 / net45 / netstd)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Restore + build core targets
+        shell: pwsh
+        run: |
+          nuget restore net35/Countly.sln
+          nuget restore net45/Countly.sln
+          msbuild net35/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
+          msbuild net45/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
+          dotnet build netstd/Countly/Countly.csproj -c Release -p:SignAssembly=false -p:DelaySign=false -p:GenerateDocumentationFile=false

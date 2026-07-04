@@ -36,8 +36,15 @@ namespace CountlySDK.UI
             FeedbackWidgetPresenter presenter = new FeedbackWidgetPresenter(adapter, CountlySDK.Countly.Instance.Feedback(), isLandscape: false, onClosed);
 
             form.Load += async (s, e) => {
-                await adapter.InitializeAsync();
-                await presenter.StartAsync(widget);
+                try {
+                    await adapter.InitializeAsync();
+                    await presenter.StartAsync(widget);
+                } catch (Exception ex) {
+                    // async void: a display failure must never crash the host app.
+                    System.Diagnostics.Debug.WriteLine("[CountlyWebView] feedback widget failed: " + ex);
+                    try { form.Close(); } catch { }
+                    onClosed?.Invoke();
+                }
             };
             form.Show(owner);
         }

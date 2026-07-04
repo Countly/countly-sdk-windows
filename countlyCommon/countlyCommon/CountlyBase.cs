@@ -61,6 +61,7 @@ namespace CountlySDK.CountlyCommon
         internal ModuleBackendMode moduleBackendMode;
         internal ModuleRemoteConfig moduleRemoteConfig;
         internal ModuleFeedback moduleFeedback;
+        internal ModuleContent moduleContent;
 
         public abstract string sdkName();
 
@@ -200,7 +201,7 @@ namespace CountlySDK.CountlyCommon
         }
         public enum ConsentFeatures
         {
-            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig
+            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig, Content
         };
 
         internal abstract Metrics GetSessionMetrics();
@@ -295,9 +296,11 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'Upload'");
             bool success = false;
-            bool shouldContinue = false;
 
-            do {
+            // Iterative drain with a no-progress guard.The guard stops once a pass makes no progress, so no stuck queue can loop forever.
+            int previousPending = int.MaxValue;
+
+            while (true) {
                 if (deferUpload) {
                     return true;
                 }
@@ -323,33 +326,38 @@ namespace CountlySDK.CountlyCommon
                     success = await UploadUserDetails();
                 }
 
-                if (success && Configuration.autoSendUserDetails) {
+                // Drain the request queue in BOTH modes.
+                if (success) {
                     success = await UploadStoredRequests();
                 }
 
-                if (success && !uploadInProgress) {
-                    int sC, exC, evC, rC;
-                    bool isChanged;
-
-                    lock (sync) {
-                        sC = Sessions.Count;
-                        exC = Exceptions.Count;
-                        evC = Events.Count;
-                        rC = StoredRequests.Count;
-                        isChanged = !Configuration.autoSendUserDetails && UserDetails.isChanged; // if the auto flushing UPs used, this should not work at all
-                    }
-
-                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
-
-                    if (sC > 0 || exC > 0 || evC > 0 || rC > 0 || isChanged) {
-                        //work still needs to be done
-                        return await Upload();
-                    }
-                } else {
-                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, in progress");
+                if (!success || uploadInProgress) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, in progress or unsuccessful");
+                    break;
                 }
-            } while (success && shouldContinue);
 
+                int sC, exC, evC, rC;
+                bool isChanged;
+
+                lock (sync) {
+                    sC = Sessions.Count;
+                    exC = Exceptions.Count;
+                    evC = Events.Count;
+                    rC = StoredRequests.Count;
+                    isChanged = !Configuration.autoSendUserDetails && UserDetails.isChanged && IsConsentGiven(ConsentFeatures.Users);
+                }
+
+                UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
+
+                int pending = sC + exC + evC + rC + (isChanged ? 1 : 0);
+                if (pending == 0 || pending >= previousPending) {
+                    // Everything drained, or a pass made no progress (an item can't be flushed) -> stop
+                    // instead of looping forever; leftovers retry on the next Upload() trigger.
+                    break;
+                }
+
+                previousPending = pending;
+            }
 
             return success;
         }
@@ -1212,6 +1220,8 @@ namespace CountlySDK.CountlyCommon
                 moduleBackendMode = null;
                 moduleRemoteConfig = null;
                 moduleFeedback = null;
+                if (moduleContent != null) { moduleContent.ExitContentZone(); } // stop the poll timer
+                moduleContent = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1514,6 +1524,7 @@ namespace CountlySDK.CountlyCommon
 
             moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl);
             moduleFeedback = new ModuleFeedback(requestHelper, ServerUrl);
+            moduleContent = new ModuleContent(requestHelper, ServerUrl);
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
             await OnInitComplete();
@@ -1863,6 +1874,10 @@ namespace CountlySDK.CountlyCommon
                             await RemoteConfig().DownloadKeys();
                         }
                         break;
+                    case ConsentFeatures.Content:
+                        //content consent removed -> stop the polling timer (and invalidate any in-flight fetch)
+                        if (!isGiven && moduleContent != null) { moduleContent.ExitContentZone(); }
+                        break;
                 }
             }
         }
@@ -1999,8 +2014,8 @@ namespace CountlySDK.CountlyCommon
         /// </returns>
         public RemoteConfig RemoteConfig()
         {
-            if (Configuration.backendMode) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RemoteConfig, backend mode is enabled, will omit this call");
+            if (Configuration == null || Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RemoteConfig, backend mode is enabled or SDK not initialized, will omit this call");
                 return new MockRemoteConfig();
             }
 
@@ -2022,8 +2037,8 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         public Feedback Feedback()
         {
-            if (Configuration.backendMode) {
-                UtilityHelper.CountlyLogging("[CountlyBase] Feedback, backend mode is enabled, will omit this call");
+            if (Configuration == null || Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] Feedback, backend mode is enabled or SDK not initialized, will omit this call");
                 return new MockFeedback();
             }
 
@@ -2036,6 +2051,31 @@ namespace CountlySDK.CountlyCommon
             }
 
             return moduleFeedback;
+        }
+
+        /// <summary>Registers the UI content-display bridge (ungated; no-op if uninitialized).</summary>
+        public void SetContentDisplay(IContentDisplay display)
+        {
+            if (moduleContent != null) { moduleContent.display = display; }
+        }
+
+        /// <summary>
+        /// Returns the Content interface (experimental). A no-op <see cref="MockContent"/> is
+        /// returned when backend mode is enabled, the module is unavailable, or Content consent
+        /// is not given.
+        /// </summary>
+        public Content Content()
+        {
+            if (Configuration == null || Configuration.backendMode) {
+                return new MockContent();
+            }
+            if (moduleContent == null) {
+                return new MockContent();
+            }
+            if (!IsConsentGiven(ConsentFeatures.Content)) {
+                return new MockContent();
+            }
+            return moduleContent;
         }
     }
 }
