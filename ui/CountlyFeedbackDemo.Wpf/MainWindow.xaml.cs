@@ -47,10 +47,13 @@ namespace CountlyFeedbackDemo.Wpf
             CountlyWebView.PresentFeedbackWidget(this, _widgets[i], () => StatusText.Text = "Widget closed.");
         }
 
-        private void ContentBtn_Click(object sender, RoutedEventArgs e)
+        private async void ContentBtn_Click(object sender, RoutedEventArgs e)
         {
+            // The content item triggers on any view -> record one so the server marks content
+            // available for this device, then enter the zone (first fetch ~4s later).
+            await CountlySDK.Countly.Instance.RecordView("test_view");
             CountlyWebView.EnableContentZone();
-            StatusText.Text = "Content zone enabled (polling). Server must have active content for this device.";
+            StatusText.Text = "Recorded view + content zone enabled (first fetch ~4s). Waiting for server content...";
         }
     }
 }

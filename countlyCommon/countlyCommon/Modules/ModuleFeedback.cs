@@ -95,7 +95,9 @@ namespace CountlySDK.CountlyCommon
                 segmentation.Add("closed", "1");
             } else {
                 foreach (KeyValuePair<string, object> kv in widgetResult) {
-                    segmentation.Add(kv.Key, Convert.ToString(kv.Value));
+                    // InvariantCulture: a numeric answer (e.g. 4.5) must not pick up a locale decimal
+                    // separator ("4,5") on the wire, which would corrupt server-side aggregation.
+                    segmentation.Add(kv.Key, Convert.ToString(kv.Value, System.Globalization.CultureInfo.InvariantCulture));
                 }
             }
 
@@ -105,7 +107,10 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<string> ConstructFeedbackWidgetUrl(CountlyFeedbackWidget widget)
         {
-            if (widget == null) { return null; }
+            if (widget == null || string.IsNullOrEmpty(widget.widgetId)) {
+                UtilityHelper.CountlyLogging("[ModuleFeedback] ConstructFeedbackWidgetUrl, widget or widgetId is null/empty", LogLevel.ERROR);
+                return null;
+            }
             IDictionary<string, object> baseParams = await requestHelper.GetBaseParams();
             return WidgetUrlBuilder.BuildFeedbackWidgetUrl(ServerUrl, widget, baseParams);
         }

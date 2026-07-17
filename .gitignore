@@ -263,3 +263,4 @@ _Pvt_Extensions
 nuget/nuget.exe
 
 .DS_Store
+docs/

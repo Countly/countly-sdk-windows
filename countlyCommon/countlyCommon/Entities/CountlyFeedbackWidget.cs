@@ -11,6 +11,8 @@ namespace CountlySDK.CountlyCommon
         public FeedbackWidgetType type;
         public string name;
         public List<string> tags = new List<string>();
+        // Server "wv" (widget version). Null/empty => legacy widget (no resize_me protocol).
+        public string widgetVersion;
     }
 
     public static class FeedbackWidgetParser
@@ -32,7 +34,8 @@ namespace CountlySDK.CountlyCommon
                     CountlyFeedbackWidget w = new CountlyFeedbackWidget {
                         widgetId = (string)item["_id"],
                         type = type,
-                        name = (string)item["name"]
+                        name = (string)item["name"],
+                        widgetVersion = (string)item["wv"]
                     };
                     if (item["tg"] is JArray tags) {
                         foreach (JToken t in tags) { w.tags.Add((string)t); }
