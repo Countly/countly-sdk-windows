@@ -17,6 +17,7 @@ namespace CountlySDK.UI
         private CountlyFeedbackWidget _widget;
         private bool _surfaceReported;
 
+        /// <summary>Creates a presenter bound to a host, the core feedback module, and a dismissal callback.</summary>
         public FeedbackWidgetPresenter(IWidgetWebHost host, Feedback feedback, Action onClosed)
         {
             _host = host;

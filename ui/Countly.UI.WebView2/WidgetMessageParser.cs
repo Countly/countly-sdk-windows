@@ -12,6 +12,11 @@ namespace CountlySDK.UI
     /// </summary>
     public static class WidgetMessageParser
     {
+        /// <summary>
+        /// Parses a bridged widget postMessage payload into a <see cref="WidgetAction"/>. Returns
+        /// true if the JSON is a recognised <c>cly_widget_command</c> message (with <paramref name="action"/>
+        /// populated), false otherwise.
+        /// </summary>
         public static bool TryParse(string json, out WidgetAction action)
         {
             action = new WidgetAction();

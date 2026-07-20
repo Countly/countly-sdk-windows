@@ -6,9 +6,13 @@ namespace CountlySDK.UI
     /// <summary>The coordinate space we hand the widget (DIPs, screen-absolute origin).</summary>
     public struct WidgetSurface
     {
+        /// <summary>Left edge of the surface, screen-absolute (DIPs).</summary>
         public int X;
+        /// <summary>Top edge of the surface, screen-absolute (DIPs).</summary>
         public int Y;
+        /// <summary>Surface width (DIPs).</summary>
         public int Width;
+        /// <summary>Surface height (DIPs).</summary>
         public int Height;
     }
 
@@ -18,6 +22,10 @@ namespace CountlySDK.UI
     /// </summary>
     public static class WidgetPlacement
     {
+        /// <summary>
+        /// Resolves the widget's requested rect (orientation-appropriate, clamped to the surface)
+        /// into a screen-absolute window rect, or null if the action carries no usable rect.
+        /// </summary>
         public static WidgetRect Resolve(WidgetAction action, WidgetSurface surface)
         {
             if (action == null || !action.HasResize) { return null; }
