@@ -195,7 +195,7 @@ namespace TestProject_common
             Assert.False(string.IsNullOrEmpty(collection.Get("t")));
             JObject consentObj = JObject.Parse(collection.Get("consent"));
 
-            Assert.Equal(10, consentObj.Count);
+            Assert.Equal(11, consentObj.Count);
             Assert.False(consentObj.GetValue("push").ToObject<bool>());
             Assert.True(consentObj.GetValue("users").ToObject<bool>());
             Assert.False(consentObj.GetValue("views").ToObject<bool>());
@@ -206,6 +206,7 @@ namespace TestProject_common
             Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
             Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
             Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
+            Assert.False(consentObj.GetValue("content").ToObject<bool>());
         }
 
         /// <summary>
@@ -241,7 +242,7 @@ namespace TestProject_common
             NameValueCollection collection = HttpUtility.ParseQueryString(request.Request);
             JObject consentObj = JObject.Parse(collection.Get("consent"));
 
-            Assert.Equal(10, consentObj.Count);
+            Assert.Equal(11, consentObj.Count);
             Assert.False(consentObj.GetValue("push").ToObject<bool>());
             Assert.True(consentObj.GetValue("users").ToObject<bool>());
             Assert.False(consentObj.GetValue("views").ToObject<bool>());
@@ -252,6 +253,7 @@ namespace TestProject_common
             Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
             Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
             Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
+            Assert.False(consentObj.GetValue("content").ToObject<bool>());
 
             Dictionary<ConsentFeatures, bool> consentToRemove = new Dictionary<ConsentFeatures, bool>();
             consentToRemove.Add(ConsentFeatures.Crashes, false);
@@ -265,7 +267,7 @@ namespace TestProject_common
             collection = HttpUtility.ParseQueryString(request.Request);
             consentObj = JObject.Parse(collection.Get("consent"));
 
-            Assert.Equal(10, consentObj.Count);
+            Assert.Equal(11, consentObj.Count);
             Assert.False(consentObj.GetValue("push").ToObject<bool>());
             Assert.True(consentObj.GetValue("users").ToObject<bool>());
             Assert.False(consentObj.GetValue("views").ToObject<bool>());
@@ -276,6 +278,7 @@ namespace TestProject_common
             Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
             Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
             Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
+            Assert.False(consentObj.GetValue("content").ToObject<bool>());
         }
     }
 }

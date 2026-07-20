@@ -7,6 +7,21 @@
   * After initialization finishes.
   * RemoteConfig consent is given.
   * After the device ID is changed to a different user.
+* Added support for the Feedback Widgets feature (Surveys, NPS, Ratings) accessible through the "Countly.Instance.Feedback()" interface:
+  * "GetAvailableFeedbackWidgets" for fetching the list of available feedback widgets from the server
+  * "GetFeedbackWidgetData" for fetching a widget's definition (for building a custom UI)
+  * "ReportFeedbackWidgetManually" for reporting a widget result, or marking it closed
+  * "ConstructFeedbackWidgetUrl" for building a widget's display URL
+  * This feature uses "Feedback" consent (and "StarRating" consent for rating widgets).
+  * Needs "Countly.UI.WebView2" for displaying feedback widgets on WPF and WinForms.
+* Added support for the experimental Content feature accessible through the "Countly.Instance.Content()" interface:
+  * "EnterContentZone" / "ExitContentZone" for starting and stopping periodic content fetching
+  * "RefreshContentZone" for forcing an immediate refresh
+  * "PreviewContent" for fetching and showing a specific content by id
+  * Added "ContentZoneTimerInterval" and a global content callback to the configuration object
+  * This feature uses "Content" consent.
+  * Needs "Countly.UI.WebView2" for displaying content on WPF.
+* Fixed a bug where the request queue was not processed when automatic user property saving ("autoSendUserDetails") was disabled, so queued requests (for example from a manual session update) were never uploaded and could cause the SDK to loop indefinitely.
 
 ## 25.4.3
 * ! Minor breaking change ! User properties will now be automatically saved under the following conditions:

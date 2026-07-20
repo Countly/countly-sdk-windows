@@ -528,12 +528,16 @@ namespace TestProject_common
             }
         }
 
-        internal static void ValidateRequest(Dictionary<string, string> request, IDictionary<string, object> paramaters)
+        internal static void ValidateRequest(Dictionary<string, string> request, IDictionary<string, object> paramaters, IDictionary<string, Action<string, object>> customValidators = null)
         {
             ValidateBaseParams(request, DEVICE_ID, APP_KEY, 0);
             Assert.Equal(11 + paramaters.Count, request.Count); // + rr
             foreach (KeyValuePair<string, object> item in paramaters) {
-                Assert.Equal(item.Value.ToString(), request[item.Key]);
+                if (customValidators != null && customValidators.ContainsKey(item.Key)) {
+                    customValidators[item.Key].Invoke(request[item.Key], item.Value);
+                } else {
+                    Assert.Equal(item.Value.ToString(), request[item.Key]);
+                }
             }
         }
 

@@ -101,6 +101,9 @@ namespace CountlySDK.CountlyCommon.Helpers
                     case ConsentFeatures.RemoteConfig:
                         consentChanges += "\"remote-config\":" + (value ? "true" : "false");
                         break;
+                    case ConsentFeatures.Content:
+                        consentChanges += "\"content\":" + (value ? "true" : "false");
+                        break;
                     default:
                         consentChanges += "\"unknown\":false";
                         break;

@@ -51,6 +51,19 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         public int sessionUpdateInterval = 60;
 
+        private int _contentZoneTimerInterval = 30;
+
+        /// <summary>
+        /// Content zone poll interval in seconds. Values &lt;= 15 are ignored. Default 30. (Experimental.)
+        /// </summary>
+        public int ContentZoneTimerInterval {
+            get { return _contentZoneTimerInterval; }
+            set { if (value > 15) { _contentZoneTimerInterval = value; } }
+        }
+
+        /// <summary>Optional callback invoked when a shown content item is closed. (Experimental.)</summary>
+        public System.Action GlobalContentCallback { get; set; }
+
         // <summary>
         /// Maximum size of all string keys
         /// </summary>

@@ -29,7 +29,9 @@ using CountlySDK.CountlyCommon;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
-//[assembly: InternalsVisibleTo("CountlyTest_461")]
+#if COUNTLY_TESTABLE
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("CountlyTest_461")]
+#endif
 //[assembly: InternalsVisibleTo("CountlySampleUWP")]
 
 namespace CountlySDK
