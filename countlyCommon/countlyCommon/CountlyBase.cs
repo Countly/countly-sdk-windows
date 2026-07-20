@@ -1566,6 +1566,11 @@ namespace CountlySDK.CountlyCommon
             if (Configuration.remoteConfigAutomaticDownloadTriggers) {
                 await RemoteConfig().DownloadKeys();
             }
+
+            if (moduleServerConfig != null) {
+                await moduleServerConfig.FetchServerConfig();
+                consentRequired = Configuration.consentRequired;
+            }
         }
 
         public enum DeviceIdType { DeveloperProvided = 0, SDKGenerated = 1 };

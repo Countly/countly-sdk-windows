@@ -156,6 +156,87 @@ namespace CountlySDK.CountlyCommon
             return result;
         }
 
+        /// <summary>
+        /// Network fetch of SDK Behavior Settings (direct, off-queue, /o/sdk?method=sc).
+        /// No-op when updates are disabled. Always (re)starts the refresh timer when enabled,
+        /// so periodic refresh survives a failed fetch.
+        /// </summary>
+        internal async Task FetchServerConfig()
+        {
+            if (updatesDisabled) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, updates disabled, skipping network fetch");
+                return;
+            }
+            await FetchAndApply();
+            StartTimer();
+        }
+
+        private async Task FetchAndApply()
+        {
+            IDictionary<string, object> scParams = new Dictionary<string, object> { { "method", "sc" } };
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(scParams));
+            UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
+
+            if (requestResult.responseCode != 200 || requestResult.responseText == null) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, request failed, keeping current settings", LogLevel.WARNING);
+                return;
+            }
+
+            JObject env;
+            try {
+                env = JObject.Parse(requestResult.responseText);
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, failed to parse response: " + ex.Message, LogLevel.WARNING);
+                return;
+            }
+
+            if (!ValidateEnvelope(env)) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings", LogLevel.WARNING);
+                return;
+            }
+
+            MergeAndPersist(env);
+            ApplyEffectiveConfig();
+        }
+
+        private void MergeAndPersist(JObject env)
+        {
+            JObject incoming = Sanitize((JObject)env["c"]);
+            lock (configLock) {
+                if (storedFullConfig == null) { storedFullConfig = new JObject(); }
+                storedFullConfig["v"] = env["v"];
+                storedFullConfig["t"] = env["t"];
+                if (storedConfig == null) { storedConfig = new JObject(); }
+                foreach (KeyValuePair<string, JToken> kv in incoming) {
+                    storedConfig[kv.Key] = kv.Value;
+                }
+                storedFullConfig["c"] = storedConfig;
+            }
+            PersistStoredConfig();
+        }
+
+        private void PersistStoredConfig()
+        {
+            string json;
+            lock (configLock) {
+                if (storedFullConfig == null) { return; }
+                json = storedFullConfig.ToString(Newtonsoft.Json.Formatting.None);
+            }
+            Storage.Instance.SaveToFile<ServerConfigEntity>(serverConfigFilename, new ServerConfigEntity { Json = json }).Wait();
+        }
+
+        private void StartTimer()
+        {
+            StopTimer();
+            long intervalMs = (long)currentServerConfigUpdateInterval * 60L * 60L * 1000L;
+            refreshTimer = new System.Threading.Timer(OnTimerTick, null, intervalMs, intervalMs);
+        }
+
+        private void OnTimerTick(object state)
+        {
+            FetchServerConfig().Wait();
+        }
+
         internal void StopTimer()
         {
             if (refreshTimer != null) {

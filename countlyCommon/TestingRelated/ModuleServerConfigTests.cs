@@ -96,5 +96,80 @@ namespace TestProject_common
 
             Assert.True(Countly.Instance.Configuration.consentRequired);
         }
+
+        [Fact]
+        /// <summary>A valid SBS response is fetched via method=sc on /o/sdk, applied and persisted.</summary>
+        public void FetchServerConfig_ValidResponse_AppliedAndRequestShaped()
+        {
+            MockHttpServer server = new MockHttpServer((body) =>
+                body.Contains("method=sc") ? "{\"v\":1,\"t\":1742459739383,\"c\":{\"lkl\":33,\"networking\":false}}" : null);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+
+            bool scRequestSent = false;
+            foreach (MockHttpServer.RequestInfo r in server.Requests) {
+                if (r.Body.Contains("method=sc") && r.Path.Contains("/o/sdk")) { scRequestSent = true; }
+            }
+            Assert.True(scRequestSent);
+            Assert.Equal(33, Countly.Instance.Configuration.MaxKeyLength);
+            Assert.False(Countly.Instance.moduleServerConfig.GetNetworkingEnabled());
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>An invalid envelope (missing v/t/c) is rejected; defaults are kept.</summary>
+        public void FetchServerConfig_InvalidResponse_KeepsDefaults()
+        {
+            MockHttpServer server = new MockHttpServer((body) =>
+                body.Contains("method=sc") ? "{\"garbage\":true}" : null);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+
+            Assert.Equal(128, Countly.Instance.Configuration.MaxKeyLength);
+            Assert.True(Countly.Instance.moduleServerConfig.GetNetworkingEnabled());
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>DisableSDKBehaviorSettingsUpdates skips the fetch yet still applies stored settings.</summary>
+        public void DisableUpdates_SkipsFetch_ButAppliesStored()
+        {
+            Storage.Instance.SaveToFile<ServerConfigEntity>(
+                ModuleServerConfig.serverConfigFilename,
+                new ServerConfigEntity { Json = "{\"v\":1,\"t\":1,\"c\":{\"lkl\":55}}" }).Wait();
+            int scCalls = 0;
+            MockHttpServer server = new MockHttpServer((body) => {
+                if (body.Contains("method=sc")) { scCalls++; return "{\"v\":1,\"t\":2,\"c\":{\"lkl\":99}}"; }
+                return null;
+            });
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            cc.DisableSDKBehaviorSettingsUpdates();
+            Countly.Instance.Init(cc).Wait();
+
+            Assert.Equal(0, scCalls);
+            Assert.Equal(55, Countly.Instance.Configuration.MaxKeyLength);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>Successive fetches merge per-key rather than replacing the stored config.</summary>
+        public void FetchServerConfig_MergesAcrossFetches()
+        {
+            string response = "{\"v\":1,\"t\":1,\"c\":{\"lkl\":33}}";
+            MockHttpServer server = new MockHttpServer((body) => body.Contains("method=sc") ? response : null);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+            Assert.Equal(33, Countly.Instance.Configuration.MaxKeyLength);
+
+            response = "{\"v\":1,\"t\":2,\"c\":{\"lvs\":44}}";
+            Countly.Instance.moduleServerConfig.FetchServerConfig().Wait();
+            Assert.Equal(33, Countly.Instance.Configuration.MaxKeyLength); // retained via merge
+            Assert.Equal(44, Countly.Instance.Configuration.MaxValueSize); // newly added
+            server.Dispose();
+        }
     }
 }
