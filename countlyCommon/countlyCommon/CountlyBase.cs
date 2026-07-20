@@ -296,6 +296,12 @@ namespace CountlySDK.CountlyCommon
         internal async Task<bool> Upload()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'Upload'");
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetNetworkingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] Upload, networking disabled by server config, skipping upload");
+                return true;
+            }
+
             bool success = false;
 
             // Iterative drain with a no-progress guard.The guard stops once a pass makes no progress, so no stuck queue can loop forever.
@@ -707,6 +713,10 @@ namespace CountlySDK.CountlyCommon
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
+            if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event");
+                return true;
+            }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!CheckConsentOnKey(Key)) { return true; }
 
@@ -1435,6 +1445,11 @@ namespace CountlySDK.CountlyCommon
             Debug.Assert(networkRequest != null);
 
             if (networkRequest == null) { return; }
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, tracking disabled by server config, ignoring request");
+                return;
+            }
 
             lock (sync) {
                 StoredRequest sr = new StoredRequest(networkRequest, isIdMerge);

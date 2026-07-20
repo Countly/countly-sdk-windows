@@ -171,5 +171,38 @@ namespace TestProject_common
             Assert.Equal(44, Countly.Instance.Configuration.MaxValueSize); // newly added
             server.Dispose();
         }
+
+        [Fact]
+        /// <summary>tracking=false blocks event capture (event never enters the queue).</summary>
+        public void Tracking_Disabled_BlocksEventCapture()
+        {
+            MockHttpServer server = new MockHttpServer((body) =>
+                body.Contains("method=sc") ? "{\"v\":1,\"t\":1,\"c\":{\"tracking\":false}}" : null);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+            Assert.False(Countly.Instance.moduleServerConfig.GetTrackingEnabled());
+
+            Countly.RecordEvent("test_event", 1, null, null).Wait();
+            Assert.Empty(Countly.Instance.Events);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>networking=false stops sending but data stays queued locally.</summary>
+        public void Networking_Disabled_BlocksUpload_ButQueues()
+        {
+            MockHttpServer server = new MockHttpServer((body) =>
+                body.Contains("method=sc") ? "{\"v\":1,\"t\":1,\"c\":{\"networking\":false}}" : null);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+            Assert.False(Countly.Instance.moduleServerConfig.GetNetworkingEnabled());
+
+            Countly.RecordEvent("e", 1, null, null).Wait();
+            Countly.Instance.Upload().Wait();
+            Assert.NotEmpty(Countly.Instance.Events); // captured but not uploaded
+            server.Dispose();
+        }
     }
 }
