@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using CountlySDK;
+using CountlySDK.CountlyCommon;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
@@ -327,6 +328,7 @@ namespace TestProject_common
             Storage.Instance.DeleteFile(Countly.userDetailsFilename).Wait();
             Storage.Instance.DeleteFile(Countly.storedRequestsFilename).Wait();
             Storage.Instance.DeleteFile(Device.deviceFilename).Wait();
+            Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename).Wait();
         }
 
         public static string DCSSerialize(object obj)

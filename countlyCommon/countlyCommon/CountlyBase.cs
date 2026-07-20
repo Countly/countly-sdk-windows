@@ -62,6 +62,7 @@ namespace CountlySDK.CountlyCommon
         internal ModuleRemoteConfig moduleRemoteConfig;
         internal ModuleFeedback moduleFeedback;
         internal ModuleContent moduleContent;
+        internal ModuleServerConfig moduleServerConfig;
 
         public abstract string sdkName();
 
@@ -1222,6 +1223,8 @@ namespace CountlySDK.CountlyCommon
                 moduleFeedback = null;
                 if (moduleContent != null) { moduleContent.ExitContentZone(); } // stop the poll timer
                 moduleContent = null;
+                if (moduleServerConfig != null) { moduleServerConfig.StopTimer(); }
+                moduleServerConfig = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1236,6 +1239,7 @@ namespace CountlySDK.CountlyCommon
             await Storage.Instance.DeleteFile(userDetailsFilename);
             await Storage.Instance.DeleteFile(storedRequestsFilename);
             await Storage.Instance.DeleteFile(Device.deviceFilename);
+            await Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename);
         }
 
         /// <summary>
@@ -1515,6 +1519,11 @@ namespace CountlySDK.CountlyCommon
                     Exceptions = new List<ExceptionEvent>();
                 }
             }
+
+            //server config (SDK Behavior Settings): load+apply stored/provided before consent is read
+            moduleServerConfig = new ModuleServerConfig(requestHelper, ServerUrl);
+            moduleServerConfig.InitializeServerConfig(config);
+            sessionUpdateInterval = Configuration.sessionUpdateInterval;
 
             //consent related
             consentRequired = config.consentRequired;
