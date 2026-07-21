@@ -72,6 +72,11 @@ namespace CountlySDK.CountlyCommon
 
         public void RefreshContentZone()
         {
+            ModuleServerConfig serverConfig = Countly.Instance.moduleServerConfig;
+            if (serverConfig != null && !serverConfig.GetRefreshContentZoneEnabled()) {
+                UtilityHelper.CountlyLogging("[ModuleContent] RefreshContentZone, disabled by server config, ignoring");
+                return;
+            }
             string[] categories = _categories;   // capture before ExitContentZone so the filter survives the refresh
             ExitContentZone();
             EnterContentZone(categories);

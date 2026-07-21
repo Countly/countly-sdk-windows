@@ -1,6 +1,10 @@
 ## XX.XX.XX
 * Added support for SDK Behavior Settings (Server Config), enabled by default:
   * The server can gate "tracking" and "networking", enforce consent ("cr", enable-only), and override request/event queue sizes, session update interval, logging, and the SDK limits (key/value/segmentation/breadcrumb/stack-trace).
+  * The server can also gate individual features: sessions ("st"), views ("vt"), custom events ("cet"), crash reporting ("crt"), location ("lt"), and content ("ecz" to enter the content zone automatically, "rcz" to allow refreshing it, "czi" to override the content zone poll interval).
+  * The server can also filter recorded data: event blacklist/whitelist ("eb"/"ew"), segmentation key filters ("sb"/"sw"), per-event segmentation filters ("esb"/"esw"), and custom user property filters ("upb"/"upw") with a cache limit ("upcl").
+  * Added journey trigger events ("jte"): recording a listed custom event refreshes the content zone once the event is delivered.
+  * Added drop-old-request time ("dort"): queued requests older than the configured number of hours are dropped before upload (0 disables this).
   * Added configuration option "SetSDKBehaviorSettings" to seed behavior settings for first run / offline.
   * Added configuration option "DisableSDKBehaviorSettingsUpdates" to stop only the network fetch (provided and stored settings still apply).
 * Added support for Remote Config feature accesible through "Countly.Instance.RemoteConfig()" interface:
@@ -26,6 +30,7 @@
   * This feature uses "Content" consent.
   * Needs "Countly.UI.WebView2" for displaying content on WPF.
 * Fixed a bug where the request queue was not processed when automatic user property saving ("autoSendUserDetails") was disabled, so queued requests (for example from a manual session update) were never uploaded and could cause the SDK to loop indefinitely.
+* Fixed a bug where a user-details change that serialized to nothing (empty user details) left the internal "changed" flag set forever, so the SDK kept re-processing user details on every session call and upload-completion checks could wait indefinitely.
 
 ## 25.4.3
 * ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
