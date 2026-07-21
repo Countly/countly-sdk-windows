@@ -1,4 +1,8 @@
 ## XX.XX.XX
+* Added support for SDK Behavior Settings (Server Config), enabled by default:
+  * The server can gate "tracking" and "networking", enforce consent ("cr", enable-only), and override request/event queue sizes, session update interval, logging, and the SDK limits (key/value/segmentation/breadcrumb/stack-trace).
+  * Added configuration option "SetSDKBehaviorSettings" to seed behavior settings for first run / offline.
+  * Added configuration option "DisableSDKBehaviorSettingsUpdates" to stop only the network fetch (provided and stored settings still apply).
 * Added support for Remote Config feature accesible through "Countly.Instance.RemoteConfig()" interface:
   * "DownloadKeys" for fetching RC values from server
   * "GetValues" for accessing all RC values

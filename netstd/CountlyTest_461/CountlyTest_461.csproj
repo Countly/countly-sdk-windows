@@ -97,6 +97,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleRemoteConfigTests.cs">
       <Link>ModuleRemoteConfigTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleServerConfigTests.cs">
+      <Link>ModuleServerConfigTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
     </Compile>
