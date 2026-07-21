@@ -14,7 +14,7 @@ namespace TestProject_common
         public UserDetailsTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait(); // synchronous teardown: avoid async-void Halt racing with the next Init
             TestHelper.CleanDataFiles();
             Countly.Instance.deferUpload = false;
         }
@@ -107,14 +107,15 @@ namespace TestProject_common
             Countly.Instance.SessionEnd().Wait();
             System.Threading.Thread.Sleep(2000);
 
-            Assert.Equal(6, server.Requests.Count);
+            var reqs = TestHelper.NonServerConfigRequests(server);
+            Assert.Equal(6, reqs.Count);
 
-            TestHelper.ValidateRequest(server.Requests[0].Params, TestHelper.Dict("user_details", TestHelper.Json("custom", TestHelper.Dict("Papa", "Black_1"))));
-            TestHelper.ValidateRequest(server.Requests[1].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
-            TestHelper.ValidateRequest(server.Requests[2].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John")));
-            TestHelper.ValidateRequest(server.Requests[3].Params, TestHelper.Dict("session_duration", 2));
-            TestHelper.ValidateRequest(server.Requests[4].Params, TestHelper.Dict("user_details", TestHelper.Json("email", "Doe@doe.com")));
-            TestHelper.ValidateRequest(server.Requests[5].Params, TestHelper.Dict("end_session", "1", "session_duration", 2));
+            TestHelper.ValidateRequest(reqs[0].Params, TestHelper.Dict("user_details", TestHelper.Json("custom", TestHelper.Dict("Papa", "Black_1"))));
+            TestHelper.ValidateRequest(reqs[1].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
+            TestHelper.ValidateRequest(reqs[2].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John")));
+            TestHelper.ValidateRequest(reqs[3].Params, TestHelper.Dict("session_duration", 2));
+            TestHelper.ValidateRequest(reqs[4].Params, TestHelper.Dict("user_details", TestHelper.Json("email", "Doe@doe.com")));
+            TestHelper.ValidateRequest(reqs[5].Params, TestHelper.Dict("end_session", "1", "session_duration", 2));
 
             server.Dispose();
         }
@@ -146,13 +147,14 @@ namespace TestProject_common
             Countly.UserDetails.Save();
             System.Threading.Thread.Sleep(200);
 
-            Assert.Equal(4, server.Requests.Count);
+            var reqs = TestHelper.NonServerConfigRequests(server);
+            Assert.Equal(4, reqs.Count);
 
-            TestHelper.ValidateRequest(server.Requests[0].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
-            TestHelper.ValidateRequest(server.Requests[1].Params, TestHelper.Dict("session_duration", 2));
-            TestHelper.ValidateRequest(server.Requests[2].Params, TestHelper.Dict("end_session", "1", "session_duration", 2));
+            TestHelper.ValidateRequest(reqs[0].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
+            TestHelper.ValidateRequest(reqs[1].Params, TestHelper.Dict("session_duration", 2));
+            TestHelper.ValidateRequest(reqs[2].Params, TestHelper.Dict("end_session", "1", "session_duration", 2));
 
-            TestHelper.ValidateRequest(server.Requests[3].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John", "email", "Doe@doe.com", "custom", TestHelper.Dict("Papa", "Black_1"))));
+            TestHelper.ValidateRequest(reqs[3].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John", "email", "Doe@doe.com", "custom", TestHelper.Dict("Papa", "Black_1"))));
 
             server.Dispose();
         }
@@ -184,14 +186,15 @@ namespace TestProject_common
             System.Threading.Thread.Sleep(2000);
             Countly.UserDetails.Save(); // will not work
 
-            Assert.Equal(6, server.Requests.Count);
+            var reqs = TestHelper.NonServerConfigRequests(server);
+            Assert.Equal(6, reqs.Count);
 
-            TestHelper.ValidateRequest(server.Requests[0].Params, TestHelper.Dict("user_details", TestHelper.Json("custom", TestHelper.Dict("Papa", "Black_1"))));
-            TestHelper.ValidateRequest(server.Requests[1].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
-            TestHelper.ValidateRequest(server.Requests[2].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John", "custom", TestHelper.Dict("Papa", "Black_1"))));
-            TestHelper.ValidateRequest(server.Requests[3].Params, TestHelper.Dict("session_duration", 2));
-            TestHelper.ValidateRequest(server.Requests[4].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John", "email", "Doe@doe.com", "custom", TestHelper.Dict("Papa", "Black_1"))));
-            TestHelper.ValidateRequest(server.Requests[5].Params, TestHelper.Dict("end_session", "1", "session_duration", 2));
+            TestHelper.ValidateRequest(reqs[0].Params, TestHelper.Dict("user_details", TestHelper.Json("custom", TestHelper.Dict("Papa", "Black_1"))));
+            TestHelper.ValidateRequest(reqs[1].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
+            TestHelper.ValidateRequest(reqs[2].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John", "custom", TestHelper.Dict("Papa", "Black_1"))));
+            TestHelper.ValidateRequest(reqs[3].Params, TestHelper.Dict("session_duration", 2));
+            TestHelper.ValidateRequest(reqs[4].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John", "email", "Doe@doe.com", "custom", TestHelper.Dict("Papa", "Black_1"))));
+            TestHelper.ValidateRequest(reqs[5].Params, TestHelper.Dict("end_session", "1", "session_duration", 2));
 
             server.Dispose();
         }
@@ -224,18 +227,19 @@ namespace TestProject_common
             System.Threading.Thread.Sleep(2000);
             Countly.UserDetails.Save(); // will not work
 
-            Assert.Equal(7, server.Requests.Count);
+            var reqs = TestHelper.NonServerConfigRequests(server);
+            Assert.Equal(7, reqs.Count);
 
-            TestHelper.ValidateRequest(server.Requests[0].Params, TestHelper.Dict("user_details", TestHelper.Json("custom", TestHelper.Dict("Papa", "Black_1"))));
-            TestHelper.ValidateRequest(server.Requests[1].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
-            Assert.Contains("Test", server.Requests[2].Params["events"]);
-            TestHelper.ValidateRequest(server.Requests[3].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John")));
-            Assert.Contains("Test1", server.Requests[4].Params["events"]);
-            TestHelper.ValidateRequest(server.Requests[5].Params, TestHelper.Dict("user_details", TestHelper.Json("email", "Doe@doe.com")));
+            TestHelper.ValidateRequest(reqs[0].Params, TestHelper.Dict("user_details", TestHelper.Json("custom", TestHelper.Dict("Papa", "Black_1"))));
+            TestHelper.ValidateRequest(reqs[1].Params, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
+            Assert.Contains("Test", reqs[2].Params["events"]);
+            TestHelper.ValidateRequest(reqs[3].Params, TestHelper.Dict("user_details", TestHelper.Json("name", "John")));
+            Assert.Contains("Test1", reqs[4].Params["events"]);
+            TestHelper.ValidateRequest(reqs[5].Params, TestHelper.Dict("user_details", TestHelper.Json("email", "Doe@doe.com")));
             // session_duration here is wall-clock derived (~2.4s of sleeps), so it rounds to 2 or 3
             // depending on machine/CI speed. Validate its presence with a tolerant range instead of
             // an exact value to avoid timing flakiness.
-            TestHelper.ValidateRequest(server.Requests[6].Params, TestHelper.Dict("end_session", "1", "session_duration", 3),
+            TestHelper.ValidateRequest(reqs[6].Params, TestHelper.Dict("end_session", "1", "session_duration", 3),
                 new Dictionary<string, Action<string, object>> {
                     { "session_duration", (actual, _) => Assert.True(int.Parse(actual) >= 2 && int.Parse(actual) <= 4, "session_duration was " + actual) }
                 });

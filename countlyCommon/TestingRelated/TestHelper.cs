@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using CountlySDK;
+using CountlySDK.CountlyCommon;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
@@ -327,6 +328,17 @@ namespace TestProject_common
             Storage.Instance.DeleteFile(Countly.userDetailsFilename).Wait();
             Storage.Instance.DeleteFile(Countly.storedRequestsFilename).Wait();
             Storage.Instance.DeleteFile(Device.deviceFilename).Wait();
+            Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename).Wait();
+        }
+
+        /// <summary>
+        /// Returns the captured requests excluding the SDK Behavior Settings (Server Config)
+        /// fetch (method=sc). That request is on by default and sent off-queue at init, so tests
+        /// asserting on the normal request flow filter it out.
+        /// </summary>
+        public static List<MockHttpServer.RequestInfo> NonServerConfigRequests(MockHttpServer server)
+        {
+            return server.Requests.Where(r => r.Body == null || !r.Body.Contains("method=sc")).ToList();
         }
 
         public static string DCSSerialize(object obj)

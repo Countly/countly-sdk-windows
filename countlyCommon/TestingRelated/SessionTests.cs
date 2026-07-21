@@ -18,7 +18,7 @@ namespace TestProject_common
         public SessionTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait(); // synchronous teardown: avoid async-void Halt racing with the next Init
             TestHelper.CleanDataFiles();
             Countly.Instance.deferUpload = true;
         }

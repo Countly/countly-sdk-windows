@@ -62,6 +62,7 @@ namespace CountlySDK.CountlyCommon
         internal ModuleRemoteConfig moduleRemoteConfig;
         internal ModuleFeedback moduleFeedback;
         internal ModuleContent moduleContent;
+        internal ModuleServerConfig moduleServerConfig;
 
         public abstract string sdkName();
 
@@ -295,6 +296,12 @@ namespace CountlySDK.CountlyCommon
         internal async Task<bool> Upload()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'Upload'");
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetNetworkingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] Upload, networking disabled by server config, skipping upload");
+                return true;
+            }
+
             bool success = false;
 
             // Iterative drain with a no-progress guard.The guard stops once a pass makes no progress, so no stuck queue can loop forever.
@@ -706,6 +713,10 @@ namespace CountlySDK.CountlyCommon
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
+            if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event");
+                return true;
+            }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!CheckConsentOnKey(Key)) { return true; }
 
@@ -1222,6 +1233,8 @@ namespace CountlySDK.CountlyCommon
                 moduleFeedback = null;
                 if (moduleContent != null) { moduleContent.ExitContentZone(); } // stop the poll timer
                 moduleContent = null;
+                if (moduleServerConfig != null) { moduleServerConfig.StopTimer(); }
+                moduleServerConfig = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1236,6 +1249,7 @@ namespace CountlySDK.CountlyCommon
             await Storage.Instance.DeleteFile(userDetailsFilename);
             await Storage.Instance.DeleteFile(storedRequestsFilename);
             await Storage.Instance.DeleteFile(Device.deviceFilename);
+            await Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename);
         }
 
         /// <summary>
@@ -1432,6 +1446,11 @@ namespace CountlySDK.CountlyCommon
 
             if (networkRequest == null) { return; }
 
+            if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, tracking disabled by server config, ignoring request");
+                return;
+            }
+
             lock (sync) {
                 StoredRequest sr = new StoredRequest(networkRequest, isIdMerge);
                 if (Configuration.backendMode) {
@@ -1516,6 +1535,11 @@ namespace CountlySDK.CountlyCommon
                 }
             }
 
+            //server config (SDK Behavior Settings): load+apply stored/provided before consent is read
+            moduleServerConfig = new ModuleServerConfig(requestHelper, ServerUrl);
+            moduleServerConfig.InitializeServerConfig(config);
+            sessionUpdateInterval = Configuration.sessionUpdateInterval;
+
             //consent related
             consentRequired = config.consentRequired;
             if (config.givenConsent != null) {
@@ -1556,6 +1580,11 @@ namespace CountlySDK.CountlyCommon
 
             if (Configuration.remoteConfigAutomaticDownloadTriggers) {
                 await RemoteConfig().DownloadKeys();
+            }
+
+            if (moduleServerConfig != null) {
+                await moduleServerConfig.FetchServerConfig();
+                consentRequired = Configuration.consentRequired;
             }
         }
 
@@ -1725,6 +1754,8 @@ namespace CountlySDK.CountlyCommon
                 await AddRequest(request, true);
                 await Upload();
             }
+
+            if (moduleServerConfig != null) { await moduleServerConfig.FetchServerConfig(); }
         }
 
 

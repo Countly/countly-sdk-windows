@@ -127,6 +127,19 @@ namespace CountlySDK.CountlyCommon.Entities
         internal bool autoSendUserDetails = true;
         internal bool remoteConfigAutomaticDownloadTriggers = false;
 
+        // <summary>
+        /// Developer-provided SDK Behavior Settings (Server Config) JSON, applied as a
+        /// precedence layer below server-fetched settings. May be a full {v,t,c} envelope
+        /// or a bare config object.
+        /// </summary>
+        internal string providedSdkBehaviorSettings = null;
+
+        // <summary>
+        /// When true, the SDK does NOT perform the network fetch of SDK Behavior Settings
+        /// (nor its refresh timer). Provided and on-disk settings still load and apply.
+        /// </summary>
+        internal bool sdkBehaviorSettingsUpdatesDisabled = false;
+
         /// <summary>
         /// Disabled the location tracking on the Countly server
         /// </summary>
@@ -286,6 +299,30 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase EnableRemoteConfigAutomaticTriggers()
         {
             remoteConfigAutomaticDownloadTriggers = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Seed developer-provided SDK Behavior Settings (Server Config). Used as a fallback
+        /// source before/instead of stored settings (e.g. first run / offline). Lower precedence
+        /// than settings fetched and stored from the server.
+        /// </summary>
+        /// <param name="sdkBehaviorSettings">A {v,t,c} envelope or a bare config object as JSON.</param>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase SetSDKBehaviorSettings(string sdkBehaviorSettings)
+        {
+            providedSdkBehaviorSettings = sdkBehaviorSettings;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables ONLY the network fetch (and refresh timer) of SDK Behavior Settings.
+        /// Developer-provided and on-disk (last-known-good) settings still load and apply.
+        /// </summary>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase DisableSDKBehaviorSettingsUpdates()
+        {
+            sdkBehaviorSettingsUpdatesDisabled = true;
             return this;
         }
     }
