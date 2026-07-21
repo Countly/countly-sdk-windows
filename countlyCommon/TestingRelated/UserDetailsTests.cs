@@ -14,7 +14,7 @@ namespace TestProject_common
         public UserDetailsTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait(); // synchronous teardown: avoid async-void Halt racing with the next Init
             TestHelper.CleanDataFiles();
             Countly.Instance.deferUpload = false;
         }
