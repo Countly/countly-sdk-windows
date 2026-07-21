@@ -204,5 +204,24 @@ namespace TestProject_common
             Assert.NotEmpty(Countly.Instance.Events); // captured but not uploaded
             server.Dispose();
         }
+
+        [Fact]
+        /// <summary>A device-ID change triggers an additional SBS fetch.</summary>
+        public void ChangeDeviceId_TriggersRefetch()
+        {
+            int scCalls = 0;
+            MockHttpServer server = new MockHttpServer((body) => {
+                if (body.Contains("method=sc")) { scCalls++; return "{\"v\":1,\"t\":1,\"c\":{\"lkl\":50}}"; }
+                return null;
+            });
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+            Assert.Equal(1, scCalls);
+
+            Countly.Instance.ChangeDeviceId("new_device_id").Wait();
+            Assert.Equal(2, scCalls);
+            server.Dispose();
+        }
     }
 }

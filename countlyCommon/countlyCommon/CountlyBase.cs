@@ -1754,6 +1754,8 @@ namespace CountlySDK.CountlyCommon
                 await AddRequest(request, true);
                 await Upload();
             }
+
+            if (moduleServerConfig != null) { await moduleServerConfig.FetchServerConfig(); }
         }
 
 
