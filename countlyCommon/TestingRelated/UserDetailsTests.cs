@@ -122,6 +122,27 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// A user-details change notification with EMPTY details (nothing to send) must not leave
+        /// 'isChanged' stuck true - upload waiters (e.g. ValidateDataPointUpload) would spin on it forever.
+        /// </summary>
+        public void EmptyUserDetails_SessionFlow_DoesNotStayChanged()
+        {
+            var server = new MockHttpServer();
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+
+            // Arm the pending-change flag while the details themselves stay empty ("{}"),
+            // mirroring what the lazy first load of UserDetails does on a fresh run.
+            Countly.UserDetails._custom = new Dictionary<string, string>();
+            Countly.Instance.SessionBegin().Wait();
+
+            Assert.False(Countly.UserDetails.isChanged);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
         /// It validates that user property changes are not triggered with session calls when disabled
         /// </summary>
         public void SetUserDetails_SessionTriggers_Disable()

@@ -224,6 +224,11 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
+            if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] UpdateSessionInternal, session tracking disabled by server config, ignoring");
+                return;
+            }
+
             if (elapsedTime == null) {
                 //calculate elapsed time from the last time update was sent (includes manual calls)
                 elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
@@ -254,6 +259,11 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
             UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal, session tracking disabled by server config, ignoring");
+                return;
+            }
 
             //report the duration of current view
             reportViewDuration();
@@ -301,6 +311,8 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] Upload, networking disabled by server config, skipping upload");
                 return true;
             }
+
+            RemoveTooOldRequests();
 
             bool success = false;
 
@@ -717,6 +729,19 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event");
                 return true;
             }
+            if (!IsReservedEventKey(Key) && moduleServerConfig != null && !moduleServerConfig.GetCustomEventTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, custom event tracking disabled by server config, ignoring event");
+                return true;
+            }
+            bool journeyTrigger = false;
+            if (!IsReservedEventKey(Key) && moduleServerConfig != null) {
+                if (!moduleServerConfig.IsEventKeyAllowed(Key)) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, event key filtered out by server config, ignoring event");
+                    return true;
+                }
+                moduleServerConfig.FilterEventSegmentation(Key, Segmentation);
+                journeyTrigger = moduleServerConfig.IsJourneyTriggerEvent(Key);
+            }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!CheckConsentOnKey(Key)) { return true; }
 
@@ -736,9 +761,19 @@ namespace CountlySDK.CountlyCommon
             if (saveSuccess) {
                 //todo rework this
                 saveSuccess = await Upload();
+                if (saveSuccess && journeyTrigger && moduleContent != null && IsConsentGiven(ConsentFeatures.Content)) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, journey trigger event delivered, refreshing content zone");
+                    moduleContent.RefreshContentZone();
+                }
             }
 
             return saveSuccess;
+        }
+
+        /// <summary>SDK-internal events ("[CLY]_" prefixed) are not custom events, so the 'cet' gate must not block them.</summary>
+        private bool IsReservedEventKey(string key)
+        {
+            return key.StartsWith("[CLY]_", StringComparison.Ordinal);
         }
 
         private bool CheckConsentOnKey(string key)
@@ -948,6 +983,10 @@ namespace CountlySDK.CountlyCommon
         internal async Task<bool> RecordExceptionInternal(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordException'");
+            if (moduleServerConfig != null && !moduleServerConfig.GetCrashReportingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException, crash reporting disabled by server config, ignoring exception");
+                return true;
+            }
             if (!IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Crashes)) { return true; }
 
@@ -1117,6 +1156,10 @@ namespace CountlySDK.CountlyCommon
 
             UserDetails._custom = UtilityHelper.FixSegmentKeysAndValues(UserDetails._custom, Configuration.MaxKeyLength, Configuration.MaxValueSize);
 
+            if (moduleServerConfig != null) {
+                UserDetails._custom = moduleServerConfig.FilterUserProperties(UserDetails._custom);
+            }
+
             UserDetails.isNotificationEnabled = true;
 
             if (!Configuration.backendMode) {
@@ -1141,6 +1184,9 @@ namespace CountlySDK.CountlyCommon
             string userDetails = RequestHelper.Json(UserDetails);
 
             if (string.IsNullOrEmpty(userDetails) || userDetails.Equals("{}")) {
+                // Nothing to send. Clear the changed flag anyway - leaving it set makes upload
+                // waiters poll forever for a user-details request that will never be created.
+                UserDetails.isChanged = false;
                 return;
             }
 
@@ -1336,6 +1382,11 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            if (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation, location tracking disabled by server config, ignoring");
+                return true;
+            }
+
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
 
             Dictionary<string, object> requestParams =
@@ -1376,9 +1427,10 @@ namespace CountlySDK.CountlyCommon
             Dictionary<string, object> locationParams =
                new Dictionary<string, object>();
 
-            /* If location is disabled or no location consent is given,
-            the SDK adds an empty location entry to every "begin_session" request. */
-            if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)) {
+            /* If location is disabled (by the developer or by server config) or no location consent
+            is given, the SDK adds an empty location entry to every "begin_session" request. */
+            if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)
+                || (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled())) {
                 locationParams.Add("location", string.Empty);
             } else {
                 if (!string.IsNullOrEmpty(Configuration.IPAddress)) {
@@ -1427,6 +1479,10 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'");
                 return false;
             }
+            if (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation, location tracking disabled by server config, ignoring");
+                return true;
+            }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
             await SendRequestWithEmptyLocation();
             return true;
@@ -1438,6 +1494,54 @@ namespace CountlySDK.CountlyCommon
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Drops queued requests older than the server-configured 'dort' limit (in hours).
+        /// The request age is read from its embedded 'timestamp' parameter; 0 disables the feature.
+        /// </summary>
+        private void RemoveTooOldRequests()
+        {
+            if (moduleServerConfig == null) { return; }
+            int dropAgeHours = moduleServerConfig.GetDropOldRequestTimeHours();
+            if (dropAgeHours <= 0) { return; }
+
+            long nowMs = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            long thresholdMs = nowMs - (dropAgeHours * 3600000L);
+
+            lock (sync) {
+                int originalCount = StoredRequests.Count;
+                if (originalCount == 0) { return; }
+                Queue<StoredRequest> keptRequests = new Queue<StoredRequest>();
+                foreach (StoredRequest storedRequest in StoredRequests) {
+                    if (IsRequestTooOld(storedRequest.Request, thresholdMs)) {
+                        UtilityHelper.CountlyLogging("[CountlyBase] RemoveTooOldRequests, dropping request older than [" + dropAgeHours + "] hours: " + storedRequest.Request);
+                    } else {
+                        keptRequests.Enqueue(storedRequest);
+                    }
+                }
+                if (keptRequests.Count != originalCount) {
+                    StoredRequests = keptRequests;
+                    SaveStoredRequests();
+                }
+            }
+        }
+
+        /// <summary>Reads the 'timestamp' parameter (unix ms) out of a request string; unparsable requests are kept.</summary>
+        private static bool IsRequestTooOld(string request, long thresholdMs)
+        {
+            if (request == null) { return false; }
+            int index = request.IndexOf("timestamp=", StringComparison.Ordinal);
+            if (index < 0) { return false; }
+            if (index > 0 && request[index - 1] != '&' && request[index - 1] != '?') { return false; }
+
+            int start = index + "timestamp=".Length;
+            int end = start;
+            while (end < request.Length && char.IsDigit(request[end])) { end++; }
+
+            long requestTimestampMs;
+            if (!long.TryParse(request.Substring(start, end - start), out requestTimestampMs)) { return false; }
+            return requestTimestampMs < thresholdMs;
         }
 
         internal async Task AddRequest(string networkRequest, bool isIdMerge = false)
@@ -1585,6 +1689,7 @@ namespace CountlySDK.CountlyCommon
             if (moduleServerConfig != null) {
                 await moduleServerConfig.FetchServerConfig();
                 consentRequired = Configuration.consentRequired;
+                TryAutoEnterContentZone();
             }
         }
 
@@ -1618,6 +1723,11 @@ namespace CountlySDK.CountlyCommon
 
             if (Configuration.backendMode) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin, Backend Mode enabled, returning");
+                return;
+            }
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin, session tracking disabled by server config, ignoring");
                 return;
             }
 
@@ -1961,6 +2071,10 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            if (moduleServerConfig != null && !moduleServerConfig.GetViewTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView, view tracking disabled by server config, ignoring view");
+                return false;
+            }
 
             if (!IsConsentGiven(ConsentFeatures.Views)) {
                 //if we don't have consent, do nothing
@@ -1995,6 +2109,11 @@ namespace CountlySDK.CountlyCommon
         {
             if (lastView != null && lastViewStart <= 0) {
                 UtilityHelper.CountlyLogging("[CountlyBase] Last view start value is not normal: [" + lastViewStart + "]");
+            }
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetViewTrackingEnabled()) {
+                //if view tracking is disabled by server config, do nothing
+                return;
             }
 
             if (!IsConsentGiven(ConsentFeatures.Views)) {
@@ -2087,7 +2206,24 @@ namespace CountlySDK.CountlyCommon
         /// <summary>Registers the UI content-display bridge (ungated; no-op if uninitialized).</summary>
         public void SetContentDisplay(IContentDisplay display)
         {
-            if (moduleContent != null) { moduleContent.display = display; }
+            if (moduleContent != null) {
+                moduleContent.display = display;
+                // On Windows the display usually arrives after Init, so the server-config driven
+                // "enter content zone after init" (ecz) is retried once the display is available.
+                TryAutoEnterContentZone();
+            }
+        }
+
+        /// <summary>
+        /// Enters the content zone automatically when the server config enables 'ecz'.
+        /// Called after init and when a content display gets registered.
+        /// </summary>
+        internal void TryAutoEnterContentZone()
+        {
+            if (moduleContent == null || moduleServerConfig == null) { return; }
+            if (!moduleServerConfig.GetEnterContentZoneEnabled()) { return; }
+            if (!IsConsentGiven(ConsentFeatures.Content)) { return; }
+            moduleContent.EnterContentZone();
         }
 
         /// <summary>
