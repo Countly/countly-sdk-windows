@@ -31,6 +31,7 @@
   * Needs "Countly.UI.WebView2" for displaying content on WPF.
 * Fixed a bug where the request queue was not processed when automatic user property saving ("autoSendUserDetails") was disabled, so queued requests (for example from a manual session update) were never uploaded and could cause the SDK to loop indefinitely.
 * Fixed a bug where a user-details change that serialized to nothing (empty user details) left the internal "changed" flag set forever, so the SDK kept re-processing user details on every session call and upload-completion checks could wait indefinitely.
+* Fixed a crash ("NullReferenceException") when a session-timer tick landed while/after "Halt" cleared the SDK state (an unhandled exception on a timer thread can terminate the host application), and when "SessionUpdate" was called before the first "Init".
 
 ## 25.4.3
 * ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
