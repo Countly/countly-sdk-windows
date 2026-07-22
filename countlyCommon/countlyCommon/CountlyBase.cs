@@ -1300,6 +1300,7 @@ namespace CountlySDK.CountlyCommon
                 moduleServerConfig = null;
                 if (moduleHealthCheck != null) { moduleHealthCheck.UnregisterHooks(); }
                 moduleHealthCheck = null;
+                UtilityHelper.LogListenerHook = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1596,6 +1597,7 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
+            UtilityHelper.LogListenerHook = config.LogListener;
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase' on SDK flavor: " + sdkName());
             if (!IsServerURLCorrect(config.serverUrl)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Invalid server url!");

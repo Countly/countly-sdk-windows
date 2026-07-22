@@ -64,6 +64,12 @@ namespace CountlySDK.CountlyCommon.Entities
         /// <summary>Optional callback invoked when a shown content item is closed. (Experimental.)</summary>
         public System.Action GlobalContentCallback { get; set; }
 
+        /// <summary>
+        /// Optional listener invoked for every SDK log message, independent of the console
+        /// logging flag (Countly.IsLoggingEnabled). Receives the log message and its level.
+        /// </summary>
+        public System.Action<string, LogLevel> LogListener { get; set; }
+
         // <summary>
         /// Maximum size of all string keys
         /// </summary>
@@ -340,6 +346,18 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase DisableHealthCheck()
         {
             healthCheckDisabled = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets a listener that receives every SDK log message and its level. Fires regardless
+        /// of whether console logging is enabled. A throwing listener cannot break the SDK.
+        /// </summary>
+        /// <param name="logListener">Callback receiving (message, level).</param>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase SetLogListener(System.Action<string, LogLevel> logListener)
+        {
+            LogListener = logListener;
             return this;
         }
     }
