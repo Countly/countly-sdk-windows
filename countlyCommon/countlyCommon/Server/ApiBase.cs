@@ -19,6 +19,8 @@ namespace CountlySDK.CountlyCommon.Server
         internal const string sdkEndpoint = "/i";
         internal string tamperingProtectionSalt = null;
         internal IDictionary<string, string> customNetworkRequestHeaders = null;
+        // Optional hook invoked when a request comes back as an HTTP-level failure (health check sc/em).
+        internal static Action<int, string> FailedRequestHook = null;
 
         public async Task<RequestResult> SendSession(string serverUrl, int rr, SessionEvent sessionEvent, CountlyUserDetails userDetails = null)
         {
@@ -120,6 +122,10 @@ namespace CountlySDK.CountlyCommon.Server
                 RequestResult requestResult = await RequestAsync(address + endpoint, requestData, imageData, customNetworkRequestHeaders);
                 tcs.SetResult(requestResult);
 
+                if (requestResult.responseCode < 200 || requestResult.responseCode >= 300) {
+                    FailedRequestHook?.Invoke(requestResult.responseCode, requestResult.responseText);
+                }
+
                 if (requestResult.responseText != null) {
                     UtilityHelper.CountlyLogging(requestResult.responseText);
                 } else {
@@ -129,6 +135,7 @@ namespace CountlySDK.CountlyCommon.Server
                 RequestResult requestResult = new RequestResult();
                 requestResult.responseText = "Encountered an exception while making a request, " + ex;
                 UtilityHelper.CountlyLogging(requestResult.responseText);
+                FailedRequestHook?.Invoke(requestResult.responseCode, requestResult.responseText);
             }
 
             return await tcs.Task;

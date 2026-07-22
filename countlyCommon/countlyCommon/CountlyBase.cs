@@ -63,6 +63,7 @@ namespace CountlySDK.CountlyCommon
         internal ModuleFeedback moduleFeedback;
         internal ModuleContent moduleContent;
         internal ModuleServerConfig moduleServerConfig;
+        internal ModuleHealthCheck moduleHealthCheck;
 
         public abstract string sdkName();
 
@@ -236,6 +237,8 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
+            moduleHealthCheck?.SaveState();
+
             if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] UpdateSessionInternal, session tracking disabled by server config, ignoring");
                 return;
@@ -270,6 +273,8 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd, Backend Mode enabled, returning");
                 return;
             }
+
+            moduleHealthCheck?.SaveState();
             UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
 
             if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
@@ -1293,6 +1298,8 @@ namespace CountlySDK.CountlyCommon
                 moduleContent = null;
                 if (moduleServerConfig != null) { moduleServerConfig.StopTimer(); }
                 moduleServerConfig = null;
+                if (moduleHealthCheck != null) { moduleHealthCheck.UnregisterHooks(); }
+                moduleHealthCheck = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1308,6 +1315,7 @@ namespace CountlySDK.CountlyCommon
             await Storage.Instance.DeleteFile(storedRequestsFilename);
             await Storage.Instance.DeleteFile(Device.deviceFilename);
             await Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename);
+            await Storage.Instance.DeleteFile(ModuleHealthCheck.healthCheckFilename);
         }
 
         /// <summary>
@@ -1665,6 +1673,12 @@ namespace CountlySDK.CountlyCommon
             moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl);
             moduleFeedback = new ModuleFeedback(requestHelper, ServerUrl);
             moduleContent = new ModuleContent(requestHelper, ServerUrl);
+
+            string hcAppVersion = (config.MetricOverride != null && config.MetricOverride.ContainsKey("_app_version"))
+                ? config.MetricOverride["_app_version"] : config.appVersion;
+            moduleHealthCheck = new ModuleHealthCheck(requestHelper, ServerUrl, config.healthCheckDisabled, hcAppVersion);
+            moduleHealthCheck.RegisterHooks();
+
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
             await OnInitComplete();
@@ -1702,6 +1716,12 @@ namespace CountlySDK.CountlyCommon
                 await moduleServerConfig.FetchServerConfig();
                 consentRequired = Configuration.consentRequired;
                 TryAutoEnterContentZone();
+            }
+
+            // Health check: non-queued direct request to /i, sent after the SBS fetch.
+            bool networkingOk = moduleServerConfig == null || moduleServerConfig.GetNetworkingEnabled();
+            if (moduleHealthCheck != null && !Configuration.backendMode && networkingOk) {
+                await moduleHealthCheck.SendHealthCheck();
             }
         }
 

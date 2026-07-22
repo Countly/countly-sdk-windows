@@ -1,4 +1,5 @@
 ## XX.XX.XX
+* Added support for SDK Health Checks: once per initialization, right after the SDK Behavior Settings fetch, the SDK sends a non-queued direct request to "/i" reporting internal warning/error log counts and the last failed request's status/body. This can be turned off with the new configuration option "DisableHealthCheck()".
 * Added support for SDK Behavior Settings (Server Config), enabled by default:
   * The server can gate "tracking" and "networking", enforce consent ("cr", enable-only), and override request/event queue sizes, session update interval, logging, and the SDK limits (key/value/segmentation/breadcrumb/stack-trace).
   * The server can also gate individual features: sessions ("st"), views ("vt"), custom events ("cet"), crash reporting ("crt"), location ("lt"), and content ("ecz" to enter the content zone automatically, "rcz" to allow refreshing it, "czi" to override the content zone poll interval).

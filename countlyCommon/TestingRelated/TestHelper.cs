@@ -329,16 +329,18 @@ namespace TestProject_common
             Storage.Instance.DeleteFile(Countly.storedRequestsFilename).Wait();
             Storage.Instance.DeleteFile(Device.deviceFilename).Wait();
             Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename).Wait();
+            Storage.Instance.DeleteFile(ModuleHealthCheck.healthCheckFilename).Wait();
         }
 
         /// <summary>
-        /// Returns the captured requests excluding the SDK Behavior Settings (Server Config)
-        /// fetch (method=sc). That request is on by default and sent off-queue at init, so tests
-        /// asserting on the normal request flow filter it out.
+        /// Returns the captured requests excluding the init-time off-queue infrastructure
+        /// requests: the SDK Behavior Settings (Server Config) fetch (method=sc) and the SDK
+        /// Health Check (hc=). Both are on by default and sent off-queue at init, so tests
+        /// asserting on the normal request flow filter them out.
         /// </summary>
         public static List<MockHttpServer.RequestInfo> NonServerConfigRequests(MockHttpServer server)
         {
-            return server.Requests.Where(r => r.Body == null || !r.Body.Contains("method=sc")).ToList();
+            return server.Requests.Where(r => r.Body == null || (!r.Body.Contains("method=sc") && !r.Body.Contains("hc="))).ToList();
         }
 
         public static string DCSSerialize(object obj)

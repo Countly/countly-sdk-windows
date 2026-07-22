@@ -67,8 +67,15 @@ namespace CountlySDK.Helpers
             return unescapedString;
         }
 
+        // Optional hook invoked for WARNING/ERROR logs (health check counters). Independent of IsLoggingEnabled.
+        internal static System.Action<LogLevel> InternalLogHook = null;
+
         public static void CountlyLogging(String msg, LogLevel level = LogLevel.DEBUG)
         {
+            if (level == LogLevel.WARNING || level == LogLevel.ERROR) {
+                InternalLogHook?.Invoke(level);
+            }
+
             if (Countly.IsLoggingEnabled) {
                 StringBuilder fullMessage = new StringBuilder(msg.Length + 10);
 

@@ -140,6 +140,12 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         internal bool sdkBehaviorSettingsUpdatesDisabled = false;
 
+        // <summary>
+        /// When true, the SDK still accumulates health counters but never sends the
+        /// health check request.
+        /// </summary>
+        internal bool healthCheckDisabled = false;
+
         /// <summary>
         /// Disabled the location tracking on the Countly server
         /// </summary>
@@ -323,6 +329,17 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase DisableSDKBehaviorSettingsUpdates()
         {
             sdkBehaviorSettingsUpdatesDisabled = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables the SDK health check feature entirely. Counters still accumulate in
+        /// memory, but no health check request is sent during initialization.
+        /// </summary>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase DisableHealthCheck()
+        {
+            healthCheckDisabled = true;
             return this;
         }
     }
