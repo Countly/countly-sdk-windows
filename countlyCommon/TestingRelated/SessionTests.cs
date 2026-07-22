@@ -31,6 +31,31 @@ namespace TestProject_common
 
         }
 
+        [Fact]
+        /// <summary>
+        /// A session-timer tick that lands after Halt must not throw: Halt nulls the modules while
+        /// the old Configuration object (here with backend mode on) stays visible to the in-flight tick.
+        /// </summary>
+        public void UpdateSession_TimerTickAfterHalt_DoesNotThrow()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.HaltInternal().Wait();
+
+            // the body the session timer runs; used to NRE on the nulled moduleBackendMode
+            Countly.Instance.UpdateSessionInternal().Wait();
+        }
+
+        [Fact]
+        /// <summary>Calling SessionUpdate before the first Init (Configuration is null) must not throw.</summary>
+        public void SessionUpdate_BeforeInit_DoesNotThrow()
+        {
+            Countly.Instance.Configuration = null; // what a fresh, never-initialized process looks like
+
+            Countly.Instance.SessionUpdate(10).Wait();
+        }
+
         private void ValidateSessionRequestParams(NameValueCollection collection, string appKey, string deviceId, string deviceIdType)
         {
             Assert.False(string.IsNullOrEmpty(collection.Get("sdk_version")));

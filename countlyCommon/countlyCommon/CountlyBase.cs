@@ -215,12 +215,24 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        protected async Task UpdateSessionInternal(int? elapsedTime = null)
+        internal async Task UpdateSessionInternal(int? elapsedTime = null)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Session Update happening'");
-            if (Configuration.backendMode) {
-                moduleBackendMode.OnTimer();
-                Upload();
+
+            // A session-timer tick can land while/after Halt nulls the SDK state. Work on local
+            // captures and bail out on a halted or never-initialized SDK instead of crashing.
+            CountlyConfig config = Configuration;
+            if (config == null || !IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] UpdateSessionInternal, SDK is not initialized (or halted), ignoring session update");
+                return;
+            }
+
+            if (config.backendMode) {
+                ModuleBackendMode backendMode = moduleBackendMode;
+                if (backendMode != null) {
+                    backendMode.OnTimer();
+                    Upload();
+                }
                 return;
             }
 
@@ -1760,14 +1772,16 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionUpdate(int elapsedTimeSeconds)
         {
-            if (Configuration.backendMode) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate, Backend Mode enabled, returning");
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionUpdate'");
+            // The initialization check must come first: before the first Init (or after Halt)
+            // there is no Configuration object to read the backend-mode flag from.
+            if (!IsInitialized() || Configuration == null) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
                 return;
             }
 
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionUpdate'");
-            if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate, Backend Mode enabled, returning");
                 return;
             }
             if (elapsedTimeSeconds < 0) {
