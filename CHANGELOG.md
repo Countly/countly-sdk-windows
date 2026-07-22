@@ -1,4 +1,5 @@
 ## XX.XX.XX
+* Added support for a Log Listener: a callback set at initialization via the new configuration option "SetLogListener" that receives every SDK log message and its level. It fires independently of the console logging flag, so SDK logs can be captured in release builds without printing to the console.
 * Added support for SDK Health Checks: once per initialization, right after the SDK Behavior Settings fetch, the SDK sends a non-queued direct request to "/i" reporting internal warning/error log counts and the last failed request's status/body. This can be turned off with the new configuration option "DisableHealthCheck()".
 * Added support for SDK Behavior Settings (Server Config), enabled by default:
   * The server can gate "tracking" and "networking", enforce consent ("cr", enable-only), and override request/event queue sizes, session update interval, logging, and the SDK limits (key/value/segmentation/breadcrumb/stack-trace).
