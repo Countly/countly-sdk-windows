@@ -1672,7 +1672,7 @@ namespace CountlySDK.CountlyCommon
                 await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
             }
 
-            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl);
+            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl, Configuration.enableABTestingAutoEnroll);
             moduleFeedback = new ModuleFeedback(requestHelper, ServerUrl);
             moduleContent = new ModuleContent(requestHelper, ServerUrl);
 

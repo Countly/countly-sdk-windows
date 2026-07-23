@@ -134,6 +134,12 @@ namespace CountlySDK.CountlyCommon.Entities
         internal bool remoteConfigAutomaticDownloadTriggers = false;
 
         // <summary>
+        /// A/B testing auto opt-in during Remote Config fetch (adds oi=1 to the rc request).
+        /// Enabled by default; disable with DisableAutoEnrollInABTesting().
+        /// </summary>
+        internal bool enableABTestingAutoEnroll = true;
+
+        // <summary>
         /// Developer-provided SDK Behavior Settings (Server Config) JSON, applied as a
         /// precedence layer below server-fetched settings. May be a full {v,t,c} envelope
         /// or a bare config object.
@@ -346,6 +352,18 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase DisableHealthCheck()
         {
             healthCheckDisabled = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables automatically opting the user into A/B tests when Remote Config values are
+        /// downloaded. Auto opt-in is enabled by default; call this to enroll manually instead
+        /// (via RemoteConfig().EnrollIntoABTestsForKeys).
+        /// </summary>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase DisableAutoEnrollInABTesting()
+        {
+            enableABTestingAutoEnroll = false;
             return this;
         }
 

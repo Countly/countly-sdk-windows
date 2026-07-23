@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Web;
 using CountlySDK;
 using CountlySDK.CountlyCommon;
+using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Newtonsoft.Json;
 using Xunit;
@@ -130,6 +133,165 @@ namespace TestProject_common
                 IDictionary<string, RCData> rcValues = Countly.Instance.RemoteConfig().GetValues();
                 Assert.Empty(rcValues);
             }
+        }
+
+        [Fact]
+        /// <summary>
+        /// By default (auto opt-in enabled), a Remote Config download request includes oi=1.
+        /// </summary>
+        public void DownloadKeys_AutoEnrollDefault_SendsOptIn()
+        {
+            string body = null;
+            MockHttpServer server = new MockHttpServer((b) => {
+                if (b.Contains("method=rc")) { body = b; return "{}"; }
+                return null;
+            });
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.RemoteConfig().DownloadKeys().Wait();
+
+            Assert.Contains("oi=1", body);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// When auto opt-in is disabled via config, the Remote Config download request omits oi.
+        /// </summary>
+        public void DownloadKeys_AutoEnrollDisabled_OmitsOptIn()
+        {
+            string body = null;
+            MockHttpServer server = new MockHttpServer((b) => {
+                if (b.Contains("method=rc")) { body = b; return "{}"; }
+                return null;
+            });
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            cc.DisableAutoEnrollInABTesting();
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.RemoteConfig().DownloadKeys().Wait();
+
+            Assert.DoesNotContain("oi=1", body);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// Enrolling into A/B tests queues a method=ab request carrying the JSON-encoded keys.
+        /// </summary>
+        public void EnrollIntoABTestsForKeys_QueuesAbRequest()
+        {
+            MockHttpServer server = new MockHttpServer();
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.deferUpload = true;
+            Countly.Instance.StoredRequests.Clear();
+
+            Countly.Instance.RemoteConfig().EnrollIntoABTestsForKeys(new List<string> { "a", "b" }).Wait();
+
+            Assert.Single(Countly.Instance.StoredRequests);
+            StoredRequest sr = Countly.Instance.StoredRequests.Dequeue();
+            NameValueCollection q = HttpUtility.ParseQueryString(sr.Request);
+            Assert.Equal("ab", q.Get("method"));
+            Assert.Equal("[\"a\",\"b\"]", q.Get("keys"));
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// Enrolling with null or empty keys is a no-op (nothing is queued).
+        /// </summary>
+        public void EnrollIntoABTestsForKeys_NoKeys_QueuesNothing()
+        {
+            MockHttpServer server = new MockHttpServer();
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.deferUpload = true;
+            Countly.Instance.StoredRequests.Clear();
+
+            Countly.Instance.RemoteConfig().EnrollIntoABTestsForKeys(null).Wait();
+            Countly.Instance.RemoteConfig().EnrollIntoABTestsForKeys(new List<string>()).Wait();
+
+            Assert.Empty(Countly.Instance.StoredRequests);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// Exiting A/B tests with keys queues a method=ab_opt_out request carrying the JSON keys.
+        /// </summary>
+        public void ExitABTestsForKeys_WithKeys_QueuesOptOutRequest()
+        {
+            MockHttpServer server = new MockHttpServer();
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.deferUpload = true;
+            Countly.Instance.StoredRequests.Clear();
+
+            Countly.Instance.RemoteConfig().ExitABTestsForKeys(new List<string> { "a", "b" }).Wait();
+
+            Assert.Single(Countly.Instance.StoredRequests);
+            StoredRequest sr = Countly.Instance.StoredRequests.Dequeue();
+            NameValueCollection q = HttpUtility.ParseQueryString(sr.Request);
+            Assert.Equal("ab_opt_out", q.Get("method"));
+            Assert.Equal("[\"a\",\"b\"]", q.Get("keys"));
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// Exiting with no keys (exit from ALL tests) queues method=ab_opt_out with no keys param.
+        /// </summary>
+        public void ExitABTestsForKeys_NoKeys_QueuesOptOutWithoutKeys()
+        {
+            MockHttpServer server = new MockHttpServer();
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.deferUpload = true;
+            Countly.Instance.StoredRequests.Clear();
+
+            Countly.Instance.RemoteConfig().ExitABTestsForKeys().Wait();
+
+            Assert.Single(Countly.Instance.StoredRequests);
+            StoredRequest sr = Countly.Instance.StoredRequests.Dequeue();
+            NameValueCollection q = HttpUtility.ParseQueryString(sr.Request);
+            Assert.Equal("ab_opt_out", q.Get("method"));
+            Assert.Null(q.Get("keys"));
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// When consent is required but Remote Config consent is not granted, enroll/exit are
+        /// gated by the RemoteConfig() accessor (returns a mock) and queue nothing.
+        /// </summary>
+        public void EnrollExit_ConsentRequiredNotGranted_QueuesNothing()
+        {
+            MockHttpServer server = new MockHttpServer();
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            cc.consentRequired = true;
+
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.deferUpload = true;
+            Countly.Instance.StoredRequests.Clear();
+
+            Countly.Instance.RemoteConfig().EnrollIntoABTestsForKeys(new List<string> { "a" }).Wait();
+            Countly.Instance.RemoteConfig().ExitABTestsForKeys(new List<string> { "a" }).Wait();
+
+            Assert.Empty(Countly.Instance.StoredRequests);
+            server.Dispose();
         }
 
         private void RemoteConfigDownloadFlow(Action<CountlyConfig> configSetter, Action runnable = null, bool expectDownload = true, int calledTimesExpected = 1)

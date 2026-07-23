@@ -16,12 +16,13 @@ namespace CountlySDK.CountlyCommon
         private readonly string ServerUrl;
         private IDictionary<string, RCData> rcValues = new Dictionary<string, RCData>();
         private object RCLock = new object();
-        private bool AutoEnrollEnabled = true;
+        private bool AutoEnrollEnabled;
 
-        public ModuleRemoteConfig(RequestHelper requestHelper, string serverUrl)
+        public ModuleRemoteConfig(RequestHelper requestHelper, string serverUrl, bool autoEnroll)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
+            AutoEnrollEnabled = autoEnroll;
         }
 
         public async Task DownloadKeys(List<string> keysToInclude = null, List<string> keysToOmit = null)
@@ -92,6 +93,31 @@ namespace CountlySDK.CountlyCommon
             GetValues().TryGetValue(key, out RCData value);
             return value;
         }
+
+        public async Task EnrollIntoABTestsForKeys(List<string> keys)
+        {
+            if (keys == null || keys.Count == 0) {
+                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] EnrollIntoABTestsForKeys, no keys provided, ignoring call", LogLevel.WARNING);
+                return;
+            }
+
+            IDictionary<string, object> abParams = new Dictionary<string, object> {
+                { "method", "ab" },
+                { "keys", JsonConvert.SerializeObject(keys) }
+            };
+            await Countly.Instance.AddRequest(await requestHelper.BuildRequest(abParams));
+        }
+
+        public async Task ExitABTestsForKeys(List<string> keys = null)
+        {
+            IDictionary<string, object> abParams = new Dictionary<string, object> {
+                { "method", "ab_opt_out" }
+            };
+            if (keys != null && keys.Count > 0) {
+                abParams.Add("keys", JsonConvert.SerializeObject(keys));
+            }
+            await Countly.Instance.AddRequest(await requestHelper.BuildRequest(abParams));
+        }
     }
 
     internal class MockRemoteConfig : RemoteConfig
@@ -113,6 +139,14 @@ namespace CountlySDK.CountlyCommon
         IDictionary<string, RCData> RemoteConfig.GetValues()
         {
             return new Dictionary<string, RCData>();
+        }
+
+        async Task RemoteConfig.EnrollIntoABTestsForKeys(List<string> keys)
+        {
+        }
+
+        async Task RemoteConfig.ExitABTestsForKeys(List<string> keys)
+        {
         }
     }
 
@@ -173,5 +207,21 @@ namespace CountlySDK.CountlyCommon
         /// otherwise, <c>null</c>.
         /// </returns>
         RCData GetValue(string key);
+
+        /// <summary>
+        /// Enrolls the user into A/B tests for the given Remote Config keys (method=ab).
+        /// A null or empty list is ignored.
+        /// </summary>
+        /// <param name="keys">The Remote Config keys to enroll into.</param>
+        /// <returns>A task that represents the asynchronous enroll operation.</returns>
+        Task EnrollIntoABTestsForKeys(List<string> keys);
+
+        /// <summary>
+        /// Exits the user from A/B tests for the given keys (method=ab_opt_out).
+        /// Passing null or an empty list exits the user from ALL tests.
+        /// </summary>
+        /// <param name="keys">The keys to exit; null or empty exits all tests.</param>
+        /// <returns>A task that represents the asynchronous exit operation.</returns>
+        Task ExitABTestsForKeys(List<string> keys = null);
     }
 }
