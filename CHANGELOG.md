@@ -13,6 +13,9 @@
   * "DownloadKeys" for fetching RC values from server
   * "GetValues" for accessing all RC values
   * "GetValue" for accessing the given RC value
+  * "EnrollIntoABTestsForKeys" for enrolling the user into A/B tests for the given keys
+  * "ExitABTestsForKeys" for removing the user from A/B tests for the given keys (no keys exits all)
+* Added configuration option "DisableAutoEnrollInABTesting" to stop automatically opting users into A/B tests during Remote Config download (auto opt-in is enabled by default).
 * Added configuration option "EnableRemoteConfigAutomaticTriggers" to automatically download remote config values:
   * After initialization finishes.
   * RemoteConfig consent is given.
