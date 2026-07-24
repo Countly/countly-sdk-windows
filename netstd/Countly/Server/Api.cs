@@ -25,6 +25,12 @@ namespace CountlySDK
         public static Api Instance { get { return instance; } }
         //-------------SINGLETON-----------------
 
+        // Shared across all requests. Constructing an HttpClient per request exhausts sockets
+        // under load, because each instance holds its own connection pool that lingers in
+        // TIME_WAIT. Per-request data (custom headers) is applied to the HttpContent, so this
+        // client carries no per-request state and is safe to reuse.
+        private static readonly HttpClient httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+
         protected override async Task<RequestResult> Call(string address, string requestData, Stream imageData = null, string endpoint = sdkEndpoint)
         {
             return await Task.Run<RequestResult>(async () => {
@@ -52,7 +58,6 @@ namespace CountlySDK
                     }
                 }
 
-                HttpClient httpClient = new HttpClient();
                 HttpResponseMessage httpResponseMessage = await httpClient.PostAsync(address, httpContent);
 
                 requestResult.responseText = await httpResponseMessage.Content.ReadAsStringAsync();

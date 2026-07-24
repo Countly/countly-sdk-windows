@@ -133,6 +133,12 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
       <Link>ViewsTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\TimeHelperTests.cs">
+      <Link>TimeHelperTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\PreInitSafetyTests.cs">
+      <Link>PreInitSafetyTests.cs</Link>
+    </Compile>
     <Compile Include="CountlyImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

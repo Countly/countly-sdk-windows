@@ -64,6 +64,9 @@ namespace CountlySDK.Helpers
 
         //variable to hold last used timestamp
         private long _lastMilliSecTimeStamp = 0;
+        //guards the read-modify-write on _lastMilliSecTimeStamp so concurrent callers
+        //(events/views recorded from multiple threads) never receive the same value
+        private readonly object timeLock = new object();
 
         internal TimeHelper() { }
 
@@ -82,15 +85,17 @@ namespace CountlySDK.Helpers
 
         public long GetUniqueUnixTime()
         {
-            long calculatedMillis = ToUnixTime(DateTime.Now.ToUniversalTime());
+            lock (timeLock) {
+                long calculatedMillis = ToUnixTime(DateTime.Now.ToUniversalTime());
 
-            if (_lastMilliSecTimeStamp >= calculatedMillis) {
-                ++_lastMilliSecTimeStamp;
-            } else {
-                _lastMilliSecTimeStamp = calculatedMillis;
+                if (_lastMilliSecTimeStamp >= calculatedMillis) {
+                    ++_lastMilliSecTimeStamp;
+                } else {
+                    _lastMilliSecTimeStamp = calculatedMillis;
+                }
+
+                return _lastMilliSecTimeStamp;
             }
-
-            return _lastMilliSecTimeStamp;
         }
 
         public TimeInstant GetUniqueInstant()

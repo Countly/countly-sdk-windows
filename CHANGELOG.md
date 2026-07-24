@@ -1,4 +1,8 @@
 ## XX.XX.XX
+* Fixed public APIs (RecordEvent, RecordView, RecordException, SetLocation, DisableLocation, StartEvent, EndEvent, CancelEvent, AddCrashBreadCrumb, ChangeDeviceId, SetConsent) throwing a NullReferenceException when called before "Init"; they now safely no-op until the SDK is initialized.
+* Fixed the SDK constructing a new HttpClient for every request, which could exhaust sockets under sustained use; a single shared client with a request timeout is now reused.
+* Fixed the .NET Framework (net35/net45) networking path leaking the HTTP response stream and losing the real status code on 4xx/5xx responses.
+* Fixed unique-timestamp generation not being thread-safe, which could hand out duplicate timestamps when recording from multiple threads at once.
 * Added support for a Log Listener: a callback set at initialization via the new configuration option "SetLogListener" that receives every SDK log message and its level. It fires independently of the console logging flag, so SDK logs can be captured in release builds without printing to the console.
 * Added support for SDK Health Checks: once per initialization, right after the SDK Behavior Settings fetch, the SDK sends a non-queued direct request to "/i" reporting internal warning/error log counts and the last failed request's status/body. This can be turned off with the new configuration option "DisableHealthCheck()".
 * Added support for SDK Behavior Settings (Server Config), enabled by default:
