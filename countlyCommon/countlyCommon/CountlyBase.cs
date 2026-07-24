@@ -527,7 +527,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void StartEvent(string key)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] StartEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -565,7 +565,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void CancelEvent(string key)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -607,7 +607,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task EndEvent(string key, Segmentation segmentation = null, int count = 1, double? sum = 0)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] EndEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -710,14 +710,14 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
-            if (Countly.Instance.Configuration.backendMode) {
+            if (Countly.Instance.Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent, Backend Mode enabled, returning false");
-                return Task.Factory.StartNew(() => { return false; });
+                return BoolTask(false);
             }
 
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'");
-                return Task.Factory.StartNew(() => { return false; });
+                return BoolTask(false);
             }
 
             CountlyConfig config = Countly.Instance.Configuration;
@@ -976,7 +976,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
-            if (Countly.Instance.Configuration.backendMode) {
+            if (Countly.Instance.Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordException, Backend Mode enabled, returning false");
                 return false;
             }
@@ -1337,7 +1337,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="log">log string</param>
         public void AddCrashBreadCrumb(string breadCrumb)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] AddCrashBreadCrumb, Backend Mode enabled, returning");
                 return;
             }
@@ -1392,7 +1392,7 @@ namespace CountlySDK.CountlyCommon
         public async Task<bool> SetLocation(string gpsLocation, string ipAddress = null, string country_code = null, string city = null)
         {
 
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SetLocation, Backend Mode enabled, returning false");
                 return false;
             }
@@ -1490,7 +1490,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> DisableLocation()
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation, Backend Mode enabled, returning false");
                 return false;
             }
@@ -1515,6 +1515,16 @@ namespace CountlySDK.CountlyCommon
                 return true;
             }
             return false;
+        }
+
+        // Returns an already-completed Task with the given value. net35 has no Task.FromResult,
+        // so we complete a TaskCompletionSource explicitly instead of scheduling a thread-pool
+        // work item just to return a constant.
+        private static Task<bool> BoolTask(bool value)
+        {
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            tcs.SetResult(value);
+            return tcs.Task;
         }
 
         /// <summary>
@@ -1838,7 +1848,7 @@ namespace CountlySDK.CountlyCommon
         public async Task ChangeDeviceId(string newDeviceId, bool serverSideMerge = false)
         {
 
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId, Backend Mode enabled, returning");
                 return;
             }
@@ -1944,7 +1954,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SetConsent, Backend Mode enabled, returning");
                 return;
             }
@@ -2091,7 +2101,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task<bool> RecordView(string viewName)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordView, Backend Mode enabled, returning false");
                 return false;
             }

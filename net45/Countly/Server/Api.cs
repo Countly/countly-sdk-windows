@@ -80,10 +80,27 @@ namespace CountlySDK
                     }
                 }
 
-                var response = (HttpWebResponse)request.GetResponse();
-                requestResult.responseCode = (int)response.StatusCode;
-                requestResult.responseText = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                using (var response = (HttpWebResponse)request.GetResponse())
+                using (var responseStream = response.GetResponseStream())
+                using (var reader = new StreamReader(responseStream)) {
+                    requestResult.responseCode = (int)response.StatusCode;
+                    requestResult.responseText = reader.ReadToEnd();
+                }
 
+                return requestResult;
+            } catch (WebException wex) {
+                // GetResponse() throws on 4xx/5xx. Recover the real status code and body from
+                // the exception's response instead of leaving responseCode at -1.
+                UtilityHelper.CountlyLogging("Encountered a WebException while making a POST request, " + wex.ToString());
+                HttpWebResponse errorResponse = wex.Response as HttpWebResponse;
+                if (errorResponse != null) {
+                    using (errorResponse)
+                    using (var errorStream = errorResponse.GetResponseStream())
+                    using (var errorReader = new StreamReader(errorStream)) {
+                        requestResult.responseCode = (int)errorResponse.StatusCode;
+                        requestResult.responseText = errorReader.ReadToEnd();
+                    }
+                }
                 return requestResult;
             } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("Encountered a exception while making a POST request, " + ex.ToString());

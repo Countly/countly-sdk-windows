@@ -115,7 +115,7 @@ namespace CountlySDK.CountlyCommon.Server
             if (requestData.StartsWith("/i?")) { // for migrating old requests
                 requestData = requestData.Replace("/i?", "");
             }
-            requestData = AddChekcsum(requestData);
+            requestData = AddChecksum(requestData);
             UtilityHelper.CountlyLogging(string.Format("[ApiBase] CallJob, address: [{0}], endpoint: [{1}] requestData: [{2}]", address, endpoint, requestData));
 
             try {
@@ -141,7 +141,7 @@ namespace CountlySDK.CountlyCommon.Server
             return await tcs.Task;
         }
 
-        private string AddChekcsum(string data)
+        private string AddChecksum(string data)
         {
             if (tamperingProtectionSalt == null || tamperingProtectionSalt.Length == 0) {
                 return data;
