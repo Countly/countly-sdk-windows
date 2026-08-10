@@ -1,4 +1,4 @@
-## XX.XX.XX
+## 26.1.0
 * Initial release.
 * Added "CountlyWebView.PresentFeedbackWidget(...)" for displaying Countly feedback widgets (Surveys, NPS, Ratings) in a WebView2 host:
   * WPF overload: "PresentFeedbackWidget(System.Windows.Window owner, CountlyFeedbackWidget widget, Action onClosed = null)"

@@ -1,4 +1,4 @@
-## XX.XX.XX
+## 26.1.0
 * Fixed public APIs (RecordEvent, RecordView, RecordException, SetLocation, DisableLocation, StartEvent, EndEvent, CancelEvent, AddCrashBreadCrumb, ChangeDeviceId, SetConsent) throwing a NullReferenceException when called before "Init"; they now safely no-op until the SDK is initialized.
 * Fixed the SDK constructing a new HttpClient for every request, which could exhaust sockets under sustained use; a single shared client with a request timeout is now reused.
 * Fixed the .NET Framework (net35/net45) networking path leaking the HTTP response stream and losing the real status code on 4xx/5xx responses.

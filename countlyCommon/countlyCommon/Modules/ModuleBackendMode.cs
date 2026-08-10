@@ -457,7 +457,7 @@ namespace CountlySDK.CountlyCommon
 
         /// <summary>
         /// Start view with multiple app and device support
-        /// 
+        /// </summary>
         /// <param name="name">View name, required</param>
         /// <param name="segment">Platform of the device or domain, required</param>
         /// <param name="deviceId">If it is empty or null, returns. required</param>
@@ -493,7 +493,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="timestamp">Defaults to current timestamp if not provided</param>
         void RecordEvent(string deviceId, string eventKey, Segmentation segmentations = null, int count = 1, double? sum = null, long? duration = null, string appKey = null, long timestamp = 0);
 
-        // <summary>
+        /// <summary>
         /// Begin session with multiple apps and devices
         /// </summary>
         /// <param name="deviceId">If it is empty or null, returns. required</param>

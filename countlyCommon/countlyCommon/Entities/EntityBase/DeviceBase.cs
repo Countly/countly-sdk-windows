@@ -249,7 +249,7 @@ namespace CountlySDK.Entities.EntityBase
         protected abstract string GetAppVersion();
 
         /// <summary>
-        /// Returns device resolution in <width_px>x<height_px> format
+        /// Returns device resolution in &lt;width_px&gt;x&lt;height_px&gt; format
         /// </summary>
         public string Resolution
         {

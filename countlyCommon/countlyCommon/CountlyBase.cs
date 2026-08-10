@@ -53,7 +53,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "25.4.3";
+        protected const string sdkVersion = "26.1.0";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
@@ -317,7 +317,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         /// <summary>
-        /// Upload sessions, events & exception queues
+        /// Upload sessions, events &amp; exception queues
         /// </summary>
         /// <returns>True if success</returns>
         internal async Task<bool> Upload()
@@ -1237,7 +1237,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         /// <summary>
-        /// Immediately disables session, event, exceptions & user details tracking and clears any stored sessions, events, exceptions & user details data.
+        /// Immediately disables session, event, exceptions &amp; user details tracking and clears any stored sessions, events, exceptions &amp; user details data.
         /// This API is useful if your app has a tracking opt-out switch, and you want to immediately
         /// disable tracking when a user opts out. Call StartSession to enable logging again
         /// </summary>
