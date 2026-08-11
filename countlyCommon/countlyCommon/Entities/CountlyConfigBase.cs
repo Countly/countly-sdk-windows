@@ -70,7 +70,7 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         public System.Action<string, LogLevel> LogListener { get; set; }
 
-        // <summary>
+        /// <summary>
         /// Maximum size of all string keys
         /// </summary>
         public int MaxKeyLength = 128;
@@ -95,17 +95,17 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         public int MaxStackTraceLineLength = 200;
 
-        // <summary>
+        /// <summary>
         /// Set the maximum amount of breadcrumbs.
         /// </summary>
         public int MaxBreadcrumbCount = 100;
 
-        // <summary>
+        /// <summary>
         /// Enable/Disable backend mode
         /// </summary>
         internal bool backendMode = false;
 
-        // <summary>
+        /// <summary>
         /// Maximum event queue threshold
         /// </summary>
         internal int EventQueueThreshold = 10;
@@ -114,7 +114,7 @@ namespace CountlySDK.CountlyCommon.Entities
 
         internal int BackendModeServerEQSize = 10000;
 
-        // <summary>
+        /// <summary>
         /// Maximum request queue size
         /// </summary>
         internal int RequestQueueMaxSize = 1000;
@@ -133,26 +133,26 @@ namespace CountlySDK.CountlyCommon.Entities
         internal bool autoSendUserDetails = true;
         internal bool remoteConfigAutomaticDownloadTriggers = false;
 
-        // <summary>
+        /// <summary>
         /// A/B testing auto opt-in during Remote Config fetch (adds oi=1 to the rc request).
         /// Enabled by default; disable with DisableAutoEnrollInABTesting().
         /// </summary>
         internal bool enableABTestingAutoEnroll = true;
 
-        // <summary>
+        /// <summary>
         /// Developer-provided SDK Behavior Settings (Server Config) JSON, applied as a
         /// precedence layer below server-fetched settings. May be a full {v,t,c} envelope
         /// or a bare config object.
         /// </summary>
         internal string providedSdkBehaviorSettings = null;
 
-        // <summary>
+        /// <summary>
         /// When true, the SDK does NOT perform the network fetch of SDK Behavior Settings
         /// (nor its refresh timer). Provided and on-disk settings still load and apply.
         /// </summary>
         internal bool sdkBehaviorSettingsUpdatesDisabled = false;
 
-        // <summary>
+        /// <summary>
         /// When true, the SDK still accumulates health counters but never sends the
         /// health check request.
         /// </summary>

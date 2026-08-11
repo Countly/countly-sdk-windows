@@ -153,7 +153,7 @@ namespace CountlySDK
         }
 
         /// <summary>
-        /// Sends session duration. Called automatically each <updateInterval> seconds
+        /// Sends session duration. Called automatically each &lt;updateInterval&gt; seconds
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
