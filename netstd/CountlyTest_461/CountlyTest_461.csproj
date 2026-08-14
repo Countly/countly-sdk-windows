@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CountlyTest_461</RootNamespace>
     <AssemblyName>CountlyTest_461</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
@@ -45,6 +45,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -93,6 +94,18 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleBackendModeTests.cs">
       <Link>ModuleBackendModeTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleRemoteConfigTests.cs">
+      <Link>ModuleRemoteConfigTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleServerConfigTests.cs">
+      <Link>ModuleServerConfigTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleHealthCheckTests.cs">
+      <Link>ModuleHealthCheckTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleLogListenerTests.cs">
+      <Link>ModuleLogListenerTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
     </Compile>
@@ -105,6 +118,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\TestHelper.cs">
       <Link>TestHelper.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\MockHttpServer.cs">
+      <Link>MockHttpServer.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\TestingEntities.cs">
       <Link>TestingEntities.cs</Link>
     </Compile>
@@ -116,6 +132,12 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
       <Link>ViewsTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\TimeHelperTests.cs">
+      <Link>TimeHelperTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\PreInitSafetyTests.cs">
+      <Link>PreInitSafetyTests.cs</Link>
     </Compile>
     <Compile Include="CountlyImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

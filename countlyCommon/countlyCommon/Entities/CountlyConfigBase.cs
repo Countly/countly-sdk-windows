@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Reflection;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Entities
@@ -52,7 +51,26 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         public int sessionUpdateInterval = 60;
 
-        // <summary>
+        private int _contentZoneTimerInterval = 30;
+
+        /// <summary>
+        /// Content zone poll interval in seconds. Values &lt;= 15 are ignored. Default 30. (Experimental.)
+        /// </summary>
+        public int ContentZoneTimerInterval {
+            get { return _contentZoneTimerInterval; }
+            set { if (value > 15) { _contentZoneTimerInterval = value; } }
+        }
+
+        /// <summary>Optional callback invoked when a shown content item is closed. (Experimental.)</summary>
+        public System.Action GlobalContentCallback { get; set; }
+
+        /// <summary>
+        /// Optional listener invoked for every SDK log message, independent of the console
+        /// logging flag (Countly.IsLoggingEnabled). Receives the log message and its level.
+        /// </summary>
+        public System.Action<string, LogLevel> LogListener { get; set; }
+
+        /// <summary>
         /// Maximum size of all string keys
         /// </summary>
         public int MaxKeyLength = 128;
@@ -77,17 +95,17 @@ namespace CountlySDK.CountlyCommon.Entities
         /// </summary>
         public int MaxStackTraceLineLength = 200;
 
-        // <summary>
+        /// <summary>
         /// Set the maximum amount of breadcrumbs.
         /// </summary>
         public int MaxBreadcrumbCount = 100;
 
-        // <summary>
+        /// <summary>
         /// Enable/Disable backend mode
         /// </summary>
         internal bool backendMode = false;
 
-        // <summary>
+        /// <summary>
         /// Maximum event queue threshold
         /// </summary>
         internal int EventQueueThreshold = 10;
@@ -96,10 +114,11 @@ namespace CountlySDK.CountlyCommon.Entities
 
         internal int BackendModeServerEQSize = 10000;
 
-        // <summary>
+        /// <summary>
         /// Maximum request queue size
         /// </summary>
         internal int RequestQueueMaxSize = 1000;
+        internal string TamperingProtectionSalt = null;
 
 
         internal string City = null;
@@ -108,6 +127,36 @@ namespace CountlySDK.CountlyCommon.Entities
         internal string CountryCode = null;
         internal bool IsLocationDisabled = false;
         internal IDictionary<string, string> MetricOverride = null;
+        internal IDictionary<string, string> CustomNetworkRequestHeaders = null;
+
+        internal bool manualUserDetailsSave = true;
+        internal bool autoSendUserDetails = true;
+        internal bool remoteConfigAutomaticDownloadTriggers = false;
+
+        /// <summary>
+        /// A/B testing auto opt-in during Remote Config fetch (adds oi=1 to the rc request).
+        /// Enabled by default; disable with DisableAutoEnrollInABTesting().
+        /// </summary>
+        internal bool enableABTestingAutoEnroll = true;
+
+        /// <summary>
+        /// Developer-provided SDK Behavior Settings (Server Config) JSON, applied as a
+        /// precedence layer below server-fetched settings. May be a full {v,t,c} envelope
+        /// or a bare config object.
+        /// </summary>
+        internal string providedSdkBehaviorSettings = null;
+
+        /// <summary>
+        /// When true, the SDK does NOT perform the network fetch of SDK Behavior Settings
+        /// (nor its refresh timer). Provided and on-disk settings still load and apply.
+        /// </summary>
+        internal bool sdkBehaviorSettingsUpdatesDisabled = false;
+
+        /// <summary>
+        /// When true, the SDK still accumulates health counters but never sends the
+        /// health check request.
+        /// </summary>
+        internal bool healthCheckDisabled = false;
 
         /// <summary>
         /// Disabled the location tracking on the Countly server
@@ -191,12 +240,142 @@ namespace CountlySDK.CountlyCommon.Entities
             return this;
         }
 
+        /// <summary>
+        /// Allows you to add custom metric key/value pairs
+        /// </summary>
+        /// <param name="metricOverride"></param>
+        /// <returns></returns>
         public CountlyConfigBase SetMetricOverride(IDictionary<string, string> metricOverride)
         {
             if (metricOverride != null && metricOverride.Count > 0) {
                 MetricOverride = metricOverride;
             }
 
+            return this;
+        }
+
+        /// <summary>
+        /// Allows you to add custom header key/value pairs to each request
+        /// </summary>
+        /// <param name="customNetworkRequestHeaders"></param>
+        /// <returns></returns>
+        public CountlyConfigBase AddCustomNetworkRequestHeaders(IDictionary<string, string> customNetworkRequestHeaders)
+        {
+            if (customNetworkRequestHeaders != null && customNetworkRequestHeaders.Count > 0) {
+                CustomNetworkRequestHeaders = customNetworkRequestHeaders;
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Salt to hash all requests
+        /// </summary>
+        /// <param name="paramaterTamperingProtectionSalt"></param>
+        /// <returns></returns>
+        public CountlyConfigBase SetParamaterTamperingProtectionSalt(string paramaterTamperingProtectionSalt)
+        {
+            if (!string.IsNullOrEmpty(paramaterTamperingProtectionSalt)) {
+                TamperingProtectionSalt = paramaterTamperingProtectionSalt;
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Disables manual user details save. By default manual user details save is enabled.
+        /// This reverts the fix that all edit user details was not saved. And this is only for testing purposes
+        /// </summary>
+        /// <returns></returns>
+        internal CountlyConfigBase DisableManualUserDetailsSave()
+        {
+            manualUserDetailsSave = false;
+            return this;
+        }
+
+        /// <summary>
+        /// Disable automatic sending of user properties on
+        /// - When an event is recorded
+        /// - During an internal timer tick
+        /// - Upon flushing the event queue
+        /// - When a session call made
+        /// </summary>
+        /// <returns></returns>
+        public CountlyConfigBase DisableAutoSendUserDetails()
+        {
+            autoSendUserDetails = false;
+            return this;
+        }
+
+        /// <summary>
+        /// Enables automatic Remote Config download triggers.
+        /// When enabled, the SDK will automatically initiate Remote Config downloads
+        /// at specific lifecycle points such as SDK initialization completion,
+        /// device ID changes, and consent being granted.
+        /// </summary>
+        /// <returns>
+        /// </returns>
+        public CountlyConfigBase EnableRemoteConfigAutomaticTriggers()
+        {
+            remoteConfigAutomaticDownloadTriggers = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Seed developer-provided SDK Behavior Settings (Server Config). Used as a fallback
+        /// source before/instead of stored settings (e.g. first run / offline). Lower precedence
+        /// than settings fetched and stored from the server.
+        /// </summary>
+        /// <param name="sdkBehaviorSettings">A {v,t,c} envelope or a bare config object as JSON.</param>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase SetSDKBehaviorSettings(string sdkBehaviorSettings)
+        {
+            providedSdkBehaviorSettings = sdkBehaviorSettings;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables ONLY the network fetch (and refresh timer) of SDK Behavior Settings.
+        /// Developer-provided and on-disk (last-known-good) settings still load and apply.
+        /// </summary>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase DisableSDKBehaviorSettingsUpdates()
+        {
+            sdkBehaviorSettingsUpdatesDisabled = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables the SDK health check feature entirely. Counters still accumulate in
+        /// memory, but no health check request is sent during initialization.
+        /// </summary>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase DisableHealthCheck()
+        {
+            healthCheckDisabled = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Disables automatically opting the user into A/B tests when Remote Config values are
+        /// downloaded. Auto opt-in is enabled by default; call this to enroll manually instead
+        /// (via RemoteConfig().EnrollIntoABTestsForKeys).
+        /// </summary>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase DisableAutoEnrollInABTesting()
+        {
+            enableABTestingAutoEnroll = false;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets a listener that receives every SDK log message and its level. Fires regardless
+        /// of whether console logging is enabled. A throwing listener cannot break the SDK.
+        /// </summary>
+        /// <param name="logListener">Callback receiving (message, level).</param>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase SetLogListener(System.Action<string, LogLevel> logListener)
+        {
+            LogListener = logListener;
             return this;
         }
     }

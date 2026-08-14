@@ -29,7 +29,9 @@ using CountlySDK.CountlyCommon;
 using CountlySDK.Entities;
 using CountlySDK.Entities.EntityBase;
 using CountlySDK.Helpers;
-//[assembly: InternalsVisibleTo("CountlyTest_461")]
+#if COUNTLY_TESTABLE
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("CountlyTest_461")]
+#endif
 //[assembly: InternalsVisibleTo("CountlySampleUWP")]
 
 namespace CountlySDK
@@ -151,7 +153,7 @@ namespace CountlySDK
         }
 
         /// <summary>
-        /// Sends session duration. Called automatically each <updateInterval> seconds
+        /// Sends session duration. Called automatically each &lt;updateInterval&gt; seconds
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>

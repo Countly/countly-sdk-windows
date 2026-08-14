@@ -15,7 +15,13 @@
             </summary>
             <returns>True if success, otherwise - False</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.Countly.UpdateSession(System.Object,System.Object)" -->
+        <member name="M:CountlySDK.Countly.UpdateSession(System.Object,System.Object)">
+            <summary>
+            Sends session duration. Called automatically each &lt;updateInterval&gt; seconds
+            </summary>
+            <param name="sender"></param>
+            <param name="e"></param>
+        </member>
         <member name="F:CountlySDK.Entities.CountlyConfig.deviceIdMethod">
             <summary>
             Which method for deviceId generation is used
@@ -250,7 +256,11 @@
             Returns application version from Package.appxmanifest
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "P:CountlySDK.Entities.EntityBase.DeviceBase.Resolution" -->
+        <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.Resolution">
+            <summary>
+            Returns device resolution in &lt;width_px&gt;x&lt;height_px&gt; format
+            </summary>
+        </member>
         <member name="P:CountlySDK.Entities.EntityBase.DeviceBase.Carrier">
             <summary>
             Returns cellular mobile operator
@@ -386,7 +396,12 @@
             Saves user details info to the storage
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.Upload" -->
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.Upload">
+            <summary>
+            Upload sessions, events &amp; exception queues
+            </summary>
+            <returns>True if success</returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadSessions">
             <summary>
             Uploads sessions queue to Countly server
@@ -486,6 +501,9 @@
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.IsReservedEventKey(System.String)">
+            <summary>SDK-internal events ("[CLY]_" prefixed) are not custom events, so the 'cet' gate must not block them.</summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadEvents">
             <summary>
             Uploads event queue to Countly server
@@ -567,7 +585,13 @@
             <param name="imageStream">Image stream</param>
             <returns>true if image is successfully uploaded, false otherwise</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.CountlyBase.Halt" -->
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.Halt">
+            <summary>
+            Immediately disables session, event, exceptions &amp; user details tracking and clears any stored sessions, events, exceptions &amp; user details data.
+            This API is useful if your app has a tracking opt-out switch, and you want to immediately
+            disable tracking when a user opts out. Call StartSession to enable logging again
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.HaltInternal(System.Boolean)">
             <summary>
             This should clear all internal state
@@ -591,6 +615,15 @@
             <summary>
             Sends a request with an empty "location" parameter.
             </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RemoveTooOldRequests">
+            <summary>
+            Drops queued requests older than the server-configured 'dort' limit (in hours).
+            The request age is read from its embedded 'timestamp' parameter; 0 disables the feature.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.IsRequestTooOld(System.String,System.Int64)">
+            <summary>Reads the 'timestamp' parameter (unix ms) out of a request string; unparsable requests are kept.</summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.OnInitComplete">
             <summary>
@@ -630,6 +663,13 @@
             <param name="serverSideMerge">If set to true, old user id's data will be merged into new user</param>
             <returns></returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SetId(System.String)">
+            <summary>
+            Set the device id
+            </summary>
+            <param name="newDeviceId">New Id that should be used</param>
+            <returns></returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordView(System.String)">
             <summary>
             Records view
@@ -647,6 +687,40 @@
             data migrations
             </summary>
             <returns>BackendMode interface to use backend mode features</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RemoteConfig">
+            <summary>
+            Provides access to the Remote Config module.
+            </summary>
+            <returns>
+            A <see cref="M:CountlySDK.CountlyCommon.CountlyBase.RemoteConfig"/> instance.
+            If backend mode is enabled, required consent is not granted,
+            or the Remote Config module is unavailable, a no-op
+            (dummy) implementation is returned instead.
+            </returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.Feedback">
+            <summary>
+            Returns the Feedback interface for retrieving/displaying/reporting feedback widgets.
+            If backend mode is enabled, the module is unavailable, or Feedback consent is not
+            given, a no-op <see cref="T:CountlySDK.CountlyCommon.MockFeedback"/> is returned instead.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SetContentDisplay(CountlySDK.CountlyCommon.IContentDisplay)">
+            <summary>Registers the UI content-display bridge (ungated; no-op if uninitialized).</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.TryAutoEnterContentZone">
+            <summary>
+            Enters the content zone automatically when the server config enables 'ecz'.
+            Called after init and when a content display gets registered.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.Content">
+            <summary>
+            Returns the Content interface (experimental). A no-op <see cref="T:CountlySDK.CountlyCommon.MockContent"/> is
+            returned when backend mode is enabled, the module is unavailable, or Content consent
+            is not given.
+            </summary>
         </member>
         <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.serverUrl">
             <summary>
@@ -694,7 +768,25 @@
             After how many seconds a session update is sent
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxKeyLength" -->
+        <member name="P:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.ContentZoneTimerInterval">
+            <summary>
+            Content zone poll interval in seconds. Values &lt;= 15 are ignored. Default 30. (Experimental.)
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.GlobalContentCallback">
+            <summary>Optional callback invoked when a shown content item is closed. (Experimental.)</summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.LogListener">
+            <summary>
+            Optional listener invoked for every SDK log message, independent of the console
+            logging flag (Countly.IsLoggingEnabled). Receives the log message and its level.
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxKeyLength">
+            <summary>
+            Maximum size of all string keys
+            </summary>
+        </member>
         <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxValueSize">
             <summary>
             Maximum size of all values in our key-value pairs
@@ -715,10 +807,51 @@
             Limits how many characters are allowed per stack trace line
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxBreadcrumbCount" -->
-        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.backendMode" -->
-        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EventQueueThreshold" -->
-        <!-- Badly formed XML comment ignored for member "F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.RequestQueueMaxSize" -->
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxBreadcrumbCount">
+            <summary>
+            Set the maximum amount of breadcrumbs.
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.backendMode">
+            <summary>
+            Enable/Disable backend mode
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EventQueueThreshold">
+            <summary>
+            Maximum event queue threshold
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.RequestQueueMaxSize">
+            <summary>
+            Maximum request queue size
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.enableABTestingAutoEnroll">
+            <summary>
+            A/B testing auto opt-in during Remote Config fetch (adds oi=1 to the rc request).
+            Enabled by default; disable with DisableAutoEnrollInABTesting().
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.providedSdkBehaviorSettings">
+            <summary>
+            Developer-provided SDK Behavior Settings (Server Config) JSON, applied as a
+            precedence layer below server-fetched settings. May be a full {v,t,c} envelope
+            or a bare config object.
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.sdkBehaviorSettingsUpdatesDisabled">
+            <summary>
+            When true, the SDK does NOT perform the network fetch of SDK Behavior Settings
+            (nor its refresh timer). Provided and on-disk settings still load and apply.
+            </summary>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.healthCheckDisabled">
+            <summary>
+            When true, the SDK still accumulates health counters but never sends the
+            health check request.
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableLocation">
             <summary>
             Disabled the location tracking on the Countly server
@@ -771,6 +904,93 @@
             </summary>
             <param name="serverEQSize"></param>
             <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetMetricOverride(System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Allows you to add custom metric key/value pairs
+            </summary>
+            <param name="metricOverride"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.AddCustomNetworkRequestHeaders(System.Collections.Generic.IDictionary{System.String,System.String})">
+            <summary>
+            Allows you to add custom header key/value pairs to each request
+            </summary>
+            <param name="customNetworkRequestHeaders"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetParamaterTamperingProtectionSalt(System.String)">
+            <summary>
+            Salt to hash all requests
+            </summary>
+            <param name="paramaterTamperingProtectionSalt"></param>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableManualUserDetailsSave">
+            <summary>
+            Disables manual user details save. By default manual user details save is enabled.
+            This reverts the fix that all edit user details was not saved. And this is only for testing purposes
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoSendUserDetails">
+            <summary>
+            Disable automatic sending of user properties on
+            - When an event is recorded
+            - During an internal timer tick
+            - Upon flushing the event queue
+            - When a session call made
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableRemoteConfigAutomaticTriggers">
+            <summary>
+            Enables automatic Remote Config download triggers.
+            When enabled, the SDK will automatically initiate Remote Config downloads
+            at specific lifecycle points such as SDK initialization completion,
+            device ID changes, and consent being granted.
+            </summary>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetSDKBehaviorSettings(System.String)">
+            <summary>
+            Seed developer-provided SDK Behavior Settings (Server Config). Used as a fallback
+            source before/instead of stored settings (e.g. first run / offline). Lower precedence
+            than settings fetched and stored from the server.
+            </summary>
+            <param name="sdkBehaviorSettings">A {v,t,c} envelope or a bare config object as JSON.</param>
+            <returns>Config for call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableSDKBehaviorSettingsUpdates">
+            <summary>
+            Disables ONLY the network fetch (and refresh timer) of SDK Behavior Settings.
+            Developer-provided and on-disk (last-known-good) settings still load and apply.
+            </summary>
+            <returns>Config for call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableHealthCheck">
+            <summary>
+            Disables the SDK health check feature entirely. Counters still accumulate in
+            memory, but no health check request is sent during initialization.
+            </summary>
+            <returns>Config for call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoEnrollInABTesting">
+            <summary>
+            Disables automatically opting the user into A/B tests when Remote Config values are
+            downloaded. Auto opt-in is enabled by default; call this to enroll manually instead
+            (via RemoteConfig().EnrollIntoABTestsForKeys).
+            </summary>
+            <returns>Config for call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetLogListener(System.Action{System.String,CountlySDK.CountlyCommon.CountlyBase.LogLevel})">
+            <summary>
+            Sets a listener that receives every SDK log message and its level. Fires regardless
+            of whether console logging is enabled. A throwing listener cannot break the SDK.
+            </summary>
+            <param name="logListener">Callback receiving (message, level).</param>
+            <returns>Config for call chaining</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.DeviceId.#ctor">
             <summary>
@@ -849,11 +1069,19 @@
             <param name="imageStream">Image stream</param>
             <returns>true if image is successfully uploaded, false otherwise</returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Save">
+            <summary>
+            Saves user details
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.ToString">
             <summary>
             Serializes object into json
             </summary>
             <returns>json representation string</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentParser.ParseContentResponse(System.String)">
+            <summary>Parses a /o/sdk/content response; returns null if it has no usable content.</summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.BuildRequest(System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>
@@ -877,6 +1105,23 @@
             </summary>
             <param name="obj"></param>
             <returns></returns>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.Helpers.WidgetUrlBuilder">
+            <summary>
+            Builds the display URL for a feedback widget. Pure/UI-free so it can be unit-tested and
+            reused by the WebView2 UI package. Desktop follows the web-SDK model: <c>custom={"tc":1,"xb":1}</c>
+            (no <c>rw</c> fullscreen flag) plus <c>origin</c>, so the widget renders a positioned card and
+            reports its rect via resize_me; the SDK reports the surface size and places the window there.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.WidgetUrlBuilder.OriginOf(System.String)">
+            <summary>Scheme+authority of the server URL (e.g. "https://host:port"), or null if unparseable.</summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.Helpers.ContentRequestBuilder">
+            <summary>
+            Builds the content-specific query params for a /o/sdk/content fetch (base params are added
+            by RequestHelper.BuildRequest). Public so it can be unit-tested directly. (Experimental.)
+            </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Helpers.StorageBase.SaveToFile``1(System.String,System.Object)">
             <summary>
@@ -913,29 +1158,37 @@
             Retrive storage folder name
             </summary>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.Call(System.String,System.IO.Stream)">
+        <member name="M:CountlySDK.CountlyCommon.WidgetActionParser.StripParam(System.String,System.String)">
+            <summary>Returns the URL with the given query parameter removed (base URL if none remain).</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.Call(System.String,System.String,System.IO.Stream,System.String)">
             <summary>
             Platform specific task wrapper
             </summary>
             <param name="address"></param>
+            <param name="requestData"></param>
             <param name="imageData"></param>
+            <param name="endpoint"></param>
             <returns></returns>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.CallJob(System.String,System.IO.Stream)">
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.CallJob(System.String,System.String,System.String,System.IO.Stream)">
             <summary>
             Common job handler
             </summary>
             <param name="address"></param>
+            <param name="requestData"></param>
             <param name="imageData"></param>
+            <param name="endpoint"></param>
             <returns></returns>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.RequestAsync(System.String,System.String,System.IO.Stream)">
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.RequestAsync(System.String,System.String,System.IO.Stream,System.Collections.Generic.IDictionary{System.String,System.String})">
             <summary>
             Platform specific networking code
             </summary>
             <param name="address"></param>
             <param name="requestData"></param>
             <param name="imageData"></param>
+            <param name="customHeaders"></param>
             <returns></returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.BackendMode.RecordEvent(System.String,System.String,System.String,System.Nullable{System.Double},System.Int32,System.Nullable{System.Int64},CountlySDK.Segmentation,System.Int64)">
@@ -992,7 +1245,18 @@
             <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
             <param name="timestamp">Defaults to current timestamp if not provided</param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.BackendMode.StartView(System.String,System.String,CountlySDK.Segmentation,System.String,System.String,System.Boolean,System.Int64)" -->
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.StartView(System.String,System.String,CountlySDK.Segmentation,System.String,System.String,System.Boolean,System.Int64)">
+            <summary>
+            Start view with multiple app and device support
+            </summary>
+            <param name="name">View name, required</param>
+            <param name="segment">Platform of the device or domain, required</param>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="firstView">To indicate wheter or not view is the first view of the session or flow, default false</param>
+            <param name="segmentations">Defaults to null</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.BackendMode.StopView(System.String,System.String,System.Int64,CountlySDK.Segmentation,System.String,System.String,System.Int64)">
             <summary>
             Stop view with multiple app and device support
@@ -1019,7 +1283,16 @@
             <param name="segmentations">Defaults to null</param>
             <param name="timestamp">Defaults to current timestamp if not provided</param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:CountlySDK.CountlyCommon.BackendMode.BeginSession(System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String},System.Int64)" -->
+        <member name="M:CountlySDK.CountlyCommon.BackendMode.BeginSession(System.String,System.String,System.Collections.Generic.IDictionary{System.String,System.String},System.Collections.Generic.IDictionary{System.String,System.String},System.Int64)">
+            <summary>
+            Begin session with multiple apps and devices
+            </summary>
+            <param name="deviceId">If it is empty or null, returns. required</param>
+            <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
+            <param name="metrics">If it is not provided, internal metrics will be used</param>
+            <param name="location">If not given, will not be added</param>
+            <param name="timestamp">Defaults to current timestamp if not provided</param>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.BackendMode.UpdateSession(System.String,System.Int32,System.String,System.Int64)">
             <summary>
             Update session with multiple apps and devices
@@ -1038,6 +1311,152 @@
             <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
             <param name="timestamp">Defaults to current timestamp if not provided</param>
         </member>
+        <member name="T:CountlySDK.CountlyCommon.Content">
+            <summary>Retrieves and displays Countly content (experimental).</summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.IContentDisplay">
+            <summary>
+            Bridge the UI package implements so the UI-less core can size the fetch to the screen and
+            display server-placed content. Registered via <c>Countly.Instance.SetContentDisplay(...)</c>.
+            </summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.Feedback">
+            <summary>
+            Defines the contract for retrieving, displaying, and reporting Countly feedback widgets
+            (Surveys, NPS, Ratings).
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Feedback.GetAvailableFeedbackWidgets">
+            <summary>Fetches the list of feedback widgets available for the current device.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Feedback.GetFeedbackWidgetData(CountlySDK.CountlyCommon.CountlyFeedbackWidget)">
+            <summary>Fetches the raw widget definition JSON (for building a custom UI).</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Feedback.ReportFeedbackWidgetManually(CountlySDK.CountlyCommon.CountlyFeedbackWidget,Newtonsoft.Json.Linq.JObject,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            Reports a widget result manually. Pass <paramref name="widgetResult"/> as null to
+            mark the widget closed/cancelled without an answer.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Feedback.ConstructFeedbackWidgetUrl(CountlySDK.CountlyCommon.CountlyFeedbackWidget)">
+            <summary>Builds the display URL for a widget (used by the WebView2 UI package).</summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.RCData">
+            <summary>
+            Represents a single Remote Config entry and its associated metadata.
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.RCData.Value">
+            <summary>
+            The value associated with the Remote Config key.
+            This is a normalized CLR type (e.g. string, int, bool, double, or null).
+            </summary>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.RCData.IsCurrentUsersData">
+            <summary>
+            Indicates whether this value is specific to the current user
+            </summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.RemoteConfig">
+            <summary>
+            Defines the contract for accessing and managing Remote Config data.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.RemoteConfig.DownloadKeys(System.Collections.Generic.List{System.String},System.Collections.Generic.List{System.String})">
+            <summary>
+            Downloads Remote Config values from the server.
+            </summary>
+            <param name="includeKeys">
+            Optional list of keys to explicitly include in the download.
+            When specified, only these keys will be requested.
+            </param>
+            <param name="omitKeys">
+            Optional list of keys to exclude from the download.
+            These keys will be ignored even if they exist on the server.
+            </param>
+            <returns>
+            A task that represents the asynchronous download operation.
+            </returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.RemoteConfig.GetValues">
+            <summary>
+            Returns a snapshot of all available Remote Config values.
+            </summary>
+            <returns>
+            A dictionary mapping Remote Config keys to their corresponding data objects.
+            </returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.RemoteConfig.GetValue(System.String)">
+            <summary>
+            Returns the Remote Config data associated with the specified key.
+            </summary>
+            <param name="key">
+            The Remote Config key to retrieve.
+            </param>
+            <returns>
+            The corresponding <see cref="T:CountlySDK.CountlyCommon.RCData"/> instance if the key exists;
+            otherwise, <c>null</c>.
+            </returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.RemoteConfig.EnrollIntoABTestsForKeys(System.Collections.Generic.List{System.String})">
+            <summary>
+            Enrolls the user into A/B tests for the given Remote Config keys (method=ab).
+            A null or empty list is ignored.
+            </summary>
+            <param name="keys">The Remote Config keys to enroll into.</param>
+            <returns>A task that represents the asynchronous enroll operation.</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.RemoteConfig.ExitABTestsForKeys(System.Collections.Generic.List{System.String})">
+            <summary>
+            Exits the user from A/B tests for the given keys (method=ab_opt_out).
+            Passing null or an empty list exits the user from ALL tests.
+            </summary>
+            <param name="keys">The keys to exit; null or empty exits all tests.</param>
+            <returns>A task that represents the asynchronous exit operation.</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.IsAllowedByFilter(System.String,System.Collections.Generic.HashSet{System.String},System.Boolean)">
+            <summary>Empty filter = everything allowed; whitelist keeps listed keys, blacklist drops them.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.FilterEventSegmentation(System.String,CountlySDK.Segmentation)">
+            <summary>Applies the global (sb/sw) then the per-event (esb/esw) segmentation filters in place.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.FilterUserProperties(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>Applies the user property filter (upb/upw) and the cache limit (upcl) to custom user properties.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.InitializeServerConfig(CountlySDK.CountlyCommon.Entities.CountlyConfigBase)">
+            <summary>
+            Synchronously loads stored settings, parses developer-provided settings, and applies
+            both (provided first, stored second) to the effective configuration. No network I/O.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.ExtractStringSet(Newtonsoft.Json.Linq.JToken)">
+            <summary>Collects the string entries of a JSON array (non-strings are skipped).</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.ExtractStringSetMap(Newtonsoft.Json.Linq.JToken)">
+            <summary>Collects an event-name -> segmentation-key-set map from a JSON object of arrays.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.ExtractConfigObject(System.String)">
+            <summary>Returns the inner config object: the "c" child if present, else the whole object.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.ValidateEnvelope(Newtonsoft.Json.Linq.JObject)">
+            <summary>Envelope is valid iff it has v, t, and a non-empty c object.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.Sanitize(Newtonsoft.Json.Linq.JObject)">
+            <summary>Keeps only known keys with valid types/ranges; drops (and logs) the rest.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.FetchServerConfig">
+            <summary>
+            Network fetch of SDK Behavior Settings (direct, off-queue, /o/sdk?method=sc).
+            No-op when updates are disabled. Always (re)starts the refresh timer when enabled,
+            so periodic refresh survives a failed fetch.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.EvictOppositeFilterKeys(Newtonsoft.Json.Linq.JObject,Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            When a fetch carries filters of one type, the stored filters of the opposite type are
+            removed so a server-side switch between blacklists and whitelists fully replaces the old set.
+            </summary>
+        </member>
         <member name="T:CountlySDK.Segmentation">
             <summary>
             Holds an array of segmentation values
@@ -1055,7 +1474,8 @@
         </member>
         <member name="M:CountlySDK.Segmentation.Add(System.String,System.String)">
             <summary>
-            Add new segmentation value
+            Add new segmentation value, omits the null keys
+            overrides the same keys
             </summary>
             <param name="Key">Segmenation key</param>
             <param name="Value">Segmenation value</param>

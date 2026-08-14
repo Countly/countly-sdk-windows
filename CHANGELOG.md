@@ -1,3 +1,70 @@
+## 26.1.0
+
+* ! Minor breaking change !  Added support for SDK Behavior Settings, enabled by default:
+  * Added configuration option "SetSDKBehaviorSettings" to seed behavior settings for first run / offline.
+  * Added configuration option "DisableSDKBehaviorSettingsUpdates" to stop only the network fetch (provided and stored settings still apply).
+
+* Added support for the Log Listener feature with new init time configuration option "SetLogListener" callback that receives every SDK log message and its level.
+* Added support for SDK Health Checks. This can be turned off with the new configuration option "DisableHealthCheck()".
+* Added support for Remote Config feature accesible through "Countly.Instance.RemoteConfig()" interface:
+  * "DownloadKeys" for fetching RC values from server
+  * "GetValues" for accessing all RC values
+  * "GetValue" for accessing the given RC value
+  * "EnrollIntoABTestsForKeys" for enrolling the user into A/B tests for the given keys
+  * "ExitABTestsForKeys" for removing the user from A/B tests for the given keys (no keys exits all)
+* Added configuration option "DisableAutoEnrollInABTesting" to stop automatically opting users into A/B tests during Remote Config download (auto opt-in is enabled by default).
+* Added configuration option "EnableRemoteConfigAutomaticTriggers" to automatically download remote config values:
+  * After initialization finishes.
+  * RemoteConfig consent is given.
+  * After the device ID is changed to a different user.
+* Added support for the Feedback Widgets feature (Surveys, NPS, Ratings) accessible through the "Countly.Instance.Feedback()" interface:
+  * "GetAvailableFeedbackWidgets" for fetching the list of available feedback widgets from the server
+  * "GetFeedbackWidgetData" for fetching a widget's definition (for building a custom UI)
+  * "ReportFeedbackWidgetManually" for reporting a widget result, or marking it closed
+  * "ConstructFeedbackWidgetUrl" for building a widget's display URL
+  * This feature uses "Feedback" consent (and "StarRating" consent for rating widgets).
+  * Needs "Countly.UI.WebView2" for displaying feedback widgets on WPF and WinForms.
+* Added support for the experimental Content feature accessible through the "Countly.Instance.Content()" interface:
+  * "EnterContentZone" / "ExitContentZone" for starting and stopping periodic content fetching
+  * "RefreshContentZone" for forcing an immediate refresh
+  * Added "ContentZoneTimerInterval" and a global content callback to the configuration object
+  * This feature uses "Content" consent.
+  * Needs "Countly.UI.WebView2" for displaying content on WPF.
+
+* Fixed public APIs (RecordEvent, RecordView, RecordException, SetLocation, DisableLocation, StartEvent, EndEvent, CancelEvent, AddCrashBreadCrumb, ChangeDeviceId, SetConsent) throwing a NullReferenceException when called before "Init"; they now safely no-op until the SDK is initialized.
+* Fixed the SDK constructing a new HttpClient for every request, which could exhaust sockets under sustained use; a single shared client with a request timeout is now reused.
+* Fixed the .NET Framework (net35/net45) networking path leaking the HTTP response stream and losing the real status code on 4xx/5xx responses.
+* Fixed unique-timestamp generation not being thread-safe, which could hand out duplicate timestamps when recording from multiple threads at once.
+* Fixed a bug where the request queue was not processed when automatic user property saving ("autoSendUserDetails") was disabled, so queued requests (for example from a manual session update) were never uploaded and could cause the SDK to loop indefinitely.
+* Fixed a possible bug where SDK could kept re-processing user details on every session call and upload-completion checks could wait indefinitely.
+* Fixed a crash ("NullReferenceException") when a session-timer tick landed while/after "Halt" cleared the SDK state, and when "SessionUpdate" was called before the first "Init".
+
+## 25.4.3
+* ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
+  * When an event is recorded
+  * During an internal timer tick
+  * When a session call made
+
+* Added a new function "UserDetails.Save()" for enqueuing cached user details manually. User details will now be saved upon with above triggers and manual "Save" call.
+
+* Mitigated an issue preventing recording multiple user details.
+
+## 25.4.2
+* Added support for distinguishing macOS as a distinct OS value in metrics.
+
+## 25.4.1
+* Mitigated an issue where Windows 11 Enterprise and other commercial editions were incorrectly reported as Windows 10.
+
+## 25.4.0
+* Added a new function "SetId(newDeviceId)" for managing device ID changes according to the device ID Type.
+* Added a new configuration function "addCustomNetworkRequestHeaders(IDictionary<string, string>)" to add custom request headers to each request.
+* Added support for parameter tamper protection:
+    * Added a new configuration function "SetParamaterTamperingProtectionSalt(string)" to provide salt value for checksums.
+
+* Mitigated an issue where changing to same ID was permitted. 
+* Mitigated an issue where internal limits were not applied to error names.
+* Mitigated an issue where POST requests were not formed correctly.
+
 ## 24.1.1
 * Fixed a bug where same, null, and empty keys were permitted in the Segmentation.
 * Fixed an issue where some requests are not url encoded.

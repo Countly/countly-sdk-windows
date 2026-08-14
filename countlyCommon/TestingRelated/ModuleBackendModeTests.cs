@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using CountlySDK;
-using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.Entities;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace TestProject_common
@@ -269,14 +266,14 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict("name", "John"));
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John")));
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], TestHelper.Dict("name", "John"));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("user_details", TestHelper.Json("name", "John")));
 
-            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict("name", "John"), appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("user_details", Json("name", "John")), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], TestHelper.Dict("name", "John"), appKey: TestHelper.v[1], timestamp: 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("user_details", TestHelper.Json("name", "John")), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict("name", "John"), "");
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John")), 2, 3);
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], TestHelper.Dict("name", "John"), "");
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("user_details", TestHelper.Json("name", "John")), 2, 3);
         }
 
         [Fact]
@@ -292,14 +289,14 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            IDictionary<string, object> userProperties = Dict(
+            IDictionary<string, object> userProperties = TestHelper.Dict(
                  "int", 5,
                  "long", 1044151383000,
                  "float", 56.45678,
                  "string", "value",
                  "bool", true,
                  "double", -5.4E-79,
-                 "invalid", Dict("test", "out"),
+                 "invalid", TestHelper.Dict("test", "out"),
                  "name", "John",
                  "username", "Dohn",
                  "organization", "Fohn",
@@ -313,19 +310,19 @@ namespace TestProject_common
              );
 
             Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], userProperties);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json("name", "John", "username", "Dohn",
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("user_details", TestHelper.Json("name", "John", "username", "Dohn",
                  "organization", "Fohn",
                  "email", "johnjohn@john.jo",
                  "phone", "+123456789",
                  "gender", "Unkown",
                  "byear", 1969,
-                 "picture", "http://someurl.png", "custom", Dict("int", 5,
+                 "picture", "http://someurl.png", "custom", TestHelper.Dict("int", 5,
                  "long", 1044151383000,
                  "float", 56.45678,
                  "string", "value",
                  "bool", true,
                  "double", -5.4E-79,
-                 "action", Dict("$push", "black")))));
+                 "action", TestHelper.Dict("$push", "black")))));
         }
 
         [Fact]
@@ -341,7 +338,7 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            IDictionary<string, object> userProperties = Dict();
+            IDictionary<string, object> userProperties = TestHelper.Dict();
 
             userProperties["marks"] = "{$inc: 1}";
             userProperties["point"] = "{$mul: 1.89}";
@@ -353,15 +350,15 @@ namespace TestProject_common
             userProperties["langs"] = "{$addToSet: [\"Python\", \"Python\"]}";
 
             Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], userProperties);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("user_details", Json(
-                "custom", Dict(
-                    "marks", Dict("$inc", 1),
-                    "point", Dict("$mul", 1.89),
-                    "gpa", Dict("$max", 1.89),
-                    "fav", Dict("$setOnce", "FAV"),
-                    "fav", Dict("$setOnce", "FAV"),
-                    "permissions", Dict("$pull", new string[] { "Create", "Update" }),
-                    "langs", Dict("$addToSet", new string[] { "Python", "Python" })
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("user_details", TestHelper.Json(
+                "custom", TestHelper.Dict(
+                    "marks", TestHelper.Dict("$inc", 1),
+                    "point", TestHelper.Dict("$mul", 1.89),
+                    "gpa", TestHelper.Dict("$max", 1.89),
+                    "fav", TestHelper.Dict("$setOnce", "FAV"),
+                    "fav", TestHelper.Dict("$setOnce", "FAV"),
+                    "permissions", TestHelper.Dict("$pull", new string[] { "Create", "Update" }),
+                    "langs", TestHelper.Dict("$addToSet", new string[] { "Python", "Python" })
                  ))));
         }
 
@@ -381,7 +378,7 @@ namespace TestProject_common
             Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], null, TestHelper.v[1]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
 
-            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], Dict(), TestHelper.v[1]);
+            Countly.Instance.BackendMode().RecordUserProperties(TestHelper.v[0], TestHelper.Dict(), TestHelper.v[1]);
             Assert.True(Countly.Instance.StoredRequests.Count == 0);
         }
 
@@ -404,13 +401,13 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().RecordException(error: "Test", deviceId: TestHelper.v[0]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", true)));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("crash", TestHelper.Json("_name", "Test", "_nonfatal", true)));
 
             Countly.Instance.BackendMode().RecordException(deviceId: TestHelper.v[0], error: "Test", appKey: TestHelper.v[1], timestamp: 1044151383000, unhandled: true);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Test", "_nonfatal", false)), 1, 2, 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("crash", TestHelper.Json("_name", "Test", "_nonfatal", false)), 1, 2, 1044151383000);
 
             Countly.Instance.BackendMode().RecordException(deviceId: TestHelper.v[0], error: "Test", appKey: "", timestamp: 1044151383000, unhandled: true);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("crash", Json("_name", "Test", "_nonfatal", false)), 2, 3, 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("crash", TestHelper.Json("_name", "Test", "_nonfatal", false)), 2, 3, 1044151383000);
         }
 
 
@@ -431,20 +428,20 @@ namespace TestProject_common
                 "Breadcrumb"
             };
 
-            IDictionary<string, object> customInfo = Dict(
+            IDictionary<string, object> customInfo = TestHelper.Dict(
                 "int", 5,
                 "long", 1044151383000,
                 "float", 56.45678,
                 "string", "value",
                 "bool", true,
                 "double", -5.4E-79,
-                "invalid", Dict("test", "out")
+                "invalid", TestHelper.Dict("test", "out")
                 );
 
             Countly.Instance.BackendMode().RecordException(TestHelper.v[0], "Crashed", "Trace", breadcrumbs, customInfo, null, true, TestHelper.v[1], 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Crashed", "_nonfatal", false,
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("crash", TestHelper.Json("_name", "Crashed", "_nonfatal", false,
                 "_logs", string.Join("\n", breadcrumbs.ToArray()), "_error", "Trace",
-                "_custom", Dict("int", 5, "long", 1044151383000, "float", 56.45678, "string", "value", "bool", true, "double", -5.4E-79))));
+                "_custom", TestHelper.Dict("int", 5, "long", 1044151383000, "float", 56.45678, "string", "value", "bool", true, "double", -5.4E-79))));
         }
 
         [Fact]
@@ -480,7 +477,7 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            IDictionary<string, string> metrics = DictS("_device_brand", "Mac", "_user", "localhost", "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
+            IDictionary<string, string> metrics = TestHelper.DictS("_device_brand", "Mac", "_user", "localhost", "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
                 "_ram_current", "512", "_disk_total", "1024", "_disk_current", "512", "_online", "false", "_muted", "false", "_orientation", "Portrait",
                 "_resolution", "1x1", "_app_version", "1.2", "_manufacture", "MyCompany", "_device", "MyDevice");
 
@@ -488,7 +485,7 @@ namespace TestProject_common
             metrics.Remove("_device_brand");
             metrics.Remove("_user");
 
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("crash", Json("_name", "Error", "_nonfatal", true, "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("crash", TestHelper.Json("_name", "Error", "_nonfatal", true, "_os", "MyOs", "_os_version", "MyOs1.2", "_ram_total", "1024",
                 "_ram_current", "512", "_disk_total", "1024", "_disk_current", "512", "_online", "false", "_muted", "false", "_orientation", "Portrait",
                 "_resolution", "1x1", "_app_version", "1.2", "_manufacture", "MyCompany", "_device", "MyDevice")));
 
@@ -509,7 +506,7 @@ namespace TestProject_common
 
 
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("old_device_id", TestHelper.v[1]));
         }
 
         [Fact]
@@ -585,10 +582,10 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("old_device_id", TestHelper.v[1]));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("old_device_id", TestHelper.v[1]));
 
             Countly.Instance.BackendMode().ChangeDeviceIdWithMerge(TestHelper.v[0], TestHelper.v[1], TestHelper.v[2], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[2], Dict("old_device_id", TestHelper.v[1]), 1, 2, 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[2], TestHelper.Dict("old_device_id", TestHelper.v[1]), 1, 2, 1044151383000);
         }
 
         [Fact]
@@ -628,14 +625,14 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("test", "true"));
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("test", "true", "dr", 1));
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], TestHelper.DictS("test", "true"));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("test", "true", "dr", 1));
 
-            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("gender", "M"), TestHelper.v[1], 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("gender", "M", "dr", 1), 1, 2, 1044151383000);
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], TestHelper.DictS("gender", "M"), TestHelper.v[1], 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("gender", "M", "dr", 1), 1, 2, 1044151383000);
 
-            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("level", "5", "class", "Knight"), "");
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("level", "5", "class", "Knight", "dr", 1), 2, 3);
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], TestHelper.DictS("level", "5", "class", "Knight"), "");
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("level", "5", "class", "Knight", "dr", 1), 2, 3);
         }
 
         [Fact]
@@ -651,8 +648,8 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], DictS("name", "SDK", "module", "Backend"));
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("name", "SDK", "module", "Backend", "dr", 1), rqSize: 1);
+            Countly.Instance.BackendMode().RecordDirectRequest(TestHelper.v[0], TestHelper.DictS("name", "SDK", "module", "Backend"));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("name", "SDK", "module", "Backend", "dr", 1), rqSize: 1);
         }
 
         [Fact]
@@ -673,10 +670,10 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[3], appKey: TestHelper.v[1], firstView: true);
-            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[4], Segm("bip", "boop"), "Android", TestHelper.v[2], timestamp: 1044151383000);
+            Countly.Instance.BackendMode().StartView(TestHelper.v[0], TestHelper.v[4], TestHelper.Segm("bip", "boop"), "Android", TestHelper.v[2], timestamp: 1044151383000);
 
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", TestHelper.v[3], "start", "1", "visit", "1", "segment", "Windows"), reqCount: 2);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "visit", "1", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: TestHelper.Segm("name", TestHelper.v[3], "start", "1", "visit", "1", "segment", "Windows"), reqCount: 2);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], segmentation: TestHelper.Segm("name", TestHelper.v[4], "segment", "Android", "visit", "1", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
         }
 
         [Fact]
@@ -714,9 +711,9 @@ namespace TestProject_common
 
             // segment null empty
             Countly.Instance.BackendMode().StopView(TestHelper.v[0], "t", 1, segment: null, appKey: TestHelper.v[1]);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), duration: 1);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: TestHelper.Segm("name", "t", "segment", "Windows"), duration: 1);
             Countly.Instance.BackendMode().StopView(TestHelper.v[0], "t", 1, segment: "", appKey: TestHelper.v[1]);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 2, rqIdx: 1, duration: 1);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], segmentation: TestHelper.Segm("name", "t", "segment", "Windows"), reqCount: 2, rqIdx: 1, duration: 1);
         }
 
         [Fact]
@@ -734,9 +731,9 @@ namespace TestProject_common
 
             // app key null empty
             Countly.Instance.BackendMode().StopView(TestHelper.v[1], "t", 1, appKey: null);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "segment", "Windows"), duration: 1);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: TestHelper.Segm("name", "t", "segment", "Windows"), duration: 1);
             Countly.Instance.BackendMode().StopView(TestHelper.v[1], "t", 1, appKey: "");
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: Segm("name", "t", "segment", "Windows"), reqCount: 2, rqIdx: 1, duration: 1);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[1], TestHelper.APP_KEY, segmentation: TestHelper.Segm("name", "t", "segment", "Windows"), reqCount: 2, rqIdx: 1, duration: 1);
         }
 
         [Fact]
@@ -778,10 +775,10 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[3], 45, appKey: TestHelper.v[1]);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], duration: 45, segmentation: Segm("name", TestHelper.v[3], "segment", "Windows"));
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[1], duration: 45, segmentation: TestHelper.Segm("name", TestHelper.v[3], "segment", "Windows"));
 
-            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[4], 180, Segm("bip", "boop"), "Android", TestHelper.v[2], 1044151383000);
-            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], duration: 180, segmentation: Segm("name", TestHelper.v[4], "segment", "Android", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
+            Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[4], 180, TestHelper.Segm("bip", "boop"), "Android", TestHelper.v[2], 1044151383000);
+            ValidateEventInRequestQueue("[CLY]_view", TestHelper.v[0], TestHelper.v[2], duration: 180, segmentation: TestHelper.Segm("name", TestHelper.v[4], "segment", "Android", "bip", "boop"), reqCount: 2, rqIdx: 1, timestamp: 1044151383000);
 
             Countly.Instance.BackendMode().StopView(TestHelper.v[0], TestHelper.v[5], -56, appKey: TestHelper.v[6]);
             Assert.Equal(2, Countly.Instance.StoredRequests.Count);
@@ -806,13 +803,13 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()));
 
             Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(deviceId: TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", GetSessionMetrics()), 1, 2, 1044151383000);
+            TestHelper.ValidateRequestInQueue(deviceId: TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()), 1, 2, 1044151383000);
 
             Countly.Instance.BackendMode().BeginSession(deviceId: TestHelper.v[0], appKey: "", timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("begin_session", "1", "metrics", GetSessionMetrics()), 2, 3, 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("begin_session", "1", "metrics", TestHelper.GetSessionMetrics()), 2, 3, 1044151383000);
         }
 
         [Fact]
@@ -841,10 +838,10 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", "CUSTOM_VALIDATED"), 0, 1, 1044151383000,
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("begin_session", "1", "metrics", "CUSTOM_VALIDATED"), 0, 1, 1044151383000,
                 new Dictionary<string, Action<string, object>>(){{"metrics", (actual, expected) => {
                     Dictionary<string,object> convertedMetrics = JsonConvert.DeserializeObject<Dictionary<string,object>>(actual);
-                    IDictionary<string, object> expectedDict = Dict("_os", "OS", "_os_version", "OS_V", "_app_version", "AV", "_locale", "LOCALE", "_resolution", "100x100", "_device", "Test", "_carrier", "CARRIER", "_build_version", "1.0");
+                    IDictionary<string, object> expectedDict = TestHelper.Dict("_os", "OS", "_os_version", "OS_V", "_app_version", "AV", "_locale", "LOCALE", "_resolution", "100x100", "_device", "Test", "_carrier", "CARRIER", "_build_version", "1.0");
                     Assert.Equal(convertedMetrics.Count, expectedDict.Count);
 
                     foreach(KeyValuePair<string, object> pair in expectedDict)
@@ -868,8 +865,8 @@ namespace TestProject_common
 
             Countly.Instance.Init(cc).Wait();
 
-            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], DictS("_device_model", "Laptop", "c", "a"), DictS("loc", "1", "location", "1,2"), 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("begin_session", "1", "metrics", Json("_device_model", "Laptop", "c", "a"), "loc", "1", "location", "1,2"), 0, 1, 1044151383000);
+            Countly.Instance.BackendMode().BeginSession(TestHelper.v[0], TestHelper.v[1], TestHelper.DictS("_device_model", "Laptop", "c", "a"), TestHelper.DictS("loc", "1", "location", "1,2"), 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("begin_session", "1", "metrics", TestHelper.Json("_device_model", "Laptop", "c", "a"), "loc", "1", "location", "1,2"), 0, 1, 1044151383000);
         }
 
         [Fact]
@@ -891,13 +888,13 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().EndSession(TestHelper.v[0], -1);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("end_session", 1));
 
             Countly.Instance.BackendMode().EndSession(TestHelper.v[0], 45, appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("end_session", 1, "session_duration", 45), 1, 2, 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("end_session", 1, "session_duration", 45), 1, 2, 1044151383000);
 
             Countly.Instance.BackendMode().EndSession(TestHelper.v[0], 67, "");
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1, "session_duration", 67), 2, 3);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("end_session", 1, "session_duration", 67), 2, 3);
         }
 
         [Fact]
@@ -914,7 +911,7 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().EndSession(TestHelper.v[0], -1);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("end_session", 1));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("end_session", 1));
         }
 
         [Fact]
@@ -936,13 +933,13 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 1);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("session_duration", 1));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("session_duration", 1));
 
             Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 1, appKey: TestHelper.v[1], timestamp: 1044151383000);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 1), 1, 2, 1044151383000);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("session_duration", 1), 1, 2, 1044151383000);
 
             Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 1, "");
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, Dict("session_duration", 1), 2, 3);
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.APP_KEY, TestHelper.Dict("session_duration", 1), 2, 3);
         }
 
         [Fact]
@@ -976,7 +973,7 @@ namespace TestProject_common
             Countly.Instance.Init(cc).Wait();
 
             Countly.Instance.BackendMode().UpdateSession(TestHelper.v[0], 78, TestHelper.v[1]);
-            ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], Dict("session_duration", 78));
+            TestHelper.ValidateRequestInQueue(TestHelper.v[0], TestHelper.v[1], TestHelper.Dict("session_duration", 78));
         }
 
         private void ValidateEventInRequestQueue(string key, string deviceId, string appKey, int eventCount = 1, double eventSum = -1, Segmentation segmentation = null, long duration = -1, int eventIdx = 0, int rqIdx = 0, int reqCount = 1, int eventQCount = 1, long timestamp = 0)
@@ -1010,67 +1007,6 @@ namespace TestProject_common
             Assert.True(events[eventIdx].Timestamp > 0);
         }
 
-        private void ValidateRequestInQueue(string deviceId, string appKey, IDictionary<string, object> paramaters, int rqIdx = 0, int rqSize = 1, long timestamp = 0, IDictionary<string, Action<string, object>> customValidators = null)
-        {
-            Assert.Equal(rqSize, Countly.Instance.StoredRequests.Count);
-            string request = Countly.Instance.StoredRequests.ElementAt(rqIdx).Request;
-            Dictionary<string, string> queryParams = TestHelper.GetParams(request);
-            ValidateBaseParams(queryParams, deviceId, appKey, timestamp);
-            Assert.Equal(10 + paramaters.Count, queryParams.Count); //TODO 11 after merge
-            foreach (KeyValuePair<string, object> item in paramaters) {
-                if (customValidators != null && customValidators.ContainsKey(item.Key)) {
-                    customValidators[item.Key].Invoke(queryParams[item.Key], item.Value);
-                } else {
-                    Assert.Equal(item.Value.ToString(), queryParams[item.Key]);
-                }
-            }
-        }
-
-        private string GetSessionMetrics()
-        {
-            return Json("_os", Countly.Instance.DeviceData.OS, "_os_version", Countly.Instance.DeviceData.OSVersion, "_resolution", Countly.Instance.DeviceData.Resolution, "_app_version", TestHelper.APP_VERSION, "_locale", CultureInfo.CurrentUICulture.Name);
-        }
-
-        private IDictionary<string, T> DictGeneric<T>(params T[] values)
-        {
-            IDictionary<string, T> result = new Dictionary<string, T>();
-            if (values == null || values.Length == 0 || values.Length % 2 != 0) { return result; }
-
-            for (int i = 0; i < values.Length; i += 2) {
-                result[values[i].ToString()] = values[i + 1];
-            }
-
-            return result;
-        }
-
-        private Segmentation Segm(params string[] values)
-        {
-            Segmentation result = new Segmentation();
-            if (values == null || values.Length == 0 || values.Length % 2 != 0) { return result; }
-
-            for (int i = 0; i < values.Length; i += 2) {
-                result.Add(values[i], values[i + 1]);
-            }
-
-            return result;
-        }
-
-        private string Json(params object[] values)
-        {
-            return JsonConvert.SerializeObject(Dict(values).Where(p => p.Value != null)
-                .ToDictionary(p => p.Key, p => p.Value), Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
-        }
-
-        private IDictionary<string, object> Dict(params object[] values)
-        {
-            return DictGeneric(values);
-        }
-
-        private IDictionary<string, string> DictS(params string[] values)
-        {
-            return DictGeneric(values);
-        }
-
         private List<CountlyEvent> ParseEventsFromRequestQueue(int idx, int count, string deviceId, string appKey)
         {
             Assert.Equal(count, Countly.Instance.StoredRequests.Count);
@@ -1078,43 +1014,13 @@ namespace TestProject_common
             Assert.Contains("events", request);
 
             Dictionary<string, string> queryParams = TestHelper.GetParams(request);
-            ValidateBaseParams(queryParams, deviceId, appKey);
+            TestHelper.ValidateBaseParams(queryParams, deviceId, appKey);
             Assert.Equal(11, queryParams.Count); //TODO 12 after merge
 
             return JsonConvert.DeserializeObject<List<CountlyEvent>>(queryParams["events"]);
 
         }
 
-        private void ValidateBaseParams(Dictionary<string, string> queryParams, string deviceId, string appKey, long timestamp = 0)
-        {
-            //Time related params
-            if (timestamp > 0) {
-                TimeSpan time = TimeSpan.FromMilliseconds(timestamp);
-                DateTime dateTime = new DateTime(1970, 1, 1) + time;
 
-                int dow = (int)dateTime.DayOfWeek;
-                int hour = dateTime.TimeOfDay.Hours;
-                string timezone = TimeZoneInfo.Local.GetUtcOffset(dateTime).TotalMinutes.ToString(CultureInfo.InvariantCulture);
-
-                Assert.Equal(queryParams["tz"], timezone);
-                Assert.Equal(int.Parse(queryParams["hour"]), hour);
-                Assert.Equal(int.Parse(queryParams["dow"]), dow);
-                Assert.Equal(long.Parse(queryParams["timestamp"]), timestamp);
-            } else {
-                Assert.True(int.Parse(queryParams["tz"]) >= 0);
-                Assert.True(int.Parse(queryParams["hour"]) >= 0);
-                Assert.True(int.Parse(queryParams["dow"]) >= 0);
-                Assert.True(long.Parse(queryParams["timestamp"]) > 0);
-            }
-
-            //sdk related params
-            Assert.Equal(queryParams["av"], TestHelper.APP_VERSION);
-            Assert.Equal(queryParams["sdk_name"], Countly.Instance.sdkName());
-            Assert.Equal(queryParams["sdk_version"], TestHelper.SDK_VERSION);
-            Assert.Equal(queryParams["device_id"], deviceId);
-            Assert.Equal(queryParams["app_key"], appKey);
-            Assert.Equal("0", queryParams["t"]);
-            //Assert.True(int.Parse(queryParams["rr"]) >= 0); TODO enable after merge
-        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Web;
 using CountlySDK;
@@ -140,7 +141,7 @@ namespace TestProject_common
             collection = HttpUtility.ParseQueryString(request.Request);
             JObject consentObj = JObject.Parse(collection.Get("consent"));
 
-            Assert.Equal(10, consentObj.Count);
+            Assert.Equal(11, consentObj.Count);
             Assert.False(consentObj.GetValue("push").ToObject<bool>());
             Assert.True(consentObj.GetValue("users").ToObject<bool>());
             Assert.False(consentObj.GetValue("views").ToObject<bool>());
@@ -151,6 +152,7 @@ namespace TestProject_common
             Assert.False(consentObj.GetValue("feedback").ToObject<bool>());
             Assert.False(consentObj.GetValue("star-rating").ToObject<bool>());
             Assert.False(consentObj.GetValue("remote-config").ToObject<bool>());
+            Assert.False(consentObj.GetValue("content").ToObject<bool>());
 
             type = collection.Get("t");
             Assert.False(string.IsNullOrEmpty(type));
@@ -240,8 +242,8 @@ namespace TestProject_common
          * +--------------------------------------------------+------------------------------------+----------------------+
          */
 
-        private readonly string _serverUrl = "https://xyz.com/";
-        private readonly string _appKey = "772c091355076ead703f987fee94490";
+        private readonly string _serverUrl = "https://server.countly.ly/";
+        private readonly string _appKey = "APP_KEY";
 
 
         private Countly ConfigureAndInitSDK(string deviceId = null, bool isAutomaticSessionTrackingDisabled = false)
@@ -364,6 +366,105 @@ namespace TestProject_common
 
             ConfigureAndInitSDK("device_id_new");
             ValidateDeviceIDAndType(Countly.Instance, deviceID.deviceId, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID);
+        }
+
+        /// <summary>
+        /// SetId function with sdk generated id.
+        /// SDK sets the new id to developer provided and generates a device id merge request in the RQ
+        /// </summary>
+        [Fact]
+        public async void SetId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.developerProvidedDeviceId = null;
+            Countly.Instance.Init(cc).Wait();
+
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+
+            await Countly.Instance.SetId("NewId");
+            ValidateDeviceIDAndType(Countly.Instance, "NewId", DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
+
+            TestHelper.ValidateRequestInQueue("NewId", _appKey, TestHelper.Dict("old_device_id", deviceId.deviceId));
+        }
+
+        /// <summary>
+        /// SetId function with developer provided id.
+        /// SDK sets the new id to developer provided and generates a device id merge request in the RQ
+        /// </summary>
+        [Fact]
+        public async void SetId_DeveloperProvided()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            Countly.Instance.Init(cc).Wait();
+
+            ValidateDeviceIDAndType(Countly.Instance, TestHelper.DEVICE_ID, DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
+
+            await Countly.Instance.SetId("NewId");
+            ValidateDeviceIDAndType(Countly.Instance, "NewId", DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
+
+            Assert.Empty(Countly.Instance.StoredRequests);
+        }
+
+        /// <summary>
+        /// SetId function with same developer provided id.
+        /// SDK sets the same id to developer provided, this action won't trigger a merge request
+        /// </summary>
+        [Fact]
+        public async void SetId_SameId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            Countly.Instance.Init(cc).Wait();
+
+            ValidateDeviceIDAndType(Countly.Instance, TestHelper.DEVICE_ID, DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
+
+            await Countly.Instance.SetId(TestHelper.DEVICE_ID);
+            ValidateDeviceIDAndType(Countly.Instance, TestHelper.DEVICE_ID, DeviceIdType.DeveloperProvided, DeviceBase.DeviceIdMethodInternal.developerSupplied);
+
+            Assert.Empty(Countly.Instance.StoredRequests);
+        }
+
+        /// <summary>
+        /// SetId function with the same sdk generated id.
+        /// SDK sets the new id to developer provided and generates a device id merge request in the RQ
+        /// </summary>
+        [Fact]
+        public async void SetId_SameSDKGeneratedId()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.developerProvidedDeviceId = null;
+            Countly.Instance.Init(cc).Wait();
+
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+
+            await Countly.Instance.SetId(deviceId.deviceId);
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
+
+            Assert.Empty(Countly.Instance.StoredRequests);
+        }
+
+        /// <summary>
+        /// SetId function with the invalid values
+        /// Null or empty values must not change the id
+        /// </summary>
+        [Fact]
+        public async void SetId_InvalidIds()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.developerProvidedDeviceId = null;
+            Countly.Instance.Init(cc).Wait();
+
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
+            DeviceId deviceId = await Countly.Instance.DeviceData.GetDeviceId();
+
+            await Countly.Instance.SetId("");
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
+
+            await Countly.Instance.SetId(null);
+            ValidateDeviceIDAndType(Countly.Instance, null, DeviceIdType.SDKGenerated, DeviceBase.DeviceIdMethodInternal.windowsGUID, false);
+
+            Assert.Empty(Countly.Instance.StoredRequests);
         }
     }
 }

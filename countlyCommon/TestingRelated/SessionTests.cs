@@ -18,7 +18,7 @@ namespace TestProject_common
         public SessionTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait(); // synchronous teardown: avoid async-void Halt racing with the next Init
             TestHelper.CleanDataFiles();
             Countly.Instance.deferUpload = true;
         }
@@ -29,6 +29,31 @@ namespace TestProject_common
         public void Dispose()
         {
 
+        }
+
+        [Fact]
+        /// <summary>
+        /// A session-timer tick that lands after Halt must not throw: Halt nulls the modules while
+        /// the old Configuration object (here with backend mode on) stays visible to the in-flight tick.
+        /// </summary>
+        public void UpdateSession_TimerTickAfterHalt_DoesNotThrow()
+        {
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.EnableBackendMode();
+            Countly.Instance.Init(cc).Wait();
+            Countly.Instance.HaltInternal().Wait();
+
+            // the body the session timer runs; used to NRE on the nulled moduleBackendMode
+            Countly.Instance.UpdateSessionInternal().Wait();
+        }
+
+        [Fact]
+        /// <summary>Calling SessionUpdate before the first Init (Configuration is null) must not throw.</summary>
+        public void SessionUpdate_BeforeInit_DoesNotThrow()
+        {
+            Countly.Instance.Configuration = null; // what a fresh, never-initialized process looks like
+
+            Countly.Instance.SessionUpdate(10).Wait();
         }
 
         private void ValidateSessionRequestParams(NameValueCollection collection, string appKey, string deviceId, string deviceIdType)
@@ -61,7 +86,7 @@ namespace TestProject_common
             await Countly.Instance.SessionBegin();
 
             StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("begin_session"));
             Assert.False(string.IsNullOrEmpty(collection.Get("metrics")));
@@ -85,7 +110,7 @@ namespace TestProject_common
             await Countly.Instance.SessionBegin();
 
             StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("begin_session"));
 
@@ -115,7 +140,7 @@ namespace TestProject_common
             await Countly.Instance.SessionBegin();
 
             StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("begin_session"));
             Assert.Equal(string.Empty, collection.Get("location"));
@@ -147,7 +172,7 @@ namespace TestProject_common
             await Countly.Instance.SessionBegin();
 
             StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("begin_session"));
             Assert.Equal(string.Empty, collection.Get("location"));
@@ -172,7 +197,7 @@ namespace TestProject_common
             await Countly.Instance.SessionUpdate(60);
 
             StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("60", collection.Get("session_duration"));
             ValidateSessionRequestParams(collection, "YOUR_APP_KEY", "device-id", "0");
@@ -197,7 +222,7 @@ namespace TestProject_common
             await Countly.Instance.SessionEnd();
 
             StoredRequest model = Countly.Instance.StoredRequests.Dequeue();
-            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(model.Request);
 
             Assert.Equal("1", collection.Get("end_session"));
             Assert.False(string.IsNullOrEmpty(collection.Get("session_duration")));

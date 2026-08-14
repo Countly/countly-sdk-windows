@@ -4,17 +4,19 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Countly Windows SDK targeting net standard 2.0</Description>
     <Product>Countly SDK</Product>
-    <AssemblyVersion>24.1.1.0</AssemblyVersion>
+    <AssemblyVersion>26.1.0.0</AssemblyVersion>
     <Copyright>Copyright © Countly 2022</Copyright>
-    <FileVersion>24.1.1.0</FileVersion>
-    <Version>24.1.1</Version>
+    <FileVersion>26.1.0.0</FileVersion>
+    <Version>26.1.0</Version>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>D:\programming\Countly\countly-sdk-windows\netstd\Countly\Countly.xml</DocumentationFile>
+    <!-- Project-relative on purpose: Countly.xml is tracked in the repo and copied into
+         nuget\lib\netstandard2.0\ at pack time (see nuget\Countly.nuspec). -->
+    <DocumentationFile>Countly.xml</DocumentationFile>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -23,12 +25,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>embedded</DebugType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(SignAssembly)' != 'true'">
+    <DefineConstants>$(DefineConstants);COUNTLY_TESTABLE</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="..\..\countlyCommon\countlyCommon\CountlyBase.cs" Link="CountlyBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\BeginSession.cs" Link="Entities\BeginSession.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyConfigBase.cs" Link="Entities\CountlyConfigBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyEvent.cs" Link="Entities\CountlyEvent.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyFeedbackWidget.cs" Link="Entities\CountlyFeedbackWidget.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Entities\ContentModels.cs" Link="Entities\ContentModels.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CountlyUserDetails.cs" Link="Entities\CountlyUserDetails.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfo.cs" Link="Entities\CustomInfo.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Entities\CustomInfoItem.cs" Link="Entities\CustomInfoItem.cs" />
@@ -46,6 +53,9 @@
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\EventPool.cs" Link="Helpers\EventPool.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\PhoneNameHelper.cs" Link="Helpers\PhoneNameHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\RequestHelper.cs" Link="Helpers\RequestHelper.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\WidgetActionParser.cs" Link="Helpers\WidgetActionParser.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\WidgetUrlBuilder.cs" Link="Helpers\WidgetUrlBuilder.cs" />
+    <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\ContentRequestBuilder.cs" Link="Helpers\ContentRequestBuilder.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\StorageBase.cs" Link="Helpers\StorageBase.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\TimeHelper.cs" Link="Helpers\TimeHelper.cs" />
     <Compile Include="..\..\countlyCommon\countlyCommon\Helpers\UtilityHelper.cs" Link="Helpers\UtilityHelper.cs" />

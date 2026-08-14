@@ -51,6 +51,7 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="xunit, Version=1.9.2.1705, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
@@ -83,6 +84,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleBackendModeTests.cs">
       <Link>ModuleBackendModeTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleRemoteConfigTests.cs">
+      <Link>ModuleRemoteConfigTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
     </Compile>
@@ -106,6 +110,9 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
       <Link>ViewsTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\MockHttpServer.cs">
+        <Link>MockHttpServer.cs</Link>
     </Compile>
     <Compile Include="CountlyImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

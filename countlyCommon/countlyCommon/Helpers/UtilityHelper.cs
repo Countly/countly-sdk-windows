@@ -67,8 +67,36 @@ namespace CountlySDK.Helpers
             return unescapedString;
         }
 
+        // Optional hook invoked for WARNING/ERROR logs (health check counters). Independent of IsLoggingEnabled.
+        internal static System.Action<LogLevel> InternalLogHook = null;
+
+        // Optional listener invoked for EVERY log (all levels), independent of IsLoggingEnabled.
+        // Receives (raw message, level). Set from config at init; cleared on Halt.
+        internal static System.Action<string, LogLevel> LogListenerHook = null;
+
         public static void CountlyLogging(String msg, LogLevel level = LogLevel.DEBUG)
         {
+            if (level == LogLevel.WARNING || level == LogLevel.ERROR) {
+                InternalLogHook?.Invoke(level);
+            }
+
+            // Log listener: fires for every log, independent of the console flag.
+            // Snapshot to a local so a concurrent Halt (which nulls the hook) can't cause a NRE
+            // between the null-check and the invoke.
+            System.Action<string, LogLevel> listener = LogListenerHook;
+            if (listener != null) {
+                try {
+                    listener.Invoke(msg, level);
+                } catch (Exception ex) {
+                    // A faulty listener must never break the SDK. Only surface the failure when
+                    // console logging is on, so a broken listener stays silent in the release
+                    // scenario this feature exists for (flag off => no console output).
+                    if (Countly.IsLoggingEnabled) {
+                        System.Diagnostics.Debug.WriteLine("[UtilityHelper] CountlyLogging: log listener threw: " + ex);
+                    }
+                }
+            }
+
             if (Countly.IsLoggingEnabled) {
                 StringBuilder fullMessage = new StringBuilder(msg.Length + 10);
 

@@ -20,7 +20,9 @@ namespace CountlySDK.CountlyCommon.Server.Responses
 
             try {
                 return JObject.Parse(responseText).ContainsKey("result");
-            } catch (Exception e) { }
+            } catch (Exception ex) {
+                CountlySDK.Helpers.UtilityHelper.CountlyLogging("[RequestResult] IsSuccess, could not parse response as JSON: " + ex.Message);
+            }
 
             return false;
         }

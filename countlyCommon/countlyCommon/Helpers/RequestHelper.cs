@@ -101,6 +101,9 @@ namespace CountlySDK.CountlyCommon.Helpers
                     case ConsentFeatures.RemoteConfig:
                         consentChanges += "\"remote-config\":" + (value ? "true" : "false");
                         break;
+                    case ConsentFeatures.Content:
+                        consentChanges += "\"content\":" + (value ? "true" : "false");
+                        break;
                     default:
                         consentChanges += "\"unknown\":false";
                         break;
@@ -153,9 +156,7 @@ namespace CountlySDK.CountlyCommon.Helpers
                 }
             }
 
-            string result = "/i?" + requestStringBuilder.ToString();
-
-            return Uri.EscapeUriString(result);
+            return Uri.EscapeUriString(requestStringBuilder.ToString());
         }
 
         /// <summary>

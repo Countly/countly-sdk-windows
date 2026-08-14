@@ -46,6 +46,7 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
@@ -82,6 +83,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleBackendModeTests.cs">
       <Link>ModuleBackendModeTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ModuleRemoteConfigTests.cs">
+      <Link>ModuleRemoteConfigTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
     </Compile>
@@ -96,6 +100,9 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\TestingEntities.cs">
       <Link>TestingEntities.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\MockHttpServer.cs">
+        <Link>MockHttpServer.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\ThreadingTestCases.cs">
       <Link>ThreadingTestCases.cs</Link>

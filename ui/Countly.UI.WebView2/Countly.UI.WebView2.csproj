@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net462;net8.0-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>CountlySDK.UI</RootNamespace>
+    <AssemblyName>Countly.UI.WebView2</AssemblyName>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Strong-name signed with the same key as the core on release builds. dev/CI/local packing
+         override -p:SignAssembly=false because the .pfx is not in the repo. -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\netstd\Countly\CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+
+    <!-- Ship XML docs for consumer IntelliSense (packed next to each TFM's DLL). -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- NuGet package metadata (consumed by `dotnet pack`). -->
+    <PackageId>Countly.UI.WebView2</PackageId>
+    <Version>26.1.0</Version>
+    <AssemblyVersion>26.1.0.0</AssemblyVersion>
+    <FileVersion>26.1.0.0</FileVersion>
+    <Title>Countly Feedback Widgets and Content UI (WebView2)</Title>
+    <Authors>Countly</Authors>
+    <Company>Countly</Company>
+    <Product>Countly SDK</Product>
+    <Description>WebView2-based WPF/WinForms UI for the Countly Windows SDK: displays Feedback Widgets (Surveys, NPS, Ratings) and the Content feature. Companion to the Countly core package. Requires the Microsoft Edge WebView2 Evergreen runtime on the end-user machine.</Description>
+    <Copyright>(C) Countly</Copyright>
+    <PackageTags>countly;analytics;feedback;surveys;nps;rating;content;webview2;wpf;winforms</PackageTags>
+    <PackageProjectUrl>https://github.com/Countly/countly-sdk-windows</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Countly/countly-sdk-windows</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
+  </ItemGroup>
+
+  <!-- Core dependency. Dev/test/CI build against the local core project (default). For the release
+       package, pack with -p:UsePackagedCountly=true so the .nupkg declares a dependency on the
+       published Countly NuGet instead. Publish the core (26.1.0) BEFORE packing the UI this way. -->
+  <ItemGroup Condition="'$(UsePackagedCountly)' == 'true'">
+    <PackageReference Include="Countly" Version="26.1.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UsePackagedCountly)' != 'true'">
+    <ProjectReference Include="..\..\netstd\Countly\Countly.csproj" />
+  </ItemGroup>
+
+  <!-- Packaged assets (reused from the repo root; license is declared via the MIT expression). -->
+  <ItemGroup>
+    <None Include="..\..\icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

@@ -21,6 +21,7 @@ namespace TestProject_common
                 appKey = appKey,
                 appVersion = appVersion
             };
+            config.DisableAutoSendUserDetails().DisableManualUserDetailsSave();
 
             await Countly.Instance.Init(config);
             await Countly.Instance.SessionBegin();

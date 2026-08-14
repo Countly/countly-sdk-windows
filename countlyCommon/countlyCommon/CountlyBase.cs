@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Entities;
 using CountlySDK.CountlyCommon.Helpers;
+using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
@@ -52,12 +53,17 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "24.1.1";
+        protected const string sdkVersion = "26.1.0";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
         internal CountlyConfig Configuration;
         internal ModuleBackendMode moduleBackendMode;
+        internal ModuleRemoteConfig moduleRemoteConfig;
+        internal ModuleFeedback moduleFeedback;
+        internal ModuleContent moduleContent;
+        internal ModuleServerConfig moduleServerConfig;
+        internal ModuleHealthCheck moduleHealthCheck;
 
         public abstract string sdkName();
 
@@ -124,6 +130,9 @@ namespace CountlySDK.CountlyCommon
                         }
 
                         userDetails.UserDetailsChanged += Countly.Instance.OnUserDetailsChanged;
+                        if (Countly.Instance.Configuration != null) {
+                            userDetails.manualUserDetailsSave = Countly.Instance.Configuration.manualUserDetailsSave;
+                        }
                     }
                 }
                 return userDetails;
@@ -194,7 +203,7 @@ namespace CountlySDK.CountlyCommon
         }
         public enum ConsentFeatures
         {
-            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig
+            Sessions, Events, Location, Crashes, Users, Views, Push, Feedback, StarRating, RemoteConfig, Content
         };
 
         internal abstract Metrics GetSessionMetrics();
@@ -207,12 +216,31 @@ namespace CountlySDK.CountlyCommon
             }
         }
 
-        protected async Task UpdateSessionInternal(int? elapsedTime = null)
+        internal async Task UpdateSessionInternal(int? elapsedTime = null)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Session Update happening'");
-            if (Configuration.backendMode) {
-                moduleBackendMode.OnTimer();
-                Upload();
+
+            // A session-timer tick can land while/after Halt nulls the SDK state. Work on local
+            // captures and bail out on a halted or never-initialized SDK instead of crashing.
+            CountlyConfig config = Configuration;
+            if (config == null || !IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] UpdateSessionInternal, SDK is not initialized (or halted), ignoring session update");
+                return;
+            }
+
+            if (config.backendMode) {
+                ModuleBackendMode backendMode = moduleBackendMode;
+                if (backendMode != null) {
+                    backendMode.OnTimer();
+                    Upload();
+                }
+                return;
+            }
+
+            moduleHealthCheck?.SaveState();
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] UpdateSessionInternal, session tracking disabled by server config, ignoring");
                 return;
             }
 
@@ -226,9 +254,14 @@ namespace CountlySDK.CountlyCommon
             lastSessionUpdateTime = DateTime.Now;
 
             Dictionary<string, object> requestParams =
-               new Dictionary<string, object>();
+               new Dictionary<string, object> {
+                   { "session_duration", elapsedTime.Value }
+               };
 
-            requestParams.Add("session_duration", elapsedTime.Value);
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -240,7 +273,14 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd, Backend Mode enabled, returning");
                 return;
             }
+
+            moduleHealthCheck?.SaveState();
             UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal'");
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal, session tracking disabled by server config, ignoring");
+                return;
+            }
 
             //report the duration of current view
             reportViewDuration();
@@ -262,31 +302,53 @@ namespace CountlySDK.CountlyCommon
                 elapsedTimeSeconds = 0;
             }
 
-            Dictionary<string, object> requestParams = new Dictionary<string, object>();
+            Dictionary<string, object> requestParams = new Dictionary<string, object> {
+                { "end_session", 1 },
+                { "session_duration", elapsedTimeSeconds }
+            };
 
-            requestParams.Add("end_session", 1);
-            requestParams.Add("session_duration", elapsedTimeSeconds);
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
         }
 
         /// <summary>
-        /// Upload sessions, events & exception queues
+        /// Upload sessions, events &amp; exception queues
         /// </summary>
         /// <returns>True if success</returns>
         internal async Task<bool> Upload()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'Upload'");
-            bool success = false;
-            bool shouldContinue = false;
 
-            do {
+            if (moduleServerConfig != null && !moduleServerConfig.GetNetworkingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] Upload, networking disabled by server config, skipping upload");
+                return true;
+            }
+
+            RemoveTooOldRequests();
+
+            bool success = false;
+
+            // Iterative drain with a no-progress guard.The guard stops once a pass makes no progress, so no stuck queue can loop forever.
+            int previousPending = int.MaxValue;
+
+            while (true) {
                 if (deferUpload) {
                     return true;
                 }
 
-                success = await UploadSessions();
+                if (Configuration.autoSendUserDetails) {
+                    success = await UploadStoredRequests();
+                    if (success) {
+                        success = await UploadSessions();
+                    }
+                } else {
+                    success = await UploadSessions();
+                }
 
                 if (success) {
                     success = await UploadEvents();
@@ -296,37 +358,42 @@ namespace CountlySDK.CountlyCommon
                     success = await UploadExceptions();
                 }
 
-                if (success) {
+                if (success && !Configuration.autoSendUserDetails) {
                     success = await UploadUserDetails();
                 }
 
+                // Drain the request queue in BOTH modes.
                 if (success) {
                     success = await UploadStoredRequests();
                 }
 
-                if (success && !uploadInProgress) {
-                    int sC, exC, evC, rC;
-                    bool isChanged;
-
-                    lock (sync) {
-                        sC = Sessions.Count;
-                        exC = Exceptions.Count;
-                        evC = Events.Count;
-                        rC = StoredRequests.Count;
-                        isChanged = UserDetails.isChanged;
-                    }
-
-                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
-
-                    if (sC > 0 || exC > 0 || evC > 0 || rC > 0 || isChanged) {
-                        //work still needs to be done
-                        return await Upload();
-                    }
-                } else {
-                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, in progress");
+                if (!success || uploadInProgress) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, in progress or unsuccessful");
+                    break;
                 }
-            } while (success && shouldContinue);
 
+                int sC, exC, evC, rC;
+                bool isChanged;
+
+                lock (sync) {
+                    sC = Sessions.Count;
+                    exC = Exceptions.Count;
+                    evC = Events.Count;
+                    rC = StoredRequests.Count;
+                    isChanged = !Configuration.autoSendUserDetails && UserDetails.isChanged && IsConsentGiven(ConsentFeatures.Users);
+                }
+
+                UtilityHelper.CountlyLogging("[CountlyBase] Upload, after one loop, " + sC + " " + exC + " " + evC + " " + rC + " " + isChanged);
+
+                int pending = sC + exC + evC + rC + (isChanged ? 1 : 0);
+                if (pending == 0 || pending >= previousPending) {
+                    // Everything drained, or a pass made no progress (an item can't be flushed) -> stop
+                    // instead of looping forever; leftovers retry on the next Upload() trigger.
+                    break;
+                }
+
+                previousPending = pending;
+            }
 
             return success;
         }
@@ -460,7 +527,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void StartEvent(string key)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] StartEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -498,7 +565,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public void CancelEvent(string key)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -540,7 +607,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task EndEvent(string key, Segmentation segmentation = null, int count = 1, double? sum = 0)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] EndEvent, Backend Mode enabled, returning");
                 return;
             }
@@ -643,14 +710,14 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         public static Task<bool> RecordEvent(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
-            if (Countly.Instance.Configuration.backendMode) {
+            if (Countly.Instance.Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent, Backend Mode enabled, returning false");
-                return Task.Factory.StartNew(() => { return false; });
+                return BoolTask(false);
             }
 
             if (!Countly.Instance.IsInitialized()) {
                 UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'");
-                return Task.Factory.StartNew(() => { return false; });
+                return BoolTask(false);
             }
 
             CountlyConfig config = Countly.Instance.Configuration;
@@ -675,6 +742,23 @@ namespace CountlySDK.CountlyCommon
         protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
+            if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event");
+                return true;
+            }
+            if (!IsReservedEventKey(Key) && moduleServerConfig != null && !moduleServerConfig.GetCustomEventTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, custom event tracking disabled by server config, ignoring event");
+                return true;
+            }
+            bool journeyTrigger = false;
+            if (!IsReservedEventKey(Key) && moduleServerConfig != null) {
+                if (!moduleServerConfig.IsEventKeyAllowed(Key)) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, event key filtered out by server config, ignoring event");
+                    return true;
+                }
+                moduleServerConfig.FilterEventSegmentation(Key, Segmentation);
+                journeyTrigger = moduleServerConfig.IsJourneyTriggerEvent(Key);
+            }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!CheckConsentOnKey(Key)) { return true; }
 
@@ -687,12 +771,26 @@ namespace CountlySDK.CountlyCommon
                 saveSuccess = SaveEvents();
             }
 
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             if (saveSuccess) {
                 //todo rework this
                 saveSuccess = await Upload();
+                if (saveSuccess && journeyTrigger && moduleContent != null && IsConsentGiven(ConsentFeatures.Content)) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, journey trigger event delivered, refreshing content zone");
+                    moduleContent.RefreshContentZone();
+                }
             }
 
             return saveSuccess;
+        }
+
+        /// <summary>SDK-internal events ("[CLY]_" prefixed) are not custom events, so the 'cet' gate must not block them.</summary>
+        private bool IsReservedEventKey(string key)
+        {
+            return key.StartsWith("[CLY]_", StringComparison.Ordinal);
         }
 
         private bool CheckConsentOnKey(string key)
@@ -878,7 +976,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns>True if exception successfully uploaded, False - queued for delayed upload</returns>
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
-            if (Countly.Instance.Configuration.backendMode) {
+            if (Countly.Instance.Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordException, Backend Mode enabled, returning false");
                 return false;
             }
@@ -902,6 +1000,10 @@ namespace CountlySDK.CountlyCommon
         internal async Task<bool> RecordExceptionInternal(string error, string stackTrace, Dictionary<string, string> customInfo, bool unhandled)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordException'");
+            if (moduleServerConfig != null && !moduleServerConfig.GetCrashReportingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException, crash reporting disabled by server config, ignoring exception");
+                return true;
+            }
             if (!IsServerURLCorrect(ServerUrl)) { return false; }
             if (!IsConsentGiven(ConsentFeatures.Crashes)) { return true; }
 
@@ -911,7 +1013,7 @@ namespace CountlySDK.CountlyCommon
             Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues);
             segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize);
 
-            ExceptionEvent eEvent = new ExceptionEvent(error, UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
+            ExceptionEvent eEvent = new ExceptionEvent(UtilityHelper.TrimKey(error, config.MaxKeyLength), UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -964,6 +1066,7 @@ namespace CountlySDK.CountlyCommon
 
                 //do the exception upload
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                exEvent.Name = UtilityHelper.TrimKey(exEvent.Name, Configuration.MaxKeyLength); // this is here because already saved exceptions need to be truncated too
                 RequestResult requestResult = await Api.Instance.SendException(ServerUrl, requestHelper, GetRemainingRequestCount(), exEvent);
 
                 //check if we got a response and that it was a success
@@ -1031,7 +1134,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserDetails(ServerUrl, requestHelper, GetRemainingRequestCount(), UserDetails);
+            RequestResult requestResult = await Api.Instance.SendUserDetails(ServerUrl, requestHelper, GetRemainingRequestCount(), UserDetails);
 
             lock (sync) {
                 uploadInProgress = false;
@@ -1070,13 +1173,50 @@ namespace CountlySDK.CountlyCommon
 
             UserDetails._custom = UtilityHelper.FixSegmentKeysAndValues(UserDetails._custom, Configuration.MaxKeyLength, Configuration.MaxValueSize);
 
+            if (moduleServerConfig != null) {
+                UserDetails._custom = moduleServerConfig.FilterUserProperties(UserDetails._custom);
+            }
+
             UserDetails.isNotificationEnabled = true;
 
             if (!Configuration.backendMode) {
                 SaveUserDetails();
             }
 
-            await Upload();
+            UtilityHelper.CountlyLogging("[Countly] OnUserDetailsChanged, autoSendUserDetails: [" + Configuration.autoSendUserDetails + "], if true they will be added to the RQ");
+
+            if (Configuration.autoSendUserDetails) {
+                await RecordUserDetails();
+            } else {
+                await Upload();
+            }
+        }
+
+        private async Task RecordUserDetails()
+        {
+            if (UserDetails == null) {
+                return;
+            }
+
+            string userDetails = RequestHelper.Json(UserDetails);
+
+            if (string.IsNullOrEmpty(userDetails) || userDetails.Equals("{}")) {
+                // Nothing to send. Clear the changed flag anyway - leaving it set makes upload
+                // waiters poll forever for a user-details request that will never be created.
+                UserDetails.isChanged = false;
+                return;
+            }
+
+            Dictionary<string, object> requestParams = new Dictionary<string, object>() {
+                { "user_details", RequestHelper.Json(UserDetails) }
+            };
+
+            UserDetails.Clear();
+
+            string request = await requestHelper.BuildRequest(requestParams);
+            await AddRequest(request);
+
+            return;
         }
 
         /// <summary>
@@ -1091,13 +1231,13 @@ namespace CountlySDK.CountlyCommon
             }
 
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-            RequestResult requestResult = await Api.Instance.UploadUserPicture(ServerUrl, requestHelper, GetRemainingRequestCount(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
+            RequestResult requestResult = await Api.Instance.SendUserPicture(ServerUrl, requestHelper, GetRemainingRequestCount(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
             return (requestResult != null && requestResult.IsSuccess());
         }
 
         /// <summary>
-        /// Immediately disables session, event, exceptions & user details tracking and clears any stored sessions, events, exceptions & user details data.
+        /// Immediately disables session, event, exceptions &amp; user details tracking and clears any stored sessions, events, exceptions &amp; user details data.
         /// This API is useful if your app has a tracking opt-out switch, and you want to immediately
         /// disable tracking when a user opts out. Call StartSession to enable logging again
         /// </summary>
@@ -1152,6 +1292,15 @@ namespace CountlySDK.CountlyCommon
 
                 // modules
                 moduleBackendMode = null;
+                moduleRemoteConfig = null;
+                moduleFeedback = null;
+                if (moduleContent != null) { moduleContent.ExitContentZone(); } // stop the poll timer
+                moduleContent = null;
+                if (moduleServerConfig != null) { moduleServerConfig.StopTimer(); }
+                moduleServerConfig = null;
+                if (moduleHealthCheck != null) { moduleHealthCheck.UnregisterHooks(); }
+                moduleHealthCheck = null;
+                UtilityHelper.LogListenerHook = null;
             }
             if (clearStorage) {
                 await ClearStorage();
@@ -1166,6 +1315,8 @@ namespace CountlySDK.CountlyCommon
             await Storage.Instance.DeleteFile(userDetailsFilename);
             await Storage.Instance.DeleteFile(storedRequestsFilename);
             await Storage.Instance.DeleteFile(Device.deviceFilename);
+            await Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename);
+            await Storage.Instance.DeleteFile(ModuleHealthCheck.healthCheckFilename);
         }
 
         /// <summary>
@@ -1186,7 +1337,7 @@ namespace CountlySDK.CountlyCommon
         /// <param name="log">log string</param>
         public void AddCrashBreadCrumb(string breadCrumb)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] AddCrashBreadCrumb, Backend Mode enabled, returning");
                 return;
             }
@@ -1219,19 +1370,17 @@ namespace CountlySDK.CountlyCommon
             return did.deviceId;
         }
 
-        protected bool IsServerURLCorrect(String url)
+        protected bool IsServerURLCorrect(string url)
         {
-            if (String.IsNullOrEmpty(url))//todo, in future replace with "String.IsNullOrWhiteSpace"
-            {
+            if (string.IsNullOrEmpty(url)) {
                 return false;
             }
             return true;
         }
 
-        protected bool IsAppKeyCorrect(String appKey)
+        protected bool IsAppKeyCorrect(string appKey)
         {
-            if (String.IsNullOrEmpty(appKey))//todo, in future replace with "String.IsNullOrWhiteSpace"
-            {
+            if (string.IsNullOrEmpty(appKey)) {
                 return false;
             }
             return true;
@@ -1243,7 +1392,7 @@ namespace CountlySDK.CountlyCommon
         public async Task<bool> SetLocation(string gpsLocation, string ipAddress = null, string country_code = null, string city = null)
         {
 
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SetLocation, Backend Mode enabled, returning false");
                 return false;
             }
@@ -1252,6 +1401,11 @@ namespace CountlySDK.CountlyCommon
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SetLocation: SDK must initialized before calling 'SetLocation'");
                 return false;
+            }
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation, location tracking disabled by server config, ignoring");
+                return true;
             }
 
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
@@ -1294,9 +1448,10 @@ namespace CountlySDK.CountlyCommon
             Dictionary<string, object> locationParams =
                new Dictionary<string, object>();
 
-            /* If location is disabled or no location consent is given,
-            the SDK adds an empty location entry to every "begin_session" request. */
-            if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)) {
+            /* If location is disabled (by the developer or by server config) or no location consent
+            is given, the SDK adds an empty location entry to every "begin_session" request. */
+            if (Configuration.IsLocationDisabled || !IsConsentGiven(ConsentFeatures.Location)
+                || (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled())) {
                 locationParams.Add("location", string.Empty);
             } else {
                 if (!string.IsNullOrEmpty(Configuration.IPAddress)) {
@@ -1335,7 +1490,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task<bool> DisableLocation()
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation, Backend Mode enabled, returning false");
                 return false;
             }
@@ -1344,6 +1499,10 @@ namespace CountlySDK.CountlyCommon
             if (!IsInitialized()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'");
                 return false;
+            }
+            if (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation, location tracking disabled by server config, ignoring");
+                return true;
             }
             if (!IsConsentGiven(ConsentFeatures.Location)) { return true; }
             await SendRequestWithEmptyLocation();
@@ -1358,11 +1517,74 @@ namespace CountlySDK.CountlyCommon
             return false;
         }
 
+        // Returns an already-completed Task with the given value. net35 has no Task.FromResult,
+        // so we complete a TaskCompletionSource explicitly instead of scheduling a thread-pool
+        // work item just to return a constant.
+        private static Task<bool> BoolTask(bool value)
+        {
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            tcs.SetResult(value);
+            return tcs.Task;
+        }
+
+        /// <summary>
+        /// Drops queued requests older than the server-configured 'dort' limit (in hours).
+        /// The request age is read from its embedded 'timestamp' parameter; 0 disables the feature.
+        /// </summary>
+        private void RemoveTooOldRequests()
+        {
+            if (moduleServerConfig == null) { return; }
+            int dropAgeHours = moduleServerConfig.GetDropOldRequestTimeHours();
+            if (dropAgeHours <= 0) { return; }
+
+            long nowMs = (long)(DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+            long thresholdMs = nowMs - (dropAgeHours * 3600000L);
+
+            lock (sync) {
+                int originalCount = StoredRequests.Count;
+                if (originalCount == 0) { return; }
+                Queue<StoredRequest> keptRequests = new Queue<StoredRequest>();
+                foreach (StoredRequest storedRequest in StoredRequests) {
+                    if (IsRequestTooOld(storedRequest.Request, thresholdMs)) {
+                        UtilityHelper.CountlyLogging("[CountlyBase] RemoveTooOldRequests, dropping request older than [" + dropAgeHours + "] hours: " + storedRequest.Request);
+                    } else {
+                        keptRequests.Enqueue(storedRequest);
+                    }
+                }
+                if (keptRequests.Count != originalCount) {
+                    StoredRequests = keptRequests;
+                    SaveStoredRequests();
+                }
+            }
+        }
+
+        /// <summary>Reads the 'timestamp' parameter (unix ms) out of a request string; unparsable requests are kept.</summary>
+        private static bool IsRequestTooOld(string request, long thresholdMs)
+        {
+            if (request == null) { return false; }
+            int index = request.IndexOf("timestamp=", StringComparison.Ordinal);
+            if (index < 0) { return false; }
+            if (index > 0 && request[index - 1] != '&' && request[index - 1] != '?') { return false; }
+
+            int start = index + "timestamp=".Length;
+            int end = start;
+            while (end < request.Length && char.IsDigit(request[end])) { end++; }
+
+            long requestTimestampMs;
+            if (!long.TryParse(request.Substring(start, end - start), out requestTimestampMs)) { return false; }
+            return requestTimestampMs < thresholdMs;
+        }
+
         internal async Task AddRequest(string networkRequest, bool isIdMerge = false)
         {
             Debug.Assert(networkRequest != null);
 
             if (networkRequest == null) { return; }
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, tracking disabled by server config, ignoring request");
+                return;
+            }
 
             lock (sync) {
                 StoredRequest sr = new StoredRequest(networkRequest, isIdMerge);
@@ -1385,6 +1607,7 @@ namespace CountlySDK.CountlyCommon
 
         protected async Task InitBase(CountlyConfig config)
         {
+            UtilityHelper.LogListenerHook = config.LogListener;
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'InitBase' on SDK flavor: " + sdkName());
             if (!IsServerURLCorrect(config.serverUrl)) {
                 UtilityHelper.CountlyLogging("[CountlyBase] InitBase: Invalid server url!");
@@ -1410,6 +1633,8 @@ namespace CountlySDK.CountlyCommon
             timeHelper = new TimeHelper();
             IRequestHelperImpl exposed = new IRequestHelperImpl(this);
             requestHelper = new RequestHelper(exposed);
+            Api.Instance.customNetworkRequestHeaders = config.CustomNetworkRequestHeaders;
+            Api.Instance.tamperingProtectionSalt = config.TamperingProtectionSalt;
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {
@@ -1446,11 +1671,25 @@ namespace CountlySDK.CountlyCommon
                 }
             }
 
+            //server config (SDK Behavior Settings): load+apply stored/provided before consent is read
+            moduleServerConfig = new ModuleServerConfig(requestHelper, ServerUrl);
+            moduleServerConfig.InitializeServerConfig(config);
+            sessionUpdateInterval = Configuration.sessionUpdateInterval;
+
             //consent related
             consentRequired = config.consentRequired;
             if (config.givenConsent != null) {
                 await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
             }
+
+            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl, Configuration.enableABTestingAutoEnroll);
+            moduleFeedback = new ModuleFeedback(requestHelper, ServerUrl);
+            moduleContent = new ModuleContent(requestHelper, ServerUrl);
+
+            string hcAppVersion = (config.MetricOverride != null && config.MetricOverride.ContainsKey("_app_version"))
+                ? config.MetricOverride["_app_version"] : config.appVersion;
+            moduleHealthCheck = new ModuleHealthCheck(requestHelper, ServerUrl, config.healthCheckDisabled, hcAppVersion);
+            moduleHealthCheck.RegisterHooks();
 
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
 
@@ -1479,6 +1718,22 @@ namespace CountlySDK.CountlyCommon
                  */
                     await SetLocation(Configuration.Location, Configuration.IPAddress, Configuration.CountryCode, Configuration.City);
                 }
+            }
+
+            if (Configuration.remoteConfigAutomaticDownloadTriggers) {
+                await RemoteConfig().DownloadKeys();
+            }
+
+            if (moduleServerConfig != null) {
+                await moduleServerConfig.FetchServerConfig();
+                consentRequired = Configuration.consentRequired;
+                TryAutoEnterContentZone();
+            }
+
+            // Health check: non-queued direct request to /i, sent after the SBS fetch.
+            bool networkingOk = moduleServerConfig == null || moduleServerConfig.GetNetworkingEnabled();
+            if (moduleHealthCheck != null && !Configuration.backendMode && networkingOk) {
+                await moduleHealthCheck.SendHealthCheck();
             }
         }
 
@@ -1515,6 +1770,11 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
+            if (moduleServerConfig != null && !moduleServerConfig.GetSessionTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin, session tracking disabled by server config, ignoring");
+                return;
+            }
+
             automaticSessionTrackingStarted = true;
             startTime = DateTime.Now;
             lastSessionUpdateTime = startTime;
@@ -1529,6 +1789,10 @@ namespace CountlySDK.CountlyCommon
                 { "metrics", metrics.ToString() }
             };
 
+            if (Configuration.autoSendUserDetails) {
+                UserDetails.Save();
+            }
+
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
@@ -1540,21 +1804,22 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task SessionUpdate(int elapsedTimeSeconds)
         {
-            if (Configuration.backendMode) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate, Backend Mode enabled, returning");
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionUpdate'");
+            // The initialization check must come first: before the first Init (or after Halt)
+            // there is no Configuration object to read the backend-mode flag from.
+            if (!IsInitialized() || Configuration == null) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
                 return;
             }
 
-            UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionUpdate'");
-            if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
+            if (Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate, Backend Mode enabled, returning");
                 return;
             }
             if (elapsedTimeSeconds < 0) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative");
                 return;
             }
-
             await UpdateSessionInternal(elapsedTimeSeconds);
         }
 
@@ -1583,7 +1848,7 @@ namespace CountlySDK.CountlyCommon
         public async Task ChangeDeviceId(string newDeviceId, bool serverSideMerge = false)
         {
 
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId, Backend Mode enabled, returning");
                 return;
             }
@@ -1595,6 +1860,13 @@ namespace CountlySDK.CountlyCommon
             }
             if (newDeviceId == null || newDeviceId.Length == 0) {
                 UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: New device id cannot be null or empty.");
+                return;
+            }
+            DeviceId dId = await DeviceData.GetDeviceId();
+            string oldId = dId.deviceId;
+
+            if (newDeviceId.Equals(oldId)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: New device id is equal to the current one, returning");
                 return;
             }
 
@@ -1618,11 +1890,11 @@ namespace CountlySDK.CountlyCommon
                     //restart the session only if an automatic one was started before
                     await SessionBegin();
                 }
+                if (Configuration.remoteConfigAutomaticDownloadTriggers) {
+                    await RemoteConfig().DownloadKeys();
+                }
             } else {
                 //need server merge, therefore send special request
-                DeviceId dId = await DeviceData.GetDeviceId();
-                string oldId = dId.deviceId;
-
                 //change device ID
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
 
@@ -1638,6 +1910,29 @@ namespace CountlySDK.CountlyCommon
                 await AddRequest(request, true);
                 await Upload();
             }
+
+            if (moduleServerConfig != null) { await moduleServerConfig.FetchServerConfig(); }
+        }
+
+
+        /// <summary>
+        /// Set the device id
+        /// </summary>
+        /// <param name="newDeviceId">New Id that should be used</param>
+        /// <returns></returns>
+        public async Task SetId(string newDeviceId)
+        {
+            bool withMerge = true;
+
+            if (GetDeviceIDType().Equals(DeviceIdType.DeveloperProvided)) {
+                // an ID was provided by the host app previously
+                // we can assume that a device ID change with merge was executed previously
+                // now we change it without merging
+                withMerge = false;
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] SetId, newDeviceId: [" + newDeviceId + "], withMerge: [" + withMerge.ToString() + "]");
+
+            await ChangeDeviceId(newDeviceId, withMerge);
         }
 
         internal bool IsConsentGiven(ConsentFeatures feature)
@@ -1659,7 +1954,7 @@ namespace CountlySDK.CountlyCommon
 
         public async Task SetConsent(Dictionary<ConsentFeatures, bool> consentChanges)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] SetConsent, Backend Mode enabled, returning");
                 return;
             }
@@ -1761,6 +2056,15 @@ namespace CountlySDK.CountlyCommon
                         break;
                     case ConsentFeatures.Users:
                         break;
+                    case ConsentFeatures.RemoteConfig:
+                        if (isGiven && action == ConsentChangedAction.ConsentUpdated && Configuration.remoteConfigAutomaticDownloadTriggers) {
+                            await RemoteConfig().DownloadKeys();
+                        }
+                        break;
+                    case ConsentFeatures.Content:
+                        //content consent removed -> stop the polling timer (and invalidate any in-flight fetch)
+                        if (!isGiven && moduleContent != null) { moduleContent.ExitContentZone(); }
+                        break;
                 }
             }
         }
@@ -1797,7 +2101,7 @@ namespace CountlySDK.CountlyCommon
         /// <returns></returns>
         public async Task<bool> RecordView(string viewName)
         {
-            if (Configuration.backendMode) {
+            if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordView, Backend Mode enabled, returning false");
                 return false;
             }
@@ -1813,6 +2117,10 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            if (moduleServerConfig != null && !moduleServerConfig.GetViewTrackingEnabled()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView, view tracking disabled by server config, ignoring view");
+                return false;
+            }
 
             if (!IsConsentGiven(ConsentFeatures.Views)) {
                 //if we don't have consent, do nothing
@@ -1847,6 +2155,11 @@ namespace CountlySDK.CountlyCommon
         {
             if (lastView != null && lastViewStart <= 0) {
                 UtilityHelper.CountlyLogging("[CountlyBase] Last view start value is not normal: [" + lastViewStart + "]");
+            }
+
+            if (moduleServerConfig != null && !moduleServerConfig.GetViewTrackingEnabled()) {
+                //if view tracking is disabled by server config, do nothing
+                return;
             }
 
             if (!IsConsentGiven(ConsentFeatures.Views)) {
@@ -1884,6 +2197,98 @@ namespace CountlySDK.CountlyCommon
             }
 
             return moduleBackendMode;
+        }
+
+        /// <summary>
+        /// Provides access to the Remote Config module.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="RemoteConfig"/> instance.
+        /// If backend mode is enabled, required consent is not granted,
+        /// or the Remote Config module is unavailable, a no-op
+        /// (dummy) implementation is returned instead.
+        /// </returns>
+        public RemoteConfig RemoteConfig()
+        {
+            if (Configuration == null || Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RemoteConfig, backend mode is enabled or SDK not initialized, will omit this call");
+                return new MockRemoteConfig();
+            }
+
+            if (moduleRemoteConfig == null) {
+                return new MockRemoteConfig();
+            }
+
+            if (!IsConsentGiven(ConsentFeatures.RemoteConfig)) {
+                return new MockRemoteConfig();
+            }
+
+            return moduleRemoteConfig;
+        }
+
+        /// <summary>
+        /// Returns the Feedback interface for retrieving/displaying/reporting feedback widgets.
+        /// If backend mode is enabled, the module is unavailable, or Feedback consent is not
+        /// given, a no-op <see cref="MockFeedback"/> is returned instead.
+        /// </summary>
+        public Feedback Feedback()
+        {
+            if (Configuration == null || Configuration.backendMode) {
+                UtilityHelper.CountlyLogging("[CountlyBase] Feedback, backend mode is enabled or SDK not initialized, will omit this call");
+                return new MockFeedback();
+            }
+
+            if (moduleFeedback == null) {
+                return new MockFeedback();
+            }
+
+            if (!IsConsentGiven(ConsentFeatures.Feedback)) {
+                return new MockFeedback();
+            }
+
+            return moduleFeedback;
+        }
+
+        /// <summary>Registers the UI content-display bridge (ungated; no-op if uninitialized).</summary>
+        public void SetContentDisplay(IContentDisplay display)
+        {
+            if (moduleContent != null) {
+                moduleContent.display = display;
+                // On Windows the display usually arrives after Init, so the server-config driven
+                // "enter content zone after init" (ecz) is retried once the display is available.
+                TryAutoEnterContentZone();
+            }
+        }
+
+        /// <summary>
+        /// Enters the content zone automatically when the server config enables 'ecz'.
+        /// Called after init and when a content display gets registered.
+        /// </summary>
+        internal void TryAutoEnterContentZone()
+        {
+            if (moduleContent == null || moduleServerConfig == null) { return; }
+            if (!moduleServerConfig.GetEnterContentZoneEnabled()) { return; }
+            if (!IsConsentGiven(ConsentFeatures.Content)) { return; }
+            moduleContent.EnterContentZone();
+        }
+
+        /// <summary>
+        /// Returns the Content interface (experimental). A no-op <see cref="MockContent"/> is
+        /// returned when backend mode is enabled, the module is unavailable, or Content consent
+        /// is not given.
+        /// </summary>
+        public Content Content()
+        {
+            if (Configuration == null || Configuration.backendMode) {
+                return new MockContent();
+            }
+            if (moduleContent == null) {
+                return new MockContent();
+            }
+            if (!IsConsentGiven(ConsentFeatures.Content)) {
+                return new MockContent();
+            }
+            return moduleContent;
         }
     }
 }

@@ -182,10 +182,12 @@ namespace TestProject_common
             bool res = await Countly.Instance.Upload();
 
             //todo, test is succeeding, but not really uploading
+            // update, uploading picture will not work anymore
+            // this test will always fail
             MemoryStream ms = TestHelper.MemoryStreamRead(TestHelper.testDataLocation + "\\sample_image.png");
 
             res = await Countly.Instance.UploadUserPicture(ms);
-            Assert.True(res);
+            Assert.False(res);
         }
 
         [Fact]

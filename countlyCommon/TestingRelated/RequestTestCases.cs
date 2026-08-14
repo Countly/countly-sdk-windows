@@ -64,7 +64,7 @@ namespace TestProject_common
 
             Assert.Equal("YOUR_APP_KEY", baseParams["app_key"]);
             Assert.Equal("test device id", baseParams["device_id"]);
-            Assert.Equal("24.1.1", baseParams["sdk_version"]);
+            Assert.Equal("26.1.0", baseParams["sdk_version"]);
             Assert.Equal(0, baseParams["t"]);
             Assert.Equal("1.0", baseParams["av"]);
 
@@ -94,7 +94,7 @@ namespace TestProject_common
 
             string request = await requestHelper.BuildRequest(param);
 
-            NameValueCollection collection = HttpUtility.ParseQueryString(request.Substring(2));
+            NameValueCollection collection = HttpUtility.ParseQueryString(request);
 
             Assert.Equal("A", collection.Get("a"));
             Assert.Equal("B", collection.Get("b"));
