@@ -1,18 +1,11 @@
 ## 26.1.0
-* Fixed public APIs (RecordEvent, RecordView, RecordException, SetLocation, DisableLocation, StartEvent, EndEvent, CancelEvent, AddCrashBreadCrumb, ChangeDeviceId, SetConsent) throwing a NullReferenceException when called before "Init"; they now safely no-op until the SDK is initialized.
-* Fixed the SDK constructing a new HttpClient for every request, which could exhaust sockets under sustained use; a single shared client with a request timeout is now reused.
-* Fixed the .NET Framework (net35/net45) networking path leaking the HTTP response stream and losing the real status code on 4xx/5xx responses.
-* Fixed unique-timestamp generation not being thread-safe, which could hand out duplicate timestamps when recording from multiple threads at once.
-* Added support for a Log Listener: a callback set at initialization via the new configuration option "SetLogListener" that receives every SDK log message and its level. It fires independently of the console logging flag, so SDK logs can be captured in release builds without printing to the console.
-* Added support for SDK Health Checks: once per initialization, right after the SDK Behavior Settings fetch, the SDK sends a non-queued direct request to "/i" reporting internal warning/error log counts and the last failed request's status/body. This can be turned off with the new configuration option "DisableHealthCheck()".
-* Added support for SDK Behavior Settings (Server Config), enabled by default:
-  * The server can gate "tracking" and "networking", enforce consent ("cr", enable-only), and override request/event queue sizes, session update interval, logging, and the SDK limits (key/value/segmentation/breadcrumb/stack-trace).
-  * The server can also gate individual features: sessions ("st"), views ("vt"), custom events ("cet"), crash reporting ("crt"), location ("lt"), and content ("ecz" to enter the content zone automatically, "rcz" to allow refreshing it, "czi" to override the content zone poll interval).
-  * The server can also filter recorded data: event blacklist/whitelist ("eb"/"ew"), segmentation key filters ("sb"/"sw"), per-event segmentation filters ("esb"/"esw"), and custom user property filters ("upb"/"upw") with a cache limit ("upcl").
-  * Added journey trigger events ("jte"): recording a listed custom event refreshes the content zone once the event is delivered.
-  * Added drop-old-request time ("dort"): queued requests older than the configured number of hours are dropped before upload (0 disables this).
+
+* ! Minor breaking change !  Added support for SDK Behavior Settings, enabled by default:
   * Added configuration option "SetSDKBehaviorSettings" to seed behavior settings for first run / offline.
   * Added configuration option "DisableSDKBehaviorSettingsUpdates" to stop only the network fetch (provided and stored settings still apply).
+
+* Added support for the Log Listener feature with new init time configuration option "SetLogListener" callback that receives every SDK log message and its level.
+* Added support for SDK Health Checks. This can be turned off with the new configuration option "DisableHealthCheck()".
 * Added support for Remote Config feature accesible through "Countly.Instance.RemoteConfig()" interface:
   * "DownloadKeys" for fetching RC values from server
   * "GetValues" for accessing all RC values
@@ -34,13 +27,17 @@
 * Added support for the experimental Content feature accessible through the "Countly.Instance.Content()" interface:
   * "EnterContentZone" / "ExitContentZone" for starting and stopping periodic content fetching
   * "RefreshContentZone" for forcing an immediate refresh
-  * "PreviewContent" for fetching and showing a specific content by id
   * Added "ContentZoneTimerInterval" and a global content callback to the configuration object
   * This feature uses "Content" consent.
   * Needs "Countly.UI.WebView2" for displaying content on WPF.
+
+* Fixed public APIs (RecordEvent, RecordView, RecordException, SetLocation, DisableLocation, StartEvent, EndEvent, CancelEvent, AddCrashBreadCrumb, ChangeDeviceId, SetConsent) throwing a NullReferenceException when called before "Init"; they now safely no-op until the SDK is initialized.
+* Fixed the SDK constructing a new HttpClient for every request, which could exhaust sockets under sustained use; a single shared client with a request timeout is now reused.
+* Fixed the .NET Framework (net35/net45) networking path leaking the HTTP response stream and losing the real status code on 4xx/5xx responses.
+* Fixed unique-timestamp generation not being thread-safe, which could hand out duplicate timestamps when recording from multiple threads at once.
 * Fixed a bug where the request queue was not processed when automatic user property saving ("autoSendUserDetails") was disabled, so queued requests (for example from a manual session update) were never uploaded and could cause the SDK to loop indefinitely.
-* Fixed a bug where a user-details change that serialized to nothing (empty user details) left the internal "changed" flag set forever, so the SDK kept re-processing user details on every session call and upload-completion checks could wait indefinitely.
-* Fixed a crash ("NullReferenceException") when a session-timer tick landed while/after "Halt" cleared the SDK state (an unhandled exception on a timer thread can terminate the host application), and when "SessionUpdate" was called before the first "Init".
+* Fixed a possible bug where SDK could kept re-processing user details on every session call and upload-completion checks could wait indefinitely.
+* Fixed a crash ("NullReferenceException") when a session-timer tick landed while/after "Halt" cleared the SDK state, and when "SessionUpdate" was called before the first "Init".
 
 ## 25.4.3
 * ! Minor breaking change ! User properties will now be automatically saved under the following conditions:
