@@ -1,3 +1,6 @@
+## XX.XX.XX
+* Mitigated an issue where, in apps running on .NET Core 3.1 or older, Windows 8.1, 10 and 11 were reported as Windows 8 (6.2.9200) when the app did not declare support for them in its manifest.
+
 ## 26.1.0
 
 * ! Minor breaking change !  Added support for SDK Behavior Settings, enabled by default:

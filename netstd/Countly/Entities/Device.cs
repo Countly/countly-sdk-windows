@@ -59,7 +59,8 @@ namespace CountlySDK.Entities
         protected override string GetOSVersion()
         {
             try {
-                return Environment.OSVersion.Version.ToString();
+                OperatingSystem os = Environment.OSVersion;
+                return ResolveVersion(os.Platform, os.Version, () => RuntimeInformation.OSDescription).ToString();
             } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("[Device] GetOSVersion, issue." + ex.ToString());
                 return null;
@@ -115,13 +116,51 @@ namespace CountlySDK.Entities
             }
         }
 
+        /// <summary>
+        /// Returns the OS version, with the real Windows version when Windows reports Windows 8 (6.2) because the app
+        /// doesn't declare support for later versions, as it does to apps on .NET Core 3.1 and older started from their
+        /// own exe. The runtime's OS description holds the real version.
+        /// </summary>
+        /// <param name="platform">platform the runtime reports</param>
+        /// <param name="reported">version the runtime reports</param>
+        /// <param name="osDescription">returns the runtime's OS description</param>
+        /// <returns>the real Windows version, or the reported version when the description has no newer one</returns>
+        internal static Version ResolveVersion(PlatformID platform, Version reported, Func<string> osDescription)
+        {
+            if (platform != PlatformID.Win32NT || reported.Major != 6 || reported.Minor != 2) {
+                return reported;
+            }
+
+            string description;
+            try {
+                description = osDescription();
+            } catch (Exception ex) {
+                UtilityHelper.CountlyLogging("[Device] ResolveVersion, could not read the OS description, " + ex);
+                return reported;
+            }
+
+            if (description == null) {
+                return reported;
+            }
+
+            foreach (string word in description.Split(' ')) {
+                Version described;
+                if (Version.TryParse(word, out described) && described.Build >= 0) {
+                    described = new Version(described.Major, described.Minor, described.Build, 0);
+                    return described > reported ? described : reported;
+                }
+            }
+
+            return reported;
+        }
+
         //https://stackoverflow.com/questions/2819934/detect-windows-version-in-net/2819974#2819974
         private string getOSInfo()
         {
             //Get Operating system information.
             OperatingSystem os = Environment.OSVersion;
             //Get version information about the os.
-            Version vs = os.Version;
+            Version vs = ResolveVersion(os.Platform, os.Version, () => RuntimeInformation.OSDescription);
 
             //Variable to hold our return value
             string operatingSystem = "";
