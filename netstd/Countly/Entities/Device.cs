@@ -135,7 +135,7 @@ namespace CountlySDK.Entities
             try {
                 description = osDescription();
             } catch (Exception ex) {
-                UtilityHelper.CountlyLogging("[Device] ResolveVersion, could not read the OS description, " + ex.ToString());
+                UtilityHelper.CountlyLogging("[Device] ResolveVersion, could not read the OS description, " + ex);
                 return reported;
             }
 
