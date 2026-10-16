@@ -140,6 +140,7 @@
       <Link>PreInitSafetyTests.cs</Link>
     </Compile>
     <Compile Include="CountlyImpl.cs" />
+    <Compile Include="DeviceOsVersionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
