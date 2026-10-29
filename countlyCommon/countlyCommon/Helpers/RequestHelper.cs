@@ -160,6 +160,11 @@ namespace CountlySDK.CountlyCommon.Helpers
         }
 
         /// <summary>
+        /// Serializer settings of request json, null values are ignored
+        /// </summary>
+        internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore };
+
+        /// <summary>
         /// Converts and object that has JsonSerializer annotations to String
         /// No formatting and null values are ignored
         /// </summary>
@@ -167,7 +172,7 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// <returns></returns>
         internal static string Json(object obj)
         {
-            return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            return JsonConvert.SerializeObject(obj, Formatting.None, JsonSettings);
         }
     }
 }
