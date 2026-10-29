@@ -28,6 +28,8 @@ using System.Threading.Tasks;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.CountlyCommon.Entities.EntityBase
 {
@@ -40,6 +42,12 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
         internal delegate void UserDetailsChangedEventHandler();
         internal bool manualUserDetailsSave = true;
         private bool isUserPropertiesChanged = false;
+
+        // Static because DataContractSerializer skips field initializers on the instance it restores from storage
+        private static readonly object modifiersLock = new object();
+
+        // Pending custom property modifiers, key to modifier object (for example {"$inc": 1}). One-shot and never stored.
+        private JObject customModifiers;
 
         /// <summary>
         /// raised when any of properties are changed
@@ -302,11 +310,207 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
                 return;
             }
 
-            if (!isUserPropertiesChanged) {
+            if (!isUserPropertiesChanged && !HasCustomModifiers()) {
                 return;
             }
             isUserPropertiesChanged = false;
             NotifyDetailsChanged();
+        }
+
+        /// <summary>
+        /// Increments a custom user property by 1. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        public void Increment(string key)
+        {
+            ModifyCustomData(key, 1, "$inc");
+        }
+
+        /// <summary>
+        /// Increments a custom user property by the given value. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to add</param>
+        public void IncrementBy(string key, int value)
+        {
+            ModifyCustomData(key, value, "$inc");
+        }
+
+        /// <summary>
+        /// Multiplies a custom user property by the given value. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to multiply by</param>
+        public void Multiply(string key, int value)
+        {
+            ModifyCustomData(key, value, "$mul");
+        }
+
+        /// <summary>
+        /// Keeps the larger of a custom user property's current value and the given value. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to compare with</param>
+        public void SaveMax(string key, int value)
+        {
+            ModifyCustomData(key, value, "$max");
+        }
+
+        /// <summary>
+        /// Keeps the smaller of a custom user property's current value and the given value. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to compare with</param>
+        public void SaveMin(string key, int value)
+        {
+            ModifyCustomData(key, value, "$min");
+        }
+
+        /// <summary>
+        /// Sets a custom user property only if it does not exist yet. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to set</param>
+        public void SetOnce(string key, string value)
+        {
+            ModifyCustomData(key, value, "$setOnce");
+        }
+
+        /// <summary>
+        /// Adds a value to a custom user property array, creating the array if the property does not exist yet.
+        /// Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to add</param>
+        public void Push(string key, string value)
+        {
+            ModifyCustomData(key, value, "$push");
+        }
+
+        /// <summary>
+        /// Adds a value to a custom user property array only if the array does not contain it yet,
+        /// creating the array if the property does not exist yet. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to add</param>
+        public void PushUnique(string key, string value)
+        {
+            ModifyCustomData(key, value, "$addToSet");
+        }
+
+        /// <summary>
+        /// Removes a value from a custom user property array. Sent with the next user details save.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">value to remove</param>
+        public void Pull(string key, string value)
+        {
+            ModifyCustomData(key, value, "$pull");
+        }
+
+        /// <summary>
+        /// Records a modifier for a custom user property until the next user details save.
+        /// A numeric modifier or "$setOnce" replaces the key's pending modifiers, an array modifier accumulates into them.
+        /// </summary>
+        /// <param name="key">custom property name</param>
+        /// <param name="value">int or string value of the modifier</param>
+        /// <param name="mod">modifier name, for example "$inc"</param>
+        private void ModifyCustomData(string key, object value, string mod)
+        {
+            UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, key: [" + key + "], modifier: [" + mod + "]");
+            Countly cly = Countly.Instance;
+            CountlyConfig config = cly.Configuration;
+            if (config == null || !cly.IsInitialized()) {
+                UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, SDK must be initialized before modifying custom user properties", LogLevel.WARNING);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(key) || value == null) {
+                UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, key can't be null or empty and value can't be null, ignoring", LogLevel.WARNING);
+                return;
+            }
+
+            if (!cly.IsConsentGiven(ConsentFeatures.Users)) {
+                UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, 'Users' consent not given, ignoring");
+                return;
+            }
+
+            string truncatedKey = UtilityHelper.TrimKey(key, config.MaxKeyLength);
+            ModuleServerConfig serverConfig = cly.moduleServerConfig;
+            int cacheLimit = int.MaxValue;
+            if (serverConfig != null) {
+                if (!serverConfig.IsUserPropertyAllowed(truncatedKey)) {
+                    UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, key: [" + truncatedKey + "] is filtered out by server config, ignoring");
+                    return;
+                }
+                cacheLimit = serverConfig.GetUserPropertyCacheLimit();
+            }
+
+            if (value is string) {
+                value = UtilityHelper.TrimValue(truncatedKey, (string)value, config.MaxValueSize);
+            }
+
+            bool isArrayModifier = mod == "$push" || mod == "$addToSet" || mod == "$pull";
+            bool overCacheLimit = false;
+            lock (modifiersLock) {
+                JObject modifiers = customModifiers ?? new JObject();
+                JObject pending = modifiers[truncatedKey] as JObject;
+                if (pending == null && modifiers.Count >= cacheLimit) {
+                    overCacheLimit = true;
+                } else {
+                    if (pending == null || !isArrayModifier) {
+                        pending = new JObject();
+                        modifiers[truncatedKey] = pending;
+                    }
+                    Accumulate(pending, mod, new JValue(value));
+                    customModifiers = modifiers;
+                }
+            }
+
+            if (overCacheLimit) {
+                UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, user property cache limit [" + cacheLimit + "] reached, dropping: [" + truncatedKey + "]", LogLevel.WARNING);
+                return;
+            }
+
+            SaveInternal();
+        }
+
+        /// <summary>
+        /// Adds the value under the modifier the way Android's JSONObject.accumulate does:
+        /// a single value first, an array once there are more
+        /// </summary>
+        private static void Accumulate(JObject pending, string mod, JValue value)
+        {
+            JToken existing = pending[mod];
+            if (existing == null) {
+                pending[mod] = value;
+            } else if (existing is JArray) {
+                ((JArray)existing).Add(value);
+            } else {
+                pending[mod] = new JArray(existing, value);
+            }
+        }
+
+        /// <summary>
+        /// Returns true when custom property modifiers wait for the next user details save
+        /// </summary>
+        private bool HasCustomModifiers()
+        {
+            lock (modifiersLock) {
+                return customModifiers != null;
+            }
+        }
+
+        /// <summary>
+        /// Returns the pending custom property modifiers, key to modifier object, and clears them; null when there are none
+        /// </summary>
+        internal JObject TakeCustomModifiers()
+        {
+            lock (modifiersLock) {
+                JObject modifiers = customModifiers;
+                customModifiers = null;
+                return modifiers;
+            }
         }
 
         private void SaveInternal()
