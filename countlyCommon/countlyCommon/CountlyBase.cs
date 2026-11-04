@@ -10,6 +10,8 @@ using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
@@ -1188,6 +1190,7 @@ namespace CountlySDK.CountlyCommon
             if (Configuration.autoSendUserDetails) {
                 await RecordUserDetails();
             } else {
+                await RecordCustomModifiers();
                 await Upload();
             }
         }
@@ -1198,7 +1201,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            string userDetails = RequestHelper.Json(UserDetails);
+            string userDetails = UserDetailsJson(TakeConsentedCustomModifiers());
 
             if (string.IsNullOrEmpty(userDetails) || userDetails.Equals("{}")) {
                 // Nothing to send. Clear the changed flag anyway - leaving it set makes upload
@@ -1207,16 +1210,76 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            Dictionary<string, object> requestParams = new Dictionary<string, object>() {
-                { "user_details", RequestHelper.Json(UserDetails) }
-            };
-
             UserDetails.Clear();
 
-            string request = await requestHelper.BuildRequest(requestParams);
-            await AddRequest(request);
+            await AddUserDetailsRequest(userDetails);
 
             return;
+        }
+
+        /// <summary>
+        /// Queues the pending custom property modifiers as their own user details request, under the current device ID.
+        /// Used when automatic sending is disabled, since the user details are then re-sent whole on every save and can't carry one-shot modifiers,
+        /// and before a device ID change without merge, so the modifiers stay with the user they were recorded for.
+        /// </summary>
+        private async Task RecordCustomModifiers()
+        {
+            JObject modifiers = TakeConsentedCustomModifiers();
+            if (modifiers == null) {
+                return;
+            }
+
+            await AddUserDetailsRequest(new JObject { { "custom", modifiers } }.ToString(Formatting.None));
+        }
+
+        /// <summary>
+        /// Takes the pending custom property modifiers for a request, or drops them when 'Users' consent is not given
+        /// </summary>
+        private JObject TakeConsentedCustomModifiers()
+        {
+            JObject modifiers = UserDetails.TakeCustomModifiers();
+            if (modifiers != null && !IsConsentGiven(ConsentFeatures.Users)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] TakeConsentedCustomModifiers, 'Users' consent not given, dropping the pending custom property modifiers");
+                return null;
+            }
+
+            return modifiers;
+        }
+
+        /// <summary>
+        /// Adds a user details request with the given json to the request queue
+        /// </summary>
+        private async Task AddUserDetailsRequest(string userDetails)
+        {
+            Dictionary<string, object> requestParams = new Dictionary<string, object>() {
+                { "user_details", userDetails }
+            };
+
+            string request;
+            try {
+                request = await requestHelper.BuildRequest(requestParams);
+            } catch (UriFormatException ex) {
+                // .NET Framework can't escape a request this long; dropping it beats crashing the app from the async void save handler
+                UtilityHelper.CountlyLogging("[CountlyBase] AddUserDetailsRequest, user details too long to send, dropping them: " + ex.Message, LogLevel.ERROR);
+                return;
+            }
+
+            await AddRequest(request);
+        }
+
+        /// <summary>
+        /// Serializes the user details for a request, with the given custom property modifiers merged into its "custom" object,
+        /// where a modifier replaces a custom property of the same key
+        /// </summary>
+        private string UserDetailsJson(JObject modifiers)
+        {
+            if (modifiers == null) {
+                return RequestHelper.Json(UserDetails);
+            }
+
+            JObject userDetails = JObject.FromObject(UserDetails, JsonSerializer.CreateDefault(RequestHelper.JsonSettings));
+            userDetails.Merge(new JObject { { "custom", modifiers } });
+            return userDetails.ToString(Formatting.None);
         }
 
         /// <summary>
@@ -1882,6 +1945,7 @@ namespace CountlySDK.CountlyCommon
                     //we need to end the session only if it was started previously
                     await SessionEnd();
                 }
+                await RecordCustomModifiers();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 if (consentRequired) {
                     await RemoveAllConsentInternal();
@@ -2055,6 +2119,10 @@ namespace CountlySDK.CountlyCommon
                         }
                         break;
                     case ConsentFeatures.Users:
+                        if (!isGiven) {
+                            //modifiers waiting for a save are dropped, they must not be sent without consent
+                            UserDetails.TakeCustomModifiers();
+                        }
                         break;
                     case ConsentFeatures.RemoteConfig:
                         if (isGiven && action == ConsentChangedAction.ConsentUpdated && Configuration.remoteConfigAutomaticDownloadTriggers) {
