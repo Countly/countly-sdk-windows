@@ -45,6 +45,14 @@ namespace TestProject_common
         }
 
         [Fact]
+        /// <summary>Recording a view with segmentation before Init is ignored without throwing.</summary>
+        public async Task RecordViewWithSegmentation_BeforeInit_ReturnsFalseWithoutThrowing()
+        {
+            bool result = await Countly.Instance.RecordView("pre_init_view", TestHelper.Segm("color", "red"));
+            Assert.False(result);
+        }
+
+        [Fact]
         public async Task RecordException_BeforeInit_ReturnsFalseWithoutThrowing()
         {
             bool result = await Countly.RecordException("err", "stack", null, false);
