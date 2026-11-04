@@ -2162,12 +2162,24 @@ namespace CountlySDK.CountlyCommon
         private const string STAR_RATING_EVENT_KEY = "[CLY]_star_rating";
         private const string PUSH_ACTION_EVENT_KEY = "[CLY]_push_action";
         private const string ORIENTATION_EVENT_KEY = "[CLY]_orientation";
+        private static readonly string[] reservedViewSegmentationKeys = { "name", "visit", "start", "segment" };
 
         /// <summary>
         /// Records view
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> RecordView(string viewName)
+        public Task<bool> RecordView(string viewName)
+        {
+            return RecordView(viewName, null);
+        }
+
+        /// <summary>
+        /// Records view with custom segmentation, which is sent with the view's start event
+        /// </summary>
+        /// <param name="viewName">Name of the view, required, must not be null or empty</param>
+        /// <param name="segmentation">Segmentation to add to the view, can be null. The reserved keys "name", "visit", "start" and "segment" are ignored</param>
+        /// <returns>False if the view is rejected (backend mode, SDK not initialized, empty name, no views consent or view tracking turned off) or its upload fails, in which case it stays queued for a later upload; otherwise True</returns>
+        public async Task<bool> RecordView(string viewName, Segmentation segmentation)
         {
             if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordView, Backend Mode enabled, returning false");
@@ -2200,11 +2212,11 @@ namespace CountlySDK.CountlyCommon
                 viewName = viewName.Substring(0, Configuration.MaxKeyLength);
             }
 
+            Segmentation segm = CreateCustomViewSegmentation(segmentation);
             reportViewDuration();
             lastView = viewName;
 
             lastViewStart = timeHelper.GetUniqueUnixTime();
-            Segmentation segm = new Segmentation();
             segm.Add("name", viewName);
             segm.Add("visit", "1");
             segm.Add("segment", "Windows");
@@ -2214,6 +2226,31 @@ namespace CountlySDK.CountlyCommon
                 segm.Add("start", "1");
             }
             return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
+        }
+
+        /// <summary>
+        /// Copies the segmentation given to 'RecordView' within the segmentation limits and without its reserved keys
+        /// </summary>
+        /// <param name="segmentation">Segmentation given to 'RecordView', can be null</param>
+        /// <returns>A new segmentation object, never null</returns>
+        private Segmentation CreateCustomViewSegmentation(Segmentation segmentation)
+        {
+            Segmentation custom = new Segmentation();
+            if (segmentation == null) {
+                return custom;
+            }
+
+            // reserved keys are checked after truncation, so that a longer key cannot be cut into one
+            Segmentation truncated = UtilityHelper.FixSegmentKeysAndValues(segmentation, Configuration.MaxKeyLength, Configuration.MaxValueSize);
+            foreach (SegmentationItem item in truncated.segmentation) {
+                if (reservedViewSegmentationKeys.Contains(item.Key)) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] RecordView, segmentation key [" + item.Key + "] is reserved and will be ignored", LogLevel.WARNING);
+                } else {
+                    custom.Add(item.Key, item.Value);
+                }
+            }
+
+            return UtilityHelper.RemoveExtraSegments(custom, Configuration.MaxSegmentationValues);
         }
 
         /// <summary>

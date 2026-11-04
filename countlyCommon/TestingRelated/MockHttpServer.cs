@@ -16,7 +16,18 @@ namespace TestProject_common
         private readonly List<RequestInfo> _requests = new List<RequestInfo>();
 
         public string Url { get; }
-        public IList<RequestInfo> Requests => _requests;
+
+        /// <summary>
+        /// A fixed-size copy of the requests received so far, safe to read while the server is still receiving
+        /// </summary>
+        public IList<RequestInfo> Requests
+        {
+            get {
+                lock (_requests) {
+                    return _requests.ToArray();
+                }
+            }
+        }
 
         public MockHttpServer(Func<string, string> customResponse = null)
         {
@@ -39,12 +50,15 @@ namespace TestProject_common
                     var ctx = _listener.GetContext();
                     var reader = new StreamReader(ctx.Request.InputStream);
                     string body = reader.ReadToEnd();
-                    _requests.Add(new RequestInfo {
+                    RequestInfo request = new RequestInfo {
                         Path = ctx.Request.RawUrl,
                         Method = ctx.Request.HttpMethod,
                         Body = body,
                         Params = TestHelper.GetParams(body),
-                    });
+                    };
+                    lock (_requests) {
+                        _requests.Add(request);
+                    }
 
                     // Always respond 200 OK for now
                     string json = customResponse?.Invoke(body);

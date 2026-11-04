@@ -1,5 +1,6 @@
 ## XX.XX.XX
 * Added custom user property modifiers to "UserDetails": "Increment", "IncrementBy", "Multiply", "SaveMax", "SaveMin", "SetOnce", "Push", "PushUnique" and "Pull". They are sent once, with the next user details save.
+* Added a new function "RecordView(viewName, segmentation)" for recording a view with custom segmentation.
 
 * Mitigated an issue where, in apps running on .NET Core 3.1 or older, Windows 8.1, 10 and 11 were reported as Windows 8 (6.2.9200) when the app did not declare support for them in its manifest.
 
