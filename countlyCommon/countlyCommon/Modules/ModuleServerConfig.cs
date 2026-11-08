@@ -165,6 +165,7 @@ namespace CountlySDK.CountlyCommon
                     }
                     if (result.Count >= currentUserPropertyCacheLimit) {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] FilterUserProperties, user property cache limit [" + currentUserPropertyCacheLimit + "] reached, dropping: " + kv.Key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w203");
                         continue;
                     }
                     result[kv.Key] = kv.Value;
@@ -195,7 +196,8 @@ namespace CountlySDK.CountlyCommon
                 storedFullConfig = env;
                 storedConfig = Sanitize((JObject)env["c"]);
             } catch (Exception ex) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] LoadStoredConfig, failed to parse stored config: " + ex.Message, LogLevel.WARNING);
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] LoadStoredConfig, failed to parse stored config: " + ex.Message, LogLevel.ERROR);
+                ModuleHealthCheck.Track("e503");
             }
         }
 
@@ -275,6 +277,7 @@ namespace CountlySDK.CountlyCommon
                 return parsed;
             } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("[ModuleServerConfig] ExtractConfigObject, failed to parse: " + ex.Message, LogLevel.WARNING);
+                ModuleHealthCheck.Track("w121");
                 return null;
             }
         }
@@ -299,29 +302,35 @@ namespace CountlySDK.CountlyCommon
                 if (Array.IndexOf(BoolKeys, key) >= 0) {
                     if (val.Type == JTokenType.Boolean) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping non-boolean key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (Array.IndexOf(PositiveIntKeys, key) >= 0) {
                     if (val.Type == JTokenType.Integer && val.Value<long>() > 0) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping invalid positive-int key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (key == ContentZoneIntervalKey) {
                     if (val.Type == JTokenType.Integer && val.Value<long>() >= ContentZoneIntervalMin) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping invalid content zone interval (must be an integer >= " + ContentZoneIntervalMin + "): " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (key == DropOldRequestTimeKey) {
                     if (val.Type == JTokenType.Integer && val.Value<long>() >= 0) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping invalid non-negative-int key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (Array.IndexOf(StringArrayKeys, key) >= 0) {
                     if (val.Type == JTokenType.Array) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping non-array key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (Array.IndexOf(ObjectKeys, key) >= 0) {
                     if (val.Type == JTokenType.Object) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping non-object key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else {
-                    UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping unsupported key: " + key, LogLevel.WARNING);
+                    UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping unsupported key: " + key);
                 }
             }
             return result;
@@ -349,7 +358,7 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
 
             if (requestResult.responseCode != 200 || requestResult.responseText == null) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, request failed, keeping current settings", LogLevel.WARNING);
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, request failed, keeping current settings");
                 return;
             }
 
@@ -357,12 +366,12 @@ namespace CountlySDK.CountlyCommon
             try {
                 env = JObject.Parse(requestResult.responseText);
             } catch (Exception ex) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, failed to parse response: " + ex.Message, LogLevel.WARNING);
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, failed to parse response: " + ex.Message);
                 return;
             }
 
             if (!ValidateEnvelope(env)) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings", LogLevel.WARNING);
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings");
                 return;
             }
 

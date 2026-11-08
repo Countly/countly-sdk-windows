@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using CountlySDK.CountlyCommon;
 using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.Helpers
@@ -77,7 +78,12 @@ namespace CountlySDK.Helpers
         public static void CountlyLogging(String msg, LogLevel level = LogLevel.DEBUG)
         {
             if (level == LogLevel.WARNING || level == LogLevel.ERROR) {
-                InternalLogHook?.Invoke(level);
+                System.Action<LogLevel> hook = InternalLogHook;
+                if (hook != null) {
+                    hook.Invoke(level);
+                } else {
+                    ModuleHealthCheck.CountBeforeModule(level);
+                }
             }
 
             // Log listener: fires for every log, independent of the console flag.
@@ -169,10 +175,21 @@ namespace CountlySDK.Helpers
             return stream;
         }
 
-        internal static string TrimKey(string k, int maxKeyLength)
+        /// <summary>
+        /// Cuts a key that is longer than the key length limit, with a warning and a health check log code
+        /// </summary>
+        /// <param name="k">the key</param>
+        /// <param name="maxKeyLength">the key length limit</param>
+        /// <param name="area">feature area of the calling method for the log code, null for none</param>
+        /// <param name="code">log code of the cut, "w201" by default; null cuts with a debug log only, for values that were already checked</param>
+        /// <returns>the key, cut to the limit</returns>
+        internal static string TrimKey(string k, int maxKeyLength, string area = null, string code = "w201")
         {
             if (k.Length > maxKeyLength) {
-                UtilityHelper.CountlyLogging("[UtilityHelper] TrimKey : Max allowed key length is " + maxKeyLength + ". " + k + " will be truncated.");
+                UtilityHelper.CountlyLogging("[UtilityHelper] TrimKey : Max allowed key length is " + maxKeyLength + ". " + k + " will be truncated.", code == null ? LogLevel.DEBUG : LogLevel.WARNING);
+                if (code != null) {
+                    ModuleHealthCheck.Track(code, area);
+                }
                 k = k.Substring(0, maxKeyLength);
             }
 
@@ -195,29 +212,49 @@ namespace CountlySDK.Helpers
         internal static string TrimUrl(string v)
         {
             if (v != null && v.Length > 4096) {
-                UtilityHelper.CountlyLogging("[UtilityHelper] TrimUrl : Max allowed length of 'PictureUrl' is 4096.");
+                UtilityHelper.CountlyLogging("[UtilityHelper] TrimUrl : Max allowed length of 'PictureUrl' is 4096.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w202");
                 v = v.Substring(0, 4096);
             }
 
             return v;
         }
 
-        internal static string TrimValue(string fieldName, string v, int maxValueSize)
+        /// <summary>
+        /// Cuts a value that is longer than the value size limit, with a warning and the health check log code w202
+        /// </summary>
+        /// <param name="fieldName">name of the value, for the log</param>
+        /// <param name="v">the value</param>
+        /// <param name="maxValueSize">the value size limit</param>
+        /// <param name="area">feature area of the calling method for the log code, null for none</param>
+        /// <returns>the value, cut to the limit</returns>
+        internal static string TrimValue(string fieldName, string v, int maxValueSize, string area = null)
         {
             if (v != null && v.Length > maxValueSize) {
-                UtilityHelper.CountlyLogging("[UtilityHelper] TrimValue : Max allowed '" + fieldName + "' length is " + maxValueSize + ". " + v + " will be truncated.");
+                UtilityHelper.CountlyLogging("[UtilityHelper] TrimValue : Max allowed '" + fieldName + "' length is " + maxValueSize + ". " + v + " will be truncated.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w202", area);
                 v = v.Substring(0, maxValueSize);
             }
 
             return v;
         }
 
-        internal static Dictionary<string, string> RemoveExtraSegments(Dictionary<string, string> segments, int maxSegmentationValues)
+        /// <summary>
+        /// Drops the segments over the segmentation limit, with a warning and the health check log code w203
+        /// </summary>
+        /// <param name="segments">the segments, can be null</param>
+        /// <param name="maxSegmentationValues">the segmentation limit</param>
+        /// <param name="area">feature area of the calling method for the log code, null for none</param>
+        /// <returns>the segments within the limit</returns>
+        internal static Dictionary<string, string> RemoveExtraSegments(Dictionary<string, string> segments, int maxSegmentationValues, string area = null)
         {
 
             if (segments == null || segments.Count <= maxSegmentationValues) {
                 return segments;
             }
+
+            UtilityHelper.CountlyLogging("[UtilityHelper] RemoveExtraSegments : Max allowed segment count is " + maxSegmentationValues + ", the extra segments are dropped.", LogLevel.WARNING);
+            ModuleHealthCheck.Track("w203", area);
 
             int i = 0;
             List<string> toRemove = new List<string>();
@@ -234,12 +271,22 @@ namespace CountlySDK.Helpers
             return segments;
         }
 
-        internal static Segmentation RemoveExtraSegments(Segmentation segments, int maxSegmentationValues)
+        /// <summary>
+        /// Drops the segments over the segmentation limit, with a warning and the health check log code w203
+        /// </summary>
+        /// <param name="segments">the segmentation, can be null</param>
+        /// <param name="maxSegmentationValues">the segmentation limit</param>
+        /// <param name="area">feature area of the calling method for the log code, null for none</param>
+        /// <returns>the segmentation within the limit</returns>
+        internal static Segmentation RemoveExtraSegments(Segmentation segments, int maxSegmentationValues, string area = null)
         {
 
             if (segments == null || segments.segmentation.Count <= maxSegmentationValues) {
                 return segments;
             }
+
+            UtilityHelper.CountlyLogging("[UtilityHelper] RemoveExtraSegments : Max allowed segment count is " + maxSegmentationValues + ", the extra segments are dropped.", LogLevel.WARNING);
+            ModuleHealthCheck.Track("w203", area);
 
             while (segments.segmentation.Count > maxSegmentationValues) {
                 segments.segmentation.RemoveAt(maxSegmentationValues);
@@ -248,7 +295,15 @@ namespace CountlySDK.Helpers
             return segments;
         }
 
-        internal static Segmentation FixSegmentKeysAndValues(Segmentation segments, int maxKeyLength, int maxValueSize)
+        /// <summary>
+        /// Cuts the keys and values of a segmentation to their limits, see TrimKey and TrimValue
+        /// </summary>
+        /// <param name="segments">the segmentation, can be null</param>
+        /// <param name="maxKeyLength">the key length limit</param>
+        /// <param name="maxValueSize">the value size limit</param>
+        /// <param name="area">feature area of the calling method for the log codes, null for none</param>
+        /// <returns>a new segmentation within the limits</returns>
+        internal static Segmentation FixSegmentKeysAndValues(Segmentation segments, int maxKeyLength, int maxValueSize, string area = null)
         {
             if (segments == null || segments.segmentation.Count == 0) {
                 return segments;
@@ -263,10 +318,10 @@ namespace CountlySDK.Helpers
                     continue;
                 }
 
-                k = TrimKey(k, maxKeyLength);
+                k = TrimKey(k, maxKeyLength, area);
 
                 if (v.GetType() == typeof(string)) {
-                    v = TrimValue(k, v, maxValueSize);
+                    v = TrimValue(k, v, maxValueSize, area);
                 }
 
                 segmentation.Add(k, v);
@@ -275,7 +330,15 @@ namespace CountlySDK.Helpers
             return segmentation;
         }
 
-        internal static Dictionary<string, string> FixSegmentKeysAndValues(Dictionary<string, string> segments, int maxKeyLength, int maxValueSize)
+        /// <summary>
+        /// Cuts the keys and values of segments to their limits, see TrimKey and TrimValue
+        /// </summary>
+        /// <param name="segments">the segments, can be null</param>
+        /// <param name="maxKeyLength">the key length limit</param>
+        /// <param name="maxValueSize">the value size limit</param>
+        /// <param name="area">feature area of the calling method for the log codes, null for none</param>
+        /// <returns>new segments within the limits</returns>
+        internal static Dictionary<string, string> FixSegmentKeysAndValues(Dictionary<string, string> segments, int maxKeyLength, int maxValueSize, string area = null)
         {
             if (segments == null || segments.Count == 0) {
                 return segments;
@@ -290,8 +353,8 @@ namespace CountlySDK.Helpers
                     continue;
                 }
 
-                k = TrimKey(k, maxKeyLength);
-                v = TrimValue(k, v, maxValueSize);
+                k = TrimKey(k, maxKeyLength, area);
+                v = TrimValue(k, v, maxValueSize, area);
 
                 segmentation.Add(k, v);
             }
@@ -299,16 +362,26 @@ namespace CountlySDK.Helpers
             return segmentation;
         }
 
-        internal static string ManipulateStackTrace(string stackTrace, int maxStackTraceLinesPerThread, int maxStackTraceLineLength)
+        /// <summary>
+        /// Cuts a stack trace to the line count and line length limits, with a warning and the health check log code w205
+        /// </summary>
+        /// <param name="stackTrace">the stack trace, can be null</param>
+        /// <param name="maxStackTraceLinesPerThread">the line count limit</param>
+        /// <param name="maxStackTraceLineLength">the line length limit</param>
+        /// <param name="area">feature area of the calling method for the log code, null for none</param>
+        /// <returns>the stack trace within the limits, null when none was given</returns>
+        internal static string ManipulateStackTrace(string stackTrace, int maxStackTraceLinesPerThread, int maxStackTraceLineLength, string area = null)
         {
             string result = null;
             if (!string.IsNullOrEmpty(stackTrace)) {
                 string[] lines = stackTrace.Split('\n');
+                bool cut = false;
 
                 int limit = lines.Length;
 
                 if (limit > maxStackTraceLinesPerThread) {
                     limit = maxStackTraceLinesPerThread;
+                    cut = true;
                 }
 
                 for (int i = 0; i < limit; ++i) {
@@ -316,6 +389,7 @@ namespace CountlySDK.Helpers
 
                     if (line.Length > maxStackTraceLineLength) {
                         line = line.Substring(0, maxStackTraceLineLength);
+                        cut = true;
                     }
 
                     if (i + 1 != limit) {
@@ -323,6 +397,11 @@ namespace CountlySDK.Helpers
                     }
 
                     result += line;
+                }
+
+                if (cut) {
+                    UtilityHelper.CountlyLogging("[UtilityHelper] ManipulateStackTrace : The stack trace is longer than " + maxStackTraceLinesPerThread + " lines of " + maxStackTraceLineLength + " characters, it is cut.", LogLevel.WARNING);
+                    ModuleHealthCheck.Track("w205", area);
                 }
             }
 

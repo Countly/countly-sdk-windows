@@ -76,7 +76,7 @@ namespace CountlySDK.CountlyCommon
             }
             else
             {
-                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed request is not success ", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed request is not success ");
             }
         }
 
@@ -98,6 +98,7 @@ namespace CountlySDK.CountlyCommon
         {
             if (keys == null || keys.Count == 0) {
                 UtilityHelper.CountlyLogging("[ModuleRemoteConfig] EnrollIntoABTestsForKeys, no keys provided, ignoring call", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return;
             }
 

@@ -247,6 +247,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (elapsedTime == null) {
+                moduleHealthCheck?.RecordUsage("sessions", "update:a");
                 //calculate elapsed time from the last time update was sent (includes manual calls)
                 elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
             }
@@ -445,6 +446,7 @@ namespace CountlySDK.CountlyCommon
                     }
                     return true;
                 } else {
+                    ReportFailedQueuedRequest(requestResult);
                     lock (sync) { uploadInProgress = false; }
                     return false;
                 }
@@ -513,6 +515,7 @@ namespace CountlySDK.CountlyCommon
                         return true;
                     }
                 } else {
+                    ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
                     return false;
                 }
@@ -535,9 +538,11 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : key = " + key);
+            moduleHealthCheck?.RecordUsage("events", "start");
 
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent: SDK must initialized before calling 'StartEvent'");
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent: SDK must initialized before calling 'StartEvent'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
@@ -547,12 +552,14 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (string.IsNullOrEmpty(key) || key == " ") {
-                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.");
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "events");
                 return;
             }
 
             if (TimedEvents.ContainsKey(key)) {
-                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : Event with key '" + key + "' has already started.");
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : Event with key '" + key + "' has already started.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w722", "events");
                 return;
             }
 
@@ -573,18 +580,21 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : key = " + key);
+            moduleHealthCheck?.RecordUsage("events", "cancel");
 
             if (!IsConsentGiven(ConsentFeatures.Events)) {
                 return;
             }
 
             if (string.IsNullOrEmpty(key) || key == " ") {
-                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.");
+                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "events");
                 return;
             }
 
             if (!TimedEvents.ContainsKey(key)) {
-                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : Time event with key '" + key + "' doesn't exist.");
+                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : Time event with key '" + key + "' doesn't exist.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w721", "events");
                 return;
             }
 
@@ -615,25 +625,28 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : key = " + key + ", segmentation = " + segmentation + ", count = " + count + ", sum = " + sum);
+            moduleHealthCheck?.RecordUsage("events", "end");
 
             if (!IsConsentGiven(ConsentFeatures.Events)) {
                 return;
             }
 
             if (string.IsNullOrEmpty(key) || key == " ") {
-                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.");
+                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w701", "events");
                 return;
             }
 
             if (!TimedEvents.ContainsKey(key)) {
-                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : Time event with key '" + key + "' doesn't exist.");
+                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : Time event with key '" + key + "' doesn't exist.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w720", "events");
                 return;
             }
 
             DateTime startTime = TimedEvents[key];
             double duration = (DateTime.Now - startTime).TotalSeconds;
 
-            await Countly.RecordEvent(key, count, sum, duration, segmentation);
+            await RecordEventFromApp(key, count, sum, duration, segmentation);
 
             TimedEvents.Remove(key);
         }
@@ -717,20 +730,43 @@ namespace CountlySDK.CountlyCommon
                 return BoolTask(false);
             }
 
-            if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'");
+            Countly.Instance.moduleHealthCheck?.RecordUsage("events", "record");
+            return Countly.Instance.RecordEventFromApp(Key, Count, Sum, Duration, Segmentation);
+        }
+
+        /// <summary>
+        /// Checks an event of the app, also the one an ended timed event records, cuts it to the limits and records it
+        /// </summary>
+        /// <param name="Key">Name of the custom event, required, must not be null or the empty string</param>
+        /// <param name="Count">Count to associate with the event</param>
+        /// <param name="Sum">Sum to associate with the event</param>
+        /// <param name="Duration">Event duration</param>
+        /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+        /// <returns>True if event is uploaded successfully, False - queued for delayed upload or rejected</returns>
+        internal Task<bool> RecordEventFromApp(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        {
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return BoolTask(false);
             }
 
-            CountlyConfig config = Countly.Instance.Configuration;
-            if (Key.Length > config.MaxKeyLength) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
-                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            if (string.IsNullOrEmpty(Key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : The event key can't be null or empty, the event is ignored", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w701", "events");
+                return BoolTask(false);
             }
 
-            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
-            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, segments);
+            CountlyConfig config = Configuration;
+            if (Key.Length > config.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + config.MaxKeyLength, LogLevel.WARNING);
+                ModuleHealthCheck.Track("w201", "events");
+                Key = Key.Substring(0, config.MaxKeyLength);
+            }
+
+            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues, "events");
+            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize, "events");
+            return RecordEventInternal(Key, Count, Sum, Duration, segments);
         }
 
         /// <summary>
@@ -745,7 +781,8 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
             if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w505");
                 return true;
             }
             if (!IsReservedEventKey(Key) && moduleServerConfig != null && !moduleServerConfig.GetCustomEventTrackingEnabled()) {
@@ -896,6 +933,7 @@ namespace CountlySDK.CountlyCommon
                         return true;
                     }
                 } else {
+                    ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
                     return false;
                 }
@@ -913,7 +951,8 @@ namespace CountlySDK.CountlyCommon
         public static async Task<bool> RecordException(string error)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -929,7 +968,8 @@ namespace CountlySDK.CountlyCommon
         public static async Task<bool> RecordException(string error, string stackTrace = null)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordExceptionRecordException(error, stackTrace)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordExceptionRecordException(error, stackTrace)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -944,7 +984,8 @@ namespace CountlySDK.CountlyCommon
         protected async Task<bool> RecordUnhandledException(string error, string stackTrace)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -961,7 +1002,8 @@ namespace CountlySDK.CountlyCommon
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -983,8 +1025,10 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            Countly.Instance.moduleHealthCheck?.RecordUsage("crashes", "record");
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo, unhandled)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo, unhandled)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -1012,10 +1056,10 @@ namespace CountlySDK.CountlyCommon
             TimeSpan run = DateTime.Now.Subtract(startTime);
 
             CountlyConfig config = Countly.Instance.Configuration;
-            Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues);
-            segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize);
+            Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues, "crashes");
+            segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize, "crashes");
 
-            ExceptionEvent eEvent = new ExceptionEvent(UtilityHelper.TrimKey(error, config.MaxKeyLength), UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
+            ExceptionEvent eEvent = new ExceptionEvent(UtilityHelper.TrimKey(error, config.MaxKeyLength, "crashes", "w205"), UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength, "crashes") ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -1068,7 +1112,7 @@ namespace CountlySDK.CountlyCommon
 
                 //do the exception upload
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                exEvent.Name = UtilityHelper.TrimKey(exEvent.Name, Configuration.MaxKeyLength); // this is here because already saved exceptions need to be truncated too
+                exEvent.Name = UtilityHelper.TrimKey(exEvent.Name, Configuration.MaxKeyLength, null, null); // this is here because already saved exceptions need to be truncated too
                 RequestResult requestResult = await Api.Instance.SendException(ServerUrl, requestHelper, GetRemainingRequestCount(), exEvent);
 
                 //check if we got a response and that it was a success
@@ -1101,6 +1145,7 @@ namespace CountlySDK.CountlyCommon
                     }
                 } else {
                     //if the received response was not a success
+                    ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
                     return false;
                 }
@@ -1153,7 +1198,35 @@ namespace CountlySDK.CountlyCommon
 
                 return true;
             } else {
+                ReportFailedQueuedRequest(requestResult);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Keeps the status code and the answer of a queued request the server answered with a failure, for the health check
+        /// </summary>
+        /// <param name="requestResult">result of the request, null when there is none</param>
+        private void ReportFailedQueuedRequest(RequestResult requestResult)
+        {
+            if (requestResult != null) {
+                moduleHealthCheck?.LogFailedNetworkRequest(requestResult.responseCode, requestResult.responseText);
+            }
+        }
+
+        /// <summary>
+        /// Tells whether the health check may count the calls of a feature area, by the consent of the same name
+        /// </summary>
+        /// <param name="area">"sessions", "events", "views" or "crashes"</param>
+        /// <returns>true while the area may be counted</returns>
+        internal bool HealthAreaAllowed(string area)
+        {
+            switch (area) {
+                case "sessions": return IsConsentGiven(ConsentFeatures.Sessions);
+                case "events": return IsConsentGiven(ConsentFeatures.Events);
+                case "views": return IsConsentGiven(ConsentFeatures.Views);
+                case "crashes": return IsConsentGiven(ConsentFeatures.Crashes);
+                default: return false;
             }
         }
 
@@ -1296,7 +1369,11 @@ namespace CountlySDK.CountlyCommon
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             RequestResult requestResult = await Api.Instance.SendUserPicture(ServerUrl, requestHelper, GetRemainingRequestCount(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
-            return (requestResult != null && requestResult.IsSuccess());
+            bool uploaded = requestResult != null && requestResult.IsSuccess();
+            if (!uploaded) {
+                ReportFailedQueuedRequest(requestResult);
+            }
+            return uploaded;
         }
 
         /// <summary>
@@ -1363,6 +1440,7 @@ namespace CountlySDK.CountlyCommon
                 moduleServerConfig = null;
                 if (moduleHealthCheck != null) { moduleHealthCheck.UnregisterHooks(); }
                 moduleHealthCheck = null;
+                ModuleHealthCheck.ClearPending();
                 UtilityHelper.LogListenerHook = null;
             }
             if (clearStorage) {
@@ -1390,8 +1468,14 @@ namespace CountlySDK.CountlyCommon
         public static void AddBreadCrumb(string log)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
-            Countly.Instance.AddCrashBreadCrumb(log);
-
+            if (Countly.Instance.Configuration?.backendMode ?? false) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb, Backend Mode enabled, returning");
+                return;
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb is deprecated, use AddCrashBreadCrumb instead", LogLevel.WARNING);
+            ModuleHealthCheck.Track("w120");
+            Countly.Instance.moduleHealthCheck?.RecordUsage("crashes", "AddBreadCrumb:d");
+            Countly.Instance.AddCrashBreadCrumbInternal(log);
         }
 
         /// <summary>
@@ -1406,13 +1490,34 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumbs'");
+            moduleHealthCheck?.RecordUsage("crashes", "log");
+            AddCrashBreadCrumbInternal(breadCrumb);
+        }
+
+        /// <summary>
+        /// Adds a breadcrumb the app recorded, cut to the value size limit; the oldest one is dropped when the breadcrumb limit is reached
+        /// </summary>
+        /// <param name="breadCrumb">breadcrumb text, must not be null</param>
+        internal void AddCrashBreadCrumbInternal(string breadCrumb)
+        {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'");
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
-            Debug.Assert(breadCrumb != null);
-            string validLog = breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize ? breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize) : breadCrumb;
+            if (breadCrumb == null) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: the breadcrumb can't be null, it is ignored", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "crashes");
+                return;
+            }
+
+            string validLog = breadCrumb;
+            if (breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: Max allowed breadcrumb length is " + Countly.Instance.Configuration.MaxValueSize + ", the breadcrumb is cut", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w202", "crashes");
+                validLog = breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize);
+            }
 
             if (Countly.Instance.CrashBreadcrumbs.Count >= Countly.Instance.Configuration.MaxBreadcrumbCount) {
                 Countly.Instance.CrashBreadcrumbs.Dequeue();
@@ -1425,7 +1530,8 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'GetDeviceId'");
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] GetDeviceId: SDK must initialized before calling 'GetDeviceId'");
+                UtilityHelper.CountlyLogging("[CountlyBase] GetDeviceId: SDK must initialized before calling 'GetDeviceId'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return string.Empty;
             }
 
@@ -1462,7 +1568,8 @@ namespace CountlySDK.CountlyCommon
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetLocation'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation: SDK must initialized before calling 'SetLocation'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation: SDK must initialized before calling 'SetLocation'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -1560,7 +1667,8 @@ namespace CountlySDK.CountlyCommon
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'DisableLocation'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'");
+                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
             if (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled()) {
@@ -1645,7 +1753,8 @@ namespace CountlySDK.CountlyCommon
             if (networkRequest == null) { return; }
 
             if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, tracking disabled by server config, ignoring request");
+                UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, tracking disabled by server config, ignoring request", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w505");
                 return;
             }
 
@@ -1690,7 +1799,8 @@ namespace CountlySDK.CountlyCommon
             if (config.sdkFolderName != null && config.sdkFolderName.Length > 0) {
                 Storage.Instance.sdkFolder = config.sdkFolderName;
             } else {
-                UtilityHelper.CountlyLogging("[CountlyBase] Provided SDK folder name can't be 'null' or empty string.");
+                UtilityHelper.CountlyLogging("[CountlyBase] Provided SDK folder name can't be 'null' or empty string.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w121");
             }
 
             timeHelper = new TimeHelper();
@@ -1751,7 +1861,7 @@ namespace CountlySDK.CountlyCommon
 
             string hcAppVersion = (config.MetricOverride != null && config.MetricOverride.ContainsKey("_app_version"))
                 ? config.MetricOverride["_app_version"] : config.appVersion;
-            moduleHealthCheck = new ModuleHealthCheck(requestHelper, ServerUrl, config.healthCheckDisabled, hcAppVersion);
+            moduleHealthCheck = new ModuleHealthCheck(requestHelper, ServerUrl, config.healthCheckDisabled, hcAppVersion, HealthAreaAllowed);
             moduleHealthCheck.RegisterHooks();
 
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
@@ -1823,8 +1933,18 @@ namespace CountlySDK.CountlyCommon
         public async Task SessionBegin()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionBegin'");
+            moduleHealthCheck?.RecordUsage("sessions", "begin");
+            await SessionBeginInternal();
+        }
+
+        /// <summary>
+        /// Begins a session, for the app or for the SDK itself, and starts the session update timer
+        /// </summary>
+        internal async Task SessionBeginInternal()
+        {
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin: SDK must initialized before calling 'SessionBegin'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin: SDK must initialized before calling 'SessionBegin'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
@@ -1871,7 +1991,8 @@ namespace CountlySDK.CountlyCommon
             // The initialization check must come first: before the first Init (or after Halt)
             // there is no Configuration object to read the backend-mode flag from.
             if (!IsInitialized() || Configuration == null) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
@@ -1879,8 +2000,10 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate, Backend Mode enabled, returning");
                 return;
             }
+            moduleHealthCheck?.RecordUsage("sessions", "update");
             if (elapsedTimeSeconds < 0) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "sessions");
                 return;
             }
             await UpdateSessionInternal(elapsedTimeSeconds);
@@ -1894,10 +2017,14 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionEnd'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd: SDK must initialized before calling 'SessionEnd'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd: SDK must initialized before calling 'SessionEnd'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
+            if (!Configuration.backendMode) {
+                moduleHealthCheck?.RecordUsage("sessions", "end");
+            }
             await Countly.Instance.EndSessionInternal();
         }
 
@@ -1918,11 +2045,13 @@ namespace CountlySDK.CountlyCommon
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'ChangeDeviceId'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: SDK must initialized before calling 'ChangeDeviceId'");
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: SDK must initialized before calling 'ChangeDeviceId'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
             if (newDeviceId == null || newDeviceId.Length == 0) {
-                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: New device id cannot be null or empty.");
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: New device id cannot be null or empty.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w601");
                 return;
             }
             DeviceId dId = await DeviceData.GetDeviceId();
@@ -1943,7 +2072,8 @@ namespace CountlySDK.CountlyCommon
 
                 if (sessionWasStarted) {
                     //we need to end the session only if it was started previously
-                    await SessionEnd();
+                    moduleHealthCheck?.RecordUsage("sessions", "end:a");
+                    await EndSessionInternal();
                 }
                 await RecordCustomModifiers();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
@@ -1952,7 +2082,8 @@ namespace CountlySDK.CountlyCommon
                 }
                 if (sessionWasStarted) {
                     //restart the session only if an automatic one was started before
-                    await SessionBegin();
+                    moduleHealthCheck?.RecordUsage("sessions", "begin:a");
+                    await SessionBeginInternal();
                 }
                 if (Configuration.remoteConfigAutomaticDownloadTriggers) {
                     await RemoteConfig().DownloadKeys();
@@ -2107,14 +2238,15 @@ namespace CountlySDK.CountlyCommon
                                 //if 'automaticSessionTrackingStarted' is set to true then that means that a session was already started before
                                 //this means that the user already had the intention for sessions to run (tried to use 'automatic' sessions
                                 //to keep true to this original intention, we automatically start another session
-                                await SessionBegin();
+                                moduleHealthCheck?.RecordUsage("sessions", "begin:a");
+                                await SessionBeginInternal();
                             }
                         } else if (!isGiven) {
                             //session consent is being removed
                             //we would only want to end a session if it had been started
                             if (!startTime.Equals(DateTime.MinValue)) {
                                 //if the 'startTime' value is not the min value then that means that a session was already started before
-                                await SessionEnd();
+                                await EndSessionInternal();
                             }
                         }
                         break;
@@ -2187,13 +2319,16 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordView'");
+            moduleHealthCheck?.RecordUsage("views", "start");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: SDK must initialized before calling 'RecordView'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: SDK must initialized before calling 'RecordView'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
             if (viewName == null || viewName.Length == 0) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: 'viewName' cannot be null or empty.");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: 'viewName' cannot be null or empty.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w710", "views");
                 return false;
             }
 
@@ -2208,7 +2343,8 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (viewName.Length > Configuration.MaxKeyLength) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength);
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength, LogLevel.WARNING);
+                ModuleHealthCheck.Track("w201", "views");
                 viewName = viewName.Substring(0, Configuration.MaxKeyLength);
             }
 
@@ -2241,16 +2377,17 @@ namespace CountlySDK.CountlyCommon
             }
 
             // reserved keys are checked after truncation, so that a longer key cannot be cut into one
-            Segmentation truncated = UtilityHelper.FixSegmentKeysAndValues(segmentation, Configuration.MaxKeyLength, Configuration.MaxValueSize);
+            Segmentation truncated = UtilityHelper.FixSegmentKeysAndValues(segmentation, Configuration.MaxKeyLength, Configuration.MaxValueSize, "views");
             foreach (SegmentationItem item in truncated.segmentation) {
                 if (reservedViewSegmentationKeys.Contains(item.Key)) {
                     UtilityHelper.CountlyLogging("[CountlyBase] RecordView, segmentation key [" + item.Key + "] is reserved and will be ignored", LogLevel.WARNING);
+                    ModuleHealthCheck.Track("w700", "views");
                 } else {
                     custom.Add(item.Key, item.Value);
                 }
             }
 
-            return UtilityHelper.RemoveExtraSegments(custom, Configuration.MaxSegmentationValues);
+            return UtilityHelper.RemoveExtraSegments(custom, Configuration.MaxSegmentationValues, "views");
         }
 
         /// <summary>
