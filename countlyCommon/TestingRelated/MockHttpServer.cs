@@ -29,7 +29,7 @@ namespace TestProject_common
             }
         }
 
-        public MockHttpServer(Func<string, string> customResponse = null)
+        public MockHttpServer(Func<string, string> customResponse = null, Func<string, int> customStatus = null)
         {
             int port = GetRandomUnusedPort();
             Url = $"http://localhost:{port}/";
@@ -38,12 +38,12 @@ namespace TestProject_common
             _listener.Prefixes.Add(Url);
             _listener.Start();
 
-            var thread = new Thread(() => ListenLoop(customResponse));
+            var thread = new Thread(() => ListenLoop(customResponse, customStatus));
             thread.IsBackground = true;
             thread.Start();
         }
 
-        private async Task ListenLoop(Func<string, string> customResponse)
+        private async Task ListenLoop(Func<string, string> customResponse, Func<string, int> customStatus)
         {
             while (_listener.IsListening) {
                 try {
@@ -60,13 +60,13 @@ namespace TestProject_common
                         _requests.Add(request);
                     }
 
-                    // Always respond 200 OK for now
+                    // 200 OK unless customStatus answers with another status
                     string json = customResponse?.Invoke(body);
                     if (json == null) {
                         json = "{\"result\":\"success\"}";
                     }
                     byte[] resp = Encoding.UTF8.GetBytes(json);
-                    ctx.Response.StatusCode = 200;
+                    ctx.Response.StatusCode = customStatus?.Invoke(body) ?? 200;
                     ctx.Response.ContentType = "application/json";
                     ctx.Response.ContentLength64 = resp.Length;
                     ctx.Response.OutputStream.Write(resp, 0, resp.Length);

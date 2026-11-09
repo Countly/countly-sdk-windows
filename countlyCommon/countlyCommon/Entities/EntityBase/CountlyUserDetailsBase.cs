@@ -422,11 +422,13 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
             CountlyConfig config = cly.Configuration;
             if (config == null || !cly.IsInitialized()) {
                 UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, SDK must be initialized before modifying custom user properties", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
             if (string.IsNullOrEmpty(key) || value == null) {
                 UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, key can't be null or empty and value can't be null, ignoring", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return;
             }
 
@@ -469,6 +471,7 @@ namespace CountlySDK.CountlyCommon.Entities.EntityBase
 
             if (overCacheLimit) {
                 UtilityHelper.CountlyLogging("[Countly] [CountlyUserDetailsBase] ModifyCustomData, user property cache limit [" + cacheLimit + "] reached, dropping: [" + truncatedKey + "]", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w203");
                 return;
             }
 

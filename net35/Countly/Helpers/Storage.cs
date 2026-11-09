@@ -25,7 +25,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon;
 using CountlySDK.CountlyCommon.Helpers;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.Helpers
 {
@@ -91,7 +93,8 @@ namespace CountlySDK.Helpers
                     }
                 } catch (Exception ex) {
                     success = false;
-                    UtilityHelper.CountlyLogging("[Storage] SaveToFile, save countly data failed. " + ex.ToString());
+                    UtilityHelper.CountlyLogging("[Storage] SaveToFile, save countly data failed. " + ex.ToString(), LogLevel.ERROR);
+                    ModuleHealthCheck.Track("e501");
                 }
                 return success;
             }
@@ -125,7 +128,8 @@ namespace CountlySDK.Helpers
                         file.Close();
                     }
                 } catch (Exception ex) {
-                    UtilityHelper.CountlyLogging("[Storage] LoadFromFile, countly queue lost." + ex.ToString());
+                    UtilityHelper.CountlyLogging("[Storage] LoadFromFile, countly queue lost." + ex.ToString(), LogLevel.ERROR);
+                    ModuleHealthCheck.Track("e503");
                 }
             }
 

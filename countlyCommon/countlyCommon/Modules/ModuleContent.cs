@@ -36,6 +36,7 @@ namespace CountlySDK.CountlyCommon
         {
             if (display == null) {
                 UtilityHelper.CountlyLogging("[ModuleContent] EnterContentZone, no display registered; ignoring", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return;
             }
             lock (_lock) {

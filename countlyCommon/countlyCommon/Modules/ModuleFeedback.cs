@@ -41,14 +41,15 @@ namespace CountlySDK.CountlyCommon
                 return FeedbackWidgetParser.ParseAvailableWidgets(requestResult.responseText);
             }
 
-            UtilityHelper.CountlyLogging("[ModuleFeedback] GetAvailableFeedbackWidgets, request failed", LogLevel.ERROR);
+            UtilityHelper.CountlyLogging("[ModuleFeedback] GetAvailableFeedbackWidgets, request failed");
             return new CountlyFeedbackWidget[0];
         }
 
         public async Task<JObject> GetFeedbackWidgetData(CountlyFeedbackWidget widget)
         {
             if (widget == null) {
-                UtilityHelper.CountlyLogging("[ModuleFeedback] GetFeedbackWidgetData, widget is null", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleFeedback] GetFeedbackWidgetData, widget is null", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return null;
             }
             UtilityHelper.CountlyLogging("[ModuleFeedback] GetFeedbackWidgetData for widget [" + widget.widgetId + "]");
@@ -74,7 +75,8 @@ namespace CountlySDK.CountlyCommon
         public async Task ReportFeedbackWidgetManually(CountlyFeedbackWidget widget, JObject widgetData, Dictionary<string, object> widgetResult)
         {
             if (widget == null) {
-                UtilityHelper.CountlyLogging("[ModuleFeedback] ReportFeedbackWidgetManually, widget is null, ignoring", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleFeedback] ReportFeedbackWidgetManually, widget is null, ignoring", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return;
             }
 
@@ -108,7 +110,8 @@ namespace CountlySDK.CountlyCommon
         public async Task<string> ConstructFeedbackWidgetUrl(CountlyFeedbackWidget widget)
         {
             if (widget == null || string.IsNullOrEmpty(widget.widgetId)) {
-                UtilityHelper.CountlyLogging("[ModuleFeedback] ConstructFeedbackWidgetUrl, widget or widgetId is null/empty", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleFeedback] ConstructFeedbackWidgetUrl, widget or widgetId is null/empty", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return null;
             }
             IDictionary<string, object> baseParams = await requestHelper.GetBaseParams();

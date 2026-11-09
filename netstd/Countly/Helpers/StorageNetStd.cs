@@ -27,7 +27,9 @@ using System.IO.IsolatedStorage;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using CountlySDK.CountlyCommon;
 using CountlySDK.CountlyCommon.Helpers;
+using static CountlySDK.CountlyCommon.CountlyBase;
 
 namespace CountlySDK.Helpers
 {
@@ -81,7 +83,8 @@ namespace CountlySDK.Helpers
                     }
                 } catch (Exception ex) {
                     success = false;
-                    UtilityHelper.CountlyLogging("[StorageNetStd] SaveToFile, save countly data failed." + ex.ToString());
+                    UtilityHelper.CountlyLogging("[StorageNetStd] SaveToFile, save countly data failed." + ex.ToString(), LogLevel.ERROR);
+                    ModuleHealthCheck.Track("e501");
                 }
                 return success;
             }
@@ -115,7 +118,8 @@ namespace CountlySDK.Helpers
                         closeIsolatedStorageStream(file);
                     }
                 } catch (Exception ex) {
-                    UtilityHelper.CountlyLogging("[StorageNetStd] LoadFromFile, Problem while loading from file. " + ex.ToString());
+                    UtilityHelper.CountlyLogging("[StorageNetStd] LoadFromFile, Problem while loading from file. " + ex.ToString(), LogLevel.ERROR);
+                    ModuleHealthCheck.Track("e503");
                 }
             }
 
