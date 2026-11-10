@@ -30,7 +30,7 @@ namespace CountlySDK.CountlyCommon
         private static ModuleHealthCheck registered = null;
 
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
         private readonly string appVersion;
         private readonly bool disabled;
         private readonly Func<string, bool> areaAllowed;
@@ -53,11 +53,11 @@ namespace CountlySDK.CountlyCommon
         /// Creates the health check module and reads the counters an earlier run stored
         /// </summary>
         /// <param name="requestHelper">builds the base request parameters</param>
-        /// <param name="serverUrl">server the health check is sent to</param>
+        /// <param name="serverUrl">gives the server the health check is sent to</param>
         /// <param name="disabled">true when the health check request is turned off</param>
         /// <param name="appVersion">app version the health check reports, the overridden one when set</param>
         /// <param name="areaAllowed">tells whether a feature area may be counted now, by its consent; null counts every area</param>
-        internal ModuleHealthCheck(RequestHelper requestHelper, string serverUrl, bool disabled, string appVersion, Func<string, bool> areaAllowed = null)
+        internal ModuleHealthCheck(RequestHelper requestHelper, Func<string> serverUrl, bool disabled, string appVersion, Func<string, bool> areaAllowed = null)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -485,7 +485,7 @@ namespace CountlySDK.CountlyCommon
             string payload = string.Format("{0}&metrics={1}&hc={2}", basePayload,
                 UtilityHelper.EncodeDataForURL(metricsJson), UtilityHelper.EncodeDataForURL(hcJson));
 
-            RequestResult result = await Api.Instance.SendDirectRequest(ServerUrl, payload, "/i");
+            RequestResult result = await Api.Instance.SendDirectRequest(ServerUrl(), payload, "/i");
             if (result != null && result.IsSuccess()) {
                 ClearSentValues(sent);
             } else {

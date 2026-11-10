@@ -39,7 +39,7 @@ namespace TestProject_common
         /// <summary>Warning/error counters accumulate.</summary>
         public void Counters_Accumulate()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.LogWarning();
             m.LogWarning();
             m.LogError();
@@ -52,7 +52,7 @@ namespace TestProject_common
         /// <summary>Status code is guarded to (0,1000); a request without a valid status (no answer) changes neither value.</summary>
         public void FailedRequest_RecordsAndGuardsStatus()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.LogFailedNetworkRequest(503, "A");
             Assert.Equal(503, m.LastStatusCode);
             Assert.Equal("A", m.LastErrorMessage);
@@ -67,7 +67,7 @@ namespace TestProject_common
         /// <summary>Error message is truncated to 1000 chars.</summary>
         public void FailedRequest_TruncatesMessage()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.LogFailedNetworkRequest(500, new string('x', 1500));
             Assert.Equal(1000, m.LastErrorMessage.Length);
         }
@@ -76,13 +76,13 @@ namespace TestProject_common
         /// <summary>SaveState then reload restores all counters.</summary>
         public void SaveAndLoad_RoundTrip()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.LogError();
             m.LogWarning();
             m.LogFailedNetworkRequest(500, "err");
             m.SaveState();
 
-            ModuleHealthCheck m2 = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m2 = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             Assert.Equal(1, m2.ErrorCount);
             Assert.Equal(1, m2.WarningCount);
             Assert.Equal(500, m2.LastStatusCode);
@@ -93,7 +93,7 @@ namespace TestProject_common
         /// <summary>No stored file → zero defaults (status -1, message empty).</summary>
         public void Load_Missing_ZeroDefaults()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             Assert.Equal(0, m.ErrorCount);
             Assert.Equal(0, m.WarningCount);
             Assert.Equal(-1, m.LastStatusCode);
@@ -107,12 +107,12 @@ namespace TestProject_common
             Storage.Instance.SaveToFile<HealthCheckEntity>(
                 ModuleHealthCheck.healthCheckFilename, new HealthCheckEntity { Json = "not-json" }).Wait();
 
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             Assert.Equal(0, m.ErrorCount);
             Assert.Equal(1, m.LogCodeCount("e503"));
 
             // storage was wiped, so a second load also yields zero defaults
-            ModuleHealthCheck m2 = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m2 = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             Assert.Equal(0, m2.ErrorCount);
             Assert.Equal(-1, m2.LastStatusCode);
         }
@@ -121,12 +121,12 @@ namespace TestProject_common
         /// <summary>ClearAndSave zeroes counters and wipes storage.</summary>
         public void ClearAndSave_Resets()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.LogError();
             m.ClearAndSave();
             Assert.Equal(0, m.ErrorCount);
 
-            ModuleHealthCheck m2 = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m2 = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             Assert.Equal(0, m2.ErrorCount);
         }
 
@@ -134,7 +134,7 @@ namespace TestProject_common
         /// <summary>Registered hook counts WARNING/ERROR logs but not DEBUG.</summary>
         public void LogHook_CountsWarningsAndErrors()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.RegisterHooks();
             try {
                 UtilityHelper.CountlyLogging("w", LogLevel.WARNING);
@@ -153,7 +153,7 @@ namespace TestProject_common
         public void LogHook_CountsWhenLoggingDisabled()
         {
             Countly.IsLoggingEnabled = false;
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.RegisterHooks();
             try {
                 UtilityHelper.CountlyLogging("w", LogLevel.WARNING);
@@ -167,7 +167,7 @@ namespace TestProject_common
         /// <summary>After UnregisterHooks, further logs are not counted.</summary>
         public void UnregisterHooks_StopsCounting()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.RegisterHooks();
             m.UnregisterHooks();
             UtilityHelper.CountlyLogging("e", LogLevel.ERROR);
@@ -447,7 +447,7 @@ namespace TestProject_common
             Storage.Instance.SaveToFile<HealthCheckEntity>(ModuleHealthCheck.healthCheckFilename,
                 new HealthCheckEntity { Json = "{\"MU\":{\"events\":{\"record\":65535}},\"LC\":{\"w722\":65535}}" }).Wait();
 
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.RecordUsage("events", "record");
             m.RecordLogCode("w722", "events");
 
@@ -459,7 +459,7 @@ namespace TestProject_common
         /// <summary>A delivered health check takes away only what it reported; a request refused meanwhile is kept.</summary>
         public void ClearSentValues_KeepsWhatCameMeanwhile()
         {
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             m.RecordUsage("events", "record");
             m.RecordUsage("views", "start");
             m.RecordLogCode("w720", "events");
@@ -479,7 +479,7 @@ namespace TestProject_common
             Assert.Equal(500, m.LastStatusCode);
             Assert.Equal("down", m.LastErrorMessage);
 
-            ModuleHealthCheck reloaded = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck reloaded = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             Assert.Equal(1, reloaded.UsageCount("events", "record"));
             Assert.Equal(500, reloaded.LastStatusCode);
         }
@@ -491,7 +491,7 @@ namespace TestProject_common
             Storage.Instance.SaveToFile<HealthCheckEntity>(ModuleHealthCheck.healthCheckFilename,
                 new HealthCheckEntity { Json = "{\"LErr\":\"many\",\"LWar\":2,\"RStatC\":null,\"MU\":{\"events\":{\"record\":\"x\",\"start\":2},\"payments\":{\"pay\":1}},\"LC\":{\"w701\":-1,\"w720\":3}}" }).Wait();
 
-            ModuleHealthCheck m = new ModuleHealthCheck(null, TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
+            ModuleHealthCheck m = new ModuleHealthCheck(null, () => TestHelper.SERVER_URL, false, TestHelper.APP_VERSION);
             Assert.Equal(0, m.ErrorCount);
             Assert.Equal(2, m.WarningCount);
             Assert.Equal(-1, m.LastStatusCode);

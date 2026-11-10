@@ -12,7 +12,7 @@ namespace CountlySDK.CountlyCommon
     internal class ModuleContent : Content, IDisposable
     {
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
         internal IContentDisplay display;   // set via Countly.Instance.SetContentDisplay(...)
 
         // Fully-qualified System.Threading.Timer to avoid the netstd CountlySDK.Helpers.TimerCallback collision.
@@ -26,7 +26,7 @@ namespace CountlySDK.CountlyCommon
         private string[] _categories;   // remembered so RefreshContentZone keeps the caller's category filter
         private const int StartDelayMs = 4000;
 
-        public ModuleContent(RequestHelper requestHelper, string serverUrl)
+        public ModuleContent(RequestHelper requestHelper, Func<string> serverUrl)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -119,7 +119,7 @@ namespace CountlySDK.CountlyCommon
                 IDictionary<string, object> parameters = ContentRequestBuilder.BuildParams(screen, categories, language, "desktop", contentId);
 
                 RequestResult rr = await Api.Instance.SendDirectRequest(
-                    ServerUrl, await requestHelper.BuildRequest(parameters), "/o/sdk/content");
+                    ServerUrl(), await requestHelper.BuildRequest(parameters), "/o/sdk/content");
 
                 ContentData content = (rr != null && rr.responseCode == 200) ? ContentParser.ParseContentResponse(rr.responseText) : null;
                 if (content == null) { return; }

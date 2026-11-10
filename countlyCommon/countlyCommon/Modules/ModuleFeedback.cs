@@ -12,7 +12,7 @@ namespace CountlySDK.CountlyCommon
     internal class ModuleFeedback : Feedback
     {
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
 
         // Server-contract event keys. CountlyBase declares these as `private const`, so they
         // are re-declared here for the module (the exact string values must match, because
@@ -21,7 +21,7 @@ namespace CountlySDK.CountlyCommon
         private const string SURVEY_EVENT_KEY = "[CLY]_survey";
         private const string STAR_RATING_EVENT_KEY = "[CLY]_star_rating";
 
-        public ModuleFeedback(RequestHelper requestHelper, string serverUrl)
+        public ModuleFeedback(RequestHelper requestHelper, Func<string> serverUrl)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -35,7 +35,7 @@ namespace CountlySDK.CountlyCommon
                 { "method", "feedback" }
             };
 
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(parameters));
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl(), await requestHelper.BuildRequest(parameters));
 
             if (requestResult != null && requestResult.responseCode == 200 && requestResult.responseText != null) {
                 return FeedbackWidgetParser.ParseAvailableWidgets(requestResult.responseText);
@@ -60,7 +60,7 @@ namespace CountlySDK.CountlyCommon
             };
             string endpoint = "/o/surveys/" + widget.type + "/widget";
 
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(parameters), endpoint);
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl(), await requestHelper.BuildRequest(parameters), endpoint);
 
             if (requestResult != null && requestResult.responseCode == 200 && requestResult.responseText != null) {
                 try {
@@ -115,7 +115,7 @@ namespace CountlySDK.CountlyCommon
                 return null;
             }
             IDictionary<string, object> baseParams = await requestHelper.GetBaseParams();
-            return WidgetUrlBuilder.BuildFeedbackWidgetUrl(ServerUrl, widget, baseParams);
+            return WidgetUrlBuilder.BuildFeedbackWidgetUrl(ServerUrl(), widget, baseParams);
         }
     }
 

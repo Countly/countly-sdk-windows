@@ -111,6 +111,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
       <Link>ViewsTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ServerUrlAndAppKeyTests.cs">
+      <Link>ServerUrlAndAppKeyTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\MockHttpServer.cs">
         <Link>MockHttpServer.cs</Link>
     </Compile>

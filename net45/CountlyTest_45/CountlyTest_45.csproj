@@ -113,6 +113,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
       <Link>ViewsTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ServerUrlAndAppKeyTests.cs">
+      <Link>ServerUrlAndAppKeyTests.cs</Link>
+    </Compile>
     <Compile Include="CountlyImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

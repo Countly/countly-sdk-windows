@@ -45,7 +45,7 @@ namespace CountlySDK.CountlyCommon
         private const string DropOldRequestTimeKey = "dort";
 
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
         private readonly object configLock = new object();
 
         // Effective gate state (defaults: allowed; only enter-content-zone defaults to off).
@@ -84,7 +84,7 @@ namespace CountlySDK.CountlyCommon
 
         private System.Threading.Timer refreshTimer = null;
 
-        public ModuleServerConfig(RequestHelper requestHelper, string serverUrl)
+        public ModuleServerConfig(RequestHelper requestHelper, Func<string> serverUrl)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -354,7 +354,9 @@ namespace CountlySDK.CountlyCommon
         private async Task FetchAndApply()
         {
             IDictionary<string, object> scParams = new Dictionary<string, object> { { "method", "sc" } };
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(scParams));
+            string serverUrl = ServerUrl();
+            string appKey = requestHelper.GetAppKey();
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(serverUrl, await requestHelper.BuildRequest(scParams));
             UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
 
             if (requestResult.responseCode != 200 || requestResult.responseText == null) {
@@ -372,6 +374,11 @@ namespace CountlySDK.CountlyCommon
 
             if (!ValidateEnvelope(env)) {
                 UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings");
+                return;
+            }
+
+            if (serverUrl != ServerUrl() || appKey != requestHelper.GetAppKey()) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, the server URL or app key changed during the fetch, ignoring the answer");
                 return;
             }
 

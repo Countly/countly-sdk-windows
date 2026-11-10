@@ -32,6 +32,14 @@ namespace CountlySDK.CountlyCommon.Helpers
             _interface = exposed;
         }
 
+        /// <summary>
+        /// Returns the app key the requests are built with now
+        /// </summary>
+        internal string GetAppKey()
+        {
+            return _interface.GetAppKey();
+        }
+
         internal async Task<Dictionary<string, object>> GetBaseParams()
         {
             TimeInstant timeInstant = _interface.GetTimeInstant();
