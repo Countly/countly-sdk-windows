@@ -20,6 +20,8 @@ jobs:
     env:
       API_ASSEMBLIES: >-
         netstd/Countly/bin/Release/netstandard2.0/Countly.dll
+        net35/Countly/bin/Release/Countly.dll
+        net45/Countly/bin/Release/Countly.dll
         ui/Countly.UI.WebView2/bin/Release/net462/Countly.UI.WebView2.dll
         ui/Countly.UI.WebView2/bin/Release/net8.0-windows/Countly.UI.WebView2.dll
     steps:
@@ -34,16 +36,25 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
+
       - name: Install ApiCompat
         run: dotnet tool install --tool-path "$RUNNER_TEMP/apicompat" Microsoft.DotNet.ApiCompat.Tool --version 8.0.428
 
       # The first parent of the pull request's merge commit is the base branch it merges into.
+      # MSBuild switches start with "-" because Git Bash rewrites arguments that start with "/" into paths.
       - name: Build the base branch and this pull request
         run: |
           git worktree add "$RUNNER_TEMP/base" HEAD^1
           for tree in "$RUNNER_TEMP/base" "$GITHUB_WORKSPACE"; do
             for project in netstd/Countly/Countly.csproj ui/Countly.UI.WebView2/Countly.UI.WebView2.csproj; do
               dotnet build "$tree/$project" -c Release -p:SignAssembly=false -p:DelaySign=false -p:GenerateDocumentationFile=false
+            done
+            for framework in net35 net45; do
+              nuget restore "$tree/$framework/Countly.sln"
+              msbuild "$tree/$framework/Countly/Countly.csproj" -t:Build -p:Configuration=Release -p:SignAssembly=false \
+                -p:DelaySign=false -p:GenerateDocumentationFile=false -v:minimal
             done
           done
 
