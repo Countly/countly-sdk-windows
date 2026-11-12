@@ -54,15 +54,22 @@ jobs:
           done
 
       # PowerShell, because the MSBuild that setup-msbuild puts on the PATH is not found from Git Bash.
+      # The runner image has no .NET Framework 4.5 targeting pack, so net45 builds against Microsoft's reference assembly package.
       - name: Build the .NET Framework assemblies of both
         shell: pwsh
         run: |
+          $refs = Join-Path $env:RUNNER_TEMP "refs"
+          nuget install Microsoft.NETFramework.ReferenceAssemblies.net45 -Version 1.0.3 -ExcludeVersion -OutputDirectory $refs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $net45Targets = Join-Path $refs "Microsoft.NETFramework.ReferenceAssemblies.net45/build/Microsoft.NETFramework.ReferenceAssemblies.net45.targets"
           foreach ($tree in @("$env:RUNNER_TEMP/base", "$env:GITHUB_WORKSPACE")) {
             foreach ($framework in @("net35", "net45")) {
               nuget restore "$tree/$framework/Countly.sln"
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              $extra = @()
+              if ($framework -eq "net45") { $extra = @("/p:CustomAfterMicrosoftCommonTargets=$net45Targets") }
               msbuild "$tree/$framework/Countly/Countly.csproj" /t:Build /p:Configuration=Release /p:SignAssembly=false `
-                /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
+                /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal @extra
               if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             }
           }
