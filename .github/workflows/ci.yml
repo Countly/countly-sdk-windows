@@ -5,6 +5,9 @@ on:
     branches:
       - staging
 
+permissions:
+  contents: read
+
 jobs:
   feedback-ui-tests:
     name: Feedback + UI unit tests (net8.0-windows)
