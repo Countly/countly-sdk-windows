@@ -44,7 +44,6 @@ jobs:
         run: dotnet tool install --tool-path "$RUNNER_TEMP/apicompat" Microsoft.DotNet.ApiCompat.Tool --version 8.0.428
 
       # The first parent of the pull request's merge commit is the base branch it merges into.
-      # MSBuild switches start with "-" because Git Bash rewrites arguments that start with "/" into paths.
       - name: Build the base branch and this pull request
         run: |
           git worktree add "$RUNNER_TEMP/base" HEAD^1
@@ -52,12 +51,21 @@ jobs:
             for project in netstd/Countly/Countly.csproj ui/Countly.UI.WebView2/Countly.UI.WebView2.csproj; do
               dotnet build "$tree/$project" -c Release -p:SignAssembly=false -p:DelaySign=false -p:GenerateDocumentationFile=false
             done
-            for framework in net35 net45; do
-              nuget restore "$tree/$framework/Countly.sln"
-              msbuild "$tree/$framework/Countly/Countly.csproj" -t:Build -p:Configuration=Release -p:SignAssembly=false \
-                -p:DelaySign=false -p:GenerateDocumentationFile=false -v:minimal
-            done
           done
+
+      # PowerShell, because the MSBuild that setup-msbuild puts on the PATH is not found from Git Bash.
+      - name: Build the .NET Framework assemblies of both
+        shell: pwsh
+        run: |
+          foreach ($tree in @("$env:RUNNER_TEMP/base", "$env:GITHUB_WORKSPACE")) {
+            foreach ($framework in @("net35", "net45")) {
+              nuget restore "$tree/$framework/Countly.sln"
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              msbuild "$tree/$framework/Countly/Countly.csproj" /t:Build /p:Configuration=Release /p:SignAssembly=false `
+                /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+          }
 
       # ApiCompat exits with 0 when it finds breaking changes, so its output decides.
       - name: Compare the public API with the base branch
