@@ -23,6 +23,21 @@ jobs:
           -p:SignAssembly=false
           -p:DelaySign=false
           -p:GenerateDocumentationFile=false
+          --collect "Code Coverage;Format=cobertura"
+          --results-directory coverage
+
+      - name: Write the coverage summary
+        shell: pwsh
+        run: |
+          $report = Get-ChildItem coverage -Recurse -Filter *.cobertura.xml | Select-Object -First 1
+          [xml]$xml = Get-Content $report.FullName
+          $rows = @("### Unit test coverage", "", "| Assembly | Line coverage | Branch coverage |", "|---|---|---|")
+          foreach ($package in $xml.coverage.packages.package) {
+            if ($package.name -notlike "*.Tests") {
+              $rows += "| {0} | {1:N2}% | {2:N2}% |" -f $package.name, (100 * [double]$package.'line-rate'), (100 * [double]$package.'branch-rate')
+            }
+          }
+          $rows | Add-Content $env:GITHUB_STEP_SUMMARY
 
   core-build:
     name: Build core (net35 / net45 / netstd)
