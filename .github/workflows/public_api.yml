@@ -1,0 +1,86 @@
+name: Public API
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: Breaking changes
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      API_ASSEMBLIES: >-
+        netstd/Countly/bin/Release/netstandard2.0/Countly.dll
+        ui/Countly.UI.WebView2/bin/Release/net462/Countly.UI.WebView2.dll
+        ui/Countly.UI.WebView2/bin/Release/net8.0-windows/Countly.UI.WebView2.dll
+    steps:
+      - name: Checkout SDK code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install ApiCompat
+        run: dotnet tool install --tool-path "$RUNNER_TEMP/apicompat" Microsoft.DotNet.ApiCompat.Tool --version 8.0.428
+
+      # The first parent of the pull request's merge commit is the base branch it merges into.
+      - name: Build the base branch and this pull request
+        run: |
+          git worktree add "$RUNNER_TEMP/base" HEAD^1
+          for tree in "$RUNNER_TEMP/base" "$GITHUB_WORKSPACE"; do
+            for project in netstd/Countly/Countly.csproj ui/Countly.UI.WebView2/Countly.UI.WebView2.csproj; do
+              dotnet build "$tree/$project" -c Release -p:SignAssembly=false -p:DelaySign=false -p:GenerateDocumentationFile=false
+            done
+          done
+
+      # ApiCompat exits with 0 when it finds breaking changes, so its output decides.
+      - name: Compare the public API with the base branch
+        env:
+          # The tool targets .NET 6, which the runner no longer has.
+          DOTNET_ROLL_FORWARD: Major
+        run: |
+          cd "$RUNNER_TEMP"
+          : > breaking.txt
+          for assembly in $API_ASSEMBLIES; do
+            mkdir -p "head/$(dirname "$assembly")"
+            cp "$GITHUB_WORKSPACE/$assembly" "head/$assembly"
+            if ! ./apicompat/apicompat --left-assembly "base/$assembly" --right-assembly "head/$assembly" > compat.log 2>&1 \
+                || ! grep -q -e 'ran successfully' -e 'breaking changes found' compat.log; then
+              cat compat.log
+              echo "::error::Could not compare the public API of $assembly with the base branch."
+              exit 1
+            fi
+            grep -E '^CP0[0-9]{3}:' compat.log >> breaking.txt || true
+          done
+
+      - name: Require a CHANGELOG entry for breaking changes
+        run: |
+          if [ ! -s "$RUNNER_TEMP/breaking.txt" ]; then
+            echo "No breaking change to the public API." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          {
+            echo "### Breaking changes to the public API"
+            echo '```'
+            cat "$RUNNER_TEMP/breaking.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if git diff --quiet HEAD^1 HEAD -- CHANGELOG.md; then
+            echo "::error title=Breaking API change::This pull request breaks the public API without a CHANGELOG.md entry. The job summary lists each break."
+            exit 1
+          fi
+          echo "::warning title=Breaking API change::This pull request breaks the public API. Check that CHANGELOG.md marks it as a breaking change."
