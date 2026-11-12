@@ -18,12 +18,13 @@ jobs:
       run:
         shell: bash
     env:
+      # Each assembly the NuGet packages ship is paired with the changelog that records its breaking changes.
       API_ASSEMBLIES: >-
-        netstd/Countly/bin/Release/netstandard2.0/Countly.dll
-        net35/Countly/bin/Release/Countly.dll
-        net45/Countly/bin/Release/Countly.dll
-        ui/Countly.UI.WebView2/bin/Release/net462/Countly.UI.WebView2.dll
-        ui/Countly.UI.WebView2/bin/Release/net8.0-windows/Countly.UI.WebView2.dll
+        netstd/Countly/bin/Release/netstandard2.0/Countly.dll=CHANGELOG.md
+        net35/Countly/bin/Release/Countly.dll=CHANGELOG.md
+        net45/Countly/bin/Release/Countly.dll=CHANGELOG.md
+        ui/Countly.UI.WebView2/bin/Release/net462/Countly.UI.WebView2.dll=ui/Countly.UI.WebView2/CHANGELOG.md
+        ui/Countly.UI.WebView2/bin/Release/net8.0-windows/Countly.UI.WebView2.dll=ui/Countly.UI.WebView2/CHANGELOG.md
     steps:
       - name: Checkout SDK code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -66,7 +67,9 @@ jobs:
         run: |
           cd "$RUNNER_TEMP"
           : > breaking.txt
-          for assembly in $API_ASSEMBLIES; do
+          : > changelogs.txt
+          for entry in $API_ASSEMBLIES; do
+            assembly="${entry%%=*}"
             mkdir -p "head/$(dirname "$assembly")"
             cp "$GITHUB_WORKSPACE/$assembly" "head/$assembly"
             if ! ./apicompat/apicompat --left-assembly "base/$assembly" --right-assembly "head/$assembly" > compat.log 2>&1 \
@@ -75,10 +78,12 @@ jobs:
               echo "::error::Could not compare the public API of $assembly with the base branch."
               exit 1
             fi
-            grep -E '^CP0[0-9]{3}:' compat.log >> breaking.txt || true
+            if grep -E '^CP0[0-9]{3}:' compat.log >> breaking.txt; then
+              echo "${entry#*=}" >> changelogs.txt
+            fi
           done
 
-      - name: Require a CHANGELOG entry for breaking changes
+      - name: Require a changelog entry for breaking changes
         run: |
           if [ ! -s "$RUNNER_TEMP/breaking.txt" ]; then
             echo "No breaking change to the public API." >> "$GITHUB_STEP_SUMMARY"
@@ -90,8 +95,14 @@ jobs:
             cat "$RUNNER_TEMP/breaking.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          if git diff --quiet HEAD^1 HEAD -- CHANGELOG.md; then
-            echo "::error title=Breaking API change::This pull request breaks the public API without a CHANGELOG.md entry. The job summary lists each break."
+          missing=""
+          while read -r changelog; do
+            if git diff --quiet HEAD^1 HEAD -- "$changelog"; then
+              missing="$missing $changelog"
+            fi
+          done < <(sort -u "$RUNNER_TEMP/changelogs.txt")
+          if [ -n "$missing" ]; then
+            echo "::error title=Breaking API change::This pull request breaks the public API without an entry in:$missing. The job summary lists each break."
             exit 1
           fi
-          echo "::warning title=Breaking API change::This pull request breaks the public API. Check that CHANGELOG.md marks it as a breaking change."
+          echo "::warning title=Breaking API change::This pull request breaks the public API. Check that the changelog marks it as a breaking change."
