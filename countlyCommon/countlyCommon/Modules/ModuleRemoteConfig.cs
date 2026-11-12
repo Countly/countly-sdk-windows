@@ -13,12 +13,12 @@ namespace CountlySDK.CountlyCommon
     internal class ModuleRemoteConfig : RemoteConfig
     {
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
         private IDictionary<string, RCData> rcValues = new Dictionary<string, RCData>();
         private object RCLock = new object();
         private bool AutoEnrollEnabled;
 
-        public ModuleRemoteConfig(RequestHelper requestHelper, string serverUrl, bool autoEnroll)
+        public ModuleRemoteConfig(RequestHelper requestHelper, Func<string> serverUrl, bool autoEnroll)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -48,13 +48,20 @@ namespace CountlySDK.CountlyCommon
                 rcParams.Add("oi", "1");
             }
 
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(rcParams));
+            string serverUrl = ServerUrl();
+            string appKey = requestHelper.GetAppKey();
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(serverUrl, await requestHelper.BuildRequest(rcParams));
             UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig, got server response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
             if (requestResult.responseCode == 200 && requestResult.responseText != null)
             {
                 try
                 {
                     Dictionary<string, object> newValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(requestResult.responseText);
+                    if (serverUrl != ServerUrl() || appKey != requestHelper.GetAppKey())
+                    {
+                        UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig, the server URL or app key changed during the download, ignoring the answer");
+                        return;
+                    }
                     lock (RCLock)
                     {
                         rcValues.Clear();
@@ -92,6 +99,17 @@ namespace CountlySDK.CountlyCommon
         {
             GetValues().TryGetValue(key, out RCData value);
             return value;
+        }
+
+        /// <summary>
+        /// Removes the downloaded values, when they belong to another app
+        /// </summary>
+        internal void ClearValues()
+        {
+            lock (RCLock)
+            {
+                rcValues.Clear();
+            }
         }
 
         public async Task EnrollIntoABTestsForKeys(List<string> keys)

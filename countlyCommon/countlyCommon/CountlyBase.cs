@@ -30,7 +30,7 @@ namespace CountlySDK.CountlyCommon
 
             public string GetAppKey()
             {
-                return _base.Configuration.appKey;
+                return _base.AppKey;
             }
 
             public string GetSDKName()
@@ -116,6 +116,10 @@ namespace CountlySDK.CountlyCommon
         // Exceptions queue
         internal List<ExceptionEvent> Exceptions { get; set; }
 
+        // Events and crash report of the uploads that are on their way; packing the queues into requests leaves them out
+        private List<CountlyEvent> eventsInFlight = null;
+        private ExceptionEvent exceptionInFlight = null;
+
         private static CountlyUserDetails userDetails;
         // User details info
         public static CountlyUserDetails UserDetails
@@ -158,6 +162,9 @@ namespace CountlySDK.CountlyCommon
         // If this is true, then a "begin session" has been called and there hasn't been an "end session"
         // this would indicate that we have to resume session tracking once consent is given
         internal bool automaticSessionTrackingStarted = false;
+
+        // True from a "begin session" request until its "end session" request
+        private bool sessionRunning = false;
 
         //holds device info
         internal Device DeviceData = new Device();
@@ -284,6 +291,8 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal, session tracking disabled by server config, ignoring");
                 return;
             }
+
+            sessionRunning = false;
 
             //report the duration of current view
             reportViewDuration();
@@ -426,17 +435,11 @@ namespace CountlySDK.CountlyCommon
                     lock (sync) {
                         uploadInProgress = false;
 
-                        //remove the executed request
-                        StoredRequest srd = null;
-                        try {
-                            srd = StoredRequests.Dequeue();
-                        } catch {
-                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, failing 'StoredRequests.Dequeue()'");
-                        }
-                        Debug.Assert(srd != null);
-                        if (srd != sr) {
-                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, the head request is not equal to sent request", LogLevel.ERROR);
-
+                        //remove the executed request, unless it left the queue while it was being sent
+                        if (StoredRequests.Count > 0 && StoredRequests.Peek() == sr) {
+                            StoredRequests.Dequeue();
+                        } else {
+                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, the sent request is no longer in the queue");
                         }
 
                         if (!Configuration.backendMode) {
@@ -493,7 +496,7 @@ namespace CountlySDK.CountlyCommon
                         uploadInProgress = false;
 
                         try {
-                            Sessions.RemoveAt(0);
+                            Sessions.Remove(sessionEvent);
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadSessions] Failed at removing session." + ex.ToString());
                         }
@@ -893,10 +896,13 @@ namespace CountlySDK.CountlyCommon
                 List<CountlyEvent> eventsToSend = null;
                 lock (sync) {
                     eventsToSend = Events.Take(eventsCount).ToList();
+                    eventsInFlight = eventsToSend;
                 }
 
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                string sentAppKey = AppKey;
                 RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, requestHelper, GetRemainingRequestCount(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+                lock (sync) { eventsInFlight = null; }
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -912,8 +918,8 @@ namespace CountlySDK.CountlyCommon
                         uploadInProgress = false;
 
                         try {
-                            for (int i = eventsCount - 1; i >= 0; i--) {
-                                Events.RemoveAt(i);
+                            foreach (CountlyEvent sentEvent in eventsToSend) {
+                                Events.Remove(sentEvent);
                             }
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadEvents] Failed at removing events." + ex.ToString());
@@ -935,6 +941,9 @@ namespace CountlySDK.CountlyCommon
                 } else {
                     ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
+                    if (AppKey != sentAppKey) {
+                        await MoveToRequestQueue(eventsToSend.Contains, exception => false, sentAppKey);
+                    }
                     return false;
                 }
             } else {
@@ -1108,12 +1117,15 @@ namespace CountlySDK.CountlyCommon
                 ExceptionEvent exEvent;//the exception event that will be uploaded
                 lock (sync) {
                     exEvent = Exceptions[0];
+                    exceptionInFlight = exEvent;
                 }
 
                 //do the exception upload
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
                 exEvent.Name = UtilityHelper.TrimKey(exEvent.Name, Configuration.MaxKeyLength, null, null); // this is here because already saved exceptions need to be truncated too
+                string sentAppKey = AppKey;
                 RequestResult requestResult = await Api.Instance.SendException(ServerUrl, requestHelper, GetRemainingRequestCount(), exEvent);
+                lock (sync) { exceptionInFlight = null; }
 
                 //check if we got a response and that it was a success
                 if (requestResult != null && requestResult.IsSuccess()) {
@@ -1122,7 +1134,7 @@ namespace CountlySDK.CountlyCommon
 
                     lock (sync) {
                         try {
-                            Exceptions.RemoveAt(0);
+                            Exceptions.Remove(exEvent);
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadExceptions] thrown exception when removing entry, " + ex.ToString());
                         }
@@ -1147,6 +1159,9 @@ namespace CountlySDK.CountlyCommon
                     //if the received response was not a success
                     ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
+                    if (AppKey != sentAppKey) {
+                        await MoveToRequestQueue(queuedEvent => false, exception => exception == exEvent, sentAppKey);
+                    }
                     return false;
                 }
             } else {
@@ -1424,6 +1439,7 @@ namespace CountlySDK.CountlyCommon
                 startTime = new DateTime();
                 lastSessionUpdateTime = new DateTime();
                 automaticSessionTrackingStarted = false;
+                sessionRunning = false;
 
                 //clear view related things
                 lastView = null;
@@ -1845,7 +1861,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             //server config (SDK Behavior Settings): load+apply stored/provided before consent is read
-            moduleServerConfig = new ModuleServerConfig(requestHelper, ServerUrl);
+            moduleServerConfig = new ModuleServerConfig(requestHelper, () => ServerUrl);
             moduleServerConfig.InitializeServerConfig(config);
             sessionUpdateInterval = Configuration.sessionUpdateInterval;
 
@@ -1855,13 +1871,13 @@ namespace CountlySDK.CountlyCommon
                 await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
             }
 
-            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl, Configuration.enableABTestingAutoEnroll);
-            moduleFeedback = new ModuleFeedback(requestHelper, ServerUrl);
-            moduleContent = new ModuleContent(requestHelper, ServerUrl);
+            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, () => ServerUrl, Configuration.enableABTestingAutoEnroll);
+            moduleFeedback = new ModuleFeedback(requestHelper, () => ServerUrl);
+            moduleContent = new ModuleContent(requestHelper, () => ServerUrl);
 
             string hcAppVersion = (config.MetricOverride != null && config.MetricOverride.ContainsKey("_app_version"))
                 ? config.MetricOverride["_app_version"] : config.appVersion;
-            moduleHealthCheck = new ModuleHealthCheck(requestHelper, ServerUrl, config.healthCheckDisabled, hcAppVersion, HealthAreaAllowed);
+            moduleHealthCheck = new ModuleHealthCheck(requestHelper, () => ServerUrl, config.healthCheckDisabled, hcAppVersion, HealthAreaAllowed);
             moduleHealthCheck.RegisterHooks();
 
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
@@ -1959,6 +1975,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             automaticSessionTrackingStarted = true;
+            sessionRunning = true;
             startTime = DateTime.Now;
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
@@ -2128,6 +2145,307 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[CountlyBase] SetId, newDeviceId: [" + newDeviceId + "], withMerge: [" + withMerge.ToString() + "]");
 
             await ChangeDeviceId(newDeviceId, withMerge);
+        }
+
+        /// <summary>
+        /// Changes the server URL: queued and later requests, direct requests and the feedback widget URL included, go to
+        /// the new server, while the app key, the salt and the custom request headers stay. Kept in memory only: the next
+        /// init uses the config URL again. Afterwards the consent state is sent while consent is required, the SDK behavior
+        /// settings are fetched and the remote config values are downloaded when automatic download triggers are enabled.
+        /// </summary>
+        /// <param name="serverUrl">absolute "http" or "https" URL, trailing "/" characters are removed; an invalid URL is ignored</param>
+        public async Task ChangeServerUrl(string serverUrl)
+        {
+            if (!CanRun("ChangeServerUrl", ignoredInBackendMode: false)) {
+                return;
+            }
+
+            string newServerUrl = serverUrl?.TrimEnd('/');
+            if (!IsServerUrlValid(newServerUrl)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeServerUrl: [" + serverUrl + "] is not a valid http or https URL, the server URL stays the same", LogLevel.ERROR);
+                ModuleHealthCheck.Track("e102");
+                return;
+            }
+
+            lock (sync) {
+                ServerUrl = newServerUrl;
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] ChangeServerUrl, server URL changed to [" + newServerUrl + "]");
+
+            await SendCatchUpRequests();
+        }
+
+        /// <summary>
+        /// Changes the app key. Before the switch the running view is ended, the recorded events, crash reports and pending
+        /// user details are queued and the running session is ended, all with the old app key; events and a crash report
+        /// that are being sent keep it, also when their send fails. After the switch the old app's remote config values are
+        /// removed, a session begins for the new app if one was running and the same requests follow as after
+        /// 'ChangeServerUrl'. Queued requests keep their app key, see 'ReplaceAllAppKeysInQueueWithCurrentAppKey' and
+        /// 'RemoveDifferentAppKeysFromQueue'. Kept in memory only: the next init uses the config app key again. Ignored in
+        /// backend mode.
+        /// </summary>
+        /// <param name="appKey">app key of the new app; an empty key, "YOUR_APP_KEY" or the current key is ignored</param>
+        public async Task ChangeAppKey(string appKey)
+        {
+            if (!CanRun("ChangeAppKey", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(appKey) || appKey == "YOUR_APP_KEY") {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeAppKey: [" + appKey + "] is not a valid app key, the app key stays the same", LogLevel.ERROR);
+                ModuleHealthCheck.Track("e103");
+                return;
+            }
+
+            if (appKey == AppKey) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeAppKey: The new app key is the same as the current one, ignoring");
+                return;
+            }
+
+            bool sessionWasRunning = sessionRunning;
+
+            reportViewDuration();
+            // reportViewDuration forgets the view only after its upload, and the session end would end the view again
+            lastView = null;
+            lastViewStart = 0;
+
+            await MoveToRequestQueue(recordedEvent => eventsInFlight == null || !eventsInFlight.Contains(recordedEvent), exception => exception != exceptionInFlight, AppKey);
+            UserDetails.Save();
+            if (!Configuration.autoSendUserDetails && UserDetails.isChanged && IsConsentGiven(ConsentFeatures.Users)) {
+                UserDetails.isChanged = false;
+                SaveUserDetails();
+                await AddUserDetailsRequest(RequestHelper.Json(UserDetails));
+            }
+            await RecordCustomModifiers();
+            if (sessionWasRunning) {
+                moduleHealthCheck?.RecordUsage("sessions", "end:a");
+                await EndSessionInternal();
+            } else {
+                await Upload();
+            }
+
+            lock (sync) {
+                AppKey = appKey;
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] ChangeAppKey, app key changed");
+            moduleRemoteConfig?.ClearValues();
+
+            if (sessionWasRunning) {
+                moduleHealthCheck?.RecordUsage("sessions", "begin:a");
+                await SessionBeginInternal();
+            }
+
+            await SendCatchUpRequests();
+        }
+
+        /// <summary>
+        /// Removes the requests, events and crash reports that are not sent yet. Timed events, the running view and the
+        /// pending user details stay, and a request that is being sent is not stopped. Ignored in backend mode.
+        /// </summary>
+        public void FlushQueues()
+        {
+            if (!CanRun("FlushQueues", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            lock (sync) {
+                UtilityHelper.CountlyLogging("[CountlyBase] FlushQueues, removing [" + StoredRequests.Count + "] requests, [" + Events.Count + "] events and [" + Exceptions.Count + "] crash reports");
+                StoredRequests.Clear();
+                Events.Clear();
+                Exceptions.Clear();
+                Sessions.Clear();
+                SaveStoredRequests();
+                SaveEvents();
+                SaveExceptions();
+                SaveSessions();
+            }
+        }
+
+        /// <summary>
+        /// Sets the current app key in every queued request, so that the requests queued before an app key change go to the
+        /// current app. Ignored in backend mode.
+        /// </summary>
+        public void ReplaceAllAppKeysInQueueWithCurrentAppKey()
+        {
+            if (!CanRun("ReplaceAllAppKeysInQueueWithCurrentAppKey", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            int count;
+            lock (sync) {
+                foreach (StoredRequest storedRequest in StoredRequests) {
+                    storedRequest.Request = WithAppKey(storedRequest.Request, AppKey);
+                }
+                count = StoredRequests.Count;
+                SaveStoredRequests();
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] ReplaceAllAppKeysInQueueWithCurrentAppKey, set the current app key in [" + count + "] requests");
+        }
+
+        /// <summary>
+        /// Removes the queued requests whose app key is not the current app key, for example the requests queued before an
+        /// app key change. Ignored in backend mode.
+        /// </summary>
+        public void RemoveDifferentAppKeysFromQueue()
+        {
+            if (!CanRun("RemoveDifferentAppKeysFromQueue", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            int removed;
+            lock (sync) {
+                Queue<StoredRequest> keptRequests = new Queue<StoredRequest>();
+                foreach (StoredRequest storedRequest in StoredRequests) {
+                    int start = FindAppKeyValue(storedRequest.Request, out int end);
+                    if (start >= 0 && UtilityHelper.DecodeDataForURL(storedRequest.Request.Substring(start, end - start)) == AppKey) {
+                        keptRequests.Enqueue(storedRequest);
+                    }
+                }
+                removed = StoredRequests.Count - keptRequests.Count;
+                StoredRequests = keptRequests;
+                SaveStoredRequests();
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] RemoveDifferentAppKeysFromQueue, removed [" + removed + "] requests");
+        }
+
+        /// <summary>
+        /// Starts sending the stored requests, events and crash reports right away, without waiting for the next session
+        /// update. Nothing is sent while the SDK behavior settings turn networking off.
+        /// </summary>
+        public async Task AttemptToSendStoredRequests()
+        {
+            if (!CanRun("AttemptToSendStoredRequests", ignoredInBackendMode: false)) {
+                return;
+            }
+
+            if (Configuration.backendMode) {
+                moduleBackendMode?.OnTimer();
+            }
+            await Upload();
+        }
+
+        /// <summary>
+        /// Logs the call of a public method and tells whether it may run: not in backend mode when the method is ignored
+        /// there, and not before init, which also counts the "w101" log code. Both cases log a warning.
+        /// </summary>
+        /// <param name="method">name of the public method, for the log lines</param>
+        /// <param name="ignoredInBackendMode">true when the method does nothing in backend mode</param>
+        /// <returns>true when the method may run</returns>
+        private bool CanRun(string method, bool ignoredInBackendMode)
+        {
+            if (ignoredInBackendMode && (Configuration?.backendMode ?? false)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] " + method + ", Backend Mode enabled, returning", LogLevel.WARNING);
+                return false;
+            }
+
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling '" + method + "'");
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] " + method + ": SDK must initialized before calling '" + method + "'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tells whether the URL can be the server URL: an absolute "http" or "https" URL with a host
+        /// </summary>
+        /// <param name="url">URL to check, can be null</param>
+        /// <returns>true when the URL can be used</returns>
+        private static bool IsServerUrlValid(string url)
+        {
+            return !string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out Uri uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) && uri.Host.Length > 0;
+        }
+
+        /// <summary>
+        /// Finds the value of the "app_key" parameter in a queued request
+        /// </summary>
+        /// <param name="request">request string, with or without a leading "/i?"</param>
+        /// <param name="end">index after the value</param>
+        /// <returns>index of the value, or -1 when the request has no app key</returns>
+        private static int FindAppKeyValue(string request, out int end)
+        {
+            end = -1;
+            if (request == null) { return -1; }
+            int index = request.IndexOf("app_key=", StringComparison.Ordinal);
+            while (index > 0 && request[index - 1] != '&' && request[index - 1] != '?') {
+                index = request.IndexOf("app_key=", index + 1, StringComparison.Ordinal);
+            }
+            if (index < 0) { return -1; }
+
+            int start = index + "app_key=".Length;
+            end = request.IndexOf('&', start);
+            if (end < 0) { end = request.Length; }
+            return start;
+        }
+
+        /// <summary>
+        /// Returns the request with the given app key as its "app_key" parameter; a request without one is returned as it is
+        /// </summary>
+        /// <param name="request">request string, with or without a leading "/i?"</param>
+        /// <param name="appKey">app key to set</param>
+        /// <returns>the request with the app key</returns>
+        private static string WithAppKey(string request, string appKey)
+        {
+            int start = FindAppKeyValue(request, out int end);
+            if (start < 0) { return request; }
+            return request.Substring(0, start) + UtilityHelper.EncodeDataForURL(appKey) + request.Substring(end);
+        }
+
+        /// <summary>
+        /// Moves the queued events and crash reports that the conditions select into the request queue, as requests with
+        /// the given app key, so that they go to that app whatever the app key is when they are sent
+        /// </summary>
+        /// <param name="takeEvent">selects the events to move</param>
+        /// <param name="takeException">selects the crash reports to move</param>
+        /// <param name="appKey">app key of the requests</param>
+        private async Task MoveToRequestQueue(Func<CountlyEvent, bool> takeEvent, Func<ExceptionEvent, bool> takeException, string appKey)
+        {
+            List<CountlyEvent> events;
+            List<ExceptionEvent> exceptions;
+            lock (sync) {
+                events = Events.Where(takeEvent).ToList();
+                exceptions = Exceptions.Where(takeException).ToList();
+                foreach (CountlyEvent movedEvent in events) {
+                    Events.Remove(movedEvent);
+                }
+                foreach (ExceptionEvent movedException in exceptions) {
+                    Exceptions.Remove(movedException);
+                }
+                if (events.Count > 0) { SaveEvents(); }
+                if (exceptions.Count > 0) { SaveExceptions(); }
+            }
+
+            // 15 events per request, as 'UploadEvents' sends them
+            for (int i = 0; i < events.Count; i += 15) {
+                string eventsJson = RequestHelper.Json(events.Skip(i).Take(15).ToList());
+                await AddRequest(WithAppKey(await requestHelper.BuildRequest(), appKey) + "&events=" + UtilityHelper.EncodeDataForURL(eventsJson));
+            }
+
+            foreach (ExceptionEvent exception in exceptions) {
+                await AddRequest(WithAppKey(await requestHelper.BuildRequest(), appKey) + "&crash=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(exception)));
+            }
+        }
+
+        /// <summary>
+        /// Brings a server or app that is new to this device up to date: sends the consent state while consent is required,
+        /// fetches the SDK behavior settings and downloads the remote config values when automatic download triggers are enabled
+        /// </summary>
+        private async Task SendCatchUpRequests()
+        {
+            // the consent request needs at least one consent entry
+            if (consentRequired && !Configuration.backendMode && givenConsent.Count > 0) {
+                await SendConsentChanges(givenConsent);
+            }
+
+            if (moduleServerConfig != null) {
+                await moduleServerConfig.FetchServerConfig();
+            }
+
+            if (Configuration.remoteConfigAutomaticDownloadTriggers) {
+                await RemoteConfig().DownloadKeys();
+            }
         }
 
         internal bool IsConsentGiven(ConsentFeatures feature)

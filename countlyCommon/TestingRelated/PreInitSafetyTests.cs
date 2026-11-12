@@ -96,5 +96,20 @@ namespace TestProject_common
         {
             await Countly.Instance.SetConsent(new Dictionary<ConsentFeatures, bool> { { ConsentFeatures.Events, true } });
         }
+
+        [Fact]
+        /// <summary>Changing the server URL or the app key and the queue operations before Init are ignored without throwing.</summary>
+        public async Task ServerUrlAppKeyAndQueueCalls_BeforeInit_AreIgnoredWithoutThrowing()
+        {
+            await Countly.Instance.ChangeServerUrl("https://example.com");
+            await Countly.Instance.ChangeAppKey("new_app_key");
+            Countly.Instance.FlushQueues();
+            Countly.Instance.ReplaceAllAppKeysInQueueWithCurrentAppKey();
+            Countly.Instance.RemoveDifferentAppKeysFromQueue();
+            await Countly.Instance.AttemptToSendStoredRequests();
+
+            Assert.False(Countly.Instance.IsInitialized());
+            Assert.Null(Countly.Instance.Configuration);
+        }
     }
 }
