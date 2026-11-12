@@ -32,11 +32,14 @@ jobs:
 
       - uses: microsoft/setup-msbuild@v2
 
+      # The runner image has no .NET Framework 4.5 targeting pack, so net45 builds against Microsoft's reference assembly package.
       - name: Restore + build core targets
         shell: pwsh
         run: |
+          nuget install Microsoft.NETFramework.ReferenceAssemblies.net45 -Version 1.0.3 -ExcludeVersion -OutputDirectory "$env:RUNNER_TEMP/refs"
           nuget restore net35/Countly.sln
           nuget restore net45/Countly.sln
           msbuild net35/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
-          msbuild net45/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
+          msbuild net45/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal `
+            "/p:CustomAfterMicrosoftCommonTargets=$env:RUNNER_TEMP/refs/Microsoft.NETFramework.ReferenceAssemblies.net45/build/Microsoft.NETFramework.ReferenceAssemblies.net45.targets"
           dotnet build netstd/Countly/Countly.csproj -c Release -p:SignAssembly=false -p:DelaySign=false -p:GenerateDocumentationFile=false
