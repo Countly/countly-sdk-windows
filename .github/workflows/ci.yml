@@ -36,6 +36,8 @@ jobs:
       - name: Restore + build core targets
         shell: pwsh
         run: |
+          # Fails the step on any failing command, not only on the last one.
+          $PSNativeCommandUseErrorActionPreference = $true
           nuget install Microsoft.NETFramework.ReferenceAssemblies.net45 -Version 1.0.3 -ExcludeVersion -OutputDirectory "$env:RUNNER_TEMP/refs"
           nuget restore net35/Countly.sln
           nuget restore net45/Countly.sln
