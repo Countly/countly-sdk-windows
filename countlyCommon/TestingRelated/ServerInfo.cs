@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestProject_common
 {
-    // Placeholder values, the same as TestHelper's: the tests never need a real server.
+    // CI copies this file to ../countly-sdk-windows-server-info, which the test projects compile; the tests need no real server.
     public static class ServerInfo
     {
         public const String serverURL = "https://domin.com";

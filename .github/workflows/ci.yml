@@ -24,6 +24,9 @@ jobs:
           # Fails the step on any failing command, not only on the last one.
           $PSNativeCommandUseErrorActionPreference = $true
           $refs = "$env:RUNNER_TEMP/refs"
+          # The test projects compile ServerInfo.cs from a folder next to the repository, so CI puts the placeholder copy there.
+          New-Item -ItemType Directory -Force -Path ../countly-sdk-windows-server-info | Out-Null
+          Copy-Item countlyCommon/TestingRelated/ServerInfo.cs ../countly-sdk-windows-server-info/
           foreach ($framework in 'net45', 'net462') {
             nuget install "Microsoft.NETFramework.ReferenceAssemblies.$framework" -Version 1.0.3 -ExcludeVersion -OutputDirectory $refs
           }
