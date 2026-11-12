@@ -6,6 +6,54 @@ on:
       - staging
 
 jobs:
+  core-tests:
+    name: Core unit tests (net35 / net45 / netstd)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
+
+      # The .NET Framework 4.5 and 4.6.2 projects build against Microsoft's reference assembly packages, not the runner image's targeting packs.
+      - name: Build test projects
+        shell: pwsh
+        run: |
+          # Fails the step on any failing command, not only on the last one.
+          $PSNativeCommandUseErrorActionPreference = $true
+          $refs = "$env:RUNNER_TEMP/refs"
+          foreach ($framework in 'net45', 'net462') {
+            nuget install "Microsoft.NETFramework.ReferenceAssemblies.$framework" -Version 1.0.3 -ExcludeVersion -OutputDirectory $refs
+          }
+          nuget install xunit.runner.console -Version 2.4.1 -ExcludeVersion -OutputDirectory "$env:RUNNER_TEMP/tools"
+          nuget restore net35/Countly.sln
+          nuget restore net45/Countly.sln
+          nuget restore netstd/CountlyTest_461/packages.config -PackagesDirectory netstd/packages
+          $options = '/p:Configuration=Release', '/p:SignAssembly=false', '/p:DelaySign=false', '/p:GenerateDocumentationFile=false', '/v:minimal'
+          msbuild net35/CountlyTest_35/CountlyTest_35.csproj @options
+          msbuild net45/CountlyTest_45/CountlyTest_45.csproj @options "/p:CustomAfterMicrosoftCommonTargets=$refs/Microsoft.NETFramework.ReferenceAssemblies.net45/build/Microsoft.NETFramework.ReferenceAssemblies.net45.targets"
+          msbuild netstd/CountlyTest_461/CountlyTest_461.csproj /restore @options "/p:CustomAfterMicrosoftCommonTargets=$refs/Microsoft.NETFramework.ReferenceAssemblies.net462/build/Microsoft.NETFramework.ReferenceAssemblies.net462.targets"
+
+      # The tests read their sample files relative to the working directory, so each assembly runs from its output folder.
+      - name: Run tests
+        shell: pwsh
+        run: |
+          $xunit = "$env:RUNNER_TEMP/tools/xunit.runner.console/tools/net472/xunit.console.exe"
+          $failed = @()
+          foreach ($project in 'net35/CountlyTest_35', 'net45/CountlyTest_45', 'netstd/CountlyTest_461') {
+            $name = Split-Path $project -Leaf
+            Push-Location "$project/bin/Release"
+            & $xunit "$name.dll" -nologo
+            if ($LASTEXITCODE -ne 0) { $failed += $name }
+            Pop-Location
+          }
+          if ($failed) {
+            Write-Output "::error title=Core unit tests::Failing test assemblies: $($failed -join ', ')"
+            exit 1
+          }
+
   feedback-ui-tests:
     name: Feedback + UI unit tests (net8.0-windows)
     runs-on: windows-latest
