@@ -62,7 +62,7 @@ jobs:
       - name: Run the tests
         shell: pwsh
         working-directory: netstd/CountlyTest_461/bin/Release
-        run: '& "$env:RUNNER_TEMP/tools/xunit.runner.console/tools/net472/xunit.console.exe" CountlyTest_461.dll -nologo -notrait "Category=Stress"'
+        run: '& "$env:RUNNER_TEMP/tools/xunit.runner.console/tools/net472/xunit.console.exe" CountlyTest_461.dll -nologo -notrait "Category=Stress" -notrait "Category=RealServer"'
 
   feedback-ui-tests:
     name: Feedback + UI unit tests (net8.0-windows)
