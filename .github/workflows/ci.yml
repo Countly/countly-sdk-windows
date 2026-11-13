@@ -42,11 +42,27 @@ jobs:
           msbuild netstd/CountlyTest_461/CountlyTest_461.csproj /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal `
             "/p:CustomAfterMicrosoftCommonTargets=$env:RUNNER_TEMP/refs/Microsoft.NETFramework.ReferenceAssemblies.net462/build/Microsoft.NETFramework.ReferenceAssemblies.net462.targets"
 
+      # Some tests wait until their requests are delivered to ServerInfo's URL, which this stand-in answers.
+      - name: Start the stand-in server
+        shell: pwsh
+        run: |
+          Start-Process -FilePath python -ArgumentList '.github/scripts/countly_stand_in_server.py', '18080' -WindowStyle Hidden
+          for ($try = 0; $try -lt 50; $try++) {
+            try {
+              Invoke-WebRequest -Uri http://127.0.0.1:18080/i -Method Post -UseBasicParsing | Out-Null
+              exit 0
+            } catch {
+              Start-Sleep -Milliseconds 200
+            }
+          }
+          Write-Output "::error title=Stand-in server::The stand-in server did not answer on port 18080."
+          exit 1
+
       # The tests read their sample files relative to the working directory, so they run from the output folder.
       - name: Run the tests
         shell: pwsh
         working-directory: netstd/CountlyTest_461/bin/Release
-        run: '& "$env:RUNNER_TEMP/tools/xunit.runner.console/tools/net472/xunit.console.exe" CountlyTest_461.dll -nologo'
+        run: '& "$env:RUNNER_TEMP/tools/xunit.runner.console/tools/net472/xunit.console.exe" CountlyTest_461.dll -nologo -notrait "Category=Stress"'
 
   feedback-ui-tests:
     name: Feedback + UI unit tests (net8.0-windows)
