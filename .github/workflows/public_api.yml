@@ -78,6 +78,7 @@ jobs:
 
       # ApiCompat exits with 0 when it finds breaking changes, so its output decides.
       - name: Compare the public API with the base branch
+        id: compare
         env:
           # The tool targets .NET 6, which the runner no longer has.
           DOTNET_ROLL_FORWARD: Major
@@ -130,6 +131,44 @@ jobs:
             exit 1
           fi
           echo "::warning title=Breaking API change::This pull request breaks the public API. Check that the changelog marks it as a breaking change."
+
+      # The record lists the API from the sources, so the build output under obj/ and bin/ does not count.
+      - name: List the public API
+        id: listing
+        run: |
+          mkdir -p "$RUNNER_TEMP/tool"
+          cp .github/scripts/PublicApi.cs "$RUNNER_TEMP/tool/"
+          cat > "$RUNNER_TEMP/tool/PublicApi.csproj" <<'EOF'
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup>
+              <OutputType>Exe</OutputType>
+              <TargetFramework>net8.0</TargetFramework>
+              <ImplicitUsings>disable</ImplicitUsings>
+              <Nullable>disable</Nullable>
+            </PropertyGroup>
+            <ItemGroup>
+              <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+            </ItemGroup>
+          </Project>
+          EOF
+          dotnet build "$RUNNER_TEMP/tool" -c Release -o "$RUNNER_TEMP/tool/out"
+          dotnet "$RUNNER_TEMP/tool/out/PublicApi.dll" ";NET462" countlyCommon/countlyCommon netstd/Countly > "$RUNNER_TEMP/windows.api"
+          dotnet "$RUNNER_TEMP/tool/out/PublicApi.dll" ";NET462" ui/Countly.UI.WebView2 > "$RUNNER_TEMP/webview2.api"
+
+      # The committed record keeps every change to the public API visible in the pull request's diff.
+      - name: Compare the public API with its record
+        id: record
+        if: ${{ !cancelled() && steps.listing.outcome == 'success' }}
+        run: >
+          bash .github/scripts/public_api_record.sh
+          "$RUNNER_TEMP/windows.api=api/countly-sdk-windows.api" "$RUNNER_TEMP/webview2.api=api/countly-ui-webview2.api"
+
+      - name: Upload the new record
+        if: ${{ !cancelled() && steps.record.outcome == 'failure' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: public-api-record
+          path: ${{ runner.temp }}/public-api-record
 
   comment:
     name: Comment the public API changes

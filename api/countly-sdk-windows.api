@@ -1,0 +1,283 @@
+CountlySDK.Countly class : CountlyBase
+CountlySDK.Countly.DeviceIdMethod enum
+CountlySDK.Countly.DeviceIdMethod.developerSupplied enum value
+CountlySDK.Countly.DeviceIdMethod.windowsGUID enum value
+CountlySDK.Countly.Init(CountlyConfig) method Task override
+CountlySDK.Countly.Instance property Countly { get; } static
+CountlySDK.Countly.SaveEvents() method bool protected override
+CountlySDK.Countly.SaveExceptions() method bool protected override
+CountlySDK.Countly.SaveSessions() method bool protected override
+CountlySDK.Countly.SaveUserDetails() method bool protected override
+CountlySDK.Countly.SessionStarted event EventHandler static
+CountlySDK.Countly.SessionTimerStart() method void protected override
+CountlySDK.Countly.SessionTimerStop() method void protected override
+CountlySDK.Countly.sdkName() method string override
+CountlySDK.CountlyCommon.BackendMode interface
+CountlySDK.CountlyCommon.BackendMode.BeginSession(string, string = ..., IDictionary<string, string> = ..., IDictionary<string, string> = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.ChangeDeviceIdWithMerge(string, string, string = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.EndSession(string, int, string = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.RecordDirectRequest(string, IDictionary<string, string>, string = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.RecordEvent(string, string = ..., string = ..., double? = ..., int = ..., long? = ..., Segmentation = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.RecordEvent(string, string, Segmentation = ..., int = ..., double? = ..., long? = ..., string = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.RecordException(string, string, string = ..., IList<string> = ..., IDictionary<string, object> = ..., IDictionary<string, string> = ..., bool = ..., string = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.RecordUserProperties(string, IDictionary<string, object>, string = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.StartView(string, string, Segmentation = ..., string = ..., string = ..., bool = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.StopView(string, string, long, Segmentation = ..., string = ..., string = ..., long = ...) method void
+CountlySDK.CountlyCommon.BackendMode.UpdateSession(string, int, string = ..., long = ...) method void
+CountlySDK.CountlyCommon.Content interface
+CountlySDK.CountlyCommon.Content.EnterContentZone(string[] = ...) method void
+CountlySDK.CountlyCommon.Content.ExitContentZone() method void
+CountlySDK.CountlyCommon.Content.PreviewContent(string) method void
+CountlySDK.CountlyCommon.Content.RecordContentEvents(string) method void
+CountlySDK.CountlyCommon.Content.RefreshContentZone() method void
+CountlySDK.CountlyCommon.ContentData class
+CountlySDK.CountlyCommon.ContentData.Landscape field ContentPlacement
+CountlySDK.CountlyCommon.ContentData.Portrait field ContentPlacement
+CountlySDK.CountlyCommon.ContentData.Url field string
+CountlySDK.CountlyCommon.ContentParser class static
+CountlySDK.CountlyCommon.ContentParser.ParseContentResponse(string) method ContentData static
+CountlySDK.CountlyCommon.ContentPlacement class
+CountlySDK.CountlyCommon.ContentPlacement.H field int
+CountlySDK.CountlyCommon.ContentPlacement.W field int
+CountlySDK.CountlyCommon.ContentPlacement.X field int
+CountlySDK.CountlyCommon.ContentPlacement.Y field int
+CountlySDK.CountlyCommon.ContentScreen class
+CountlySDK.CountlyCommon.ContentScreen.Height field int
+CountlySDK.CountlyCommon.ContentScreen.Width field int
+CountlySDK.CountlyCommon.CountlyBase class abstract
+CountlySDK.CountlyCommon.CountlyBase.AddBreadCrumb(string) method void static
+CountlySDK.CountlyCommon.CountlyBase.AddCrashBreadCrumb(string) method void
+CountlySDK.CountlyCommon.CountlyBase.AppKey field string protected
+CountlySDK.CountlyCommon.CountlyBase.AppVersion field string protected
+CountlySDK.CountlyCommon.CountlyBase.AttemptToSendStoredRequests() method Task
+CountlySDK.CountlyCommon.CountlyBase.BackendMode() method BackendMode
+CountlySDK.CountlyCommon.CountlyBase.CancelEvent(string) method void
+CountlySDK.CountlyCommon.CountlyBase.ChangeAppKey(string) method Task
+CountlySDK.CountlyCommon.CountlyBase.ChangeDeviceId(string, bool = ...) method Task
+CountlySDK.CountlyCommon.CountlyBase.ChangeServerUrl(string) method Task
+CountlySDK.CountlyCommon.CountlyBase.ClearStorage() method Task protected
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures enum
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Content enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Crashes enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Events enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Feedback enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Location enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Push enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.RemoteConfig enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Sessions enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.StarRating enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Users enum value
+CountlySDK.CountlyCommon.CountlyBase.ConsentFeatures.Views enum value
+CountlySDK.CountlyCommon.CountlyBase.Content() method Content
+CountlySDK.CountlyCommon.CountlyBase.DeviceIdType enum
+CountlySDK.CountlyCommon.CountlyBase.DeviceIdType.DeveloperProvided enum value
+CountlySDK.CountlyCommon.CountlyBase.DeviceIdType.SDKGenerated enum value
+CountlySDK.CountlyCommon.CountlyBase.DisableLocation() method Task<bool>
+CountlySDK.CountlyCommon.CountlyBase.EndEvent(string, Segmentation = ..., int = ..., double? = ...) method Task
+CountlySDK.CountlyCommon.CountlyBase.EndSessionInternal() method Task protected
+CountlySDK.CountlyCommon.CountlyBase.Feedback() method Feedback
+CountlySDK.CountlyCommon.CountlyBase.FlushQueues() method void
+CountlySDK.CountlyCommon.CountlyBase.GetDeviceIDType() method DeviceIdType
+CountlySDK.CountlyCommon.CountlyBase.GetDeviceId() method Task<string> static
+CountlySDK.CountlyCommon.CountlyBase.GetLocationParams() method Dictionary<string, object> protected
+CountlySDK.CountlyCommon.CountlyBase.Halt() method void static
+CountlySDK.CountlyCommon.CountlyBase.Init(CountlyConfig) method Task abstract
+CountlySDK.CountlyCommon.CountlyBase.InitBase(CountlyConfig) method Task protected
+CountlySDK.CountlyCommon.CountlyBase.IsAppKeyCorrect(string) method bool protected
+CountlySDK.CountlyCommon.CountlyBase.IsLoggingEnabled property bool { get; set; } static
+CountlySDK.CountlyCommon.CountlyBase.IsServerURLCorrect(string) method bool protected
+CountlySDK.CountlyCommon.CountlyBase.LogLevel enum
+CountlySDK.CountlyCommon.CountlyBase.LogLevel.DEBUG enum value
+CountlySDK.CountlyCommon.CountlyBase.LogLevel.ERROR enum value
+CountlySDK.CountlyCommon.CountlyBase.LogLevel.INFO enum value
+CountlySDK.CountlyCommon.CountlyBase.LogLevel.VERBOSE enum value
+CountlySDK.CountlyCommon.CountlyBase.LogLevel.WARNING enum value
+CountlySDK.CountlyCommon.CountlyBase.OnUserDetailsChanged() method void protected
+CountlySDK.CountlyCommon.CountlyBase.RecordEvent(string) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordEvent(string, int) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordEvent(string, int, Segmentation) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordEvent(string, int, double?) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordEvent(string, int, double?, Segmentation) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordEvent(string, int, double?, double?, Segmentation) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordEventInternal(string, int, double?, double?, Segmentation) method Task<bool> protected
+CountlySDK.CountlyCommon.CountlyBase.RecordException(string) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordException(string, string = ...) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordException(string, string, Dictionary<string, string>) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordException(string, string, Dictionary<string, string>, bool) method Task<bool> static
+CountlySDK.CountlyCommon.CountlyBase.RecordUnhandledException(string, string) method Task<bool> protected
+CountlySDK.CountlyCommon.CountlyBase.RecordView(string) method Task<bool>
+CountlySDK.CountlyCommon.CountlyBase.RecordView(string, Segmentation) method Task<bool>
+CountlySDK.CountlyCommon.CountlyBase.RemoteConfig() method RemoteConfig
+CountlySDK.CountlyCommon.CountlyBase.RemoveDifferentAppKeysFromQueue() method void
+CountlySDK.CountlyCommon.CountlyBase.ReplaceAllAppKeysInQueueWithCurrentAppKey() method void
+CountlySDK.CountlyCommon.CountlyBase.SaveEvents() method bool protected abstract
+CountlySDK.CountlyCommon.CountlyBase.SaveExceptions() method bool protected abstract
+CountlySDK.CountlyCommon.CountlyBase.SaveSessions() method bool protected abstract
+CountlySDK.CountlyCommon.CountlyBase.SaveUserDetails() method bool protected abstract
+CountlySDK.CountlyCommon.CountlyBase.ServerUrl field string protected
+CountlySDK.CountlyCommon.CountlyBase.SessionBegin() method Task
+CountlySDK.CountlyCommon.CountlyBase.SessionEnd() method Task
+CountlySDK.CountlyCommon.CountlyBase.SessionTimerStart() method void protected abstract
+CountlySDK.CountlyCommon.CountlyBase.SessionTimerStop() method void protected abstract
+CountlySDK.CountlyCommon.CountlyBase.SessionUpdate(int) method Task
+CountlySDK.CountlyCommon.CountlyBase.SetConsent(Dictionary<ConsentFeatures, bool>) method Task
+CountlySDK.CountlyCommon.CountlyBase.SetContentDisplay(IContentDisplay) method void
+CountlySDK.CountlyCommon.CountlyBase.SetId(string) method Task
+CountlySDK.CountlyCommon.CountlyBase.SetLocation(string, string = ..., string = ..., string = ...) method Task<bool>
+CountlySDK.CountlyCommon.CountlyBase.StartEvent(string) method void
+CountlySDK.CountlyCommon.CountlyBase.UploadExceptions() method Task<bool> protected
+CountlySDK.CountlyCommon.CountlyBase.UserDetails property CountlyUserDetails { get; } static
+CountlySDK.CountlyCommon.CountlyBase.sdkName() method string abstract
+CountlySDK.CountlyCommon.CountlyBase.sdkVersion field string protected const
+CountlySDK.CountlyCommon.CountlyBase.sessionUpdateInterval field int protected
+CountlySDK.CountlyCommon.CountlyBase.startTime field DateTime protected
+CountlySDK.CountlyCommon.CountlyBase.sync field object protected
+CountlySDK.CountlyCommon.CountlyFeedbackWidget class
+CountlySDK.CountlyCommon.CountlyFeedbackWidget.name field string
+CountlySDK.CountlyCommon.CountlyFeedbackWidget.tags field List<string>
+CountlySDK.CountlyCommon.CountlyFeedbackWidget.type field FeedbackWidgetType
+CountlySDK.CountlyCommon.CountlyFeedbackWidget.widgetId field string
+CountlySDK.CountlyCommon.CountlyFeedbackWidget.widgetVersion field string
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase class
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.AddCustomNetworkRequestHeaders(IDictionary<string, string>) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.ContentZoneTimerInterval property int { get; set; }
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoEnrollInABTesting() method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoSendUserDetails() method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableHealthCheck() method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableLocation() method void
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableSDKBehaviorSettingsUpdates() method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableBackendMode() method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableRemoteConfigAutomaticTriggers() method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.GlobalContentCallback property System.Action { get; set; }
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.LogListener property System.Action<string, LogLevel> { get; set; }
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxBreadcrumbCount field int
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxKeyLength field int
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxSegmentationValues field int
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxStackTraceLineLength field int
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxStackTraceLinesPerThread field int
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxValueSize field int
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetBackendModeAppEQSizeToSend(int) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetBackendModeServerEQSizeToSend(int) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetEventQueueSizeToSend(int) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetLocation(string, string, string, string) method void
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetLogListener(System.Action<string, LogLevel>) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetMaxRequestQueueSize(int) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetMetricOverride(IDictionary<string, string>) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetParamaterTamperingProtectionSalt(string) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.SetSDKBehaviorSettings(string) method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.appKey field string
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.appVersion field string
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.consentRequired field bool
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.developerProvidedDeviceId field string
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.givenConsent field Dictionary<ConsentFeatures, bool>
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.sdkFolderName field string
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.serverUrl field string
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.sessionUpdateInterval field int
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase class abstract : IComparable<CountlyUserDetailsBase>
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.BirthYear property int? { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.CallUserDetailsChanged() method void protected
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.CompareTo(CountlyUserDetailsBase) method int
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.CountlyUserDetailsBase() constructor
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Custom property CustomInfo { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Email property string { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Gender property string { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Increment(string) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.IncrementBy(string, int) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.IsSetUserDetailsChanged() method bool protected
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Multiply(string, int) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Name property string { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.NotifyDetailsChanged() method void protected abstract
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Organization property string { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Phone property string { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Picture property string { get; set; }
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Pull(string, string) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Push(string, string) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.PushUnique(string, string) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Save() method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.SaveMax(string, int) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.SaveMin(string, int) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.SetOnce(string, string) method void
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.ToString() method string override
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.UploadUserPicture(Stream) method Task<bool>
+CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Username property string { get; set; }
+CountlySDK.CountlyCommon.Feedback interface
+CountlySDK.CountlyCommon.Feedback.ConstructFeedbackWidgetUrl(CountlyFeedbackWidget) method Task<string>
+CountlySDK.CountlyCommon.Feedback.GetAvailableFeedbackWidgets() method Task<CountlyFeedbackWidget[]>
+CountlySDK.CountlyCommon.Feedback.GetFeedbackWidgetData(CountlyFeedbackWidget) method Task<JObject>
+CountlySDK.CountlyCommon.Feedback.ReportFeedbackWidgetManually(CountlyFeedbackWidget, JObject, Dictionary<string, object>) method Task
+CountlySDK.CountlyCommon.FeedbackWidgetParser class static
+CountlySDK.CountlyCommon.FeedbackWidgetParser.ParseAvailableWidgets(string) method CountlyFeedbackWidget[] static
+CountlySDK.CountlyCommon.FeedbackWidgetType enum
+CountlySDK.CountlyCommon.FeedbackWidgetType.nps enum value
+CountlySDK.CountlyCommon.FeedbackWidgetType.rating enum value
+CountlySDK.CountlyCommon.FeedbackWidgetType.survey enum value
+CountlySDK.CountlyCommon.Helpers.ContentRequestBuilder class static
+CountlySDK.CountlyCommon.Helpers.ContentRequestBuilder.BuildParams(ContentScreen, string[], string, string, string) method IDictionary<string, object> static
+CountlySDK.CountlyCommon.Helpers.WidgetUrlBuilder class static
+CountlySDK.CountlyCommon.Helpers.WidgetUrlBuilder.BuildFeedbackWidgetUrl(string, CountlyFeedbackWidget, IDictionary<string, object>) method string static
+CountlySDK.CountlyCommon.IContentDisplay interface
+CountlySDK.CountlyCommon.IContentDisplay.GetScreen() method ContentScreen
+CountlySDK.CountlyCommon.IContentDisplay.Present(ContentPlacement, ContentPlacement, string, Action) method void
+CountlySDK.CountlyCommon.RCData class
+CountlySDK.CountlyCommon.RCData.IsCurrentUsersData property bool { get; }
+CountlySDK.CountlyCommon.RCData.Value property object { get; }
+CountlySDK.CountlyCommon.RemoteConfig interface
+CountlySDK.CountlyCommon.RemoteConfig.DownloadKeys(List<string> = ..., List<string> = ...) method Task
+CountlySDK.CountlyCommon.RemoteConfig.EnrollIntoABTestsForKeys(List<string>) method Task
+CountlySDK.CountlyCommon.RemoteConfig.ExitABTestsForKeys(List<string> = ...) method Task
+CountlySDK.CountlyCommon.RemoteConfig.GetValue(string) method RCData
+CountlySDK.CountlyCommon.RemoteConfig.GetValues() method IDictionary<string, RCData>
+CountlySDK.CountlyCommon.WidgetAction class
+CountlySDK.CountlyCommon.WidgetAction.Close field bool
+CountlySDK.CountlyCommon.WidgetAction.EventPayload field string
+CountlySDK.CountlyCommon.WidgetAction.HasResize field bool
+CountlySDK.CountlyCommon.WidgetAction.IsActionEvent field bool
+CountlySDK.CountlyCommon.WidgetAction.Landscape field WidgetRect
+CountlySDK.CountlyCommon.WidgetAction.Link field string
+CountlySDK.CountlyCommon.WidgetAction.Portrait field WidgetRect
+CountlySDK.CountlyCommon.WidgetActionParser class static
+CountlySDK.CountlyCommon.WidgetActionParser.Parse(string) method WidgetAction static
+CountlySDK.CountlyCommon.WidgetRect class
+CountlySDK.CountlyCommon.WidgetRect.H field int
+CountlySDK.CountlyCommon.WidgetRect.W field int
+CountlySDK.CountlyCommon.WidgetRect.X field int
+CountlySDK.CountlyCommon.WidgetRect.Y field int
+CountlySDK.Entities.CountlyConfig class : CountlyConfigBase
+CountlySDK.Entities.CountlyConfig.deviceIdMethod field DeviceIdMethod
+CountlySDK.Entities.CountlyUserDetails class : CountlyUserDetailsBase
+CountlySDK.Entities.CountlyUserDetails.NotifyDetailsChanged() method void protected override
+CountlySDK.Entities.CustomInfo class : IComparable<CustomInfo>
+CountlySDK.Entities.CustomInfo.Add(string, string) method void
+CountlySDK.Entities.CustomInfo.Clear() method void
+CountlySDK.Entities.CustomInfo.CompareTo(CustomInfo) method int
+CountlySDK.Entities.CustomInfo.CustomInfo() constructor
+CountlySDK.Entities.CustomInfo.Remove(string) method void
+CountlySDK.Entities.CustomInfo.sync field object protected
+CountlySDK.Entities.CustomInfo.this(string) indexer string { get; set; }
+CountlySDK.Entities.CustomInfoItem class : IComparable<CustomInfoItem>
+CountlySDK.Entities.CustomInfoItem.CompareTo(CustomInfoItem) method int
+CountlySDK.Entities.CustomInfoItem.CustomInfoItem() constructor
+CountlySDK.Entities.CustomInfoItem.CustomInfoItem(string, string) constructor
+CountlySDK.Entities.CustomInfoItem.Name property string { get; set; }
+CountlySDK.Entities.CustomInfoItem.Value property string { get; set; }
+CountlySDK.Helpers.CanonicalPhoneName class
+CountlySDK.Helpers.CanonicalPhoneName.CanonicalManufacturer property string { get; set; }
+CountlySDK.Helpers.CanonicalPhoneName.CanonicalModel property string { get; set; }
+CountlySDK.Helpers.CanonicalPhoneName.Comments property string { get; set; }
+CountlySDK.Helpers.CanonicalPhoneName.FullCanonicalName property string { get; }
+CountlySDK.Helpers.CanonicalPhoneName.IsResolved property bool { get; set; }
+CountlySDK.Helpers.CanonicalPhoneName.ReportedManufacturer property string { get; set; }
+CountlySDK.Helpers.CanonicalPhoneName.ReportedModel property string { get; set; }
+CountlySDK.Helpers.TimerCallback delegate void(object, EventArgs)
+CountlySDK.Helpers.TimerHelper class sealed : CancellationTokenSource, IDisposable
+CountlySDK.Helpers.TimerHelper.Dispose() method void
+CountlySDK.Helpers.TimerHelper.TimerHelper(TimerCallback, object, int, int) constructor
+CountlySDK.Segmentation class : IComparable<Segmentation>
+CountlySDK.Segmentation.Add(string, string) method void
+CountlySDK.Segmentation.CompareTo(Segmentation) method int
+CountlySDK.Segmentation.Segmentation() constructor
+CountlySDK.SegmentationItem class : IComparable<SegmentationItem>
+CountlySDK.SegmentationItem.CompareTo(SegmentationItem) method int
+CountlySDK.SegmentationItem.Key property string { get; set; }
+CountlySDK.SegmentationItem.SegmentationItem(string, string) constructor
+CountlySDK.SegmentationItem.Value property string { get; set; }
