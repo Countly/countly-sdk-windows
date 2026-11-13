@@ -1,18 +1,60 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - master
+      - staging
   pull_request:
     branches:
+      - master
       - staging
 
+permissions:
+  contents: read
+
 jobs:
+  # Only the netstd SDK exposes its internals to the tests (COUNTLY_TESTABLE), which the shared test files need.
+  core-tests:
+    name: Core unit tests (netstd)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
+
+      # The .NET Framework 4.6.2 test project builds against Microsoft's reference assembly package, not the runner image's targeting pack.
+      - name: Build the test project
+        shell: pwsh
+        run: |
+          # Fails the step on any failing command, not only on the last one.
+          $PSNativeCommandUseErrorActionPreference = $true
+          # The test project compiles ServerInfo.cs from a folder next to the repository, so CI puts the placeholder copy there.
+          New-Item -ItemType Directory -Force -Path ../countly-sdk-windows-server-info | Out-Null
+          Copy-Item countlyCommon/TestingRelated/ServerInfo.cs ../countly-sdk-windows-server-info/
+          nuget install Microsoft.NETFramework.ReferenceAssemblies.net462 -Version 1.0.3 -ExcludeVersion -OutputDirectory "$env:RUNNER_TEMP/refs"
+          nuget install xunit.runner.console -Version 2.4.1 -ExcludeVersion -OutputDirectory "$env:RUNNER_TEMP/tools"
+          nuget restore netstd/CountlyTest_461/packages.config -PackagesDirectory netstd/packages
+          dotnet restore netstd/Countly/Countly.csproj
+          msbuild netstd/CountlyTest_461/CountlyTest_461.csproj /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal `
+            "/p:CustomAfterMicrosoftCommonTargets=$env:RUNNER_TEMP/refs/Microsoft.NETFramework.ReferenceAssemblies.net462/build/Microsoft.NETFramework.ReferenceAssemblies.net462.targets"
+
+      # The tests read their sample files relative to the working directory, so they run from the output folder.
+      - name: Run the tests
+        shell: pwsh
+        working-directory: netstd/CountlyTest_461/bin/Release
+        run: '& "$env:RUNNER_TEMP/tools/xunit.runner.console/tools/net472/xunit.console.exe" CountlyTest_461.dll -nologo'
+
   feedback-ui-tests:
     name: Feedback + UI unit tests (net8.0-windows)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '8.0.x'
 
@@ -23,20 +65,40 @@ jobs:
           -p:SignAssembly=false
           -p:DelaySign=false
           -p:GenerateDocumentationFile=false
+          --collect "Code Coverage;Format=cobertura"
+          --results-directory coverage
+
+      - name: Write the coverage summary
+        shell: pwsh
+        run: |
+          $report = Get-ChildItem coverage -Recurse -Filter *.cobertura.xml | Select-Object -First 1
+          [xml]$xml = Get-Content $report.FullName
+          $rows = @("### Unit test coverage", "", "| Assembly | Line coverage | Branch coverage |", "|---|---|---|")
+          foreach ($package in $xml.coverage.packages.package) {
+            if ($package.name -notlike "*.Tests") {
+              $rows += "| {0} | {1:N2}% | {2:N2}% |" -f $package.name, (100 * [double]$package.'line-rate'), (100 * [double]$package.'branch-rate')
+            }
+          }
+          $rows | Add-Content $env:GITHUB_STEP_SUMMARY
 
   core-build:
     name: Build core (net35 / net45 / netstd)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: microsoft/setup-msbuild@v2
+      - uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
 
+      # The runner image has no .NET Framework 4.5 targeting pack, so net45 builds against Microsoft's reference assembly package.
       - name: Restore + build core targets
         shell: pwsh
         run: |
+          # Fails the step on any failing command, not only on the last one.
+          $PSNativeCommandUseErrorActionPreference = $true
+          nuget install Microsoft.NETFramework.ReferenceAssemblies.net45 -Version 1.0.3 -ExcludeVersion -OutputDirectory "$env:RUNNER_TEMP/refs"
           nuget restore net35/Countly.sln
           nuget restore net45/Countly.sln
           msbuild net35/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
-          msbuild net45/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal
+          msbuild net45/Countly/Countly.csproj /t:Build /p:Configuration=Release /p:SignAssembly=false /p:DelaySign=false /p:GenerateDocumentationFile=false /v:minimal `
+            "/p:CustomAfterMicrosoftCommonTargets=$env:RUNNER_TEMP/refs/Microsoft.NETFramework.ReferenceAssemblies.net45/build/Microsoft.NETFramework.ReferenceAssemblies.net45.targets"
           dotnet build netstd/Countly/Countly.csproj -c Release -p:SignAssembly=false -p:DelaySign=false -p:GenerateDocumentationFile=false

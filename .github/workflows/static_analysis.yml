@@ -1,0 +1,55 @@
+name: Static analysis
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - staging
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dotnet-analyzers:
+    name: .NET analyzers
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '8.0.x'
+
+      # On pull requests the base branch is analyzed too, so that only findings it lacks can fail the job.
+      - name: Analyze the SDK and the WebView2 UI
+        shell: bash
+        run: |
+          # Builds the SDK and the WebView2 UI of the checkout in $1 with the analyzers on, writing SARIF to $2.
+          analyze() {
+            options=(-c Release -p:SignAssembly=false -p:DelaySign=false -p:GenerateDocumentationFile=false -p:TreatWarningsAsErrors=false -p:EnableNETAnalyzers=true -p:AnalysisMode=Recommended)
+            mkdir -p "$2"
+            dotnet build "$1/netstd/Countly/Countly.csproj" "${options[@]}" "-p:ErrorLog=$2/netstd.sarif%2Cversion%3D2.1"
+            dotnet build "$1/ui/Countly.UI.WebView2/Countly.UI.WebView2.csproj" "${options[@]}" -p:TargetFramework=net8.0-windows -p:BuildProjectReferences=false "-p:ErrorLog=$2/webview2.sarif%2Cversion%3D2.1"
+          }
+          analyze "$GITHUB_WORKSPACE" "$RUNNER_TEMP/sarif"
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            # The first parent of the pull request's merge commit is the base branch it merges into.
+            git worktree add "$RUNNER_TEMP/base" HEAD^1
+            analyze "$RUNNER_TEMP/base" "$RUNNER_TEMP/sarif-base"
+          fi
+
+      # Every finding goes to the job summary; a new one at warning or error level fails the job.
+      - name: Summarize the findings
+        shell: bash
+        run: |
+          base=()
+          if [ -d "$RUNNER_TEMP/sarif-base" ]; then
+            base=(--base "$RUNNER_TEMP/sarif-base" --base-root "$RUNNER_TEMP/base")
+          fi
+          python .github/scripts/sarif_summary.py ".NET analyzers" "$RUNNER_TEMP/sarif" "${base[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
