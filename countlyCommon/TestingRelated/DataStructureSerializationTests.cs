@@ -127,6 +127,7 @@ namespace TestProject_common
         public async void BasicDeserialization_18_1()
         {
             String targetPath = await Storage.Instance.GetFolderPath(Storage.Instance.sdkFolder) + "\\";
+            Directory.CreateDirectory(targetPath);
             String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\18_1\\";
 
             File.Copy(sourceFolder + "sessions.xml", targetPath + "sessions.xml");
@@ -159,6 +160,7 @@ namespace TestProject_common
         public async void BasicDeserialization_002()
         {
             String targetPath = await Storage.Instance.GetFolderPath(Storage.Instance.sdkFolder) + "\\";
+            Directory.CreateDirectory(targetPath);
             String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\Test_002\\";
 
             File.Copy(sourceFolder + "sessions.xml", targetPath + "sessions.xml", true);
@@ -193,6 +195,7 @@ namespace TestProject_common
         public async void DeserializeDeviceIdString_18_1()
         {
             String targetPath = await Storage.Instance.GetFolderPath(Storage.Instance.sdkFolder) + "\\";
+            Directory.CreateDirectory(targetPath);
             String sourceFolder = TestHelper.testDataLocation + "\\SampleDataFiles\\18_1\\";
 
             File.Copy(sourceFolder + "devicePCL.xml", targetPath + "device.xml");

@@ -49,6 +49,8 @@ namespace TestProject_common
         }
 
         [Fact]
+        // a stress test for a real server: its worker threads assert every call succeeds, so CI leaves it out
+        [Trait("Category", "Stress")]
         void ThreadTest()
         {
             Action[] threadActions = PrepareThreadActions();

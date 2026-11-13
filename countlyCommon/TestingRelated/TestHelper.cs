@@ -299,17 +299,24 @@ namespace TestProject_common
             Assert.Equal(0, UtilityHelper.CompareQueues<T>(obj, res));
         }
 
+        /// <summary>
+        /// Uploads until the SDK has nothing queued, and fails the test when the server takes longer than 30 seconds to
+        /// accept it all.
+        /// </summary>
+        /// <returns>a task that completes when every queue is empty</returns>
         public static async Task ValidateDataPointUpload()
         {
             if (Countly.Instance.deferUpload) {
                 return;
             }
 
+            DateTime deadline = DateTime.UtcNow.AddSeconds(30);
             while (Countly.Instance.Events.Count > 0 ||
                 Countly.Instance.Exceptions.Count > 0 ||
                 Countly.Instance.Sessions.Count > 0 ||
                 Countly.Instance.StoredRequests.Count > 0 ||
                 Countly.UserDetails.isChanged) {
+                Assert.True(DateTime.UtcNow < deadline, "The SDK could not upload its queued data to " + ServerInfo.serverURL + " within 30 seconds.");
                 Thread.Sleep(100);
                 if (!Countly.Instance.uploadInProgress) {
                     await Countly.Instance.Upload();
