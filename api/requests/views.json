@@ -1,0 +1,183 @@
+[
+  {
+    "path": "/o/sdk",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hour": "<masked>",
+      "method": "sc",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hc": {
+        "bom": "<masked>",
+        "cbom": "<masked>",
+        "el": "<masked>",
+        "em": "<masked>",
+        "fu": "<masked>",
+        "lc": "<masked>",
+        "sc": "<masked>",
+        "wl": "<masked>"
+      },
+      "hour": "<masked>",
+      "metrics": {
+        "_app_version": "<masked>"
+      },
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "begin_session": "1",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hour": "<masked>",
+      "metrics": {
+        "_app_version": "<masked>",
+        "_locale": "<masked>",
+        "_os": "<masked>",
+        "_os_version": "<masked>"
+      },
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "events": [
+        {
+          "count": 1,
+          "key": "[CLY]_view",
+          "segmentation": {
+            "name": "Home",
+            "segment": "Windows",
+            "source": "scenario",
+            "start": "1",
+            "visit": "1"
+          },
+          "timestamp": "<masked>"
+        }
+      ],
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "events": [
+        {
+          "count": 1,
+          "key": "[CLY]_view",
+          "segmentation": {
+            "dur": "<masked>",
+            "name": "Home",
+            "segment": "Windows"
+          },
+          "timestamp": "<masked>"
+        },
+        {
+          "count": 1,
+          "key": "[CLY]_view",
+          "segmentation": {
+            "name": "Settings",
+            "segment": "Windows",
+            "visit": "1"
+          },
+          "timestamp": "<masked>"
+        }
+      ],
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "end_session": "1",
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "session_duration": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "events": [
+        {
+          "count": 1,
+          "key": "[CLY]_view",
+          "segmentation": {
+            "dur": "<masked>",
+            "name": "Settings",
+            "segment": "Windows"
+          },
+          "timestamp": "<masked>"
+        }
+      ],
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  }
+]
