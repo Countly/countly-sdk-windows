@@ -1,0 +1,167 @@
+[
+  {
+    "path": "/o/sdk",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hour": "<masked>",
+      "method": "sc",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hc": {
+        "bom": "<masked>",
+        "cbom": "<masked>",
+        "el": "<masked>",
+        "em": "<masked>",
+        "fu": "<masked>",
+        "lc": "<masked>",
+        "sc": "<masked>",
+        "wl": "<masked>"
+      },
+      "hour": "<masked>",
+      "metrics": {
+        "_app_version": "<masked>"
+      },
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "begin_session": "1",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hour": "<masked>",
+      "metrics": {
+        "_app_version": "<masked>",
+        "_locale": "<masked>",
+        "_os": "<masked>",
+        "_os_version": "<masked>"
+      },
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "events": [
+        {
+          "count": 2,
+          "dur": 5.0,
+          "key": "purchase",
+          "segmentation": {
+            "hashirama": "-2147483647",
+            "itachi": "1.7976931348623157e+308",
+            "kakaski": "5e-324",
+            "nar": "uto",
+            "sakura": "false",
+            "sasuke": "2147483647"
+          },
+          "sum": 9.99,
+          "timestamp": "<masked>"
+        }
+      ],
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>",
+      "user_details": {
+        "byear": 1980,
+        "custom": {
+          "age": "30",
+          "tier": "gold"
+        },
+        "email": "john@example.com",
+        "gender": "M",
+        "name": "John Doe",
+        "organization": "Countly",
+        "phone": "1234567890",
+        "picture": "https://example.com/picture.jpg",
+        "username": "john_d"
+      }
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "session_duration": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  },
+  {
+    "path": "/i",
+    "params": {
+      "app_key": "parity-app-key",
+      "av": "<masked>",
+      "device_id": "parity-device-001",
+      "dow": "<masked>",
+      "end_session": "1",
+      "hour": "<masked>",
+      "rr": "<masked>",
+      "sdk_name": "csharp-netstd",
+      "sdk_version": "<masked>",
+      "session_duration": "<masked>",
+      "t": "0",
+      "timestamp": "<masked>",
+      "tz": "<masked>"
+    }
+  }
+]
