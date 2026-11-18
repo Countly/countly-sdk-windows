@@ -30,13 +30,14 @@ namespace TestProject_common
         public RequestCompressionTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait();
             TestHelper.CleanDataFiles();
+            Countly.Instance.deferUpload = false;
         }
 
         public void Dispose()
         {
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait();
             foreach (GzipServer server in servers) {
                 server.Dispose();
             }
