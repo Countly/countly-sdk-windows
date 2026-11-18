@@ -100,6 +100,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleServerConfigTests.cs">
       <Link>ModuleServerConfigTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\RequestCompressionTests.cs">
+      <Link>RequestCompressionTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleHealthCheckTests.cs">
       <Link>ModuleHealthCheckTests.cs</Link>
     </Compile>

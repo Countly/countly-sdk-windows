@@ -6,6 +6,7 @@
 * Added a new function "ChangeServerUrl" to change the server URL after init.
 * Added a new function "ChangeAppKey" to change the app key after init.
 * Added new queue functions "FlushQueues", "AttemptToSendStoredRequests", "ReplaceAllAppKeysInQueueWithCurrentAppKey" and "RemoveDifferentAppKeysFromQueue".
+* Added configuration option "EnableRequestCompression". Request bodies between 1 KB and 1 MB are then sent gzip-compressed, once the server's SDK Behavior Settings answer says it reads them.
 
 * Mitigated an issue where, in apps running on .NET Core 3.1 or older, Windows 8.1, 10 and 11 were reported as Windows 8 (6.2.9200) when the app did not declare support for them in its manifest.
 * Mitigated an issue where the health check reported a request that got no answer, or a failed health check, remote config, behavior settings or feedback widget request, as the last failed request, and counted a health check the server did not confirm as an SDK warning.

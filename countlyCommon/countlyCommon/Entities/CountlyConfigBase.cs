@@ -159,6 +159,12 @@ namespace CountlySDK.CountlyCommon.Entities
         internal bool healthCheckDisabled = false;
 
         /// <summary>
+        /// When true, request bodies are sent gzip-compressed once the server's SDK Behavior
+        /// Settings answer says it reads them.
+        /// </summary>
+        internal bool requestCompressionEnabled = false;
+
+        /// <summary>
         /// Disabled the location tracking on the Countly server
         /// </summary>
         public void DisableLocation()
@@ -352,6 +358,21 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase DisableHealthCheck()
         {
             healthCheckDisabled = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Compress request bodies between 1 KB and 1 MB with gzip before sending them. The SDK
+        /// compresses only after the server's SDK Behavior Settings answer said it reads compressed
+        /// bodies, so older servers keep getting plain requests. It needs the SDK Behavior Settings
+        /// updates, which DisableSDKBehaviorSettingsUpdates turns off. A compressed request that the
+        /// server, or something in front of it, answers without accepting it stops compression until
+        /// the next SDK Behavior Settings answer says again that the server reads compressed bodies.
+        /// </summary>
+        /// <returns>Config for call chaining</returns>
+        public CountlyConfigBase EnableRequestCompression()
+        {
+            requestCompressionEnabled = true;
             return this;
         }
 
