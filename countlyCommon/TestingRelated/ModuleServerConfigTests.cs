@@ -14,12 +14,14 @@ namespace TestProject_common
         public ModuleServerConfigTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait();
             TestHelper.CleanDataFiles();
+            Countly.Instance.deferUpload = false;
         }
 
         public void Dispose()
         {
+            Countly.Instance.HaltInternal().Wait();
         }
 
         [Fact]
