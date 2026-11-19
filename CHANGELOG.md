@@ -10,6 +10,7 @@
 * Mitigated an issue where, in apps running on .NET Core 3.1 or older, Windows 8.1, 10 and 11 were reported as Windows 8 (6.2.9200) when the app did not declare support for them in its manifest.
 * Mitigated an issue where the health check reported a request that got no answer, or a failed health check, remote config, behavior settings or feedback widget request, as the last failed request, and counted a health check the server did not confirm as an SDK warning.
 * Mitigated an issue where a delivered health check also cleared what was counted while it was on its way.
+* Mitigated an issue where "DownloadKeys" with keys to include or omit downloaded every key, as the keys were not sent as a JSON array. A download of some keys now replaces only the values it returns, and the other stored values stay.
 * Mitigated an issue where "RecordEvent" and "AddCrashBreadCrumb" threw an exception when called with a null value.
 * Mitigated an issue where an unsent request could be dropped when the queue changed while a request was being sent.
 
