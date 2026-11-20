@@ -1824,6 +1824,7 @@ namespace CountlySDK.CountlyCommon
             requestHelper = new RequestHelper(exposed);
             Api.Instance.customNetworkRequestHeaders = config.CustomNetworkRequestHeaders;
             Api.Instance.tamperingProtectionSalt = config.TamperingProtectionSalt;
+            Api.Instance.ResetRequestCompression(config.requestCompressionEnabled);
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {

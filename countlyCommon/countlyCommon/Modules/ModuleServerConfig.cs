@@ -354,6 +354,9 @@ namespace CountlySDK.CountlyCommon
         private async Task FetchAndApply()
         {
             IDictionary<string, object> scParams = new Dictionary<string, object> { { "method", "sc" } };
+            if (Api.Instance.RequestCompressionEnabled) {
+                scParams["gzip"] = 1;
+            }
             string serverUrl = ServerUrl();
             string appKey = requestHelper.GetAppKey();
             RequestResult requestResult = await Api.Instance.SendDirectRequest(serverUrl, await requestHelper.BuildRequest(scParams));
@@ -372,13 +375,17 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            if (!ValidateEnvelope(env)) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings");
+            if (serverUrl != ServerUrl() || appKey != requestHelper.GetAppKey()) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, the server URL or app key changed during the fetch, ignoring the answer");
                 return;
             }
 
-            if (serverUrl != ServerUrl() || appKey != requestHelper.GetAppKey()) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, the server URL or app key changed during the fetch, ignoring the answer");
+            // read before the envelope check, as an answer with empty settings still tells whether the server reads gzip
+            JToken gzip = env["gzip"];
+            Api.Instance.OnGzipAnswer(serverUrl, gzip != null && gzip.Type == JTokenType.Boolean && (bool)gzip);
+
+            if (!ValidateEnvelope(env)) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings");
                 return;
             }
 

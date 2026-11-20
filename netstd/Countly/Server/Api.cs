@@ -38,7 +38,7 @@ namespace CountlySDK
             }).ConfigureAwait(false);
         }
 
-        protected override async Task<RequestResult> RequestAsync(string address, string requestData = null, Stream imageData = null, IDictionary<string, string> customNetworkHeaders = null)
+        protected override async Task<RequestResult> RequestAsync(string address, string requestData = null, Stream imageData = null, IDictionary<string, string> customNetworkHeaders = null, byte[] compressedBody = null)
         {
             RequestResult requestResult = new RequestResult();
             try {
@@ -46,7 +46,10 @@ namespace CountlySDK
                 imageData?.Seek(0, SeekOrigin.Begin);
                 HttpContent httpContent = (imageData != null) ? new StreamContent(imageData) : null;
 
-                if (requestData != null) {
+                if (compressedBody != null) {
+                    httpContent = new ByteArrayContent(compressedBody);
+                    httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+                } else if (requestData != null) {
                     Stream requestStream = new MemoryStream(Encoding.UTF8.GetBytes(requestData));
                     httpContent = new StreamContent(requestStream);
                     httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");

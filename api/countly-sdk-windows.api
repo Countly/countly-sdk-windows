@@ -148,6 +148,7 @@ CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableLocation() method voi
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableSDKBehaviorSettingsUpdates() method CountlyConfigBase
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableBackendMode() method CountlyConfigBase
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableRemoteConfigAutomaticTriggers() method CountlyConfigBase
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableRequestCompression() method CountlyConfigBase
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.GlobalContentCallback property System.Action { get; set; }
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.LogListener property System.Action<string, LogLevel> { get; set; }
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.MaxBreadcrumbCount field int
