@@ -18,11 +18,15 @@ namespace TestProject_common
         public ModuleHealthCheckTests()
         {
             CountlyImpl.SetPCLStorageIfNeeded();
-            Countly.Halt();
+            Countly.Instance.HaltInternal().Wait();
             TestHelper.CleanDataFiles();
+            Countly.Instance.deferUpload = false;
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            Countly.Instance.HaltInternal().Wait();
+        }
 
         [Fact]
         /// <summary>DisableHealthCheck chains fluently and sets the flag.</summary>
