@@ -263,7 +263,7 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
             _contentTriggerGaps = gaps;
-            Storage.Instance.SaveToFile<ServerConfigEntity>(ContentTriggerGapsFilename, new ServerConfigEntity { Json = gaps });
+            _ = Storage.Instance.SaveToFile<ServerConfigEntity>(ContentTriggerGapsFilename, new ServerConfigEntity { Json = gaps });
             if (_roundRunning) {
                 UtilityHelper.CountlyLogging("[ModuleContent] OnContentTrigger, [" + trigger + "] matched while a round is running, one more round follows it");
                 _roundPending = true;
@@ -342,7 +342,7 @@ namespace CountlySDK.CountlyCommon
             bool shown = false;
             if (claimed) {
                 UtilityHelper.CountlyLogging("[ModuleContent] RequestTriggeredContent, sending content request [" + attempt + "] of [" + TriggerContentRequests + "]");
-                shown = await FetchAndPresent(_categories ?? new string[0], null);
+                shown = await FetchAndPresent(_categories, null);
             }
             if (shown || attempt >= TriggerContentRequests) { return; }
 
