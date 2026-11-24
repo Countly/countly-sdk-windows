@@ -141,6 +141,7 @@ CountlySDK.CountlyCommon.CountlyFeedbackWidget.widgetVersion field string
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase class
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.AddCustomNetworkRequestHeaders(IDictionary<string, string>) method CountlyConfigBase
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.ContentZoneTimerInterval property int { get; set; }
+CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoContentTriggers() method CountlyConfigBase
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoEnrollInABTesting() method CountlyConfigBase
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoSendUserDetails() method CountlyConfigBase
 CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableHealthCheck() method CountlyConfigBase

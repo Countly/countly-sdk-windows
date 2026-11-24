@@ -163,6 +163,7 @@ namespace CountlySDK.CountlyCommon.Entities
         /// Settings answer says it reads them.
         /// </summary>
         internal bool requestCompressionEnabled = false;
+        internal bool autoContentTriggersDisabled = false;
 
         /// <summary>
         /// Disabled the location tracking on the Countly server
@@ -373,6 +374,18 @@ namespace CountlySDK.CountlyCommon.Entities
         public CountlyConfigBase EnableRequestCompression()
         {
             requestCompressionEnabled = true;
+            return this;
+        }
+
+        /// <summary>
+        /// Turns off the content triggers: the SDK does not ask the server for them and does not follow
+        /// the ones it has, so content comes only with the content zone timer. The journey trigger events
+        /// and views of the SDK behavior settings still apply.
+        /// </summary>
+        /// <returns>the same config object for convenient linking</returns>
+        public CountlyConfigBase DisableAutoContentTriggers()
+        {
+            autoContentTriggersDisabled = true;
             return this;
         }
 

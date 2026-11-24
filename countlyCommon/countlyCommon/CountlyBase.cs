@@ -761,6 +761,8 @@ namespace CountlySDK.CountlyCommon
             }
 
             CountlyConfig config = Configuration;
+            // the content triggers match the key as the app passed it, before the limit cuts it
+            ContentTrigger trigger = ContentTrigger.Event(Key, !IsReservedEventKey(Key));
             if (Key.Length > config.MaxKeyLength) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + config.MaxKeyLength, LogLevel.WARNING);
                 ModuleHealthCheck.Track("w201", "events");
@@ -769,7 +771,7 @@ namespace CountlySDK.CountlyCommon
 
             Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues, "events");
             segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize, "events");
-            return RecordEventInternal(Key, Count, Sum, Duration, segments);
+            return RecordEventWithTrigger(Key, Count, Sum, Duration, segments, trigger);
         }
 
         /// <summary>
@@ -780,7 +782,16 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        protected Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        {
+            return RecordEventWithTrigger(Key, Count, Sum, Duration, Segmentation, null);
+        }
+
+        /// <summary>
+        /// Records an event and tells the content module about it, by the given trigger, or by its key
+        /// when none is given.
+        /// </summary>
+        internal async Task<bool> RecordEventWithTrigger(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, ContentTrigger trigger)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
             if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
@@ -792,14 +803,12 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, custom event tracking disabled by server config, ignoring event");
                 return true;
             }
-            bool journeyTrigger = false;
             if (!IsReservedEventKey(Key) && moduleServerConfig != null) {
                 if (!moduleServerConfig.IsEventKeyAllowed(Key)) {
                     UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, event key filtered out by server config, ignoring event");
                     return true;
                 }
                 moduleServerConfig.FilterEventSegmentation(Key, Segmentation);
-                journeyTrigger = moduleServerConfig.IsJourneyTriggerEvent(Key);
             }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!CheckConsentOnKey(Key)) { return true; }
@@ -820,13 +829,21 @@ namespace CountlySDK.CountlyCommon
             if (saveSuccess) {
                 //todo rework this
                 saveSuccess = await Upload();
-                if (saveSuccess && journeyTrigger && moduleContent != null && IsConsentGiven(ConsentFeatures.Content)) {
-                    UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, journey trigger event delivered, refreshing content zone");
-                    moduleContent.RefreshContentZone();
-                }
+                NotifyContentTrigger(trigger ?? (Key == VIEW_EVENT_KEY ? null : ContentTrigger.Event(Key, !IsReservedEventKey(Key))));
             }
 
             return saveSuccess;
+        }
+
+        /// <summary>
+        /// Tells the content module about something recorded that can be a content trigger.
+        /// </summary>
+        internal void NotifyContentTrigger(ContentTrigger trigger)
+        {
+            ModuleContent content = moduleContent;
+            if (content != null && trigger != null) {
+                content.OnContentTrigger(trigger);
+            }
         }
 
         /// <summary>SDK-internal events ("[CLY]_" prefixed) are not custom events, so the 'cet' gate must not block them.</summary>
@@ -1078,7 +1095,9 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 if (saveSuccess) {
-                    return await Upload();
+                    bool uploaded = await Upload();
+                    NotifyContentTrigger(ContentTrigger.Of(ContentTriggers.KeyCrash));
+                    return uploaded;
                 }
 
                 return false;
@@ -1353,6 +1372,32 @@ namespace CountlySDK.CountlyCommon
             }
 
             await AddRequest(request);
+            NotifyContentTrigger(ContentTrigger.UserProperties(SentPropertyNames(userDetails)));
+        }
+
+        /// <summary>
+        /// The user properties a user details request sends, as content triggers name them: a user
+        /// detail ("email"), or "custom." and the key of a custom property.
+        /// </summary>
+        private static List<string> SentPropertyNames(string userDetails)
+        {
+            List<string> names = new List<string>();
+            try {
+                JObject details = JObject.Parse(userDetails);
+                foreach (JProperty property in details.Properties()) {
+                    JObject custom = property.Name == "custom" ? property.Value as JObject : null;
+                    if (custom == null) {
+                        names.Add(property.Name);
+                        continue;
+                    }
+                    foreach (JProperty customProperty in custom.Properties()) {
+                        names.Add("custom." + customProperty.Name);
+                    }
+                }
+            } catch (Exception) {
+                // user details that can not be read send no property names
+            }
+            return names;
         }
 
         /// <summary>
@@ -1450,7 +1495,7 @@ namespace CountlySDK.CountlyCommon
                 moduleBackendMode = null;
                 moduleRemoteConfig = null;
                 moduleFeedback = null;
-                if (moduleContent != null) { moduleContent.ExitContentZone(); } // stop the poll timer
+                if (moduleContent != null) { moduleContent.Halt(); } // stop the poll timer and the content triggers
                 moduleContent = null;
                 if (moduleServerConfig != null) { moduleServerConfig.StopTimer(); }
                 moduleServerConfig = null;
@@ -1473,6 +1518,7 @@ namespace CountlySDK.CountlyCommon
             await Storage.Instance.DeleteFile(storedRequestsFilename);
             await Storage.Instance.DeleteFile(Device.deviceFilename);
             await Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename);
+            await Storage.Instance.DeleteFile(ModuleContent.ContentTriggerGapsFilename);
             await Storage.Instance.DeleteFile(ModuleHealthCheck.healthCheckFilename);
         }
 
@@ -1997,6 +2043,7 @@ namespace CountlySDK.CountlyCommon
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
+            NotifyContentTrigger(ContentTrigger.Of(ContentTriggers.KeySession));
         }
 
         /// <summary>
@@ -2520,6 +2567,9 @@ namespace CountlySDK.CountlyCommon
                 //send request of the consent changes
                 if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.Initialization) {
                     await SendConsentChanges(givenConsent);
+                    if (action == ConsentChangedAction.ConsentUpdated) {
+                        NotifyContentTrigger(ContentTrigger.Of(ContentTriggers.KeyConsent));
+                    }
                 }
 
                 if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.DeviceIDChangedNotMerged) {
@@ -2606,6 +2656,8 @@ namespace CountlySDK.CountlyCommon
         //track views
         private string lastView = null;
         private long lastViewStart = 0;
+        // the name the app passed for the last view, which the content triggers match
+        private string lastViewAsGiven;
         private bool firstView = true;
         private const string NPS_EVENT_KEY = "[CLY]_nps";
         private const string VIEW_EVENT_KEY = "[CLY]_view";
@@ -2661,6 +2713,7 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            string viewNameAsGiven = viewName;
             if (viewName.Length > Configuration.MaxKeyLength) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength, LogLevel.WARNING);
                 ModuleHealthCheck.Track("w201", "views");
@@ -2670,6 +2723,7 @@ namespace CountlySDK.CountlyCommon
             Segmentation segm = CreateCustomViewSegmentation(segmentation);
             reportViewDuration();
             lastView = viewName;
+            lastViewAsGiven = viewNameAsGiven;
 
             lastViewStart = timeHelper.GetUniqueUnixTime();
             segm.Add("name", viewName);
@@ -2680,7 +2734,7 @@ namespace CountlySDK.CountlyCommon
                 firstView = false;
                 segm.Add("start", "1");
             }
-            return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
+            return await RecordEventWithTrigger(VIEW_EVENT_KEY, 1, null, null, segm, ContentTrigger.View(viewNameAsGiven, false));
         }
 
         /// <summary>
@@ -2738,7 +2792,7 @@ namespace CountlySDK.CountlyCommon
                 segm.Add("dur", "" + timestampSeconds);
                 segm.Add("segment", "Windows");
 
-                await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
+                await RecordEventWithTrigger(VIEW_EVENT_KEY, 1, null, null, segm, ContentTrigger.View(lastViewAsGiven ?? lastView, true));
 
                 lastView = null;
                 lastViewStart = 0;
@@ -2828,7 +2882,7 @@ namespace CountlySDK.CountlyCommon
         internal void TryAutoEnterContentZone()
         {
             if (moduleContent == null || moduleServerConfig == null) { return; }
-            if (!moduleServerConfig.GetEnterContentZoneEnabled()) { return; }
+            if (!moduleServerConfig.GetEnterContentZoneDecision()) { return; }
             if (!IsConsentGiven(ConsentFeatures.Content)) { return; }
             moduleContent.EnterContentZone();
         }
