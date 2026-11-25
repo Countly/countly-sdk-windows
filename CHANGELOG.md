@@ -1,4 +1,16 @@
 ## XX.XX.XX
+* ! Minor breaking change ! The journey trigger events of the SDK behavior settings now ask for content directly, the same way as content triggers:
+  * The "refresh content zone" setting no longer blocks them, and the same trigger asks again only after 10 seconds.
+  * The event key is compared as the app passed it, before the key length limit cuts it.
+  * The SDK ignores them when the server sends content triggers.
+* ! Minor breaking change ! The "enter content zone" setting of the SDK behavior settings now only decides whether the SDK enters the content zone at init:
+  * The settings stored or provided at init decide; without them, the first behavior settings answer of the run decides.
+  * A later change of the setting takes effect at the next init.
+* Added content triggers. When the app records something that starts a journey or a campaign with content, the SDK sends the queued requests and asks for that content right away, instead of waiting for the content zone timer:
+  * The triggers are events, the start or the end of a view, a new session, a user property, a recorded exception and a consent change.
+  * The server lists them in its SDK behavior settings answer, and they apply while the content zone is entered.
+  * Call "DisableAutoContentTriggers()" on the config to turn them off.
+* Added support for the journey trigger views of the SDK behavior settings: while the server sends no content triggers, the start and the end of a listed view ask for content right away.
 * Added custom user property modifiers to "UserDetails": "Increment", "IncrementBy", "Multiply", "SaveMax", "SaveMin", "SetOnce", "Push", "PushUnique" and "Pull". They are sent once, with the next user details save.
 * Added a new function "RecordView(viewName, segmentation)" for recording a view with custom segmentation.
 * Added method usage and log codes to the SDK health check.
