@@ -31,7 +31,8 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("26.8.1.0")]
-[assembly: AssemblyFileVersion("26.8.1.0")]
+// Fixed at 26.1.0.0 so that assemblies built against Countly 26.1.0 or later, such as Countly.UI.WebView2, load every later version on .NET Framework without binding redirects. AssemblyFileVersion carries the release.
+[assembly: AssemblyVersion("26.1.0.0")]
+[assembly: AssemblyFileVersion("26.8.0.0")]
 
 //[assembly: InternalsVisibleTo("CountlySample")]

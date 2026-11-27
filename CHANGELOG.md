@@ -1,4 +1,4 @@
-## 26.8.1
+## 26.8.0
 * Added content triggers. While the content zone is entered, an event, view, session, user property, recorded exception or consent change that starts a journey or campaign with content now requests that content immediately. Turn them off with "DisableAutoContentTriggers()" on the config.
 * Added support for journey trigger views set in SDK behavior settings.
 * Improved journey trigger events set in SDK behavior settings. They now request content immediately, the same way as content triggers.
@@ -11,6 +11,7 @@
 * Added a new function "ChangeAppKey" to change the app key after init.
 * Added new queue functions "FlushQueues", "AttemptToSendStoredRequests", "ReplaceAllAppKeysInQueueWithCurrentAppKey" and "RemoveDifferentAppKeysFromQueue".
 * Added configuration option "EnableRequestCompression". Request bodies between 1 KB and 1 MB are then sent gzip-compressed, once the server's SDK Behavior Settings answer says it reads them.
+* The assembly version of "Countly.dll" now stays 26.1.0.0 in later releases, so "Countly.UI.WebView2" and other libraries built against SDK 26.1.0 or later work with every later SDK version on .NET Framework without binding redirects. The file version and the package version show the release.
 
 * Mitigated an issue where, in apps running on .NET Core 3.1 or older, Windows 8.1, 10 and 11 were reported as Windows 8 (6.2.9200) when the app did not declare support for them in its manifest.
 * Mitigated an issue where the health check reported a request that got no answer, or a failed health check, remote config, behavior settings or feedback widget request, as the last failed request, and counted a health check the server did not confirm as an SDK warning.
