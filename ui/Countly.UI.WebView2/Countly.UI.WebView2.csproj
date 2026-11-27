@@ -44,6 +44,7 @@
        package, pack with -p:UsePackagedCountly=true so the .nupkg declares a dependency on the
        published Countly NuGet instead. Publish the core (26.1.0) BEFORE packing the UI this way. -->
   <ItemGroup Condition="'$(UsePackagedCountly)' == 'true'">
+    <!-- The lowest core version the UI needs. NuGet reads it as a minimum, so raise it only when the UI starts to use a newer core API. -->
     <PackageReference Include="Countly" Version="26.1.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(UsePackagedCountly)' != 'true'">

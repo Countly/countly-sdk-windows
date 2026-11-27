@@ -55,7 +55,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "26.1.0";
+        protected const string sdkVersion = "26.8.0";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
@@ -2302,7 +2302,7 @@ namespace CountlySDK.CountlyCommon
                 Events.Clear();
                 Exceptions.Clear();
                 Sessions.Clear();
-                SaveStoredRequests();
+                _ = SaveStoredRequests();
                 SaveEvents();
                 SaveExceptions();
                 SaveSessions();
@@ -2325,7 +2325,7 @@ namespace CountlySDK.CountlyCommon
                     storedRequest.Request = WithAppKey(storedRequest.Request, AppKey);
                 }
                 count = StoredRequests.Count;
-                SaveStoredRequests();
+                _ = SaveStoredRequests();
             }
             UtilityHelper.CountlyLogging("[CountlyBase] ReplaceAllAppKeysInQueueWithCurrentAppKey, set the current app key in [" + count + "] requests");
         }
@@ -2351,7 +2351,7 @@ namespace CountlySDK.CountlyCommon
                 }
                 removed = StoredRequests.Count - keptRequests.Count;
                 StoredRequests = keptRequests;
-                SaveStoredRequests();
+                _ = SaveStoredRequests();
             }
             UtilityHelper.CountlyLogging("[CountlyBase] RemoveDifferentAppKeysFromQueue, removed [" + removed + "] requests");
         }
