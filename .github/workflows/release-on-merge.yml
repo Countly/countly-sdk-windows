@@ -1,0 +1,85 @@
+name: Release on merge
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled, closed]
+    branches: [master]
+
+permissions: {}
+
+jobs:
+  check:
+    name: Release plan
+    if: >-
+      github.event.action != 'closed'
+      && contains(github.event.pull_request.labels.*.name, 'release')
+      && github.event.pull_request.head.ref == 'staging'
+      && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Plan the releases of the merge
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 .github/release/release.py pending --head "$HEAD_SHA" --merge "$GITHUB_SHA" --branch staging --out pending.json --notes notes
+      - name: Releasing on merge is off
+        if: vars.RELEASE_ON_MERGE != 'true'
+        run: |
+          echo "::warning::The RELEASE_ON_MERGE variable is not true, so merging this PR creates no release; publish the GitHub release by hand."
+          echo "- Releasing on merge is off: merging creates no release." >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Create the releases
+    if: >-
+      github.event.action == 'closed'
+      && github.event.pull_request.merged
+      && contains(github.event.pull_request.labels.*.name, 'release')
+      && github.event.pull_request.head.ref == 'staging'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && vars.RELEASE_ON_MERGE == 'true'
+    runs-on: ubuntu-24.04
+    concurrency:
+      group: release-on-merge
+      cancel-in-progress: false
+    # contents creates the GitHub releases and their tags; actions dispatches the Release workflow on each tag.
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Plan the releases of the merge
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: python3 .github/release/release.py pending --head "$HEAD_SHA" --merge "$MERGE_SHA" --branch staging --out pending.json --notes notes
+      # A release created with this job's token starts no workflow, so each publish is dispatched on its tag, core first.
+      - name: Create each GitHub release and start its publish
+        id: create
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
+        run: |
+          jq -r '.releases[] | [.tag, .latest, .prerelease] | @tsv' pending.json | while IFS=$'\t' read -r tag latest prerelease; do
+            gh release create "$tag" --target "$HEAD_SHA" --title "$tag" --notes-file "notes/$tag.md" --latest="$latest" --prerelease="$prerelease"
+            gh workflow run release.yml --ref "$tag" -f target=production -f requested_by="$MERGED_BY"
+            echo "- $tag: GitHub release created, publish started" >> "$GITHUB_STEP_SUMMARY"
+          done
+      - name: Recovery
+        if: failure() && steps.create.outcome == 'failure'
+        run: |
+          {
+            echo "### Some releases may be incomplete"
+            echo "A GitHub release listed above without its publish has to be published by hand: run the Release workflow on its tag with target production."
+            echo "A release that is not listed was not created; create it as a GitHub release on the PR's head commit, which starts its publish."
+          } >> "$GITHUB_STEP_SUMMARY"

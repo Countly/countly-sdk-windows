@@ -1,0 +1,270 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "test publishes a copy with its own prerelease version to int.nugettest.org; production publishes to nuget.org and runs only on a tag"
+        type: choice
+        options: [test, production]
+        default: test
+      tag:
+        description: "test only: the release to rehearse, e.g. 26.8.0 or 26.8.0-ui; empty takes the core version of the checked-out branch"
+        type: string
+        default: ""
+      requested_by:
+        description: "who the announcement names as publishing the release; the one starting the run when empty"
+        type: string
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: nuget-publish
+  cancel-in-progress: false
+  queue: max
+
+env:
+  TARGET: ${{ inputs.target || 'production' }}
+
+jobs:
+  plan:
+    name: Plan and check
+    runs-on: ubuntu-24.04
+    # checks and actions read the tag commit's check runs and the publish environment's protection rules.
+    permissions:
+      contents: read
+      checks: read
+      actions: read
+    outputs:
+      tag: ${{ steps.plan.outputs.tag }}
+      environment: ${{ steps.plan.outputs.environment }}
+      token_service: ${{ steps.plan.outputs.token_service }}
+      audience: ${{ steps.plan.outputs.audience }}
+      announce: ${{ steps.plan.outputs.announce }}
+      changelog: ${{ steps.plan.outputs.changelog }}
+    steps:
+      - name: Production releases run on a tag
+        if: env.TARGET == 'production' && github.ref_type != 'tag'
+        run: |
+          echo "::error::Run a production release on its tag, not on a branch."
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Read the GitHub release
+        id: release
+        if: env.TARGET == 'production'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          prerelease=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq .isPrerelease)
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+      - name: Plan
+        id: plan
+        env:
+          TAG: ${{ env.TARGET == 'production' && github.ref_name || inputs.tag }}
+          PRERELEASE: ${{ steps.release.outputs.prerelease || 'unknown' }}
+        run: python3 .github/release/release.py plan --tag "$TAG" --target "$TARGET" --commit "$GITHUB_SHA" --prerelease "$PRERELEASE" --run "$GITHUB_RUN_NUMBER" --out plan.json
+      - name: The publish environment requires approval
+        if: env.TARGET == 'production'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ENVIRONMENT: ${{ steps.plan.outputs.environment }}
+        run: |
+          if ! gh api "repos/$GITHUB_REPOSITORY/environments/$ENVIRONMENT" > environment.json; then
+            echo "::error::Could not read the $ENVIRONMENT environment (the error above says why); it has to exist with required reviewers and selected tag deployment rules before releasing."
+            exit 1
+          fi
+          python3 .github/release/release.py check-environment --environment environment.json
+      - name: The tag commit is on the release branch
+        if: env.TARGET == 'production'
+        run: python3 .github/release/release.py check-branch --plan plan.json --commit "$GITHUB_SHA"
+      - name: Version numbers match the tag
+        run: python3 .github/release/release.py check-sources --plan plan.json
+      - name: The version is not on the feed yet
+        run: python3 .github/release/release.py check-absent --plan plan.json
+      - name: Required checks passed on the tag commit
+        if: env.TARGET == 'production'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" > check-runs.json
+          python3 .github/release/release.py check-required --check-runs check-runs.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: plan
+          path: plan.json
+          retention-days: 7
+          if-no-files-found: error
+
+  build:
+    name: Build and check
+    needs: plan
+    runs-on: windows-latest
+    # A hung build or probe would otherwise hold the release queue for GitHub's 6-hour default.
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: plan
+      - uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2.0.0
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '8.0.x'
+      - name: Compile and pack, delay-signed with the Countly public key
+        run: python .github/release/release.py build --plan plan.json --work "$env:RUNNER_TEMP/release" --staging staged
+      - name: Stage the packages and check their files
+        run: python .github/release/release.py stage --plan plan.json --staging staged --commit "$env:GITHUB_SHA" --manifest release-manifest.json
+      - name: Check what the release promises integrators
+        run: python .github/release/release.py contract --plan plan.json --staging staged --commit "$env:GITHUB_SHA"
+      - name: Let .NET Framework on this runner load the delay-signed assemblies
+        run: python .github/release/release.py skip-verification
+      - name: Clean projects restore and run the staged packages, and the core sends data
+        run: python .github/release/release.py consumer --plan plan.json --source staged --staging staged --work "$env:RUNNER_TEMP/consumers"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: staged-release
+          path: |
+            staged
+            release-manifest.json
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    name: Approve, sign and push
+    needs: [plan, build]
+    runs-on: windows-latest
+    environment: ${{ needs.plan.outputs.environment }}
+    # id-token lets NuGet/login trade this job's OIDC token for a one-hour API key under the feed's trusted publishing policy.
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: plan
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: staged-release
+      - name: The packages are exactly what the build produced
+        run: python .github/release/release.py verify-manifest --manifest release-manifest.json --staging staged
+      - name: Sign the assemblies with the strong-name key and check every signature
+        env:
+          STRONG_NAME_KEY: ${{ secrets.STRONG_NAME_KEY }}
+        run: python .github/release/release.py sign --plan plan.json --staging staged --key-env STRONG_NAME_KEY --commit "$env:GITHUB_SHA" --manifest signed-manifest.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: signed-release
+          path: |
+            staged
+            signed-manifest.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Log in to the feed with trusted publishing
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+          token-service-url: ${{ needs.plan.outputs.token_service }}
+          audience: ${{ needs.plan.outputs.audience }}
+      - name: Push the packages
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: python .github/release/release.py push --plan plan.json --staging staged --api-key-env NUGET_API_KEY
+
+  verify:
+    name: Verify from the feed
+    needs: [plan, publish]
+    runs-on: windows-latest
+    # The feed serves a package only after validating and indexing it, which usually takes minutes and can take an hour.
+    timeout-minutes: 90
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: plan
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: signed-release
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '8.0.x'
+      - name: The packages are exactly what the publish job pushed
+        run: python .github/release/release.py verify-manifest --manifest signed-manifest.json --staging staged
+      - name: The feed serves exactly the pushed packages
+        run: python .github/release/release.py verify-public --plan plan.json --staging staged --timeout-minutes 60
+      - name: Clean projects restore and run the packages from the feed, and the core sends data
+        run: python .github/release/release.py consumer --plan plan.json --source feed --work "$env:RUNNER_TEMP/consumers"
+
+  announce:
+    name: Announce
+    needs: [plan, verify]
+    if: needs.plan.outputs.announce == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      TAG: ${{ needs.plan.outputs.tag }}
+      RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ needs.plan.outputs.tag }}
+    steps:
+      - name: Read the release notes
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          delimiter="EOF_$(openssl rand -hex 16)"
+          {
+            echo "body<<$delimiter"
+            gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+      - name: Slack
+        uses: slackapi/slack-github-action@dcb1066f776dd043e64d0e8ba94ca15cc7e1875d # v4.0.0
+        with:
+          errors: true
+          webhook: ${{ secrets.SLACK_RELEASE }}
+          webhook-type: webhook-trigger
+          payload: |
+            {
+              "repository": "${{ github.repository }}",
+              "tag_name": "${{ env.TAG }}",
+              "actor": ${{ toJSON(inputs.requested_by || github.actor) }},
+              "body": ${{ toJSON(steps.release.outputs.body) }},
+              "html_url": "${{ env.RELEASE_URL }}"
+            }
+      - name: Discord
+        uses: sarisia/actions-status-discord@eb045afee445dc055c18d3d90bd0f244fd062708 # v1.16.0
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          nodetail: true
+          title: New ${{ github.repository }} version ${{ env.TAG }} published by ${{ inputs.requested_by || github.actor }}
+          description: |
+            Release URL: ${{ env.RELEASE_URL }}
+            Click [here](${{ github.server_url }}/${{ github.repository }}/blob/${{ env.TAG }}/${{ needs.plan.outputs.changelog }}) to view the change log.
+            `${{ steps.release.outputs.body }}`
