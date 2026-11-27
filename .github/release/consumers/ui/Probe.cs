@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Reflection;
 using CountlySDK;
 using CountlySDK.UI;
@@ -36,6 +37,23 @@ namespace CountlyConsumer
                 catch (Exception error)
                 {
                     Console.WriteLine("webView2Error=" + error.GetType().FullName + ": " + error.Message.Replace('\r', ' ').Replace('\n', ' '));
+                    Console.WriteLine("webView2Process=" + (Environment.Is64BitProcess ? "64-bit" : "32-bit"));
+                    foreach (ProcessModule module in Process.GetCurrentProcess().Modules)
+                    {
+                        if (module.ModuleName.IndexOf("WebView2", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            Console.WriteLine("webView2Module=" + module.FileName + " " + module.FileVersionInfo.FileVersion);
+                        }
+                    }
+                    // The one-argument overload calls the loader's oldest version export, which every loader has.
+                    try
+                    {
+                        Console.WriteLine("webView2Legacy=" + CoreWebView2Environment.GetAvailableBrowserVersionString(null));
+                    }
+                    catch (Exception legacyError)
+                    {
+                        Console.WriteLine("webView2Legacy=" + legacyError.GetType().FullName + ": " + legacyError.Message.Replace('\r', ' ').Replace('\n', ' '));
+                    }
                 }
             }
             return 0;
