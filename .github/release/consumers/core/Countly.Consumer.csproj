@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- The release tooling passes the contract's frameworks in the environment: a ";" in a command-line property never splits into a list. -->
+    <TargetFrameworks>$(ConsumerFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net35;net462;net8.0</TargetFrameworks>
+    <RootNamespace>CountlyConsumer</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <!-- Only the net35 build may start on the 3.5 runtime; a 4.x build listing it first would fail to load there. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net35'">
+    <AppConfig>App.net35.config</AppConfig>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Countly" Version="[$(CountlyVersion)]" />
+  </ItemGroup>
+</Project>

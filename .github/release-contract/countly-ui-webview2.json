@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "Countly.UI.WebView2",
+  "assemblyVersion": "26.1.0.0",
+  "files": [
+    "README.md",
+    "icon.png",
+    "lib/net462/Countly.UI.WebView2.dll",
+    "lib/net462/Countly.UI.WebView2.xml",
+    "lib/net8.0-windows7.0/Countly.UI.WebView2.dll",
+    "lib/net8.0-windows7.0/Countly.UI.WebView2.xml"
+  ],
+  "dependencies": {
+    ".NETFramework4.6.2": ["Countly 26.1.0", "Microsoft.Web.WebView2 1.0.2792.45"],
+    "net8.0-windows7.0": ["Countly 26.1.0", "Microsoft.Web.WebView2 1.0.2792.45"]
+  },
+  "frameworkReferences": {
+    ".NETFramework4.6.2": [],
+    "net8.0-windows7.0": ["Microsoft.WindowsDesktop.App"]
+  },
+  "consumers": {
+    "net462": { "lib": "lib/net462/Countly.UI.WebView2.dll" },
+    "net8.0-windows": { "lib": "lib/net8.0-windows7.0/Countly.UI.WebView2.dll" }
+  }
+}
