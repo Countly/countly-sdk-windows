@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using CountlySDK;
 using CountlySDK.UI;
+using Microsoft.Web.WebView2.Core;
 
 namespace CountlyConsumer
 {
@@ -23,7 +24,20 @@ namespace CountlyConsumer
             Console.WriteLine("core=" + typeof(Countly).Assembly.FullName);
             Console.WriteLine("runtime=" + Environment.Version);
             string version;
-            Console.WriteLine("webView2=" + (WebView2Runtime.IsAvailable(out version) ? version : "missing"));
+            bool available = WebView2Runtime.IsAvailable(out version);
+            Console.WriteLine("webView2=" + (available ? version : "missing"));
+            if (!available)
+            {
+                // IsAvailable swallows the reason, so the probe asks WebView2 itself to report it.
+                try
+                {
+                    CoreWebView2Environment.GetAvailableBrowserVersionString();
+                }
+                catch (Exception error)
+                {
+                    Console.WriteLine("webView2Error=" + error.GetType().FullName + ": " + error.Message.Replace('\r', ' ').Replace('\n', ' '));
+                }
+            }
             return 0;
         }
     }
