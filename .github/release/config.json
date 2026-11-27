@@ -17,8 +17,7 @@
       "gallery": "https://int.nugettest.org/packages/",
       "tokenService": "https://int.nugettest.org/api/v2/token",
       "audience": "https://int.nugettest.org",
-      "environment": "nuget-test",
-      "user": "ArifCountly"
+      "environment": "nuget-test"
     }
   },
   "dependencySource": "https://api.nuget.org/v3/index.json",
