@@ -37,8 +37,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- WebView2's build files must reach apps: they put the matching WebView2Loader.dll next to a .NET Framework app, else an older copy on PATH can load. -->
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2792.45" />
   </ItemGroup>
 
   <!-- Core dependency. Dev/test/CI build against the local core project (default). For the release
