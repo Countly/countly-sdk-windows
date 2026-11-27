@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using CountlySDK;
 using CountlySDK.UI;
@@ -27,6 +28,10 @@ namespace CountlyConsumer
             string version;
             bool available = WebView2Runtime.IsAvailable(out version);
             Console.WriteLine("webView2=" + (available ? version : "missing"));
+            foreach (string loader in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "WebView2Loader.dll", SearchOption.AllDirectories))
+            {
+                Console.WriteLine("webView2File=" + loader.Substring(AppDomain.CurrentDomain.BaseDirectory.Length) + " machine 0x" + Machine(loader).ToString("X4"));
+            }
             if (!available)
             {
                 // IsAvailable swallows the reason, so the probe asks WebView2 itself to report it.
@@ -57,6 +62,19 @@ namespace CountlyConsumer
                 }
             }
             return 0;
+        }
+
+        /// <summary>The machine type in a DLL's PE header, such as 0x8664 for x64, or 0 for a file that is not a PE image.</summary>
+        /// <param name="path">The DLL.</param>
+        /// <returns>The machine type.</returns>
+        private static ushort Machine(string path)
+        {
+            using (BinaryReader reader = new BinaryReader(File.OpenRead(path)))
+            {
+                reader.BaseStream.Seek(0x3C, SeekOrigin.Begin);
+                reader.BaseStream.Seek(reader.ReadInt32(), SeekOrigin.Begin);
+                return reader.ReadUInt32() == 0x00004550 ? reader.ReadUInt16() : (ushort)0;
+            }
         }
     }
 }
