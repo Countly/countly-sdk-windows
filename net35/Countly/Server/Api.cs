@@ -44,8 +44,9 @@ namespace CountlySDK
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
         /// <param name="customHeaders"></param>
+        /// <param name="compressedBody">the gzip-compressed body to send instead of requestData, or null</param>
         /// <returns></returns>
-        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null, IDictionary<string, string> customHeaders = null)
+        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null, IDictionary<string, string> customHeaders = null, byte[] compressedBody = null)
         {
             Stream dataStream = null;
             RequestResult requestResult = new RequestResult();
@@ -67,7 +68,10 @@ namespace CountlySDK
                     dataStream = imageData;
                 }
 
-                if (requestData != null) {
+                if (compressedBody != null) {
+                    request.ContentType = "application/x-www-form-urlencoded";
+                    dataStream = new MemoryStream(compressedBody);
+                } else if (requestData != null) {
                     request.ContentType = "application/x-www-form-urlencoded";
                     dataStream = UtilityHelper.GenerateStreamFromString(requestData);
                 }

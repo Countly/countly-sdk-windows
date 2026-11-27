@@ -32,6 +32,17 @@
             This class provides static methods to retrieve information about the current device.
             </summary>
         </member>
+        <member name="M:CountlySDK.Entities.Device.ResolveVersion(System.PlatformID,System.Version,System.Func{System.String})">
+            <summary>
+            Returns the OS version, with the real Windows version when Windows reports Windows 8 (6.2) because the app
+            doesn't declare support for later versions, as it does to apps on .NET Core 3.1 and older started from their
+            own exe. The runtime's OS description holds the real version.
+            </summary>
+            <param name="platform">platform the runtime reports</param>
+            <param name="reported">version the runtime reports</param>
+            <param name="osDescription">returns the runtime's OS description</param>
+            <returns>the real Windows version, or the reported version when the description has no newer one</returns>
+        </member>
         <member name="M:CountlySDK.Entities.Device.IsNetworkAvailable">
             <summary>
             Indicates whether any network connection is available
@@ -364,6 +375,74 @@
             <param name="s"></param>
             <returns></returns>
         </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.TrimKey(System.String,System.Int32,System.String,System.String)">
+            <summary>
+            Cuts a key that is longer than the key length limit, with a warning and a health check log code
+            </summary>
+            <param name="k">the key</param>
+            <param name="maxKeyLength">the key length limit</param>
+            <param name="area">feature area of the calling method for the log code, null for none</param>
+            <param name="code">log code of the cut, "w201" by default; null cuts with a debug log only, for values that were already checked</param>
+            <returns>the key, cut to the limit</returns>
+        </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.TrimValue(System.String,System.String,System.Int32,System.String)">
+            <summary>
+            Cuts a value that is longer than the value size limit, with a warning and the health check log code w202
+            </summary>
+            <param name="fieldName">name of the value, for the log</param>
+            <param name="v">the value</param>
+            <param name="maxValueSize">the value size limit</param>
+            <param name="area">feature area of the calling method for the log code, null for none</param>
+            <returns>the value, cut to the limit</returns>
+        </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.RemoveExtraSegments(System.Collections.Generic.Dictionary{System.String,System.String},System.Int32,System.String)">
+            <summary>
+            Drops the segments over the segmentation limit, with a warning and the health check log code w203
+            </summary>
+            <param name="segments">the segments, can be null</param>
+            <param name="maxSegmentationValues">the segmentation limit</param>
+            <param name="area">feature area of the calling method for the log code, null for none</param>
+            <returns>the segments within the limit</returns>
+        </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.RemoveExtraSegments(CountlySDK.Segmentation,System.Int32,System.String)">
+            <summary>
+            Drops the segments over the segmentation limit, with a warning and the health check log code w203
+            </summary>
+            <param name="segments">the segmentation, can be null</param>
+            <param name="maxSegmentationValues">the segmentation limit</param>
+            <param name="area">feature area of the calling method for the log code, null for none</param>
+            <returns>the segmentation within the limit</returns>
+        </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.FixSegmentKeysAndValues(CountlySDK.Segmentation,System.Int32,System.Int32,System.String)">
+            <summary>
+            Cuts the keys and values of a segmentation to their limits, see TrimKey and TrimValue
+            </summary>
+            <param name="segments">the segmentation, can be null</param>
+            <param name="maxKeyLength">the key length limit</param>
+            <param name="maxValueSize">the value size limit</param>
+            <param name="area">feature area of the calling method for the log codes, null for none</param>
+            <returns>a new segmentation within the limits</returns>
+        </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.FixSegmentKeysAndValues(System.Collections.Generic.Dictionary{System.String,System.String},System.Int32,System.Int32,System.String)">
+            <summary>
+            Cuts the keys and values of segments to their limits, see TrimKey and TrimValue
+            </summary>
+            <param name="segments">the segments, can be null</param>
+            <param name="maxKeyLength">the key length limit</param>
+            <param name="maxValueSize">the value size limit</param>
+            <param name="area">feature area of the calling method for the log codes, null for none</param>
+            <returns>new segments within the limits</returns>
+        </member>
+        <member name="M:CountlySDK.Helpers.UtilityHelper.ManipulateStackTrace(System.String,System.Int32,System.Int32,System.String)">
+            <summary>
+            Cuts a stack trace to the line count and line length limits, with a warning and the health check log code w205
+            </summary>
+            <param name="stackTrace">the stack trace, can be null</param>
+            <param name="maxStackTraceLinesPerThread">the line count limit</param>
+            <param name="maxStackTraceLineLength">the line length limit</param>
+            <param name="area">feature area of the calling method for the log code, null for none</param>
+            <returns>the stack trace within the limits, null when none was given</returns>
+        </member>
         <member name="P:CountlySDK.CountlyCommon.CountlyBase.IsLoggingEnabled">
             <summary>
             Determines if Countly debug messages are displayed to Output window
@@ -491,6 +570,17 @@
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventFromApp(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
+            <summary>
+            Checks an event of the app, also the one an ended timed event records, cuts it to the limits and records it
+            </summary>
+            <param name="Key">Name of the custom event, required, must not be null or the empty string</param>
+            <param name="Count">Count to associate with the event</param>
+            <param name="Sum">Sum to associate with the event</param>
+            <param name="Duration">Event duration</param>
+            <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+            <returns>True if event is uploaded successfully, False - queued for delayed upload or rejected</returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventInternal(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation)">
             <summary>
             Records a custom event with the specified values
@@ -500,6 +590,17 @@
             <param name="Sum">Sum to associate with the event</param>
             <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
             <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordEventWithTrigger(System.String,System.Int32,System.Nullable{System.Double},System.Nullable{System.Double},CountlySDK.Segmentation,CountlySDK.CountlyCommon.ContentTrigger)">
+            <summary>
+            Records an event and tells the content module about it, by the given trigger, or by its key
+            when none is given.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.NotifyContentTrigger(CountlySDK.CountlyCommon.ContentTrigger)">
+            <summary>
+            Tells the content module about something recorded that can be a content trigger.
+            </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.IsReservedEventKey(System.String)">
             <summary>SDK-internal events ("[CLY]_" prefixed) are not custom events, so the 'cet' gate must not block them.</summary>
@@ -573,9 +674,51 @@
             </summary>
             <returns>true if details are successfully uploaded, false otherwise</returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.ReportFailedQueuedRequest(CountlySDK.CountlyCommon.Server.Responses.RequestResult)">
+            <summary>
+            Keeps the status code and the answer of a queued request the server answered with a failure, for the health check
+            </summary>
+            <param name="requestResult">result of the request, null when there is none</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.HealthAreaAllowed(System.String)">
+            <summary>
+            Tells whether the health check may count the calls of a feature area, by the consent of the same name
+            </summary>
+            <param name="area">"sessions", "events", "views" or "crashes"</param>
+            <returns>true while the area may be counted</returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.OnUserDetailsChanged">
             <summary>
             Raised when user details property is changed
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordCustomModifiers">
+            <summary>
+            Queues the pending custom property modifiers as their own user details request, under the current device ID.
+            Used when automatic sending is disabled, since the user details are then re-sent whole on every save and can't carry one-shot modifiers,
+            and before a device ID change without merge, so the modifiers stay with the user they were recorded for.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.TakeConsentedCustomModifiers">
+            <summary>
+            Takes the pending custom property modifiers for a request, or drops them when 'Users' consent is not given
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddUserDetailsRequest(System.String)">
+            <summary>
+            Adds a user details request with the given json to the request queue
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SentPropertyNames(System.String)">
+            <summary>
+            The user properties a user details request sends, as content triggers name them: a user
+            detail ("email"), or "custom." and the key of a custom property.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.UserDetailsJson(Newtonsoft.Json.Linq.JObject)">
+            <summary>
+            Serializes the user details for a request, with the given custom property modifiers merged into its "custom" object,
+            where a modifier replaces a custom property of the same key
             </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.UploadUserPicture(System.IO.Stream)">
@@ -611,6 +754,12 @@
             </summary>
             <param name="log">log string</param>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.AddCrashBreadCrumbInternal(System.String)">
+            <summary>
+            Adds a breadcrumb the app recorded, cut to the value size limit; the oldest one is dropped when the breadcrumb limit is reached
+            </summary>
+            <param name="breadCrumb">breadcrumb text, must not be null</param>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.SendRequestWithEmptyLocation">
             <summary>
             Sends a request with an empty "location" parameter.
@@ -643,6 +792,11 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SessionBeginInternal">
+            <summary>
+            Begins a session, for the app or for the SDK itself, and starts the session update timer
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.SessionUpdate(System.Int32)">
             <summary>
             Manually update session
@@ -670,11 +824,118 @@
             <param name="newDeviceId">New Id that should be used</param>
             <returns></returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.ChangeServerUrl(System.String)">
+            <summary>
+            Changes the server URL: queued and later requests, direct requests and the feedback widget URL included, go to
+            the new server, while the app key, the salt and the custom request headers stay. Kept in memory only: the next
+            init uses the config URL again. Afterwards the consent state is sent while consent is required, the SDK behavior
+            settings are fetched and the remote config values are downloaded when automatic download triggers are enabled.
+            </summary>
+            <param name="serverUrl">absolute "http" or "https" URL, trailing "/" characters are removed; an invalid URL is ignored</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.ChangeAppKey(System.String)">
+            <summary>
+            Changes the app key. Before the switch the running view is ended, the recorded events, crash reports and pending
+            user details are queued and the running session is ended, all with the old app key; events and a crash report
+            that are being sent keep it, also when their send fails. After the switch the old app's remote config values are
+            removed, a session begins for the new app if one was running and the same requests follow as after
+            'ChangeServerUrl'. Queued requests keep their app key, see 'ReplaceAllAppKeysInQueueWithCurrentAppKey' and
+            'RemoveDifferentAppKeysFromQueue'. Kept in memory only: the next init uses the config app key again. Ignored in
+            backend mode.
+            </summary>
+            <param name="appKey">app key of the new app; an empty key, "YOUR_APP_KEY" or the current key is ignored</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.FlushQueues">
+            <summary>
+            Removes the requests, events and crash reports that are not sent yet. Timed events, the running view and the
+            pending user details stay, and a request that is being sent is not stopped. Ignored in backend mode.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.ReplaceAllAppKeysInQueueWithCurrentAppKey">
+            <summary>
+            Sets the current app key in every queued request, so that the requests queued before an app key change go to the
+            current app. Ignored in backend mode.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RemoveDifferentAppKeysFromQueue">
+            <summary>
+            Removes the queued requests whose app key is not the current app key, for example the requests queued before an
+            app key change. Ignored in backend mode.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.AttemptToSendStoredRequests">
+            <summary>
+            Starts sending the stored requests, events and crash reports right away, without waiting for the next session
+            update. Nothing is sent while the SDK behavior settings turn networking off.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.CanRun(System.String,System.Boolean)">
+            <summary>
+            Logs the call of a public method and tells whether it may run: not in backend mode when the method is ignored
+            there, and not before init, which also counts the "w101" log code. Both cases log a warning.
+            </summary>
+            <param name="method">name of the public method, for the log lines</param>
+            <param name="ignoredInBackendMode">true when the method does nothing in backend mode</param>
+            <returns>true when the method may run</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.IsServerUrlValid(System.String)">
+            <summary>
+            Tells whether the URL can be the server URL: an absolute "http" or "https" URL with a host
+            </summary>
+            <param name="url">URL to check, can be null</param>
+            <returns>true when the URL can be used</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.FindAppKeyValue(System.String,System.Int32@)">
+            <summary>
+            Finds the value of the "app_key" parameter in a queued request
+            </summary>
+            <param name="request">request string, with or without a leading "/i?"</param>
+            <param name="end">index after the value</param>
+            <returns>index of the value, or -1 when the request has no app key</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.WithAppKey(System.String,System.String)">
+            <summary>
+            Returns the request with the given app key as its "app_key" parameter; a request without one is returned as it is
+            </summary>
+            <param name="request">request string, with or without a leading "/i?"</param>
+            <param name="appKey">app key to set</param>
+            <returns>the request with the app key</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.MoveToRequestQueue(System.Func{CountlySDK.Entities.CountlyEvent,System.Boolean},System.Func{CountlySDK.Entities.ExceptionEvent,System.Boolean},System.String)">
+            <summary>
+            Moves the queued events and crash reports that the conditions select into the request queue, as requests with
+            the given app key, so that they go to that app whatever the app key is when they are sent
+            </summary>
+            <param name="takeEvent">selects the events to move</param>
+            <param name="takeException">selects the crash reports to move</param>
+            <param name="appKey">app key of the requests</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.SendCatchUpRequests">
+            <summary>
+            Brings a server or app that is new to this device up to date: sends the consent state while consent is required,
+            fetches the SDK behavior settings and downloads the remote config values when automatic download triggers are enabled
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordView(System.String)">
             <summary>
             Records view
             </summary>
             <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.RecordView(System.String,CountlySDK.Segmentation)">
+            <summary>
+            Records view with custom segmentation, which is sent with the view's start event
+            </summary>
+            <param name="viewName">Name of the view, required, must not be null or empty</param>
+            <param name="segmentation">Segmentation to add to the view, can be null. The reserved keys "name", "visit", "start" and "segment" are ignored</param>
+            <returns>False if the view is rejected (backend mode, SDK not initialized, empty name, no views consent or view tracking turned off) or its upload fails, in which case it stays queued for a later upload; otherwise True</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.CountlyBase.CreateCustomViewSegmentation(CountlySDK.Segmentation)">
+            <summary>
+            Copies the segmentation given to 'RecordView' within the segmentation limits and without its reserved keys
+            </summary>
+            <param name="segmentation">Segmentation given to 'RecordView', can be null</param>
+            <returns>A new segmentation object, never null</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.CountlyBase.reportViewDuration">
             <summary>
@@ -852,6 +1113,12 @@
             health check request.
             </summary>
         </member>
+        <member name="F:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.requestCompressionEnabled">
+            <summary>
+            When true, request bodies are sent gzip-compressed once the server's SDK Behavior
+            Settings answer says it reads them.
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableLocation">
             <summary>
             Disabled the location tracking on the Countly server
@@ -976,6 +1243,25 @@
             </summary>
             <returns>Config for call chaining</returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.EnableRequestCompression">
+            <summary>
+            Compress request bodies between 1 KB and 1 MB with gzip before sending them. The SDK
+            compresses only after the server's SDK Behavior Settings answer said it reads compressed
+            bodies, so older servers keep getting plain requests. It needs the SDK Behavior Settings
+            updates, which DisableSDKBehaviorSettingsUpdates turns off. A compressed request that the
+            server, or something in front of it, answers without accepting it stops compression until
+            the next SDK Behavior Settings answer says again that the server reads compressed bodies.
+            </summary>
+            <returns>Config for call chaining</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoContentTriggers">
+            <summary>
+            Turns off the content triggers: the SDK does not ask the server for them and does not follow
+            the ones it has, so content comes only with the content zone timer. The journey trigger events
+            and views of the SDK behavior settings still apply.
+            </summary>
+            <returns>the same config object for convenient linking</returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.CountlyConfigBase.DisableAutoEnrollInABTesting">
             <summary>
             Disables automatically opting the user into A/B tests when Remote Config values are
@@ -1074,6 +1360,95 @@
             Saves user details
             </summary>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Increment(System.String)">
+            <summary>
+            Increments a custom user property by 1. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.IncrementBy(System.String,System.Int32)">
+            <summary>
+            Increments a custom user property by the given value. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to add</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Multiply(System.String,System.Int32)">
+            <summary>
+            Multiplies a custom user property by the given value. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to multiply by</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.SaveMax(System.String,System.Int32)">
+            <summary>
+            Keeps the larger of a custom user property's current value and the given value. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to compare with</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.SaveMin(System.String,System.Int32)">
+            <summary>
+            Keeps the smaller of a custom user property's current value and the given value. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to compare with</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.SetOnce(System.String,System.String)">
+            <summary>
+            Sets a custom user property only if it does not exist yet. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to set</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Push(System.String,System.String)">
+            <summary>
+            Adds a value to a custom user property array, creating the array if the property does not exist yet.
+            Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to add</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.PushUnique(System.String,System.String)">
+            <summary>
+            Adds a value to a custom user property array only if the array does not contain it yet,
+            creating the array if the property does not exist yet. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to add</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Pull(System.String,System.String)">
+            <summary>
+            Removes a value from a custom user property array. Sent with the next user details save.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">value to remove</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.ModifyCustomData(System.String,System.Object,System.String)">
+            <summary>
+            Records a modifier for a custom user property until the next user details save.
+            A numeric modifier or "$setOnce" replaces the key's pending modifiers, an array modifier accumulates into them.
+            </summary>
+            <param name="key">custom property name</param>
+            <param name="value">int or string value of the modifier</param>
+            <param name="mod">modifier name, for example "$inc"</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.Accumulate(Newtonsoft.Json.Linq.JObject,System.String,Newtonsoft.Json.Linq.JValue)">
+            <summary>
+            Adds the value under the modifier the way Android's JSONObject.accumulate does:
+            a single value first, an array once there are more
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.HasCustomModifiers">
+            <summary>
+            Returns true when custom property modifiers wait for the next user details save
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.TakeCustomModifiers">
+            <summary>
+            Returns the pending custom property modifiers, key to modifier object, and clears them; null when there are none
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Entities.EntityBase.CountlyUserDetailsBase.ToString">
             <summary>
             Serializes object into json
@@ -1082,6 +1457,11 @@
         </member>
         <member name="M:CountlySDK.CountlyCommon.ContentParser.ParseContentResponse(System.String)">
             <summary>Parses a /o/sdk/content response; returns null if it has no usable content.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.GetAppKey">
+            <summary>
+            Returns the app key the requests are built with now
+            </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.BuildRequest(System.Collections.Generic.IDictionary{System.String,System.Object})">
             <summary>
@@ -1097,6 +1477,11 @@
             </summary>
             <param name="queryParams"></param>
             <returns></returns>
+        </member>
+        <member name="F:CountlySDK.CountlyCommon.Helpers.RequestHelper.JsonSettings">
+            <summary>
+            Serializer settings of request json, null values are ignored
+            </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.Helpers.RequestHelper.Json(System.Object)">
             <summary>
@@ -1161,6 +1546,52 @@
         <member name="M:CountlySDK.CountlyCommon.WidgetActionParser.StripParam(System.String,System.String)">
             <summary>Returns the URL with the given query parameter removed (base URL if none remain).</summary>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.ResetRequestCompression(System.Boolean)">
+            <summary>
+            Sets whether the developer turned request compression on, and forgets which server said it
+            reads compressed bodies and whether a compressed request was refused; called at every init
+            </summary>
+            <param name="enabled">whether request compression is on</param>
+        </member>
+        <member name="P:CountlySDK.CountlyCommon.Server.ApiBase.RequestCompressionEnabled">
+            <summary>
+            Whether request compression is on, as the SDK Behavior Settings request asks the server
+            about it only then
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.OnGzipAnswer(System.String,System.Boolean)">
+            <summary>
+            Takes the gzip answer of an SDK Behavior Settings fetch: "gzip": true from the server at
+            serverUrl turns request compression on for that server, also after a refused compressed
+            request had stopped it; an answer without it turns compression off
+            </summary>
+            <param name="serverUrl">the server the settings request went to</param>
+            <param name="gzipAccepted">whether the answer had "gzip": true</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.RequestCompressionAllowed(System.String)">
+            <summary>
+            Whether a request body to the given server may be sent compressed now: request compression
+            is on, that server said it reads compressed bodies, and no compressed request was refused
+            since its answer
+            </summary>
+            <param name="serverUrl">the server the request goes to</param>
+            <returns>true when the body may be compressed</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.BlockRequestCompression">
+            <summary>
+            Stops request compression after the server, or something in front of it, answered a
+            compressed request without accepting it, until the next SDK Behavior Settings answer says
+            that the server reads compressed bodies, or the SDK is initialized again
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.GzipRequestBody(System.String)">
+            <summary>
+            Compresses a request body with gzip, for sending it with the compression marker as the URL query
+            </summary>
+            <param name="body">the url encoded request body, checksum included</param>
+            <returns>the gzip bytes, or null when the body is smaller than 1 KB or larger than 1 MB,
+            compressing fails, or the result is not smaller than the body</returns>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.Call(System.String,System.String,System.IO.Stream,System.String)">
             <summary>
             Platform specific task wrapper
@@ -1181,7 +1612,7 @@
             <param name="endpoint"></param>
             <returns></returns>
         </member>
-        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.RequestAsync(System.String,System.String,System.IO.Stream,System.Collections.Generic.IDictionary{System.String,System.String})">
+        <member name="M:CountlySDK.CountlyCommon.Server.ApiBase.RequestAsync(System.String,System.String,System.IO.Stream,System.Collections.Generic.IDictionary{System.String,System.String},System.Byte[])">
             <summary>
             Platform specific networking code
             </summary>
@@ -1189,7 +1620,15 @@
             <param name="requestData"></param>
             <param name="imageData"></param>
             <param name="customHeaders"></param>
+            <param name="compressedBody">the gzip-compressed body to send instead of requestData, or null</param>
             <returns></returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.Server.Responses.RequestResult.IsJsonAnswer">
+            <summary>
+            Whether the server answered with a 2xx status and a JSON object or array, the rule the
+            answer to a direct request is accepted by.
+            </summary>
+            <returns>true for a 2xx answer that is a JSON object or array</returns>
         </member>
         <member name="M:CountlySDK.CountlyCommon.BackendMode.RecordEvent(System.String,System.String,System.String,System.Nullable{System.Double},System.Int32,System.Nullable{System.Int64},CountlySDK.Segmentation,System.Int64)">
             <summary>
@@ -1311,6 +1750,88 @@
             <param name="appKey">If it is empty or null, defaults to app key given in the config</param>
             <param name="timestamp">Defaults to current timestamp if not provided</param>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleContent.Halt">
+            <summary>
+            Stops the content zone and the content triggers for good, when the SDK is halted.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleContent.FetchAndPresent(System.String[],System.String)">
+            <summary>
+            Asks the server for content and shows what it answers with.
+            </summary>
+            <returns>true when content was shown; false for no content, a failed request or an answer without content</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleContent.OnContentTrigger(CountlySDK.CountlyCommon.ContentTrigger)">
+            <summary>
+            Something the SDK recorded that can be a content trigger. A match outside its gap sends the
+            queued requests and then asks for content.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleContent.OnBehaviorSettingsSettled(System.Boolean)">
+            <summary>
+            The behavior settings answer of this run arrived and was applied, or none will arrive. The
+            first remembered trigger the answer lists starts a round.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleContent.RunRound">
+            <summary>
+            Sends the queued requests and, once they are sent, asks for content. When they can not be
+            sent, the round ends without a content request, and the content zone timer picks it up.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleContent.RequestTriggeredContent(System.Int32,System.Int32)">
+            <summary>
+            Sends a content request of a round. When it shows nothing, it is sent again a second later,
+            up to three requests, as the server may still be processing what triggered it. A newer
+            round's content request stops the ones left of an older round.
+            </summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.ContentTriggers">
+            <summary>
+            The content triggers ("jt") the server sends next to the SDK behavior settings ("c"): event keys
+            ("e"), view names ("v") and user properties ("p") whose recording makes the SDK send the queued
+            requests and ask for content right away. A list the server leaves out is an empty one.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentTriggers.Parse(Newtonsoft.Json.Linq.JToken)">
+            <summary>Reads the "jt" value of a behavior settings answer.</summary>
+            <returns>the content triggers, or null when the answer has none or an invalid value, so the journey trigger events and views apply</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentTriggers.Match(CountlySDK.CountlyCommon.ContentTriggers,System.Boolean,System.Func{System.String,System.Boolean},System.Func{System.String,System.Boolean},CountlySDK.CountlyCommon.ContentTrigger)">
+            <summary>
+            Whether what was recorded is a content trigger. When the server sent content triggers, only
+            they decide, and only while the content zone is wanted. Otherwise an event of the app whose
+            key the journey trigger events list, or a view, when it starts and when it ends, whose name
+            the journey trigger views list, decides, also while the content zone is not wanted.
+            </summary>
+            <returns>the match, or null when it is not a content trigger</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentTriggers.ClaimGap(CountlySDK.CountlyCommon.ContentTriggerMatch,System.String,System.Int64)">
+            <summary>
+            Whether a matched trigger may start a round now. Times older than the longest gap are
+            dropped, and a time in the future is ignored.
+            </summary>
+            <param name="storedGaps">when each trigger last started a round: a JSON object of gap key to milliseconds, may be empty</param>
+            <returns>the times to store when the trigger may start a round, or null when every one of its triggers is inside its gap</returns>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.ContentTrigger">
+            <summary>Something the SDK recorded, as content triggers compare it.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentTrigger.Event(System.String,System.Boolean)">
+            <summary>A recorded event, by its key as the app passed it.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentTrigger.View(System.String,System.Boolean)">
+            <summary>A recorded view event, by its name as the app passed it, when the view starts or when it ends.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentTrigger.UserProperties(System.Collections.Generic.List{System.String})">
+            <summary>The user properties a user details request sends: a user detail ("email"), or "custom." and the key of a custom property.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ContentTrigger.Of(System.String)">
+            <summary>What the SDK records besides events: a session, an error or a consent change.</summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.ContentTriggerMatch">
+            <summary>A recorded trigger that starts a round: the triggers its gap is kept for, and the gap.</summary>
+        </member>
         <member name="T:CountlySDK.CountlyCommon.Content">
             <summary>Retrieves and displays Countly content (experimental).</summary>
         </member>
@@ -1341,6 +1862,132 @@
         <member name="M:CountlySDK.CountlyCommon.Feedback.ConstructFeedbackWidgetUrl(CountlySDK.CountlyCommon.CountlyFeedbackWidget)">
             <summary>Builds the display URL for a widget (used by the WebView2 UI package).</summary>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.#ctor(CountlySDK.CountlyCommon.Helpers.RequestHelper,System.Func{System.String},System.Boolean,System.String,System.Func{System.String,System.Boolean})">
+            <summary>
+            Creates the health check module and reads the counters an earlier run stored
+            </summary>
+            <param name="requestHelper">builds the base request parameters</param>
+            <param name="serverUrl">gives the server the health check is sent to</param>
+            <param name="disabled">true when the health check request is turned off</param>
+            <param name="appVersion">app version the health check reports, the overridden one when set</param>
+            <param name="areaAllowed">tells whether a feature area may be counted now, by its consent; null counts every area</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.RegisterHooks">
+            <summary>
+            Makes this module count the warning and error logs and the log codes of the SDK, and adds what was
+            counted while no module was registered
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.UnregisterHooks">
+            <summary>
+            Stops this module from counting the logs and log codes of the SDK
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.CountBeforeModule(CountlySDK.CountlyCommon.CountlyBase.LogLevel)">
+            <summary>
+            Counts a warning or error log line written while no module is registered, so the next registered module adds it
+            </summary>
+            <param name="level">level of the log line</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.Track(System.String,System.String)">
+            <summary>
+            Counts a known problem for the health check, next to the log line that reports it. While no module is
+            registered, before init or after halt, it is kept for the next registered module.
+            </summary>
+            <param name="code">log code, a level letter and three digits, for example "w202"</param>
+            <param name="area">feature area of the public method that records it; the code is then counted only while that feature has consent</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.ClearPending">
+            <summary>
+            Forgets what was counted while no module was registered, when the SDK is halted
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.UsageCount(System.String,System.String)">
+            <summary>
+            How often a method of a feature area was counted
+            </summary>
+            <param name="area">feature area</param>
+            <param name="method">method name with its modifiers</param>
+            <returns>the count, 0 when not counted</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.LogCodeCount(System.String)">
+            <summary>
+            How often a log code was counted
+            </summary>
+            <param name="code">log code</param>
+            <returns>the count, 0 when not counted</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.LogFailedNetworkRequest(System.Int32,System.String)">
+            <summary>
+            Keeps the status code and the answer of the last queued request the server answered with a failure.
+            A request that got no answer has no valid status code and changes nothing.
+            </summary>
+            <param name="statusCodeIn">HTTP status code</param>
+            <param name="errorResponse">answer body</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.RecordUsage(System.String,System.String)">
+            <summary>
+            Counts a call of a method of the session, event, view or crash feature, only while the feature has consent
+            </summary>
+            <param name="area">"sessions", "events", "views" or "crashes"</param>
+            <param name="method">method name, with ":a" for a call the SDK made by itself and ":d" for a deprecated method</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.RecordLogCode(System.String,System.String)">
+            <summary>
+            Counts a known problem. A code that a method of a feature area records is counted only while that feature has consent.
+            </summary>
+            <param name="code">log code, a level letter and three digits</param>
+            <param name="area">feature area of the method that records it, null when it has none</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.SaveState">
+            <summary>
+            Stores all counters, the method usage and log codes included
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.Snapshot">
+            <summary>
+            The counters as the health check reports them
+            </summary>
+            <returns>a copy of the counters</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.ClearSentValues(CountlySDK.CountlyCommon.HealthSnapshot)">
+            <summary>
+            Takes away what a health check the server accepted reported, so what was counted while it was on its way is
+            reported next time. The last failed request and the longest backoff run are cleared only while they still
+            hold the reported values. The remaining counters are stored.
+            </summary>
+            <param name="sent">the snapshot the delivered health check was built from</param>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleHealthCheck.SendHealthCheck">
+            <summary>
+            Sends the health check once per SDK start, as a direct request. Once the server confirms it, the reported
+            amounts are taken away from the counters; otherwise everything is sent again at the next start. Logs
+            nothing at warning or error level, since such a log would be counted here again.
+            </summary>
+        </member>
+        <member name="T:CountlySDK.CountlyCommon.HealthSnapshot">
+            <summary>
+            The health check counters at one moment, as they are sent
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.HealthSnapshot.ToJson">
+            <summary>
+            The counters in the format of the "hc" request parameter
+            </summary>
+            <returns>JSON text</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleRemoteConfig.ValidKeys(System.Collections.Generic.List{System.String})">
+            <summary>
+            The keys of a download call that are neither null nor empty
+            </summary>
+            <param name="keys">the keys given to the call, or null</param>
+            <returns>the valid keys, never null</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleRemoteConfig.ClearValues">
+            <summary>
+            Removes the downloaded values, when they belong to another app
+            </summary>
+        </member>
         <member name="T:CountlySDK.CountlyCommon.RCData">
             <summary>
             Represents a single Remote Config entry and its associated metadata.
@@ -1368,11 +2015,13 @@
             </summary>
             <param name="includeKeys">
             Optional list of keys to explicitly include in the download.
-            When specified, only these keys will be requested.
+            When specified, only these keys will be requested, and only the keys the server returns replace
+            the stored values; the other stored values stay.
             </param>
             <param name="omitKeys">
-            Optional list of keys to exclude from the download.
-            These keys will be ignored even if they exist on the server.
+            Optional list of keys to exclude from the download, used when no key to include is given.
+            These keys will be ignored even if they exist on the server, and their stored values stay.
+            Without valid keys to include or omit, every stored value is replaced by the download.
             </param>
             <returns>
             A task that represents the asynchronous download operation.
@@ -1414,6 +2063,16 @@
             <param name="keys">The keys to exit; null or empty exits all tests.</param>
             <returns>A task that represents the asynchronous exit operation.</returns>
         </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.GetContentTriggers">
+            <summary>The content triggers the server sent, null when it sent none or an invalid value, or when they are turned off.</summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.GetEnterContentZoneDecision">
+            <summary>
+            Whether the SDK enters the content zone because of 'ecz': the settings in use at init decide,
+            and without stored or provided settings the first behavior settings answer of the run. A
+            later change takes effect at the next init.
+            </summary>
+        </member>
         <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.IsAllowedByFilter(System.String,System.Collections.Generic.HashSet{System.String},System.Boolean)">
             <summary>Empty filter = everything allowed; whitelist keeps listed keys, blacklist drops them.</summary>
         </member>
@@ -1428,6 +2087,9 @@
             Synchronously loads stored settings, parses developer-provided settings, and applies
             both (provided first, stored second) to the effective configuration. No network I/O.
             </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.ExtractContentTriggers(System.String)">
+            <summary>The "jt" value of settings the developer provided, null when they have none.</summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.ExtractStringSet(Newtonsoft.Json.Linq.JToken)">
             <summary>Collects the string entries of a JSON array (non-strings are skipped).</summary>
@@ -1449,6 +2111,21 @@
             Network fetch of SDK Behavior Settings (direct, off-queue, /o/sdk?method=sc).
             No-op when updates are disabled. Always (re)starts the refresh timer when enabled,
             so periodic refresh survives a failed fetch.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.OnFetchSettled(System.Boolean)">
+            <summary>
+            Decides the 'ecz' entry on the first answer of a run when no settings were stored at init,
+            and tells the content module that the answer arrived, or that none will arrive.
+            </summary>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.FetchAndApply">
+            <returns>true when a behavior settings answer arrived and was applied</returns>
+        </member>
+        <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.ApplyContentTriggers(Newtonsoft.Json.Linq.JToken)">
+            <summary>
+            Uses and stores the content triggers of an answer. An answer without them leaves none, so
+            the journey trigger events and views apply.
             </summary>
         </member>
         <member name="M:CountlySDK.CountlyCommon.ModuleServerConfig.EvictOppositeFilterKeys(Newtonsoft.Json.Linq.JObject,Newtonsoft.Json.Linq.JObject)">

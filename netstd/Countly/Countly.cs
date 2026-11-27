@@ -131,7 +131,11 @@ namespace CountlySDK
 
         public override async Task Init(CountlyConfig config)
         {
-            if (IsInitialized()) { return; }
+            if (IsInitialized()) {
+                UtilityHelper.CountlyLogging("[Countly] Init, the SDK is already initialized, the call is ignored", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w110");
+                return;
+            }
 
             if (config == null) {
                 UtilityHelper.CountlyLogging("Configuration object can not be null while initializing Countly");

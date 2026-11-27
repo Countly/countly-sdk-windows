@@ -10,6 +10,8 @@ using CountlySDK.CountlyCommon.Server;
 using CountlySDK.CountlyCommon.Server.Responses;
 using CountlySDK.Entities;
 using CountlySDK.Helpers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using static CountlySDK.CountlyCommon.Helpers.RequestHelper;
 using static CountlySDK.Entities.EntityBase.DeviceBase;
 using static CountlySDK.Helpers.TimeHelper;
@@ -28,7 +30,7 @@ namespace CountlySDK.CountlyCommon
 
             public string GetAppKey()
             {
-                return _base.Configuration.appKey;
+                return _base.AppKey;
             }
 
             public string GetSDKName()
@@ -53,7 +55,7 @@ namespace CountlySDK.CountlyCommon
         }
 
         // Current version of the Count.ly SDK as a displayable string.
-        protected const string sdkVersion = "26.1.0";
+        protected const string sdkVersion = "26.8.0";
 
         public enum LogLevel { VERBOSE, DEBUG, INFO, WARNING, ERROR };
 
@@ -114,6 +116,10 @@ namespace CountlySDK.CountlyCommon
         // Exceptions queue
         internal List<ExceptionEvent> Exceptions { get; set; }
 
+        // Events and crash report of the uploads that are on their way; packing the queues into requests leaves them out
+        private List<CountlyEvent> eventsInFlight = null;
+        private ExceptionEvent exceptionInFlight = null;
+
         private static CountlyUserDetails userDetails;
         // User details info
         public static CountlyUserDetails UserDetails
@@ -156,6 +162,9 @@ namespace CountlySDK.CountlyCommon
         // If this is true, then a "begin session" has been called and there hasn't been an "end session"
         // this would indicate that we have to resume session tracking once consent is given
         internal bool automaticSessionTrackingStarted = false;
+
+        // True from a "begin session" request until its "end session" request
+        private bool sessionRunning = false;
 
         //holds device info
         internal Device DeviceData = new Device();
@@ -245,6 +254,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (elapsedTime == null) {
+                moduleHealthCheck?.RecordUsage("sessions", "update:a");
                 //calculate elapsed time from the last time update was sent (includes manual calls)
                 elapsedTime = (int)DateTime.Now.Subtract(lastSessionUpdateTime).TotalSeconds;
             }
@@ -281,6 +291,8 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] EndSessionInternal, session tracking disabled by server config, ignoring");
                 return;
             }
+
+            sessionRunning = false;
 
             //report the duration of current view
             reportViewDuration();
@@ -423,17 +435,11 @@ namespace CountlySDK.CountlyCommon
                     lock (sync) {
                         uploadInProgress = false;
 
-                        //remove the executed request
-                        StoredRequest srd = null;
-                        try {
-                            srd = StoredRequests.Dequeue();
-                        } catch {
-                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, failing 'StoredRequests.Dequeue()'");
-                        }
-                        Debug.Assert(srd != null);
-                        if (srd != sr) {
-                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, the head request is not equal to sent request", LogLevel.ERROR);
-
+                        //remove the executed request, unless it left the queue while it was being sent
+                        if (StoredRequests.Count > 0 && StoredRequests.Peek() == sr) {
+                            StoredRequests.Dequeue();
+                        } else {
+                            UtilityHelper.CountlyLogging("[CountlyBase] UploadStoredRequests, the sent request is no longer in the queue");
                         }
 
                         if (!Configuration.backendMode) {
@@ -443,6 +449,7 @@ namespace CountlySDK.CountlyCommon
                     }
                     return true;
                 } else {
+                    ReportFailedQueuedRequest(requestResult);
                     lock (sync) { uploadInProgress = false; }
                     return false;
                 }
@@ -489,7 +496,7 @@ namespace CountlySDK.CountlyCommon
                         uploadInProgress = false;
 
                         try {
-                            Sessions.RemoveAt(0);
+                            Sessions.Remove(sessionEvent);
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadSessions] Failed at removing session." + ex.ToString());
                         }
@@ -511,6 +518,7 @@ namespace CountlySDK.CountlyCommon
                         return true;
                     }
                 } else {
+                    ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
                     return false;
                 }
@@ -533,9 +541,11 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : key = " + key);
+            moduleHealthCheck?.RecordUsage("events", "start");
 
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent: SDK must initialized before calling 'StartEvent'");
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent: SDK must initialized before calling 'StartEvent'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
@@ -545,12 +555,14 @@ namespace CountlySDK.CountlyCommon
             }
 
             if (string.IsNullOrEmpty(key) || key == " ") {
-                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.");
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : The event key '" + key + "' isn't valid.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "events");
                 return;
             }
 
             if (TimedEvents.ContainsKey(key)) {
-                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : Event with key '" + key + "' has already started.");
+                UtilityHelper.CountlyLogging("[CountlyBase] StartEvent : Event with key '" + key + "' has already started.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w722", "events");
                 return;
             }
 
@@ -571,18 +583,21 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : key = " + key);
+            moduleHealthCheck?.RecordUsage("events", "cancel");
 
             if (!IsConsentGiven(ConsentFeatures.Events)) {
                 return;
             }
 
             if (string.IsNullOrEmpty(key) || key == " ") {
-                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.");
+                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : The event key '" + key + "' isn't valid.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "events");
                 return;
             }
 
             if (!TimedEvents.ContainsKey(key)) {
-                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : Time event with key '" + key + "' doesn't exist.");
+                UtilityHelper.CountlyLogging("[CountlyBase] CancelEvent : Time event with key '" + key + "' doesn't exist.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w721", "events");
                 return;
             }
 
@@ -613,25 +628,28 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : key = " + key + ", segmentation = " + segmentation + ", count = " + count + ", sum = " + sum);
+            moduleHealthCheck?.RecordUsage("events", "end");
 
             if (!IsConsentGiven(ConsentFeatures.Events)) {
                 return;
             }
 
             if (string.IsNullOrEmpty(key) || key == " ") {
-                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.");
+                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : The event key '" + key + "' isn't valid.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w701", "events");
                 return;
             }
 
             if (!TimedEvents.ContainsKey(key)) {
-                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : Time event with key '" + key + "' doesn't exist.");
+                UtilityHelper.CountlyLogging("[CountlyBase] EndEvent : Time event with key '" + key + "' doesn't exist.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w720", "events");
                 return;
             }
 
             DateTime startTime = TimedEvents[key];
             double duration = (DateTime.Now - startTime).TotalSeconds;
 
-            await Countly.RecordEvent(key, count, sum, duration, segmentation);
+            await RecordEventFromApp(key, count, sum, duration, segmentation);
 
             TimedEvents.Remove(key);
         }
@@ -715,20 +733,45 @@ namespace CountlySDK.CountlyCommon
                 return BoolTask(false);
             }
 
-            if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'");
+            Countly.Instance.moduleHealthCheck?.RecordUsage("events", "record");
+            return Countly.Instance.RecordEventFromApp(Key, Count, Sum, Duration, Segmentation);
+        }
+
+        /// <summary>
+        /// Checks an event of the app, also the one an ended timed event records, cuts it to the limits and records it
+        /// </summary>
+        /// <param name="Key">Name of the custom event, required, must not be null or the empty string</param>
+        /// <param name="Count">Count to associate with the event</param>
+        /// <param name="Sum">Sum to associate with the event</param>
+        /// <param name="Duration">Event duration</param>
+        /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
+        /// <returns>True if event is uploaded successfully, False - queued for delayed upload or rejected</returns>
+        internal Task<bool> RecordEventFromApp(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        {
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("SDK must initialized before calling 'RecordEvent'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return BoolTask(false);
             }
 
-            CountlyConfig config = Countly.Instance.Configuration;
-            if (Key.Length > config.MaxKeyLength) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + Countly.Instance.Configuration.MaxKeyLength);
-                Key = Key.Substring(0, Countly.Instance.Configuration.MaxKeyLength);
+            if (string.IsNullOrEmpty(Key)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : The event key can't be null or empty, the event is ignored", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w701", "events");
+                return BoolTask(false);
             }
 
-            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues);
-            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize);
-            return Countly.Instance.RecordEventInternal(Key, Count, Sum, Duration, segments);
+            CountlyConfig config = Configuration;
+            // the content triggers match the key as the app passed it, before the limit cuts it
+            ContentTrigger trigger = ContentTrigger.Event(Key, !IsReservedEventKey(Key));
+            if (Key.Length > config.MaxKeyLength) {
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEvent : Max allowed key length is " + config.MaxKeyLength, LogLevel.WARNING);
+                ModuleHealthCheck.Track("w201", "events");
+                Key = Key.Substring(0, config.MaxKeyLength);
+            }
+
+            Segmentation segments = UtilityHelper.RemoveExtraSegments(Segmentation, config.MaxSegmentationValues, "events");
+            segments = UtilityHelper.FixSegmentKeysAndValues(segments, config.MaxKeyLength, config.MaxValueSize, "events");
+            return RecordEventWithTrigger(Key, Count, Sum, Duration, segments, trigger);
         }
 
         /// <summary>
@@ -739,25 +782,33 @@ namespace CountlySDK.CountlyCommon
         /// <param name="Sum">Sum to associate with the event</param>
         /// <param name="Segmentation">Segmentation object to associate with the event, can be null</param>
         /// <returns>True if event is uploaded successfully, False - queued for delayed upload</returns>
-        protected async Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        protected Task<bool> RecordEventInternal(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation)
+        {
+            return RecordEventWithTrigger(Key, Count, Sum, Duration, Segmentation, null);
+        }
+
+        /// <summary>
+        /// Records an event and tells the content module about it, by the given trigger, or by its key
+        /// when none is given.
+        /// </summary>
+        internal async Task<bool> RecordEventWithTrigger(string Key, int Count, double? Sum, double? Duration, Segmentation Segmentation, ContentTrigger trigger)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordEventInternal'");
             if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, tracking disabled by server config, ignoring event", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w505");
                 return true;
             }
             if (!IsReservedEventKey(Key) && moduleServerConfig != null && !moduleServerConfig.GetCustomEventTrackingEnabled()) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, custom event tracking disabled by server config, ignoring event");
                 return true;
             }
-            bool journeyTrigger = false;
             if (!IsReservedEventKey(Key) && moduleServerConfig != null) {
                 if (!moduleServerConfig.IsEventKeyAllowed(Key)) {
                     UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, event key filtered out by server config, ignoring event");
                     return true;
                 }
                 moduleServerConfig.FilterEventSegmentation(Key, Segmentation);
-                journeyTrigger = moduleServerConfig.IsJourneyTriggerEvent(Key);
             }
             if (!Countly.Instance.IsServerURLCorrect(ServerUrl)) { return false; }
             if (!CheckConsentOnKey(Key)) { return true; }
@@ -778,13 +829,21 @@ namespace CountlySDK.CountlyCommon
             if (saveSuccess) {
                 //todo rework this
                 saveSuccess = await Upload();
-                if (saveSuccess && journeyTrigger && moduleContent != null && IsConsentGiven(ConsentFeatures.Content)) {
-                    UtilityHelper.CountlyLogging("[CountlyBase] RecordEventInternal, journey trigger event delivered, refreshing content zone");
-                    moduleContent.RefreshContentZone();
-                }
+                NotifyContentTrigger(trigger ?? (Key == VIEW_EVENT_KEY ? null : ContentTrigger.Event(Key, !IsReservedEventKey(Key))));
             }
 
             return saveSuccess;
+        }
+
+        /// <summary>
+        /// Tells the content module about something recorded that can be a content trigger.
+        /// </summary>
+        internal void NotifyContentTrigger(ContentTrigger trigger)
+        {
+            ModuleContent content = moduleContent;
+            if (content != null && trigger != null) {
+                content.OnContentTrigger(trigger);
+            }
         }
 
         /// <summary>SDK-internal events ("[CLY]_" prefixed) are not custom events, so the 'cet' gate must not block them.</summary>
@@ -854,10 +913,13 @@ namespace CountlySDK.CountlyCommon
                 List<CountlyEvent> eventsToSend = null;
                 lock (sync) {
                     eventsToSend = Events.Take(eventsCount).ToList();
+                    eventsInFlight = eventsToSend;
                 }
 
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
+                string sentAppKey = AppKey;
                 RequestResult requestResult = await Api.Instance.SendEvents(ServerUrl, requestHelper, GetRemainingRequestCount(), eventsToSend, (UserDetails.isChanged) ? UserDetails : null);
+                lock (sync) { eventsInFlight = null; }
 
                 if (requestResult != null && requestResult.IsSuccess()) {
                     //if it's a successful or bad request, remove it from the queue
@@ -873,8 +935,8 @@ namespace CountlySDK.CountlyCommon
                         uploadInProgress = false;
 
                         try {
-                            for (int i = eventsCount - 1; i >= 0; i--) {
-                                Events.RemoveAt(i);
+                            foreach (CountlyEvent sentEvent in eventsToSend) {
+                                Events.Remove(sentEvent);
                             }
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadEvents] Failed at removing events." + ex.ToString());
@@ -894,7 +956,11 @@ namespace CountlySDK.CountlyCommon
                         return true;
                     }
                 } else {
+                    ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
+                    if (AppKey != sentAppKey) {
+                        await MoveToRequestQueue(eventsToSend.Contains, exception => false, sentAppKey);
+                    }
                     return false;
                 }
             } else {
@@ -911,7 +977,8 @@ namespace CountlySDK.CountlyCommon
         public static async Task<bool> RecordException(string error)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -927,7 +994,8 @@ namespace CountlySDK.CountlyCommon
         public static async Task<bool> RecordException(string error, string stackTrace = null)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordExceptionRecordException(error, stackTrace)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordExceptionRecordException(error, stackTrace)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -942,7 +1010,8 @@ namespace CountlySDK.CountlyCommon
         protected async Task<bool> RecordUnhandledException(string error, string stackTrace)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -959,7 +1028,8 @@ namespace CountlySDK.CountlyCommon
         public static async Task<bool> RecordException(string error, string stackTrace, Dictionary<string, string> customInfo)
         {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -981,8 +1051,10 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            Countly.Instance.moduleHealthCheck?.RecordUsage("crashes", "record");
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo, unhandled)'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordException: SDK must initialized before calling 'RecordException(error, stackTrace, customInfo, unhandled)'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -1010,10 +1082,10 @@ namespace CountlySDK.CountlyCommon
             TimeSpan run = DateTime.Now.Subtract(startTime);
 
             CountlyConfig config = Countly.Instance.Configuration;
-            Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues);
-            segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize);
+            Dictionary<string, string> segmentation = UtilityHelper.RemoveExtraSegments(customInfo, config.MaxSegmentationValues, "crashes");
+            segmentation = UtilityHelper.FixSegmentKeysAndValues(segmentation, config.MaxKeyLength, config.MaxValueSize, "crashes");
 
-            ExceptionEvent eEvent = new ExceptionEvent(UtilityHelper.TrimKey(error, config.MaxKeyLength), UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength) ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
+            ExceptionEvent eEvent = new ExceptionEvent(UtilityHelper.TrimKey(error, config.MaxKeyLength, "crashes", "w205"), UtilityHelper.ManipulateStackTrace(stackTrace, Configuration.MaxStackTraceLinesPerThread, Configuration.MaxStackTraceLineLength, "crashes") ?? string.Empty, unhandled, string.Join("\n", CrashBreadcrumbs.ToArray()), run, AppVersion, segmentation, DeviceData);
 
             if (!unhandled) {
                 bool saveSuccess = false;
@@ -1023,7 +1095,9 @@ namespace CountlySDK.CountlyCommon
                 }
 
                 if (saveSuccess) {
-                    return await Upload();
+                    bool uploaded = await Upload();
+                    NotifyContentTrigger(ContentTrigger.Of(ContentTriggers.KeyCrash));
+                    return uploaded;
                 }
 
                 return false;
@@ -1062,12 +1136,15 @@ namespace CountlySDK.CountlyCommon
                 ExceptionEvent exEvent;//the exception event that will be uploaded
                 lock (sync) {
                     exEvent = Exceptions[0];
+                    exceptionInFlight = exEvent;
                 }
 
                 //do the exception upload
                 TimeInstant timeInstant = timeHelper.GetUniqueInstant();
-                exEvent.Name = UtilityHelper.TrimKey(exEvent.Name, Configuration.MaxKeyLength); // this is here because already saved exceptions need to be truncated too
+                exEvent.Name = UtilityHelper.TrimKey(exEvent.Name, Configuration.MaxKeyLength, null, null); // this is here because already saved exceptions need to be truncated too
+                string sentAppKey = AppKey;
                 RequestResult requestResult = await Api.Instance.SendException(ServerUrl, requestHelper, GetRemainingRequestCount(), exEvent);
+                lock (sync) { exceptionInFlight = null; }
 
                 //check if we got a response and that it was a success
                 if (requestResult != null && requestResult.IsSuccess()) {
@@ -1076,7 +1153,7 @@ namespace CountlySDK.CountlyCommon
 
                     lock (sync) {
                         try {
-                            Exceptions.RemoveAt(0);
+                            Exceptions.Remove(exEvent);
                         } catch (Exception ex) {
                             UtilityHelper.CountlyLogging("[UploadExceptions] thrown exception when removing entry, " + ex.ToString());
                         }
@@ -1099,7 +1176,11 @@ namespace CountlySDK.CountlyCommon
                     }
                 } else {
                     //if the received response was not a success
+                    ReportFailedQueuedRequest(requestResult);
                     uploadInProgress = false;
+                    if (AppKey != sentAppKey) {
+                        await MoveToRequestQueue(queuedEvent => false, exception => exception == exEvent, sentAppKey);
+                    }
                     return false;
                 }
             } else {
@@ -1151,7 +1232,35 @@ namespace CountlySDK.CountlyCommon
 
                 return true;
             } else {
+                ReportFailedQueuedRequest(requestResult);
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Keeps the status code and the answer of a queued request the server answered with a failure, for the health check
+        /// </summary>
+        /// <param name="requestResult">result of the request, null when there is none</param>
+        private void ReportFailedQueuedRequest(RequestResult requestResult)
+        {
+            if (requestResult != null) {
+                moduleHealthCheck?.LogFailedNetworkRequest(requestResult.responseCode, requestResult.responseText);
+            }
+        }
+
+        /// <summary>
+        /// Tells whether the health check may count the calls of a feature area, by the consent of the same name
+        /// </summary>
+        /// <param name="area">"sessions", "events", "views" or "crashes"</param>
+        /// <returns>true while the area may be counted</returns>
+        internal bool HealthAreaAllowed(string area)
+        {
+            switch (area) {
+                case "sessions": return IsConsentGiven(ConsentFeatures.Sessions);
+                case "events": return IsConsentGiven(ConsentFeatures.Events);
+                case "views": return IsConsentGiven(ConsentFeatures.Views);
+                case "crashes": return IsConsentGiven(ConsentFeatures.Crashes);
+                default: return false;
             }
         }
 
@@ -1188,6 +1297,7 @@ namespace CountlySDK.CountlyCommon
             if (Configuration.autoSendUserDetails) {
                 await RecordUserDetails();
             } else {
+                await RecordCustomModifiers();
                 await Upload();
             }
         }
@@ -1198,7 +1308,7 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            string userDetails = RequestHelper.Json(UserDetails);
+            string userDetails = UserDetailsJson(TakeConsentedCustomModifiers());
 
             if (string.IsNullOrEmpty(userDetails) || userDetails.Equals("{}")) {
                 // Nothing to send. Clear the changed flag anyway - leaving it set makes upload
@@ -1207,16 +1317,102 @@ namespace CountlySDK.CountlyCommon
                 return;
             }
 
-            Dictionary<string, object> requestParams = new Dictionary<string, object>() {
-                { "user_details", RequestHelper.Json(UserDetails) }
-            };
-
             UserDetails.Clear();
 
-            string request = await requestHelper.BuildRequest(requestParams);
-            await AddRequest(request);
+            await AddUserDetailsRequest(userDetails);
 
             return;
+        }
+
+        /// <summary>
+        /// Queues the pending custom property modifiers as their own user details request, under the current device ID.
+        /// Used when automatic sending is disabled, since the user details are then re-sent whole on every save and can't carry one-shot modifiers,
+        /// and before a device ID change without merge, so the modifiers stay with the user they were recorded for.
+        /// </summary>
+        private async Task RecordCustomModifiers()
+        {
+            JObject modifiers = TakeConsentedCustomModifiers();
+            if (modifiers == null) {
+                return;
+            }
+
+            await AddUserDetailsRequest(new JObject { { "custom", modifiers } }.ToString(Formatting.None));
+        }
+
+        /// <summary>
+        /// Takes the pending custom property modifiers for a request, or drops them when 'Users' consent is not given
+        /// </summary>
+        private JObject TakeConsentedCustomModifiers()
+        {
+            JObject modifiers = UserDetails.TakeCustomModifiers();
+            if (modifiers != null && !IsConsentGiven(ConsentFeatures.Users)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] TakeConsentedCustomModifiers, 'Users' consent not given, dropping the pending custom property modifiers");
+                return null;
+            }
+
+            return modifiers;
+        }
+
+        /// <summary>
+        /// Adds a user details request with the given json to the request queue
+        /// </summary>
+        private async Task AddUserDetailsRequest(string userDetails)
+        {
+            Dictionary<string, object> requestParams = new Dictionary<string, object>() {
+                { "user_details", userDetails }
+            };
+
+            string request;
+            try {
+                request = await requestHelper.BuildRequest(requestParams);
+            } catch (UriFormatException ex) {
+                // .NET Framework can't escape a request this long; dropping it beats crashing the app from the async void save handler
+                UtilityHelper.CountlyLogging("[CountlyBase] AddUserDetailsRequest, user details too long to send, dropping them: " + ex.Message, LogLevel.ERROR);
+                return;
+            }
+
+            await AddRequest(request);
+            NotifyContentTrigger(ContentTrigger.UserProperties(SentPropertyNames(userDetails)));
+        }
+
+        /// <summary>
+        /// The user properties a user details request sends, as content triggers name them: a user
+        /// detail ("email"), or "custom." and the key of a custom property.
+        /// </summary>
+        private static List<string> SentPropertyNames(string userDetails)
+        {
+            List<string> names = new List<string>();
+            try {
+                JObject details = JObject.Parse(userDetails);
+                foreach (JProperty property in details.Properties()) {
+                    JObject custom = property.Name == "custom" ? property.Value as JObject : null;
+                    if (custom == null) {
+                        names.Add(property.Name);
+                        continue;
+                    }
+                    foreach (JProperty customProperty in custom.Properties()) {
+                        names.Add("custom." + customProperty.Name);
+                    }
+                }
+            } catch (Exception) {
+                // user details that can not be read send no property names
+            }
+            return names;
+        }
+
+        /// <summary>
+        /// Serializes the user details for a request, with the given custom property modifiers merged into its "custom" object,
+        /// where a modifier replaces a custom property of the same key
+        /// </summary>
+        private string UserDetailsJson(JObject modifiers)
+        {
+            if (modifiers == null) {
+                return RequestHelper.Json(UserDetails);
+            }
+
+            JObject userDetails = JObject.FromObject(UserDetails, JsonSerializer.CreateDefault(RequestHelper.JsonSettings));
+            userDetails.Merge(new JObject { { "custom", modifiers } });
+            return userDetails.ToString(Formatting.None);
         }
 
         /// <summary>
@@ -1233,7 +1429,11 @@ namespace CountlySDK.CountlyCommon
             TimeInstant timeInstant = timeHelper.GetUniqueInstant();
             RequestResult requestResult = await Api.Instance.SendUserPicture(ServerUrl, requestHelper, GetRemainingRequestCount(), imageStream, (UserDetails.isChanged) ? UserDetails : null);
 
-            return (requestResult != null && requestResult.IsSuccess());
+            bool uploaded = requestResult != null && requestResult.IsSuccess();
+            if (!uploaded) {
+                ReportFailedQueuedRequest(requestResult);
+            }
+            return uploaded;
         }
 
         /// <summary>
@@ -1284,6 +1484,7 @@ namespace CountlySDK.CountlyCommon
                 startTime = new DateTime();
                 lastSessionUpdateTime = new DateTime();
                 automaticSessionTrackingStarted = false;
+                sessionRunning = false;
 
                 //clear view related things
                 lastView = null;
@@ -1294,12 +1495,13 @@ namespace CountlySDK.CountlyCommon
                 moduleBackendMode = null;
                 moduleRemoteConfig = null;
                 moduleFeedback = null;
-                if (moduleContent != null) { moduleContent.ExitContentZone(); } // stop the poll timer
+                if (moduleContent != null) { moduleContent.Halt(); } // stop the poll timer and the content triggers
                 moduleContent = null;
                 if (moduleServerConfig != null) { moduleServerConfig.StopTimer(); }
                 moduleServerConfig = null;
                 if (moduleHealthCheck != null) { moduleHealthCheck.UnregisterHooks(); }
                 moduleHealthCheck = null;
+                ModuleHealthCheck.ClearPending();
                 UtilityHelper.LogListenerHook = null;
             }
             if (clearStorage) {
@@ -1316,6 +1518,7 @@ namespace CountlySDK.CountlyCommon
             await Storage.Instance.DeleteFile(storedRequestsFilename);
             await Storage.Instance.DeleteFile(Device.deviceFilename);
             await Storage.Instance.DeleteFile(ModuleServerConfig.serverConfigFilename);
+            await Storage.Instance.DeleteFile(ModuleContent.ContentTriggerGapsFilename);
             await Storage.Instance.DeleteFile(ModuleHealthCheck.healthCheckFilename);
         }
 
@@ -1327,8 +1530,14 @@ namespace CountlySDK.CountlyCommon
         public static void AddBreadCrumb(string log)
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumb'");
-            Countly.Instance.AddCrashBreadCrumb(log);
-
+            if (Countly.Instance.Configuration?.backendMode ?? false) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb, Backend Mode enabled, returning");
+                return;
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb is deprecated, use AddCrashBreadCrumb instead", LogLevel.WARNING);
+            ModuleHealthCheck.Track("w120");
+            Countly.Instance.moduleHealthCheck?.RecordUsage("crashes", "AddBreadCrumb:d");
+            Countly.Instance.AddCrashBreadCrumbInternal(log);
         }
 
         /// <summary>
@@ -1343,13 +1552,34 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'AddBreadCrumbs'");
+            moduleHealthCheck?.RecordUsage("crashes", "log");
+            AddCrashBreadCrumbInternal(breadCrumb);
+        }
+
+        /// <summary>
+        /// Adds a breadcrumb the app recorded, cut to the value size limit; the oldest one is dropped when the breadcrumb limit is reached
+        /// </summary>
+        /// <param name="breadCrumb">breadcrumb text, must not be null</param>
+        internal void AddCrashBreadCrumbInternal(string breadCrumb)
+        {
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'");
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: SDK must initialized before calling 'AddBreadCrumb'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
-            Debug.Assert(breadCrumb != null);
-            string validLog = breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize ? breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize) : breadCrumb;
+            if (breadCrumb == null) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: the breadcrumb can't be null, it is ignored", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "crashes");
+                return;
+            }
+
+            string validLog = breadCrumb;
+            if (breadCrumb.Length > Countly.Instance.Configuration.MaxValueSize) {
+                UtilityHelper.CountlyLogging("[CountlyBase] AddBreadCrumb: Max allowed breadcrumb length is " + Countly.Instance.Configuration.MaxValueSize + ", the breadcrumb is cut", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w202", "crashes");
+                validLog = breadCrumb.Substring(0, Countly.Instance.Configuration.MaxValueSize);
+            }
 
             if (Countly.Instance.CrashBreadcrumbs.Count >= Countly.Instance.Configuration.MaxBreadcrumbCount) {
                 Countly.Instance.CrashBreadcrumbs.Dequeue();
@@ -1362,7 +1592,8 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'GetDeviceId'");
             if (!Countly.Instance.IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] GetDeviceId: SDK must initialized before calling 'GetDeviceId'");
+                UtilityHelper.CountlyLogging("[CountlyBase] GetDeviceId: SDK must initialized before calling 'GetDeviceId'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return string.Empty;
             }
 
@@ -1399,7 +1630,8 @@ namespace CountlySDK.CountlyCommon
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SetLocation'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation: SDK must initialized before calling 'SetLocation'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SetLocation: SDK must initialized before calling 'SetLocation'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
@@ -1497,7 +1729,8 @@ namespace CountlySDK.CountlyCommon
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'DisableLocation'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'");
+                UtilityHelper.CountlyLogging("[CountlyBase] DisableLocation: SDK must initialized before calling 'DisableLocation'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
             if (moduleServerConfig != null && !moduleServerConfig.GetLocationTrackingEnabled()) {
@@ -1582,7 +1815,8 @@ namespace CountlySDK.CountlyCommon
             if (networkRequest == null) { return; }
 
             if (moduleServerConfig != null && !moduleServerConfig.GetTrackingEnabled()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, tracking disabled by server config, ignoring request");
+                UtilityHelper.CountlyLogging("[CountlyBase] AddRequest, tracking disabled by server config, ignoring request", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w505");
                 return;
             }
 
@@ -1627,7 +1861,8 @@ namespace CountlySDK.CountlyCommon
             if (config.sdkFolderName != null && config.sdkFolderName.Length > 0) {
                 Storage.Instance.sdkFolder = config.sdkFolderName;
             } else {
-                UtilityHelper.CountlyLogging("[CountlyBase] Provided SDK folder name can't be 'null' or empty string.");
+                UtilityHelper.CountlyLogging("[CountlyBase] Provided SDK folder name can't be 'null' or empty string.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w121");
             }
 
             timeHelper = new TimeHelper();
@@ -1635,6 +1870,7 @@ namespace CountlySDK.CountlyCommon
             requestHelper = new RequestHelper(exposed);
             Api.Instance.customNetworkRequestHeaders = config.CustomNetworkRequestHeaders;
             Api.Instance.tamperingProtectionSalt = config.TamperingProtectionSalt;
+            Api.Instance.ResetRequestCompression(config.requestCompressionEnabled);
 
             //remove last backslash
             if (config.serverUrl.EndsWith("/")) {
@@ -1672,7 +1908,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             //server config (SDK Behavior Settings): load+apply stored/provided before consent is read
-            moduleServerConfig = new ModuleServerConfig(requestHelper, ServerUrl);
+            moduleServerConfig = new ModuleServerConfig(requestHelper, () => ServerUrl);
             moduleServerConfig.InitializeServerConfig(config);
             sessionUpdateInterval = Configuration.sessionUpdateInterval;
 
@@ -1682,13 +1918,13 @@ namespace CountlySDK.CountlyCommon
                 await SetConsentInternal(config.givenConsent, ConsentChangedAction.Initialization);
             }
 
-            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, ServerUrl, Configuration.enableABTestingAutoEnroll);
-            moduleFeedback = new ModuleFeedback(requestHelper, ServerUrl);
-            moduleContent = new ModuleContent(requestHelper, ServerUrl);
+            moduleRemoteConfig = new ModuleRemoteConfig(requestHelper, () => ServerUrl, Configuration.enableABTestingAutoEnroll);
+            moduleFeedback = new ModuleFeedback(requestHelper, () => ServerUrl);
+            moduleContent = new ModuleContent(requestHelper, () => ServerUrl);
 
             string hcAppVersion = (config.MetricOverride != null && config.MetricOverride.ContainsKey("_app_version"))
                 ? config.MetricOverride["_app_version"] : config.appVersion;
-            moduleHealthCheck = new ModuleHealthCheck(requestHelper, ServerUrl, config.healthCheckDisabled, hcAppVersion);
+            moduleHealthCheck = new ModuleHealthCheck(requestHelper, () => ServerUrl, config.healthCheckDisabled, hcAppVersion, HealthAreaAllowed);
             moduleHealthCheck.RegisterHooks();
 
             UtilityHelper.CountlyLogging("[CountlyBase] Finished 'InitBase'");
@@ -1760,8 +1996,18 @@ namespace CountlySDK.CountlyCommon
         public async Task SessionBegin()
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionBegin'");
+            moduleHealthCheck?.RecordUsage("sessions", "begin");
+            await SessionBeginInternal();
+        }
+
+        /// <summary>
+        /// Begins a session, for the app or for the SDK itself, and starts the session update timer
+        /// </summary>
+        internal async Task SessionBeginInternal()
+        {
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin: SDK must initialized before calling 'SessionBegin'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionBegin: SDK must initialized before calling 'SessionBegin'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
@@ -1776,6 +2022,7 @@ namespace CountlySDK.CountlyCommon
             }
 
             automaticSessionTrackingStarted = true;
+            sessionRunning = true;
             startTime = DateTime.Now;
             lastSessionUpdateTime = startTime;
             SessionTimerStart();
@@ -1796,6 +2043,7 @@ namespace CountlySDK.CountlyCommon
             string request = await requestHelper.BuildRequest(requestParams);
             await AddRequest(request);
             await Upload();
+            NotifyContentTrigger(ContentTrigger.Of(ContentTriggers.KeySession));
         }
 
         /// <summary>
@@ -1808,7 +2056,8 @@ namespace CountlySDK.CountlyCommon
             // The initialization check must come first: before the first Init (or after Halt)
             // there is no Configuration object to read the backend-mode flag from.
             if (!IsInitialized() || Configuration == null) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: SDK must initialized before calling 'SessionUpdate'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
@@ -1816,8 +2065,10 @@ namespace CountlySDK.CountlyCommon
                 UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate, Backend Mode enabled, returning");
                 return;
             }
+            moduleHealthCheck?.RecordUsage("sessions", "update");
             if (elapsedTimeSeconds < 0) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionUpdate: Elapsed time can not be negative", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700", "sessions");
                 return;
             }
             await UpdateSessionInternal(elapsedTimeSeconds);
@@ -1831,10 +2082,14 @@ namespace CountlySDK.CountlyCommon
         {
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'SessionEnd'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd: SDK must initialized before calling 'SessionEnd'");
+                UtilityHelper.CountlyLogging("[CountlyBase] SessionEnd: SDK must initialized before calling 'SessionEnd'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
 
+            if (!Configuration.backendMode) {
+                moduleHealthCheck?.RecordUsage("sessions", "end");
+            }
             await Countly.Instance.EndSessionInternal();
         }
 
@@ -1855,11 +2110,13 @@ namespace CountlySDK.CountlyCommon
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'ChangeDeviceId'");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: SDK must initialized before calling 'ChangeDeviceId'");
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: SDK must initialized before calling 'ChangeDeviceId'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return;
             }
             if (newDeviceId == null || newDeviceId.Length == 0) {
-                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: New device id cannot be null or empty.");
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeDeviceId: New device id cannot be null or empty.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w601");
                 return;
             }
             DeviceId dId = await DeviceData.GetDeviceId();
@@ -1880,15 +2137,18 @@ namespace CountlySDK.CountlyCommon
 
                 if (sessionWasStarted) {
                     //we need to end the session only if it was started previously
-                    await SessionEnd();
+                    moduleHealthCheck?.RecordUsage("sessions", "end:a");
+                    await EndSessionInternal();
                 }
+                await RecordCustomModifiers();
                 await DeviceData.SetPreferredDeviceIdMethod(DeviceIdMethodInternal.developerSupplied, newDeviceId);
                 if (consentRequired) {
                     await RemoveAllConsentInternal();
                 }
                 if (sessionWasStarted) {
                     //restart the session only if an automatic one was started before
-                    await SessionBegin();
+                    moduleHealthCheck?.RecordUsage("sessions", "begin:a");
+                    await SessionBeginInternal();
                 }
                 if (Configuration.remoteConfigAutomaticDownloadTriggers) {
                     await RemoteConfig().DownloadKeys();
@@ -1933,6 +2193,307 @@ namespace CountlySDK.CountlyCommon
             UtilityHelper.CountlyLogging("[CountlyBase] SetId, newDeviceId: [" + newDeviceId + "], withMerge: [" + withMerge.ToString() + "]");
 
             await ChangeDeviceId(newDeviceId, withMerge);
+        }
+
+        /// <summary>
+        /// Changes the server URL: queued and later requests, direct requests and the feedback widget URL included, go to
+        /// the new server, while the app key, the salt and the custom request headers stay. Kept in memory only: the next
+        /// init uses the config URL again. Afterwards the consent state is sent while consent is required, the SDK behavior
+        /// settings are fetched and the remote config values are downloaded when automatic download triggers are enabled.
+        /// </summary>
+        /// <param name="serverUrl">absolute "http" or "https" URL, trailing "/" characters are removed; an invalid URL is ignored</param>
+        public async Task ChangeServerUrl(string serverUrl)
+        {
+            if (!CanRun("ChangeServerUrl", ignoredInBackendMode: false)) {
+                return;
+            }
+
+            string newServerUrl = serverUrl?.TrimEnd('/');
+            if (!IsServerUrlValid(newServerUrl)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeServerUrl: [" + serverUrl + "] is not a valid http or https URL, the server URL stays the same", LogLevel.ERROR);
+                ModuleHealthCheck.Track("e102");
+                return;
+            }
+
+            lock (sync) {
+                ServerUrl = newServerUrl;
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] ChangeServerUrl, server URL changed to [" + newServerUrl + "]");
+
+            await SendCatchUpRequests();
+        }
+
+        /// <summary>
+        /// Changes the app key. Before the switch the running view is ended, the recorded events, crash reports and pending
+        /// user details are queued and the running session is ended, all with the old app key; events and a crash report
+        /// that are being sent keep it, also when their send fails. After the switch the old app's remote config values are
+        /// removed, a session begins for the new app if one was running and the same requests follow as after
+        /// 'ChangeServerUrl'. Queued requests keep their app key, see 'ReplaceAllAppKeysInQueueWithCurrentAppKey' and
+        /// 'RemoveDifferentAppKeysFromQueue'. Kept in memory only: the next init uses the config app key again. Ignored in
+        /// backend mode.
+        /// </summary>
+        /// <param name="appKey">app key of the new app; an empty key, "YOUR_APP_KEY" or the current key is ignored</param>
+        public async Task ChangeAppKey(string appKey)
+        {
+            if (!CanRun("ChangeAppKey", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            if (UtilityHelper.IsNullOrEmptyOrWhiteSpace(appKey) || appKey == "YOUR_APP_KEY") {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeAppKey: [" + appKey + "] is not a valid app key, the app key stays the same", LogLevel.ERROR);
+                ModuleHealthCheck.Track("e103");
+                return;
+            }
+
+            if (appKey == AppKey) {
+                UtilityHelper.CountlyLogging("[CountlyBase] ChangeAppKey: The new app key is the same as the current one, ignoring");
+                return;
+            }
+
+            bool sessionWasRunning = sessionRunning;
+
+            reportViewDuration();
+            // reportViewDuration forgets the view only after its upload, and the session end would end the view again
+            lastView = null;
+            lastViewStart = 0;
+
+            await MoveToRequestQueue(recordedEvent => eventsInFlight == null || !eventsInFlight.Contains(recordedEvent), exception => exception != exceptionInFlight, AppKey);
+            UserDetails.Save();
+            if (!Configuration.autoSendUserDetails && UserDetails.isChanged && IsConsentGiven(ConsentFeatures.Users)) {
+                UserDetails.isChanged = false;
+                SaveUserDetails();
+                await AddUserDetailsRequest(RequestHelper.Json(UserDetails));
+            }
+            await RecordCustomModifiers();
+            if (sessionWasRunning) {
+                moduleHealthCheck?.RecordUsage("sessions", "end:a");
+                await EndSessionInternal();
+            } else {
+                await Upload();
+            }
+
+            lock (sync) {
+                AppKey = appKey;
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] ChangeAppKey, app key changed");
+            moduleRemoteConfig?.ClearValues();
+
+            if (sessionWasRunning) {
+                moduleHealthCheck?.RecordUsage("sessions", "begin:a");
+                await SessionBeginInternal();
+            }
+
+            await SendCatchUpRequests();
+        }
+
+        /// <summary>
+        /// Removes the requests, events and crash reports that are not sent yet. Timed events, the running view and the
+        /// pending user details stay, and a request that is being sent is not stopped. Ignored in backend mode.
+        /// </summary>
+        public void FlushQueues()
+        {
+            if (!CanRun("FlushQueues", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            lock (sync) {
+                UtilityHelper.CountlyLogging("[CountlyBase] FlushQueues, removing [" + StoredRequests.Count + "] requests, [" + Events.Count + "] events and [" + Exceptions.Count + "] crash reports");
+                StoredRequests.Clear();
+                Events.Clear();
+                Exceptions.Clear();
+                Sessions.Clear();
+                _ = SaveStoredRequests();
+                SaveEvents();
+                SaveExceptions();
+                SaveSessions();
+            }
+        }
+
+        /// <summary>
+        /// Sets the current app key in every queued request, so that the requests queued before an app key change go to the
+        /// current app. Ignored in backend mode.
+        /// </summary>
+        public void ReplaceAllAppKeysInQueueWithCurrentAppKey()
+        {
+            if (!CanRun("ReplaceAllAppKeysInQueueWithCurrentAppKey", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            int count;
+            lock (sync) {
+                foreach (StoredRequest storedRequest in StoredRequests) {
+                    storedRequest.Request = WithAppKey(storedRequest.Request, AppKey);
+                }
+                count = StoredRequests.Count;
+                _ = SaveStoredRequests();
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] ReplaceAllAppKeysInQueueWithCurrentAppKey, set the current app key in [" + count + "] requests");
+        }
+
+        /// <summary>
+        /// Removes the queued requests whose app key is not the current app key, for example the requests queued before an
+        /// app key change. Ignored in backend mode.
+        /// </summary>
+        public void RemoveDifferentAppKeysFromQueue()
+        {
+            if (!CanRun("RemoveDifferentAppKeysFromQueue", ignoredInBackendMode: true)) {
+                return;
+            }
+
+            int removed;
+            lock (sync) {
+                Queue<StoredRequest> keptRequests = new Queue<StoredRequest>();
+                foreach (StoredRequest storedRequest in StoredRequests) {
+                    int start = FindAppKeyValue(storedRequest.Request, out int end);
+                    if (start >= 0 && UtilityHelper.DecodeDataForURL(storedRequest.Request.Substring(start, end - start)) == AppKey) {
+                        keptRequests.Enqueue(storedRequest);
+                    }
+                }
+                removed = StoredRequests.Count - keptRequests.Count;
+                StoredRequests = keptRequests;
+                _ = SaveStoredRequests();
+            }
+            UtilityHelper.CountlyLogging("[CountlyBase] RemoveDifferentAppKeysFromQueue, removed [" + removed + "] requests");
+        }
+
+        /// <summary>
+        /// Starts sending the stored requests, events and crash reports right away, without waiting for the next session
+        /// update. Nothing is sent while the SDK behavior settings turn networking off.
+        /// </summary>
+        public async Task AttemptToSendStoredRequests()
+        {
+            if (!CanRun("AttemptToSendStoredRequests", ignoredInBackendMode: false)) {
+                return;
+            }
+
+            if (Configuration.backendMode) {
+                moduleBackendMode?.OnTimer();
+            }
+            await Upload();
+        }
+
+        /// <summary>
+        /// Logs the call of a public method and tells whether it may run: not in backend mode when the method is ignored
+        /// there, and not before init, which also counts the "w101" log code. Both cases log a warning.
+        /// </summary>
+        /// <param name="method">name of the public method, for the log lines</param>
+        /// <param name="ignoredInBackendMode">true when the method does nothing in backend mode</param>
+        /// <returns>true when the method may run</returns>
+        private bool CanRun(string method, bool ignoredInBackendMode)
+        {
+            if (ignoredInBackendMode && (Configuration?.backendMode ?? false)) {
+                UtilityHelper.CountlyLogging("[CountlyBase] " + method + ", Backend Mode enabled, returning", LogLevel.WARNING);
+                return false;
+            }
+
+            UtilityHelper.CountlyLogging("[CountlyBase] Calling '" + method + "'");
+            if (!IsInitialized()) {
+                UtilityHelper.CountlyLogging("[CountlyBase] " + method + ": SDK must initialized before calling '" + method + "'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tells whether the URL can be the server URL: an absolute "http" or "https" URL with a host
+        /// </summary>
+        /// <param name="url">URL to check, can be null</param>
+        /// <returns>true when the URL can be used</returns>
+        private static bool IsServerUrlValid(string url)
+        {
+            return !string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out Uri uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps) && uri.Host.Length > 0;
+        }
+
+        /// <summary>
+        /// Finds the value of the "app_key" parameter in a queued request
+        /// </summary>
+        /// <param name="request">request string, with or without a leading "/i?"</param>
+        /// <param name="end">index after the value</param>
+        /// <returns>index of the value, or -1 when the request has no app key</returns>
+        private static int FindAppKeyValue(string request, out int end)
+        {
+            end = -1;
+            if (request == null) { return -1; }
+            int index = request.IndexOf("app_key=", StringComparison.Ordinal);
+            while (index > 0 && request[index - 1] != '&' && request[index - 1] != '?') {
+                index = request.IndexOf("app_key=", index + 1, StringComparison.Ordinal);
+            }
+            if (index < 0) { return -1; }
+
+            int start = index + "app_key=".Length;
+            end = request.IndexOf('&', start);
+            if (end < 0) { end = request.Length; }
+            return start;
+        }
+
+        /// <summary>
+        /// Returns the request with the given app key as its "app_key" parameter; a request without one is returned as it is
+        /// </summary>
+        /// <param name="request">request string, with or without a leading "/i?"</param>
+        /// <param name="appKey">app key to set</param>
+        /// <returns>the request with the app key</returns>
+        private static string WithAppKey(string request, string appKey)
+        {
+            int start = FindAppKeyValue(request, out int end);
+            if (start < 0) { return request; }
+            return request.Substring(0, start) + UtilityHelper.EncodeDataForURL(appKey) + request.Substring(end);
+        }
+
+        /// <summary>
+        /// Moves the queued events and crash reports that the conditions select into the request queue, as requests with
+        /// the given app key, so that they go to that app whatever the app key is when they are sent
+        /// </summary>
+        /// <param name="takeEvent">selects the events to move</param>
+        /// <param name="takeException">selects the crash reports to move</param>
+        /// <param name="appKey">app key of the requests</param>
+        private async Task MoveToRequestQueue(Func<CountlyEvent, bool> takeEvent, Func<ExceptionEvent, bool> takeException, string appKey)
+        {
+            List<CountlyEvent> events;
+            List<ExceptionEvent> exceptions;
+            lock (sync) {
+                events = Events.Where(takeEvent).ToList();
+                exceptions = Exceptions.Where(takeException).ToList();
+                foreach (CountlyEvent movedEvent in events) {
+                    Events.Remove(movedEvent);
+                }
+                foreach (ExceptionEvent movedException in exceptions) {
+                    Exceptions.Remove(movedException);
+                }
+                if (events.Count > 0) { SaveEvents(); }
+                if (exceptions.Count > 0) { SaveExceptions(); }
+            }
+
+            // 15 events per request, as 'UploadEvents' sends them
+            for (int i = 0; i < events.Count; i += 15) {
+                string eventsJson = RequestHelper.Json(events.Skip(i).Take(15).ToList());
+                await AddRequest(WithAppKey(await requestHelper.BuildRequest(), appKey) + "&events=" + UtilityHelper.EncodeDataForURL(eventsJson));
+            }
+
+            foreach (ExceptionEvent exception in exceptions) {
+                await AddRequest(WithAppKey(await requestHelper.BuildRequest(), appKey) + "&crash=" + UtilityHelper.EncodeDataForURL(RequestHelper.Json(exception)));
+            }
+        }
+
+        /// <summary>
+        /// Brings a server or app that is new to this device up to date: sends the consent state while consent is required,
+        /// fetches the SDK behavior settings and downloads the remote config values when automatic download triggers are enabled
+        /// </summary>
+        private async Task SendCatchUpRequests()
+        {
+            // the consent request needs at least one consent entry
+            if (consentRequired && !Configuration.backendMode && givenConsent.Count > 0) {
+                await SendConsentChanges(givenConsent);
+            }
+
+            if (moduleServerConfig != null) {
+                await moduleServerConfig.FetchServerConfig();
+            }
+
+            if (Configuration.remoteConfigAutomaticDownloadTriggers) {
+                await RemoteConfig().DownloadKeys();
+            }
         }
 
         internal bool IsConsentGiven(ConsentFeatures feature)
@@ -2006,6 +2567,9 @@ namespace CountlySDK.CountlyCommon
                 //send request of the consent changes
                 if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.Initialization) {
                     await SendConsentChanges(givenConsent);
+                    if (action == ConsentChangedAction.ConsentUpdated) {
+                        NotifyContentTrigger(ContentTrigger.Of(ContentTriggers.KeyConsent));
+                    }
                 }
 
                 if (action == ConsentChangedAction.ConsentUpdated || action == ConsentChangedAction.DeviceIDChangedNotMerged) {
@@ -2043,18 +2607,23 @@ namespace CountlySDK.CountlyCommon
                                 //if 'automaticSessionTrackingStarted' is set to true then that means that a session was already started before
                                 //this means that the user already had the intention for sessions to run (tried to use 'automatic' sessions
                                 //to keep true to this original intention, we automatically start another session
-                                await SessionBegin();
+                                moduleHealthCheck?.RecordUsage("sessions", "begin:a");
+                                await SessionBeginInternal();
                             }
                         } else if (!isGiven) {
                             //session consent is being removed
                             //we would only want to end a session if it had been started
                             if (!startTime.Equals(DateTime.MinValue)) {
                                 //if the 'startTime' value is not the min value then that means that a session was already started before
-                                await SessionEnd();
+                                await EndSessionInternal();
                             }
                         }
                         break;
                     case ConsentFeatures.Users:
+                        if (!isGiven) {
+                            //modifiers waiting for a save are dropped, they must not be sent without consent
+                            UserDetails.TakeCustomModifiers();
+                        }
                         break;
                     case ConsentFeatures.RemoteConfig:
                         if (isGiven && action == ConsentChangedAction.ConsentUpdated && Configuration.remoteConfigAutomaticDownloadTriggers) {
@@ -2087,6 +2656,8 @@ namespace CountlySDK.CountlyCommon
         //track views
         private string lastView = null;
         private long lastViewStart = 0;
+        // the name the app passed for the last view, which the content triggers match
+        private string lastViewAsGiven;
         private bool firstView = true;
         private const string NPS_EVENT_KEY = "[CLY]_nps";
         private const string VIEW_EVENT_KEY = "[CLY]_view";
@@ -2094,12 +2665,24 @@ namespace CountlySDK.CountlyCommon
         private const string STAR_RATING_EVENT_KEY = "[CLY]_star_rating";
         private const string PUSH_ACTION_EVENT_KEY = "[CLY]_push_action";
         private const string ORIENTATION_EVENT_KEY = "[CLY]_orientation";
+        private static readonly string[] reservedViewSegmentationKeys = { "name", "visit", "start", "segment" };
 
         /// <summary>
         /// Records view
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> RecordView(string viewName)
+        public Task<bool> RecordView(string viewName)
+        {
+            return RecordView(viewName, null);
+        }
+
+        /// <summary>
+        /// Records view with custom segmentation, which is sent with the view's start event
+        /// </summary>
+        /// <param name="viewName">Name of the view, required, must not be null or empty</param>
+        /// <param name="segmentation">Segmentation to add to the view, can be null. The reserved keys "name", "visit", "start" and "segment" are ignored</param>
+        /// <returns>False if the view is rejected (backend mode, SDK not initialized, empty name, no views consent or view tracking turned off) or its upload fails, in which case it stays queued for a later upload; otherwise True</returns>
+        public async Task<bool> RecordView(string viewName, Segmentation segmentation)
         {
             if (Configuration?.backendMode ?? false) {
                 UtilityHelper.CountlyLogging("[CountlyBase] RecordView, Backend Mode enabled, returning false");
@@ -2107,13 +2690,16 @@ namespace CountlySDK.CountlyCommon
             }
 
             UtilityHelper.CountlyLogging("[CountlyBase] Calling 'RecordView'");
+            moduleHealthCheck?.RecordUsage("views", "start");
             if (!IsInitialized()) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: SDK must initialized before calling 'RecordView'");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: SDK must initialized before calling 'RecordView'", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w101");
                 return false;
             }
 
             if (viewName == null || viewName.Length == 0) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: 'viewName' cannot be null or empty.");
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView: 'viewName' cannot be null or empty.", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w710", "views");
                 return false;
             }
 
@@ -2127,16 +2713,19 @@ namespace CountlySDK.CountlyCommon
                 return false;
             }
 
+            string viewNameAsGiven = viewName;
             if (viewName.Length > Configuration.MaxKeyLength) {
-                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength);
+                UtilityHelper.CountlyLogging("[CountlyBase] RecordView : Max allowed key length is " + Configuration.MaxKeyLength, LogLevel.WARNING);
+                ModuleHealthCheck.Track("w201", "views");
                 viewName = viewName.Substring(0, Configuration.MaxKeyLength);
             }
 
+            Segmentation segm = CreateCustomViewSegmentation(segmentation);
             reportViewDuration();
             lastView = viewName;
+            lastViewAsGiven = viewNameAsGiven;
 
             lastViewStart = timeHelper.GetUniqueUnixTime();
-            Segmentation segm = new Segmentation();
             segm.Add("name", viewName);
             segm.Add("visit", "1");
             segm.Add("segment", "Windows");
@@ -2145,7 +2734,33 @@ namespace CountlySDK.CountlyCommon
                 firstView = false;
                 segm.Add("start", "1");
             }
-            return await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
+            return await RecordEventWithTrigger(VIEW_EVENT_KEY, 1, null, null, segm, ContentTrigger.View(viewNameAsGiven, false));
+        }
+
+        /// <summary>
+        /// Copies the segmentation given to 'RecordView' within the segmentation limits and without its reserved keys
+        /// </summary>
+        /// <param name="segmentation">Segmentation given to 'RecordView', can be null</param>
+        /// <returns>A new segmentation object, never null</returns>
+        private Segmentation CreateCustomViewSegmentation(Segmentation segmentation)
+        {
+            Segmentation custom = new Segmentation();
+            if (segmentation == null) {
+                return custom;
+            }
+
+            // reserved keys are checked after truncation, so that a longer key cannot be cut into one
+            Segmentation truncated = UtilityHelper.FixSegmentKeysAndValues(segmentation, Configuration.MaxKeyLength, Configuration.MaxValueSize, "views");
+            foreach (SegmentationItem item in truncated.segmentation) {
+                if (reservedViewSegmentationKeys.Contains(item.Key)) {
+                    UtilityHelper.CountlyLogging("[CountlyBase] RecordView, segmentation key [" + item.Key + "] is reserved and will be ignored", LogLevel.WARNING);
+                    ModuleHealthCheck.Track("w700", "views");
+                } else {
+                    custom.Add(item.Key, item.Value);
+                }
+            }
+
+            return UtilityHelper.RemoveExtraSegments(custom, Configuration.MaxSegmentationValues, "views");
         }
 
         /// <summary>
@@ -2177,7 +2792,7 @@ namespace CountlySDK.CountlyCommon
                 segm.Add("dur", "" + timestampSeconds);
                 segm.Add("segment", "Windows");
 
-                await RecordEventInternal(VIEW_EVENT_KEY, 1, null, null, segm);
+                await RecordEventWithTrigger(VIEW_EVENT_KEY, 1, null, null, segm, ContentTrigger.View(lastViewAsGiven ?? lastView, true));
 
                 lastView = null;
                 lastViewStart = 0;
@@ -2267,7 +2882,7 @@ namespace CountlySDK.CountlyCommon
         internal void TryAutoEnterContentZone()
         {
             if (moduleContent == null || moduleServerConfig == null) { return; }
-            if (!moduleServerConfig.GetEnterContentZoneEnabled()) { return; }
+            if (!moduleServerConfig.GetEnterContentZoneDecision()) { return; }
             if (!IsConsentGiven(ConsentFeatures.Content)) { return; }
             moduleContent.EnterContentZone();
         }

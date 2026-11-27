@@ -180,6 +180,107 @@ namespace TestProject_common
 
         [Fact]
         /// <summary>
+        /// Downloading specific keys sends them as a JSON array, and only the keys the server returns replace the stored
+        /// values: the other stored values stay, and a requested key the server did not return is not added.
+        /// </summary>
+        public void DownloadKeys_SpecificKeys_SendsJsonArrayAndReplacesOnlyReturnedKeys()
+        {
+            List<Dictionary<string, string>> requests = new List<Dictionary<string, string>>();
+            string answer = "{\"a\":\"one\",\"b\":\"two\",\"c\":\"three\"}";
+            MockHttpServer server = RemoteConfigServer(requests, () => answer);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.RemoteConfig().DownloadKeys().Wait();
+            answer = "{\"a\":\"uno\"}";
+            Countly.Instance.RemoteConfig().DownloadKeys(new List<string> { "a", "missing" }).Wait();
+
+            Assert.Equal(2, requests.Count);
+            Assert.Equal(new List<string> { "a", "missing" }, JsonConvert.DeserializeObject<List<string>>(requests[1]["keys"]));
+            Assert.False(requests[1].ContainsKey("omit_keys"));
+            IDictionary<string, RCData> values = Countly.Instance.RemoteConfig().GetValues();
+            Assert.Equal(3, values.Count);
+            Assert.Equal("uno", values["a"].Value);
+            Assert.Equal("two", values["b"].Value);
+            Assert.Equal("three", values["c"].Value);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// Downloading all keys but some sends the omitted keys as a JSON array, and only the returned keys replace the
+        /// stored values.
+        /// </summary>
+        public void DownloadKeys_OmittingKeys_SendsJsonArrayAndReplacesOnlyReturnedKeys()
+        {
+            List<Dictionary<string, string>> requests = new List<Dictionary<string, string>>();
+            string answer = "{\"a\":\"one\",\"b\":\"two\",\"c\":\"three\"}";
+            MockHttpServer server = RemoteConfigServer(requests, () => answer);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.RemoteConfig().DownloadKeys().Wait();
+            answer = "{\"a\":\"uno\",\"b\":\"dos\"}";
+            Countly.Instance.RemoteConfig().DownloadKeys(null, new List<string> { "c" }).Wait();
+
+            Assert.Equal(2, requests.Count);
+            Assert.Equal(new List<string> { "c" }, JsonConvert.DeserializeObject<List<string>>(requests[1]["omit_keys"]));
+            Assert.False(requests[1].ContainsKey("keys"));
+            IDictionary<string, RCData> values = Countly.Instance.RemoteConfig().GetValues();
+            Assert.Equal(3, values.Count);
+            Assert.Equal("uno", values["a"].Value);
+            Assert.Equal("dos", values["b"].Value);
+            Assert.Equal("three", values["c"].Value);
+            server.Dispose();
+        }
+
+        [Fact]
+        /// <summary>
+        /// A key list with no valid key in it downloads all keys: no keys parameter is sent, and the answer replaces
+        /// every stored value.
+        /// </summary>
+        public void DownloadKeys_OnlyEmptyKeys_DownloadsAllKeys()
+        {
+            List<Dictionary<string, string>> requests = new List<Dictionary<string, string>>();
+            string answer = "{\"a\":\"one\",\"b\":\"two\"}";
+            MockHttpServer server = RemoteConfigServer(requests, () => answer);
+            CountlyConfig cc = TestHelper.GetConfig();
+            cc.serverUrl = server.Url;
+            Countly.Instance.Init(cc).Wait();
+
+            Countly.Instance.RemoteConfig().DownloadKeys().Wait();
+            answer = "{\"a\":\"uno\"}";
+            Countly.Instance.RemoteConfig().DownloadKeys(new List<string> { "", null }).Wait();
+
+            Assert.Equal(2, requests.Count);
+            Assert.False(requests[1].ContainsKey("keys"));
+            Assert.False(requests[1].ContainsKey("omit_keys"));
+            IDictionary<string, RCData> values = Countly.Instance.RemoteConfig().GetValues();
+            Assert.Single(values);
+            Assert.Equal("uno", values["a"].Value);
+            server.Dispose();
+        }
+
+        /// <summary>
+        /// A server that records the parameters of each remote config download and answers it with the current answer.
+        /// </summary>
+        private static MockHttpServer RemoteConfigServer(List<Dictionary<string, string>> requests, Func<string> answer)
+        {
+            return new MockHttpServer((body) => {
+                if (!body.Contains("method=rc")) {
+                    return null;
+                }
+                lock (requests) {
+                    requests.Add(TestHelper.GetParams(body));
+                }
+                return answer();
+            });
+        }
+
+        [Fact]
+        /// <summary>
         /// Enrolling into A/B tests queues a method=ab request carrying the JSON-encoded keys.
         /// </summary>
         public void EnrollIntoABTestsForKeys_QueuesAbRequest()

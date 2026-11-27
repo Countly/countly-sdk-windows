@@ -1,0 +1,30 @@
+CountlySDK.UI.CountlyWebView class static
+CountlySDK.UI.CountlyWebView.DisableContentZone() method void static
+CountlySDK.UI.CountlyWebView.EnableContentZone(string[] = ...) method void static
+CountlySDK.UI.CountlyWebView.PresentFeedbackWidget(IWin32Window, CountlyFeedbackWidget, Action = ...) method void static
+CountlySDK.UI.CountlyWebView.PresentFeedbackWidget(Window, CountlyFeedbackWidget, Action = ...) method void static
+CountlySDK.UI.CountlyWebView.ShowWidgetsWithinApp property bool { get; set; } static
+CountlySDK.UI.FeedbackWidgetPresenter class
+CountlySDK.UI.FeedbackWidgetPresenter.FeedbackWidgetPresenter(IWidgetWebHost, Feedback, Action) constructor
+CountlySDK.UI.FeedbackWidgetPresenter.StartAsync(CountlyFeedbackWidget) method Task
+CountlySDK.UI.IWidgetWebHost interface
+CountlySDK.UI.IWidgetWebHost.CloseHost() method void
+CountlySDK.UI.IWidgetWebHost.LoadFailed event Action
+CountlySDK.UI.IWidgetWebHost.Navigate(string) method void
+CountlySDK.UI.IWidgetWebHost.NavigationStarting event Action<string>
+CountlySDK.UI.IWidgetWebHost.PageLoaded event Action
+CountlySDK.UI.IWidgetWebHost.PlaceAndShow(WidgetRect) method void
+CountlySDK.UI.IWidgetWebHost.ReportSurfaceSize(int, int) method void
+CountlySDK.UI.IWidgetWebHost.ResizeRequested event Action<WidgetAction>
+CountlySDK.UI.IWidgetWebHost.Surface property WidgetSurface { get; }
+CountlySDK.UI.WebView2Runtime class static
+CountlySDK.UI.WebView2Runtime.IsAvailable(out string) method bool static
+CountlySDK.UI.WidgetMessageParser class static
+CountlySDK.UI.WidgetMessageParser.TryParse(string, out WidgetAction) method bool static
+CountlySDK.UI.WidgetPlacement class static
+CountlySDK.UI.WidgetPlacement.Resolve(WidgetAction, WidgetSurface) method WidgetRect static
+CountlySDK.UI.WidgetSurface struct
+CountlySDK.UI.WidgetSurface.Height field int
+CountlySDK.UI.WidgetSurface.Width field int
+CountlySDK.UI.WidgetSurface.X field int
+CountlySDK.UI.WidgetSurface.Y field int

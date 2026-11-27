@@ -16,9 +16,20 @@ namespace TestProject_common
         private readonly List<RequestInfo> _requests = new List<RequestInfo>();
 
         public string Url { get; }
-        public IList<RequestInfo> Requests => _requests;
 
-        public MockHttpServer(Func<string, string> customResponse = null)
+        /// <summary>
+        /// A fixed-size copy of the requests received so far, safe to read while the server is still receiving
+        /// </summary>
+        public IList<RequestInfo> Requests
+        {
+            get {
+                lock (_requests) {
+                    return _requests.ToArray();
+                }
+            }
+        }
+
+        public MockHttpServer(Func<string, string> customResponse = null, Func<string, int> customStatus = null)
         {
             int port = GetRandomUnusedPort();
             Url = $"http://localhost:{port}/";
@@ -27,32 +38,35 @@ namespace TestProject_common
             _listener.Prefixes.Add(Url);
             _listener.Start();
 
-            var thread = new Thread(() => ListenLoop(customResponse));
+            var thread = new Thread(() => ListenLoop(customResponse, customStatus));
             thread.IsBackground = true;
             thread.Start();
         }
 
-        private async Task ListenLoop(Func<string, string> customResponse)
+        private async Task ListenLoop(Func<string, string> customResponse, Func<string, int> customStatus)
         {
             while (_listener.IsListening) {
                 try {
                     var ctx = _listener.GetContext();
                     var reader = new StreamReader(ctx.Request.InputStream);
                     string body = reader.ReadToEnd();
-                    _requests.Add(new RequestInfo {
+                    RequestInfo request = new RequestInfo {
                         Path = ctx.Request.RawUrl,
                         Method = ctx.Request.HttpMethod,
                         Body = body,
                         Params = TestHelper.GetParams(body),
-                    });
+                    };
+                    lock (_requests) {
+                        _requests.Add(request);
+                    }
 
-                    // Always respond 200 OK for now
+                    // 200 OK unless customStatus answers with another status
                     string json = customResponse?.Invoke(body);
                     if (json == null) {
                         json = "{\"result\":\"success\"}";
                     }
                     byte[] resp = Encoding.UTF8.GetBytes(json);
-                    ctx.Response.StatusCode = 200;
+                    ctx.Response.StatusCode = customStatus?.Invoke(body) ?? 200;
                     ctx.Response.ContentType = "application/json";
                     ctx.Response.ContentLength64 = resp.Length;
                     ctx.Response.OutputStream.Write(resp, 0, resp.Length);

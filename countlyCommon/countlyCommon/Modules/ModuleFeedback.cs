@@ -12,7 +12,7 @@ namespace CountlySDK.CountlyCommon
     internal class ModuleFeedback : Feedback
     {
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
 
         // Server-contract event keys. CountlyBase declares these as `private const`, so they
         // are re-declared here for the module (the exact string values must match, because
@@ -21,7 +21,7 @@ namespace CountlySDK.CountlyCommon
         private const string SURVEY_EVENT_KEY = "[CLY]_survey";
         private const string STAR_RATING_EVENT_KEY = "[CLY]_star_rating";
 
-        public ModuleFeedback(RequestHelper requestHelper, string serverUrl)
+        public ModuleFeedback(RequestHelper requestHelper, Func<string> serverUrl)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -35,20 +35,21 @@ namespace CountlySDK.CountlyCommon
                 { "method", "feedback" }
             };
 
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(parameters));
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl(), await requestHelper.BuildRequest(parameters));
 
             if (requestResult != null && requestResult.responseCode == 200 && requestResult.responseText != null) {
                 return FeedbackWidgetParser.ParseAvailableWidgets(requestResult.responseText);
             }
 
-            UtilityHelper.CountlyLogging("[ModuleFeedback] GetAvailableFeedbackWidgets, request failed", LogLevel.ERROR);
+            UtilityHelper.CountlyLogging("[ModuleFeedback] GetAvailableFeedbackWidgets, request failed");
             return new CountlyFeedbackWidget[0];
         }
 
         public async Task<JObject> GetFeedbackWidgetData(CountlyFeedbackWidget widget)
         {
             if (widget == null) {
-                UtilityHelper.CountlyLogging("[ModuleFeedback] GetFeedbackWidgetData, widget is null", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleFeedback] GetFeedbackWidgetData, widget is null", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return null;
             }
             UtilityHelper.CountlyLogging("[ModuleFeedback] GetFeedbackWidgetData for widget [" + widget.widgetId + "]");
@@ -59,7 +60,7 @@ namespace CountlySDK.CountlyCommon
             };
             string endpoint = "/o/surveys/" + widget.type + "/widget";
 
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(parameters), endpoint);
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl(), await requestHelper.BuildRequest(parameters), endpoint);
 
             if (requestResult != null && requestResult.responseCode == 200 && requestResult.responseText != null) {
                 try {
@@ -74,7 +75,8 @@ namespace CountlySDK.CountlyCommon
         public async Task ReportFeedbackWidgetManually(CountlyFeedbackWidget widget, JObject widgetData, Dictionary<string, object> widgetResult)
         {
             if (widget == null) {
-                UtilityHelper.CountlyLogging("[ModuleFeedback] ReportFeedbackWidgetManually, widget is null, ignoring", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleFeedback] ReportFeedbackWidgetManually, widget is null, ignoring", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return;
             }
 
@@ -108,11 +110,12 @@ namespace CountlySDK.CountlyCommon
         public async Task<string> ConstructFeedbackWidgetUrl(CountlyFeedbackWidget widget)
         {
             if (widget == null || string.IsNullOrEmpty(widget.widgetId)) {
-                UtilityHelper.CountlyLogging("[ModuleFeedback] ConstructFeedbackWidgetUrl, widget or widgetId is null/empty", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleFeedback] ConstructFeedbackWidgetUrl, widget or widgetId is null/empty", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return null;
             }
             IDictionary<string, object> baseParams = await requestHelper.GetBaseParams();
-            return WidgetUrlBuilder.BuildFeedbackWidgetUrl(ServerUrl, widget, baseParams);
+            return WidgetUrlBuilder.BuildFeedbackWidgetUrl(ServerUrl(), widget, baseParams);
         }
     }
 

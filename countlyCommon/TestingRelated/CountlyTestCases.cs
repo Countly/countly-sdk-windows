@@ -174,6 +174,8 @@ namespace TestProject_common
         }
 
         [Fact]
+        // expects the real server to turn the picture down, which the stand-in server CI uses does not do
+        [Trait("Category", "RealServer")]
         public async void UploadingUserPicture()
         {
             CountlyUserDetails cud = Countly.UserDetails;

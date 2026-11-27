@@ -100,6 +100,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleServerConfigTests.cs">
       <Link>ModuleServerConfigTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\RequestCompressionTests.cs">
+      <Link>RequestCompressionTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\ModuleHealthCheckTests.cs">
       <Link>ModuleHealthCheckTests.cs</Link>
     </Compile>
@@ -108,6 +111,9 @@
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\RequestTestCases.cs">
       <Link>RequestTestCases.cs</Link>
+    </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\RequestScenarioTests.cs">
+      <Link>RequestScenarioTests.cs</Link>
     </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\SegmentationTests.cs">
       <Link>SegmentationTests.cs</Link>
@@ -133,6 +139,9 @@
     <Compile Include="..\..\countlyCommon\TestingRelated\ViewsTests.cs">
       <Link>ViewsTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\countlyCommon\TestingRelated\ServerUrlAndAppKeyTests.cs">
+      <Link>ServerUrlAndAppKeyTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\countlyCommon\TestingRelated\TimeHelperTests.cs">
       <Link>TimeHelperTests.cs</Link>
     </Compile>
@@ -140,6 +149,7 @@
       <Link>PreInitSafetyTests.cs</Link>
     </Compile>
     <Compile Include="CountlyImpl.cs" />
+    <Compile Include="DeviceOsVersionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

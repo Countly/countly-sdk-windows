@@ -32,6 +32,14 @@ namespace CountlySDK.CountlyCommon.Helpers
             _interface = exposed;
         }
 
+        /// <summary>
+        /// Returns the app key the requests are built with now
+        /// </summary>
+        internal string GetAppKey()
+        {
+            return _interface.GetAppKey();
+        }
+
         internal async Task<Dictionary<string, object>> GetBaseParams()
         {
             TimeInstant timeInstant = _interface.GetTimeInstant();
@@ -160,6 +168,11 @@ namespace CountlySDK.CountlyCommon.Helpers
         }
 
         /// <summary>
+        /// Serializer settings of request json, null values are ignored
+        /// </summary>
+        internal static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore };
+
+        /// <summary>
         /// Converts and object that has JsonSerializer annotations to String
         /// No formatting and null values are ignored
         /// </summary>
@@ -167,7 +180,7 @@ namespace CountlySDK.CountlyCommon.Helpers
         /// <returns></returns>
         internal static string Json(object obj)
         {
-            return JsonConvert.SerializeObject(obj, Formatting.None, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
+            return JsonConvert.SerializeObject(obj, Formatting.None, JsonSettings);
         }
     }
 }

@@ -45,6 +45,14 @@ namespace TestProject_common
         }
 
         [Fact]
+        /// <summary>Recording a view with segmentation before Init is ignored without throwing.</summary>
+        public async Task RecordViewWithSegmentation_BeforeInit_ReturnsFalseWithoutThrowing()
+        {
+            bool result = await Countly.Instance.RecordView("pre_init_view", TestHelper.Segm("color", "red"));
+            Assert.False(result);
+        }
+
+        [Fact]
         public async Task RecordException_BeforeInit_ReturnsFalseWithoutThrowing()
         {
             bool result = await Countly.RecordException("err", "stack", null, false);
@@ -87,6 +95,21 @@ namespace TestProject_common
         public async Task SetConsent_BeforeInit_DoesNotThrow()
         {
             await Countly.Instance.SetConsent(new Dictionary<ConsentFeatures, bool> { { ConsentFeatures.Events, true } });
+        }
+
+        [Fact]
+        /// <summary>Changing the server URL or the app key and the queue operations before Init are ignored without throwing.</summary>
+        public async Task ServerUrlAppKeyAndQueueCalls_BeforeInit_AreIgnoredWithoutThrowing()
+        {
+            await Countly.Instance.ChangeServerUrl("https://example.com");
+            await Countly.Instance.ChangeAppKey("new_app_key");
+            Countly.Instance.FlushQueues();
+            Countly.Instance.ReplaceAllAppKeysInQueueWithCurrentAppKey();
+            Countly.Instance.RemoveDifferentAppKeysFromQueue();
+            await Countly.Instance.AttemptToSendStoredRequests();
+
+            Assert.False(Countly.Instance.IsInitialized());
+            Assert.Null(Countly.Instance.Configuration);
         }
     }
 }

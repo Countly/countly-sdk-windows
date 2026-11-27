@@ -32,7 +32,7 @@ namespace CountlySDK.CountlyCommon
         private static readonly string[] BoolKeys = { "tracking", "networking", "cr", "log", "st", "vt", "cet", "crt", "lt", "ecz", "rcz" };
         private static readonly string[] PositiveIntKeys = { "rqs", "eqs", "sui", "scui", "lkl", "lvs", "lsv", "lbc", "ltlpt", "ltl", "upcl" };
         // Listing filters (string arrays) + journey trigger events.
-        private static readonly string[] StringArrayKeys = { "eb", "ew", "upb", "upw", "sb", "sw", "jte" };
+        private static readonly string[] StringArrayKeys = { "eb", "ew", "upb", "upw", "sb", "sw", "jte", "jtv" };
         // Per-event segmentation filters (objects mapping event name -> array of segmentation keys).
         private static readonly string[] ObjectKeys = { "esb", "esw" };
         // If a fetch carries one filter type, the stored opposite type is evicted per category-pairing rules.
@@ -45,7 +45,7 @@ namespace CountlySDK.CountlyCommon
         private const string DropOldRequestTimeKey = "dort";
 
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
         private readonly object configLock = new object();
 
         // Effective gate state (defaults: allowed; only enter-content-zone defaults to off).
@@ -69,6 +69,13 @@ namespace CountlySDK.CountlyCommon
         private Dictionary<string, HashSet<string>> eventSegmentationFilter = new Dictionary<string, HashSet<string>>();
         private bool eventSegmentationFilterIsWhitelist = false;
         private HashSet<string> journeyTriggerEvents = new HashSet<string>();
+        private HashSet<string> journeyTriggerViews = new HashSet<string>();
+        // the content triggers ("jt") next to the settings, null when the answer has none
+        private ContentTriggers currentContentTriggers;
+        private bool autoContentTriggersDisabled;
+        // whether the 'ecz' entry is decided: by the settings in use at init, else by the first answer of the run
+        private bool eczDecided;
+        private bool eczDecision;
 
         // Requests older than this many hours are dropped from the queue (0 = disabled).
         private int currentDropOldRequestTime = 0;
@@ -84,7 +91,7 @@ namespace CountlySDK.CountlyCommon
 
         private System.Threading.Timer refreshTimer = null;
 
-        public ModuleServerConfig(RequestHelper requestHelper, string serverUrl)
+        public ModuleServerConfig(RequestHelper requestHelper, Func<string> serverUrl)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -117,6 +124,18 @@ namespace CountlySDK.CountlyCommon
         internal bool IsUserPropertyAllowed(string key) { lock (configLock) { return IsAllowedByFilter(key, userPropertyFilter, userPropertyFilterIsWhitelist); } }
 
         internal bool IsJourneyTriggerEvent(string key) { lock (configLock) { return journeyTriggerEvents.Contains(key); } }
+
+        internal bool IsJourneyTriggerView(string name) { lock (configLock) { return journeyTriggerViews.Contains(name); } }
+
+        /// <summary>The content triggers the server sent, null when it sent none or an invalid value, or when they are turned off.</summary>
+        internal ContentTriggers GetContentTriggers() { lock (configLock) { return currentContentTriggers; } }
+
+        /// <summary>
+        /// Whether the SDK enters the content zone because of 'ecz': the settings in use at init decide,
+        /// and without stored or provided settings the first behavior settings answer of the run. A
+        /// later change takes effect at the next init.
+        /// </summary>
+        internal bool GetEnterContentZoneDecision() { lock (configLock) { return eczDecided && eczDecision; } }
 
         /// <summary>Empty filter = everything allowed; whitelist keeps listed keys, blacklist drops them.</summary>
         private static bool IsAllowedByFilter(string key, HashSet<string> filter, bool isWhitelist)
@@ -165,6 +184,7 @@ namespace CountlySDK.CountlyCommon
                     }
                     if (result.Count >= currentUserPropertyCacheLimit) {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] FilterUserProperties, user property cache limit [" + currentUserPropertyCacheLimit + "] reached, dropping: " + kv.Key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w203");
                         continue;
                     }
                     result[kv.Key] = kv.Value;
@@ -180,9 +200,30 @@ namespace CountlySDK.CountlyCommon
         internal void InitializeServerConfig(CountlyConfigBase config)
         {
             updatesDisabled = config.sdkBehaviorSettingsUpdatesDisabled;
+            autoContentTriggersDisabled = config.autoContentTriggersDisabled;
             providedConfig = Sanitize(ExtractConfigObject(config.providedSdkBehaviorSettings));
             LoadStoredConfig();
             ApplyEffectiveConfig();
+            lock (configLock) {
+                if (storedFullConfig == null && !autoContentTriggersDisabled) {
+                    currentContentTriggers = ContentTriggers.Parse(ExtractContentTriggers(config.providedSdkBehaviorSettings));
+                }
+                if ((storedConfig != null && storedConfig.HasValues) || (providedConfig != null && providedConfig.HasValues)) {
+                    eczDecided = true;
+                    eczDecision = currentEnterContentZone;
+                }
+            }
+        }
+
+        /// <summary>The "jt" value of settings the developer provided, null when they have none.</summary>
+        private static JToken ExtractContentTriggers(string json)
+        {
+            if (string.IsNullOrEmpty(json)) { return null; }
+            try {
+                return JObject.Parse(json)["jt"];
+            } catch (Exception) {
+                return null;
+            }
         }
 
         private void LoadStoredConfig()
@@ -194,8 +235,10 @@ namespace CountlySDK.CountlyCommon
                 if (!ValidateEnvelope(env)) { return; }
                 storedFullConfig = env;
                 storedConfig = Sanitize((JObject)env["c"]);
+                currentContentTriggers = autoContentTriggersDisabled ? null : ContentTriggers.Parse(env["jt"]);
             } catch (Exception ex) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] LoadStoredConfig, failed to parse stored config: " + ex.Message, LogLevel.WARNING);
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] LoadStoredConfig, failed to parse stored config: " + ex.Message, LogLevel.ERROR);
+                ModuleHealthCheck.Track("e503");
             }
         }
 
@@ -226,6 +269,7 @@ namespace CountlySDK.CountlyCommon
                 if (c["sb"] != null) { segmentationFilter = ExtractStringSet(c["sb"]); segmentationFilterIsWhitelist = false; } else if (c["sw"] != null) { segmentationFilter = ExtractStringSet(c["sw"]); segmentationFilterIsWhitelist = true; }
                 if (c["esb"] != null) { eventSegmentationFilter = ExtractStringSetMap(c["esb"]); eventSegmentationFilterIsWhitelist = false; } else if (c["esw"] != null) { eventSegmentationFilter = ExtractStringSetMap(c["esw"]); eventSegmentationFilterIsWhitelist = true; }
                 if (c["jte"] != null) { journeyTriggerEvents = ExtractStringSet(c["jte"]); }
+                if (c["jtv"] != null) { journeyTriggerViews = ExtractStringSet(c["jtv"]); }
                 if (c["log"] != null) { Countly.IsLoggingEnabled = c["log"].Value<bool>(); }
                 if (c["scui"] != null) { currentServerConfigUpdateInterval = c["scui"].Value<int>(); }
                 if (config != null) {
@@ -275,6 +319,7 @@ namespace CountlySDK.CountlyCommon
                 return parsed;
             } catch (Exception ex) {
                 UtilityHelper.CountlyLogging("[ModuleServerConfig] ExtractConfigObject, failed to parse: " + ex.Message, LogLevel.WARNING);
+                ModuleHealthCheck.Track("w121");
                 return null;
             }
         }
@@ -299,29 +344,35 @@ namespace CountlySDK.CountlyCommon
                 if (Array.IndexOf(BoolKeys, key) >= 0) {
                     if (val.Type == JTokenType.Boolean) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping non-boolean key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (Array.IndexOf(PositiveIntKeys, key) >= 0) {
                     if (val.Type == JTokenType.Integer && val.Value<long>() > 0) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping invalid positive-int key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (key == ContentZoneIntervalKey) {
                     if (val.Type == JTokenType.Integer && val.Value<long>() >= ContentZoneIntervalMin) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping invalid content zone interval (must be an integer >= " + ContentZoneIntervalMin + "): " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (key == DropOldRequestTimeKey) {
                     if (val.Type == JTokenType.Integer && val.Value<long>() >= 0) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping invalid non-negative-int key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (Array.IndexOf(StringArrayKeys, key) >= 0) {
                     if (val.Type == JTokenType.Array) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping non-array key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else if (Array.IndexOf(ObjectKeys, key) >= 0) {
                     if (val.Type == JTokenType.Object) { result[key] = val; } else {
                         UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping non-object key: " + key, LogLevel.WARNING);
+                        ModuleHealthCheck.Track("w121");
                     }
                 } else {
-                    UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping unsupported key: " + key, LogLevel.WARNING);
+                    UtilityHelper.CountlyLogging("[ModuleServerConfig] Sanitize, dropping unsupported key: " + key);
                 }
             }
             return result;
@@ -336,38 +387,103 @@ namespace CountlySDK.CountlyCommon
         {
             if (updatesDisabled) {
                 UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, updates disabled, skipping network fetch");
+                OnFetchSettled(false);
                 return;
             }
-            await FetchAndApply();
+            bool answered = await FetchAndApply();
             StartTimer();
+            OnFetchSettled(answered);
         }
 
-        private async Task FetchAndApply()
+        /// <summary>
+        /// Decides the 'ecz' entry on the first answer of a run when no settings were stored at init,
+        /// and tells the content module that the answer arrived, or that none will arrive.
+        /// </summary>
+        private void OnFetchSettled(bool answered)
+        {
+            lock (configLock) {
+                if (!eczDecided) {
+                    eczDecided = true;
+                    eczDecision = answered && currentEnterContentZone;
+                }
+            }
+            ModuleContent content = Countly.Instance.moduleContent;
+            if (content != null) {
+                content.OnBehaviorSettingsSettled(answered);
+            }
+        }
+
+        /// <returns>true when a behavior settings answer arrived and was applied</returns>
+        private async Task<bool> FetchAndApply()
         {
             IDictionary<string, object> scParams = new Dictionary<string, object> { { "method", "sc" } };
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(scParams));
+            if (Api.Instance.RequestCompressionEnabled) {
+                scParams["gzip"] = 1;
+            }
+            if (!autoContentTriggersDisabled) {
+                scParams["jt"] = 1;
+            }
+            string serverUrl = ServerUrl();
+            string appKey = requestHelper.GetAppKey();
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(serverUrl, await requestHelper.BuildRequest(scParams));
             UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
 
             if (requestResult.responseCode != 200 || requestResult.responseText == null) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, request failed, keeping current settings", LogLevel.WARNING);
-                return;
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, request failed, keeping current settings");
+                return false;
             }
 
             JObject env;
             try {
                 env = JObject.Parse(requestResult.responseText);
             } catch (Exception ex) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, failed to parse response: " + ex.Message, LogLevel.WARNING);
-                return;
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, failed to parse response: " + ex.Message);
+                return false;
             }
 
+            if (serverUrl != ServerUrl() || appKey != requestHelper.GetAppKey()) {
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, the server URL or app key changed during the fetch, ignoring the answer");
+                return false;
+            }
+
+            // the content triggers come next to the settings, also when the settings are empty
+            bool answered = env["v"] != null && env["t"] != null;
+            if (answered) {
+                ApplyContentTriggers(env["jt"]);
+            }
+
+            // read before the envelope check, as an answer with empty settings still tells whether the server reads gzip
+            JToken gzip = env["gzip"];
+            Api.Instance.OnGzipAnswer(serverUrl, gzip != null && gzip.Type == JTokenType.Boolean && (bool)gzip);
+
             if (!ValidateEnvelope(env)) {
-                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings", LogLevel.WARNING);
-                return;
+                UtilityHelper.CountlyLogging("[ModuleServerConfig] FetchServerConfig, invalid envelope, keeping current settings");
+                return answered;
             }
 
             MergeAndPersist(env);
             ApplyEffectiveConfig();
+            return true;
+        }
+
+        /// <summary>
+        /// Uses and stores the content triggers of an answer. An answer without them leaves none, so
+        /// the journey trigger events and views apply.
+        /// </summary>
+        private void ApplyContentTriggers(JToken jt)
+        {
+            bool persist;
+            lock (configLock) {
+                currentContentTriggers = autoContentTriggersDisabled ? null : ContentTriggers.Parse(jt);
+                if (jt != null && jt.Type != JTokenType.Null) {
+                    if (storedFullConfig == null) { storedFullConfig = new JObject(); }
+                    storedFullConfig["jt"] = jt;
+                    persist = true;
+                } else {
+                    persist = storedFullConfig != null && storedFullConfig.Remove("jt");
+                }
+            }
+            if (persist) { PersistStoredConfig(); }
         }
 
         private void MergeAndPersist(JObject env)

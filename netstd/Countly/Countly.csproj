@@ -4,10 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Description>Countly Windows SDK targeting net standard 2.0</Description>
     <Product>Countly SDK</Product>
+    <!-- Fixed at 26.1.0.0 so that assemblies built against Countly 26.1.0 or later, such as Countly.UI.WebView2, load every later version on .NET Framework without binding redirects. FileVersion and Version carry the release. -->
     <AssemblyVersion>26.1.0.0</AssemblyVersion>
     <Copyright>Copyright © Countly 2022</Copyright>
-    <FileVersion>26.1.0.0</FileVersion>
-    <Version>26.1.0</Version>
+    <FileVersion>26.8.0.0</FileVersion>
+    <Version>26.8.0</Version>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>CountlyWinSDKStrongNameKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>

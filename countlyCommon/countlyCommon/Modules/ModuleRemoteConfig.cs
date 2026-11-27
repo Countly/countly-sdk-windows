@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CountlySDK.CountlyCommon.Helpers;
 using CountlySDK.CountlyCommon.Server.Responses;
@@ -13,12 +14,12 @@ namespace CountlySDK.CountlyCommon
     internal class ModuleRemoteConfig : RemoteConfig
     {
         private readonly RequestHelper requestHelper;
-        private readonly string ServerUrl;
+        private readonly Func<string> ServerUrl;
         private IDictionary<string, RCData> rcValues = new Dictionary<string, RCData>();
         private object RCLock = new object();
         private bool AutoEnrollEnabled;
 
-        public ModuleRemoteConfig(RequestHelper requestHelper, string serverUrl, bool autoEnroll)
+        public ModuleRemoteConfig(RequestHelper requestHelper, Func<string> serverUrl, bool autoEnroll)
         {
             this.requestHelper = requestHelper;
             ServerUrl = serverUrl;
@@ -34,13 +35,18 @@ namespace CountlySDK.CountlyCommon
                 { "metrics", Countly.Instance.GetSessionMetrics().ToString() }
             };
 
-            if (keysToInclude != null && keysToInclude.Count > 0)
+            List<string> includeKeys = ValidKeys(keysToInclude);
+            List<string> omitKeys = ValidKeys(keysToOmit);
+            bool fullValueUpdate = true;
+            if (includeKeys.Count > 0)
             {
-                rcParams.Add("keys", keysToInclude);
+                rcParams.Add("keys", JsonConvert.SerializeObject(includeKeys));
+                fullValueUpdate = false;
             }
-            else if (keysToOmit != null && keysToOmit.Count > 0)
+            else if (omitKeys.Count > 0)
             {
-                rcParams.Add("omit_keys", keysToOmit);
+                rcParams.Add("omit_keys", JsonConvert.SerializeObject(omitKeys));
+                fullValueUpdate = false;
             }
 
             if (AutoEnrollEnabled)
@@ -48,16 +54,26 @@ namespace CountlySDK.CountlyCommon
                 rcParams.Add("oi", "1");
             }
 
-            RequestResult requestResult = await Api.Instance.SendDirectRequest(ServerUrl, await requestHelper.BuildRequest(rcParams));
+            string serverUrl = ServerUrl();
+            string appKey = requestHelper.GetAppKey();
+            RequestResult requestResult = await Api.Instance.SendDirectRequest(serverUrl, await requestHelper.BuildRequest(rcParams));
             UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig, got server response code: [" + requestResult.responseCode + "], text: [" + requestResult.responseText + "]");
             if (requestResult.responseCode == 200 && requestResult.responseText != null)
             {
                 try
                 {
                     Dictionary<string, object> newValues = JsonConvert.DeserializeObject<Dictionary<string, object>>(requestResult.responseText);
+                    if (serverUrl != ServerUrl() || appKey != requestHelper.GetAppKey())
+                    {
+                        UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig, the server URL or app key changed during the download, ignoring the answer");
+                        return;
+                    }
                     lock (RCLock)
                     {
-                        rcValues.Clear();
+                        if (fullValueUpdate)
+                        {
+                            rcValues.Clear();
+                        }
                         foreach (KeyValuePair<string, object> kv in newValues)
                         {
                             rcValues[kv.Key] = new RCData
@@ -67,7 +83,7 @@ namespace CountlySDK.CountlyCommon
                             };
                         }
                     }
-                    UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig succeeded, fetched " + rcValues.Count + " keys.");
+                    UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig succeeded, fetched " + newValues.Count + " keys, full value update: [" + fullValueUpdate + "]");
                 }
                 catch (Exception ex)
                 {
@@ -76,8 +92,18 @@ namespace CountlySDK.CountlyCommon
             }
             else
             {
-                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed request is not success ", LogLevel.ERROR);
+                UtilityHelper.CountlyLogging("[ModuleRemoteConfig] FetchRemoteConfig request failed request is not success ");
             }
+        }
+
+        /// <summary>
+        /// The keys of a download call that are neither null nor empty
+        /// </summary>
+        /// <param name="keys">the keys given to the call, or null</param>
+        /// <returns>the valid keys, never null</returns>
+        private static List<string> ValidKeys(List<string> keys)
+        {
+            return keys == null ? new List<string>() : keys.Where(key => !string.IsNullOrEmpty(key)).ToList();
         }
 
         public IDictionary<string, RCData> GetValues()
@@ -94,10 +120,22 @@ namespace CountlySDK.CountlyCommon
             return value;
         }
 
+        /// <summary>
+        /// Removes the downloaded values, when they belong to another app
+        /// </summary>
+        internal void ClearValues()
+        {
+            lock (RCLock)
+            {
+                rcValues.Clear();
+            }
+        }
+
         public async Task EnrollIntoABTestsForKeys(List<string> keys)
         {
             if (keys == null || keys.Count == 0) {
                 UtilityHelper.CountlyLogging("[ModuleRemoteConfig] EnrollIntoABTestsForKeys, no keys provided, ignoring call", LogLevel.WARNING);
+                ModuleHealthCheck.Track("w700");
                 return;
             }
 
@@ -177,11 +215,13 @@ namespace CountlySDK.CountlyCommon
         /// </summary>
         /// <param name="includeKeys">
         /// Optional list of keys to explicitly include in the download.
-        /// When specified, only these keys will be requested.
+        /// When specified, only these keys will be requested, and only the keys the server returns replace
+        /// the stored values; the other stored values stay.
         /// </param>
         /// <param name="omitKeys">
-        /// Optional list of keys to exclude from the download.
-        /// These keys will be ignored even if they exist on the server.
+        /// Optional list of keys to exclude from the download, used when no key to include is given.
+        /// These keys will be ignored even if they exist on the server, and their stored values stay.
+        /// Without valid keys to include or omit, every stored value is replaced by the download.
         /// </param>
         /// <returns>
         /// A task that represents the asynchronous download operation.

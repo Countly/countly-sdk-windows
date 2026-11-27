@@ -44,7 +44,7 @@ namespace CountlySDK
         /// <param name="requestData"></param>
         /// <param name="imageData"></param>
         /// <returns></returns>
-        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null, IDictionary<string, string> customNetworkHeaders = null)
+        protected override async Task<RequestResult> RequestAsync(string address, String requestData = null, Stream imageData = null, IDictionary<string, string> customNetworkHeaders = null, byte[] compressedBody = null)
         {
             Stream dataStream = null;
             RequestResult requestResult = new RequestResult();
@@ -68,7 +68,10 @@ namespace CountlySDK
                     dataStream = imageData;
                 }
 
-                if (requestData != null) {
+                if (compressedBody != null) {
+                    request.ContentType = "application/x-www-form-urlencoded";
+                    dataStream = new MemoryStream(compressedBody);
+                } else if (requestData != null) {
                     request.ContentType = "application/x-www-form-urlencoded";
                     dataStream = UtilityHelper.GenerateStreamFromString(requestData);
                 }
