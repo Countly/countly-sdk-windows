@@ -31,8 +31,11 @@ class ConsumersTest(unittest.TestCase):
 
     def test_frameworks_map_to_the_keys_of_project_assets(self):
         """Frameworks map to the keys of project assets."""
-        self.assertEqual([consumers.framework_key(alias) for alias in ("net35", "net462", "net481", "net8.0", "net8.0-windows")],
-                         [".NETFramework,Version=v3.5", ".NETFramework,Version=v4.6.2", ".NETFramework,Version=v4.8.1", "net8.0", "net8.0-windows7.0"])
+        self.assertEqual([consumers.framework_keys(alias) for alias in ("net35", "net481", "net8.0", "net8.0-windows")],
+                         [["net35", ".NETFramework,Version=v3.5"], ["net481", ".NETFramework,Version=v4.8.1"], ["net8.0"], ["net8.0-windows", "net8.0-windows7.0"]])
+        by_alias = assets({"net35": {"Countly/26.9.0": "lib/net35-full/Countly.dll"}, "net8.0-windows": {"Countly/26.9.0": "lib/netstandard2.0/Countly.dll"}})
+        expectations = {"net35": NET35, "net8.0-windows": {"lib": "lib/netstandard2.0/Countly.dll"}}
+        self.assertEqual(consumers.asset_problems(by_alias, "Countly", "26.9.0", expectations), [])
 
     def test_the_release_package_comes_only_from_the_release_source(self):
         """The release package comes only from the release source."""

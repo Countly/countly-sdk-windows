@@ -17,14 +17,17 @@ DEPENDENCY_SOURCE = "nuget.org"
 PROBE_EVENT = "release_probe"
 
 
-def framework_key(alias):
-    """The key project.assets.json files a target framework under: the full name for .NET Framework, such as
-    .NETFramework,Version=v4.6.2 for net462, the alias with its default platform version for a -windows framework, and
-    the alias itself otherwise."""
+def framework_keys(alias):
+    """The keys project.assets.json may file a target framework under: newer NuGet uses the alias itself, older NuGet
+    the full name for .NET Framework, such as .NETFramework,Version=v4.6.2 for net462, and the alias with its default
+    platform version for a -windows framework."""
+    keys = [alias]
     framework = re.fullmatch(r"net(\d)(\d)(\d?)", alias)
     if framework:
-        return f".NETFramework,Version=v{framework.group(1)}.{framework.group(2)}" + (f".{framework.group(3)}" if framework.group(3) else "")
-    return f"{alias}7.0" if alias.endswith("-windows") else alias
+        keys.append(f".NETFramework,Version=v{framework.group(1)}.{framework.group(2)}" + (f".{framework.group(3)}" if framework.group(3) else ""))
+    if alias.endswith("-windows"):
+        keys.append(f"{alias}7.0")
+    return keys
 
 
 def nuget_config(release_source, dependency_source, package_id, packages_folder):
@@ -82,7 +85,7 @@ def asset_problems(assets, package_id, version, expectations):
     problems = []
     targets = assets.get("targets", {})
     for alias, expected in sorted(expectations.items()):
-        libraries = targets.get(framework_key(alias))
+        libraries = next((targets[key] for key in framework_keys(alias) if key in targets), None)
         if libraries is None:
             problems.append(f"{alias}: the consumer was not restored for it")
             continue
