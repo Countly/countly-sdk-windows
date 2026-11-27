@@ -11,6 +11,11 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
+  <!-- A .NET Framework app built AnyCPU by the .NET SDK runs 64-bit but gets only the x86 WebView2Loader.dll, so WebView2 apps set a platform. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Countly.UI.WebView2" Version="[$(CountlyVersion)]" />
   </ItemGroup>
