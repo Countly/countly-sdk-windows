@@ -3,6 +3,7 @@
 
 import argparse
 import binascii
+import dataclasses
 import base64
 import json
 import os
@@ -112,6 +113,10 @@ def cmd_plan(args):
                 raise PlanError("a production release needs the tag it publishes")
             tag = checkout_tags(config, REPO_ROOT, config["tagRules"][0]["branch"])[0]
         plan = for_target(plan_for_tag(config, tag), args.target, args.run)
+        if args.package_version:
+            if plan.target != "test":
+                raise PlanError("only a test release takes another package version")
+            plan = dataclasses.replace(plan, package_version=args.package_version)
     except PlanError as error:
         finish([str(error)], "Tag")
         return
@@ -124,6 +129,7 @@ def cmd_plan(args):
         "audience": target_feed.get("audience", ""),
         "announce": str(plan.target == "production" and not plan.prerelease).lower(),
         "changelog": config["packages"][plan.packages[0].key].get("changelog", ""),
+        "nuget_user": target_feed.get("user", ""),
     })
     lines = [f"### Plan for {plan.tag}", f"- version {plan.version}{' (release candidate)' if plan.prerelease else ''}", f"- branch {plan.branch}",
              f"- target {plan.target}{' (' + target_feed['name'] + ')' if target_feed else ''}"]
@@ -379,6 +385,11 @@ def cmd_sign(args):
     folder that is removed afterwards, and must be the Countly key."""
     config, plan = read_plan(args.plan)
     encoded = os.environ.get(args.key_env, "")
+    if not encoded.strip() and plan.target == "test":
+        Path(args.manifest).write_bytes(json.dumps(manifest_module.build_manifest(args.staging, plan.tag, args.commit), indent=2).encode("utf-8"))
+        print(f"::warning::{args.key_env} is empty, so the test packages go out delay-signed")
+        summary([f"### Strong-name signatures: skipped, {args.key_env} is empty and this is a test release"])
+        return
     if not encoded.strip():
         finish([f"{args.key_env} is empty: add the strong-name key pair (.snk, base64) as a secret of the publish environment"], "Strong-name signatures")
     work = Path(tempfile.mkdtemp(prefix="countly-sign-"))
@@ -456,7 +467,7 @@ def main(argv=None):
 
     required = {"required": True}
     command("plan", cmd_plan, ("--tag", {"default": ""}), ("--target", {"choices": TARGETS, "required": True}), ("--commit", {"default": ""}),
-            ("--prerelease", {"default": "unknown"}), ("--run", {"default": ""}), ("--out", required))
+            ("--prerelease", {"default": "unknown"}), ("--run", {"default": ""}), ("--package-version", {"default": ""}), ("--out", required))
     command("checkout-tags", cmd_checkout_tags, ("--branch", required))
     command("pending", cmd_pending, ("--head", required), ("--merge", required), ("--branch", required), ("--out", required), ("--notes", required))
     command("check-branch", cmd_check_branch, ("--plan", required), ("--commit", required))

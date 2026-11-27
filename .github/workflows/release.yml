@@ -18,6 +18,8 @@ on:
         description: "who the announcement names as publishing the release; the one starting the run when empty"
         type: string
         default: ""
+  pull_request:
+    types: [labeled]
 
 permissions: {}
 
@@ -27,11 +29,13 @@ concurrency:
   queue: max
 
 env:
-  TARGET: ${{ inputs.target || 'production' }}
+  TARGET: ${{ github.event_name == 'pull_request' && 'test' || inputs.target || 'production' }}
+  TEST_PACKAGE_VERSION: ${{ github.event_name == 'pull_request' && '0.0.1' || '' }}
 
 jobs:
   plan:
     name: Plan and check
+    if: github.event_name != 'pull_request' || github.event.label.name == 'release-test'
     runs-on: ubuntu-24.04
     # checks and actions read the tag commit's check runs and the publish environment's protection rules.
     permissions:
@@ -45,6 +49,7 @@ jobs:
       audience: ${{ steps.plan.outputs.audience }}
       announce: ${{ steps.plan.outputs.announce }}
       changelog: ${{ steps.plan.outputs.changelog }}
+      nuget_user: ${{ steps.plan.outputs.nuget_user }}
     steps:
       - name: Production releases run on a tag
         if: env.TARGET == 'production' && github.ref_type != 'tag'
@@ -69,7 +74,7 @@ jobs:
         env:
           TAG: ${{ env.TARGET == 'production' && github.ref_name || inputs.tag }}
           PRERELEASE: ${{ steps.release.outputs.prerelease || 'unknown' }}
-        run: python3 .github/release/release.py plan --tag "$TAG" --target "$TARGET" --commit "$GITHUB_SHA" --prerelease "$PRERELEASE" --run "$GITHUB_RUN_NUMBER" --out plan.json
+        run: python3 .github/release/release.py plan --tag "$TAG" --target "$TARGET" --commit "$GITHUB_SHA" --prerelease "$PRERELEASE" --run "$GITHUB_RUN_NUMBER" --package-version "$TEST_PACKAGE_VERSION" --out plan.json
       - name: The publish environment requires approval
         if: env.TARGET == 'production'
         env:
@@ -183,7 +188,7 @@ jobs:
         id: login
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
-          user: ${{ vars.NUGET_USER }}
+          user: ${{ vars.NUGET_USER || needs.plan.outputs.nuget_user }}
           token-service-url: ${{ needs.plan.outputs.token_service }}
           audience: ${{ needs.plan.outputs.audience }}
       - name: Push the packages
@@ -219,6 +224,9 @@ jobs:
         run: python .github/release/release.py verify-manifest --manifest signed-manifest.json --staging staged
       - name: The feed serves exactly the pushed packages
         run: python .github/release/release.py verify-public --plan plan.json --staging staged --timeout-minutes 60
+      - name: Let .NET Framework on this runner load delay-signed test packages
+        if: env.TARGET == 'test'
+        run: python .github/release/release.py skip-verification
       - name: Clean projects restore and run the packages from the feed, and the core sends data
         run: python .github/release/release.py consumer --plan plan.json --source feed --work "$env:RUNNER_TEMP/consumers"
 
