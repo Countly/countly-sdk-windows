@@ -35,7 +35,7 @@ env:
 jobs:
   plan:
     name: Plan and check
-    if: github.event_name != 'pull_request' || github.event.label.name == 'release-test'
+    if: github.event_name != 'pull_request' || github.event.label.name == 'release-test' || github.event.label.name == 'release-test-ui'
     runs-on: ubuntu-24.04
     # checks and actions read the tag commit's check runs and the publish environment's protection rules.
     permissions:
@@ -74,7 +74,7 @@ jobs:
       - name: Plan
         id: plan
         env:
-          TAG: ${{ env.TARGET == 'production' && github.ref_name || inputs.tag }}
+          TAG: ${{ env.TARGET == 'production' && github.ref_name || github.event.label.name == 'release-test-ui' && '26.1.0-ui' || inputs.tag }}
           PRERELEASE: ${{ steps.release.outputs.prerelease || 'unknown' }}
         run: python3 .github/release/release.py plan --tag "$TAG" --target "$TARGET" --commit "$GITHUB_SHA" --prerelease "$PRERELEASE" --run "$GITHUB_RUN_NUMBER" --package-version "$TEST_PACKAGE_VERSION" --out plan.json
       - name: The publish environment requires approval
