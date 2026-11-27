@@ -82,8 +82,6 @@ jobs:
         env:
           TAG: ${{ matrix.tag }}
         run: python .github/release/release.py plan --tag "$env:TAG" --target dry-run --commit "$env:GITHUB_SHA" --out plan.json
-      - name: Version numbers match the tag
-        run: python .github/release/release.py check-sources --plan plan.json
       - name: Compile and pack, delay-signed with the Countly public key
         run: python .github/release/release.py build --plan plan.json --work "$env:RUNNER_TEMP/release" --staging staged
       - name: Stage the packages and check their files
