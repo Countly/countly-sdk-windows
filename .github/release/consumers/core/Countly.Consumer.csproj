@@ -12,6 +12,11 @@
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
+  <!-- Only the net35 build may start on the 3.5 runtime; a 4.x build listing it first would fail to load there. -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net35'">
+    <AppConfig>App.net35.config</AppConfig>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Countly" Version="[$(CountlyVersion)]" />
   </ItemGroup>
