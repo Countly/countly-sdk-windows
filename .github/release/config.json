@@ -1,0 +1,85 @@
+{
+  "repository": "Countly/countly-sdk-windows",
+  "feeds": {
+    "production": {
+      "name": "nuget.org",
+      "source": "https://api.nuget.org/v3/index.json",
+      "flatContainer": "https://api.nuget.org/v3-flatcontainer/",
+      "gallery": "https://www.nuget.org/packages/",
+      "tokenService": "https://www.nuget.org/api/v2/token",
+      "audience": "https://www.nuget.org",
+      "environment": "nuget-release"
+    },
+    "test": {
+      "name": "int.nugettest.org",
+      "source": "https://apiint.nugettest.org/v3/index.json",
+      "flatContainer": "https://apiint.nugettest.org/v3-flatcontainer/",
+      "gallery": "https://int.nugettest.org/packages/",
+      "tokenService": "https://int.nugettest.org/api/v2/token",
+      "audience": "https://int.nugettest.org",
+      "environment": "nuget-test"
+    }
+  },
+  "dependencySource": "https://api.nuget.org/v3/index.json",
+  "strongName": {
+    "token": "30fd2b3d8bfe4882",
+    "publicKey": "002400000480000094000000060200000024000052534131000400000100010025195d27927085647b02ddbdd9c8bf60115b418fcde99ecfdfdffbd62aea283ebea6ddc996708e7b63f4d1d5c7cf91752bd0c6f1968521ece389c9b022adfb15c91c2cd73e14973d4551718012a15ad5bed3dcecdf9bd021af4246bbb4f52b00c22d2dbcc53c167fb8127a27c4f0652b2747c8ce48e429116806bc6c1bb292f6"
+  },
+  "requiredChecks": [
+    ".NET analyzers",
+    "Analyze (actions)",
+    "Analyze (csharp)",
+    "Build core (net35 / net45 / netstd)",
+    "Core unit tests (netstd)",
+    "Feedback + UI unit tests (net8.0-windows)"
+  ],
+  "tagRules": [
+    { "tag": "{version}", "branch": "staging", "packages": ["core"] },
+    { "tag": "{version}-ui", "branch": "staging", "packages": ["ui"] }
+  ],
+  "packages": {
+    "core": {
+      "id": "Countly",
+      "contract": ".github/release-contract/countly.json",
+      "consumer": ".github/release/consumers/core",
+      "changelog": "CHANGELOG.md",
+      "versionSources": [
+        { "file": "nuget/Countly.nuspec", "regex": "<version>([^<]+)</version>" },
+        { "file": "countlyCommon/countlyCommon/CountlyBase.cs", "regex": "const string sdkVersion = \"([^\"]+)\"" },
+        { "file": "netstd/Countly/Countly.csproj", "regex": "<Version>([^<]+)</Version>" },
+        { "file": "netstd/Countly/Countly.csproj", "regex": "<FileVersion>([^<]+)</FileVersion>", "form": "file" },
+        { "file": "net35/Countly/Properties/AssemblyInfo.cs", "regex": "^\\[assembly: AssemblyFileVersion\\(\"([^\"]+)\"\\)\\]", "form": "file" },
+        { "file": "net45/Countly/Properties/AssemblyInfo.cs", "regex": "^\\[assembly: AssemblyFileVersion\\(\"([^\"]+)\"\\)\\]", "form": "file" },
+        { "file": "countlyCommon/TestingRelated/TestHelper.cs", "regex": "public static string SDK_VERSION = \"([^\"]+)\"" },
+        { "file": "countlyCommon/TestingRelated/RequestTestCases.cs", "regex": "Assert\\.Equal\\(\"([^\"]+)\", baseParams\\[\"sdk_version\"\\]\\)" }
+      ],
+      "compile": [
+        { "tool": "msbuild", "project": "net35/Countly/Countly.csproj", "packagesConfig": "net35/Countly/packages.config", "packagesDirectory": "net35/packages" },
+        { "tool": "msbuild", "project": "net45/Countly/Countly.csproj", "packagesConfig": "net45/Countly/packages.config", "packagesDirectory": "net45/packages", "referenceAssemblies": "net45" },
+        { "tool": "dotnet", "project": "netstd/Countly/Countly.csproj" }
+      ],
+      "nuspec": "nuget/Countly.nuspec",
+      "layout": [
+        { "path": "lib/net35-full/Countly.dll", "from": "net35/Countly/bin/Release/Countly.dll", "built": true },
+        { "path": "lib/net35-full/Countly.xml", "from": "net35/Countly/bin/Release/Countly.xml", "built": true },
+        { "path": "lib/net45/Countly.dll", "from": "net45/Countly/bin/Release/Countly.dll", "built": true },
+        { "path": "lib/net45/Countly.xml", "from": "net45/Countly/bin/Release/Countly.xml", "built": true },
+        { "path": "lib/netstandard2.0/Countly.dll", "from": "netstd/Countly/bin/Release/netstandard2.0/Countly.dll", "built": true },
+        { "path": "lib/netstandard2.0/Countly.xml", "from": "netstd/Countly/Countly.xml", "built": true },
+        { "path": "docs/readme.md", "from": "nuget/docs/readme.md" }
+      ]
+    },
+    "ui": {
+      "id": "Countly.UI.WebView2",
+      "contract": ".github/release-contract/countly-ui-webview2.json",
+      "consumer": ".github/release/consumers/ui",
+      "changelog": "ui/Countly.UI.WebView2/CHANGELOG.md",
+      "versionSources": [
+        { "file": "ui/Countly.UI.WebView2/Countly.UI.WebView2.csproj", "regex": "<Version>([^<]+)</Version>" },
+        { "file": "ui/Countly.UI.WebView2/Countly.UI.WebView2.csproj", "regex": "<FileVersion>([^<]+)</FileVersion>", "form": "file" }
+      ],
+      "project": "ui/Countly.UI.WebView2/Countly.UI.WebView2.csproj",
+      "packProperties": ["UsePackagedCountly=true"]
+    }
+  }
+}

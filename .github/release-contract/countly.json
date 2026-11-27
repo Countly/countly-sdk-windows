@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "Countly",
+  "assemblyVersion": "26.1.0.0",
+  "files": [
+    "docs/readme.md",
+    "lib/net35-full/Countly.dll",
+    "lib/net35-full/Countly.xml",
+    "lib/net45/Countly.dll",
+    "lib/net45/Countly.xml",
+    "lib/netstandard2.0/Countly.dll",
+    "lib/netstandard2.0/Countly.xml"
+  ],
+  "dependencies": {
+    ".NETFramework3.5": ["AsyncBridge.Net35 0.3.1", "Newtonsoft.Json 13.0.3", "TaskParallelLibrary 1.0.2856"],
+    ".NETFramework4.5": ["Newtonsoft.Json 13.0.3"],
+    ".NETStandard2.0": ["Newtonsoft.Json 13.0.3"]
+  },
+  "frameworkReferences": {},
+  "consumers": {
+    "net35": { "lib": "lib/net35-full/Countly.dll", "sdkName": "csharp-net35" },
+    "net462": { "lib": "lib/net45/Countly.dll", "sdkName": "csharp-net45" },
+    "net8.0": { "lib": "lib/netstandard2.0/Countly.dll", "sdkName": "csharp-netstd" }
+  }
+}

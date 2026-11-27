@@ -37,6 +37,8 @@ Bin
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
+# The release tooling of the workflows, not a build output
+!/.github/release/
 [Rr]eleases/
 x64/
 x86/

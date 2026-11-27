@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- The release tooling passes the contract's frameworks in the environment: a ";" in a command-line property never splits into a list. -->
+    <TargetFrameworks>$(ConsumerFrameworks)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net462;net8.0-windows</TargetFrameworks>
+    <RootNamespace>CountlyConsumer</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Countly.UI.WebView2" Version="[$(CountlyVersion)]" />
+  </ItemGroup>
+</Project>
