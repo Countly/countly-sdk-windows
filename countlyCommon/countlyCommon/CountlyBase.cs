@@ -2302,7 +2302,7 @@ namespace CountlySDK.CountlyCommon
                 Events.Clear();
                 Exceptions.Clear();
                 Sessions.Clear();
-                SaveStoredRequests();
+                _ = SaveStoredRequests();
                 SaveEvents();
                 SaveExceptions();
                 SaveSessions();
@@ -2325,7 +2325,7 @@ namespace CountlySDK.CountlyCommon
                     storedRequest.Request = WithAppKey(storedRequest.Request, AppKey);
                 }
                 count = StoredRequests.Count;
-                SaveStoredRequests();
+                _ = SaveStoredRequests();
             }
             UtilityHelper.CountlyLogging("[CountlyBase] ReplaceAllAppKeysInQueueWithCurrentAppKey, set the current app key in [" + count + "] requests");
         }
@@ -2351,7 +2351,7 @@ namespace CountlySDK.CountlyCommon
                 }
                 removed = StoredRequests.Count - keptRequests.Count;
                 StoredRequests = keptRequests;
-                SaveStoredRequests();
+                _ = SaveStoredRequests();
             }
             UtilityHelper.CountlyLogging("[CountlyBase] RemoveDifferentAppKeysFromQueue, removed [" + removed + "] requests");
         }
