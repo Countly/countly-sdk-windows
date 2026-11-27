@@ -13,6 +13,9 @@ displays.
   if you need to guarantee it. The SDK degrades gracefully (no-ops) when the runtime is absent.
 - `Countly` core package (a matching version is a dependency of this package).
 - .NET Framework 4.6.2+ or .NET 8 (`net462` / `net8.0-windows`), WPF or WinForms.
+- **.NET Framework apps: build for `x86` or `x64`** (`<PlatformTarget>x64</PlatformTarget>`), or keep AnyCPU with
+  "Prefer 32-bit" on. An AnyCPU .NET Framework app built with the .NET SDK runs 64-bit but receives only the
+  x86 `WebView2Loader.dll`, so WebView2 cannot start and the SDK reports the runtime as unavailable.
 
 ## DPI awareness
 
