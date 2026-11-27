@@ -30,7 +30,7 @@ concurrency:
 
 env:
   TARGET: ${{ github.event_name == 'pull_request' && 'test' || inputs.target || 'production' }}
-  TEST_PACKAGE_VERSION: ${{ github.event_name == 'pull_request' && '0.0.1' || '' }}
+  TEST_PACKAGE_VERSION: ${{ github.event_name == 'pull_request' && '0.0.2' || '' }}
 
 jobs:
   plan:
